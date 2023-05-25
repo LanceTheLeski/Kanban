@@ -2,9 +2,9 @@
 {
     public class Swimlane
     {
-        public string Title { get; set; }
+        public int ID { get; set; }
 
-        public int Id { get; set; }
+        public string Title { get; set; }
 
         public bool IsVisible { get; set; } = true;
     }
