@@ -4,6 +4,8 @@ namespace Kanban.Models.CardExtensions
 {
     public class Deadline
     {
+        public int ID { get; set; }
+
         public DeadlineType Type { get; set; }
 
         public DateTime EligeabilityStart { get; set; }

@@ -1,4 +1,6 @@
-﻿namespace Kanban.Models
+﻿using Kanban.Models.CardExtensions;
+
+namespace Kanban.Models
 {
     public class Card
     {
@@ -10,13 +12,15 @@
 
         public Swimlane Swimlane { get; set; }
 
-        public DateTime Deadline { get; set; }
+        public Deadline Deadline { get; set; }
 
-        public CardExtensions.Checklist Checklist { get; set; }
+        public Checklist Checklist { get; set; }
 
-        public IEnumerable<object> RequiredPeople { get; set; }
+        public IEnumerable<int> RequiredPeopleIDs { get; set; }
+        public virtual IEnumerable<object> RequiredPeople { get; set; }
 
-        public IEnumerable<object> OptionalPeople { get; set; }
+        public IEnumerable<int> OptionalPeopleIDs { get; set; }
+        public virtual IEnumerable<object> OptionalPeople { get; set; }
 
         //More complicated - to do much later
         //public object Attachments { get; set; }
@@ -24,6 +28,7 @@
         //More complicated - to do much later
         //public object ChangeLog { get; set; }
 
+        public IEnumerable<int> TagIDs { get; set; }
         public virtual IEnumerable<Tag> Tags { get; set; }
     }
 }
