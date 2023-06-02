@@ -6,6 +6,6 @@
 
         public string Title { get; set; }
 
-        public virtual IEnumerable<Card> Cards { get; set; } 
+        public bool IsVisible { get; set; } = true;
     }
 }

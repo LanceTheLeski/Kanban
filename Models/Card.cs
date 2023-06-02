@@ -23,5 +23,7 @@
 
         //More complicated - to do much later
         //public object ChangeLog { get; set; }
+
+        public virtual IEnumerable<Tag> Tags { get; set; }
     }
 }

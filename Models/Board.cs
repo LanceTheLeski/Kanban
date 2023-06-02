@@ -1,6 +1,4 @@
-﻿using Kanban.Models.Tags;
-
-namespace Kanban.Models
+﻿namespace Kanban.Models
 {
     public class Board
     {
@@ -10,8 +8,10 @@ namespace Kanban.Models
 
         public string Description { get; set; }
 
-        public IEnumerable<Column> Columns { get; set; }
+        public virtual IEnumerable<Column> Columns { get; set; }
 
-        public IEnumerable<Enum> Tags { get; set; }
+        public virtual IEnumerable<Swimlane> Swimlanes { get; set; }
+
+        public virtual IEnumerable<Tag> Tags { get; set; }
     }
 }
