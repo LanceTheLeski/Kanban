@@ -1,4 +1,4 @@
-﻿namespace Kanban.Models.CardExtensions
+﻿namespace Kanban.Models.Board.CardExtensions
 {
     public enum DeadlineType
     {

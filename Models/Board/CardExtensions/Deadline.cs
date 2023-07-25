@@ -1,6 +1,6 @@
 ﻿using RecurrenceCalculator;
 
-namespace Kanban.Models.CardExtensions
+namespace Kanban.Models.Board.CardExtensions
 {
     public class Deadline
     {
@@ -19,5 +19,9 @@ namespace Kanban.Models.CardExtensions
         public DateTime PreferredEnd { get; set; }
 
         public Recurrence? Recurrence { get; set; }
+
+
+
+        public bool IsPastDue { get; set; }
     }
 }

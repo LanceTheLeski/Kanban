@@ -1,4 +1,4 @@
-﻿using Kanban.Models;
+﻿using Kanban.Models.Board;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kanban.Controllers

@@ -1,4 +1,4 @@
-﻿namespace Kanban.Models
+﻿namespace Kanban.Models.Board
 {
     public class Swimlane
     {
