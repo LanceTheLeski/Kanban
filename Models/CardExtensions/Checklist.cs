@@ -1,7 +1,6 @@
-﻿namespace Kanban.Models.CardExtensions
+﻿namespace Kanban.Models.CardExtensions;
+
+public class Checklist
 {
-    public class Checklist
-    {
-        public int ID { get; set; }
-    }
+    public int ID { get; set; }
 }

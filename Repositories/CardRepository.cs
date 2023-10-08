@@ -1,7 +1,6 @@
-﻿namespace Kanban.Repositories
-{
-    public class CardRepository//Singular or plural?
-    {
+﻿namespace Kanban.Repositories;
 
-    }
+public class CardRepository
+{
+
 }

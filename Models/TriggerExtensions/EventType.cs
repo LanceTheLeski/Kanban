@@ -1,5 +1,8 @@
-﻿namespace Kanban.Models.TriggerExtensions
+﻿using System.Text.Json.Serialization;
+
+namespace Kanban.Models.TriggerExtensions
 {
+    [JsonConverter (typeof (JsonConverter))]
     public enum EventType
     {
         Create = 0,
