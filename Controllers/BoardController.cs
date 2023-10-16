@@ -43,13 +43,12 @@ public class BoardController : ControllerBase
         await foreach (var board in boardsFromTable) 
             boardList.Add (board);
 
-        var boardToReturn = boardList.FirstOrDefault ();
-        if (boardToReturn is null) 
-            return StatusCode (StatusCodes.Status404NotFound);
-
-        var columnList = boardToReturn.Columns;
-        var swimlaneList = boardToReturn.Swimlanes;
-        var cardList = boardToReturn.Cards;
+        var columnList = boardList
+            .OrderBy (board => board.ColumnOrder)
+            .Select (board => (board.ColumnTitle, board.ColumnID));
+        var swimlaneList = boardList
+            .OrderBy (board => board.SwimlaneOrder)
+            .Select (board => (board.SwimlaneTitle, board.SwimlaneID));
 
         var boardResponse = new BoardResponse ();
         foreach (var column in columnList)
@@ -57,39 +56,37 @@ public class BoardController : ControllerBase
             var swimlanes = new List<BoardResponse.BasicSwimlane> ();
             foreach (var swimlane in swimlaneList)
             {
-                //var cardsToAdd = swimlane.Cards.SelectMany (swimCard =>
-                //                    column.Cards.Where (colCard => 
-                //                        colCard.ID == swimCard.ID));
+                var cardList = boardList
+                    .Where (board => board.ColumnID == column.ColumnID && board.SwimlaneID == swimlane.SwimlaneID)
+                    .Select (board => (board.CardTitle, board.CardDescription, board.RowKey));
 
                 var cards = new List<BoardResponse.BasicCard> ();
-                //foreach (var card in cardsToAdd)
                 foreach (var card in cardList)
                 {
                     cards.Add (new BoardResponse.BasicCard
                     {
-                        Title = card.Title,
-                        Description = card.Description
+                        ID = card.RowKey,
+                        Title = card.CardTitle,
+                        Description = card.CardDescription
                     });
                 }
 
                 swimlanes.Add (new BoardResponse.BasicSwimlane
                 {
-                    Title = swimlane.Title,
+                    Title = swimlane.SwimlaneTitle,
                     Cards = cards
                 });
             }
 
             boardResponse.Columns.Add (new BoardResponse.BasicColumn
             {
-                Title = column.Title,
+                Title = column.ColumnTitle,
                 Swimlanes = swimlanes
             }); 
         }
-        boardResponse.Swimlanes = boardList.SelectMany (board => 
-                                    board.Swimlanes.Select (swimlane => 
-                                        swimlane.Title))
-                                            .Distinct ()
-                                            .ToList ();
+        boardResponse.Swimlanes = swimlaneList
+            .Select (swimlane => swimlane.SwimlaneTitle)
+            .ToList ();
 
         return StatusCode (StatusCodes.Status200OK, boardResponse);
     }
