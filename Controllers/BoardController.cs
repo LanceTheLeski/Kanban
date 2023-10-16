@@ -27,7 +27,7 @@ public class BoardController : ControllerBase
     public BoardController (IConfiguration configuration)
     {
         _configuration = configuration;
-        _tableServiceClient = new TableServiceClient (@"DefaultEndpointsProtocol=https;AccountName=honubrain;AccountKey=u+mGlfG8dFCbILdHQHWpkpRTS9iDifga40mMg6PV4Rl9ivvQypmHgYwy0Ib1d6DuTST18rtcfpth+AStijA6GA==;EndpointSuffix=core.windows.net");
+        _tableServiceClient = new TableServiceClient (@"");
         _boardTable = _tableServiceClient.GetTableClient (tableName: boards);
         _columnTable = _tableServiceClient.GetTableClient (tableName: columns);
         _swimlaneTable = _tableServiceClient.GetTableClient (tableName: swimlanes);
