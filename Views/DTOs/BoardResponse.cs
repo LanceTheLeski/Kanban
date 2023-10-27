@@ -1,12 +1,14 @@
-﻿namespace Kanban.DTOs;
+﻿namespace Kanban.Views.DTOs;
 
 public class BoardResponse
 {
     public string ID { get; set; }
 
-    public List<BasicColumn> Columns { get; set; } = new List<BasicColumn> ();
+    public string Title { get; set; }
 
-    public List<string> Swimlanes { get; set; } = new List<string> ();
+    public List<BasicColumn> Columns { get; set; } = new List<BasicColumn>();
+
+    public List<string> Swimlanes { get; set; } = new List<string>();
 
     public class BasicColumn
     {

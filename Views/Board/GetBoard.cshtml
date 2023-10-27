@@ -1,0 +1,80 @@
+﻿@using Kanban.Views.DTOs;
+@model BoardResponse
+
+@{
+    ViewData["Title"] = "GetBoard Page";
+}
+
+<div class="text-center">
+    <h1>Board</h1>
+
+    <p>
+        <a>Create New</a>
+    </p>
+    
+    <table class="table">
+        <nav>
+            <ul>
+                <li><a onclick="on()">Add Card</a></li>
+                <li><a>Add Column</a></li>
+                <li><a>Add Swimlane</a></li>
+                <li><a>Add Board</a></li>
+            </ul>
+        </nav>
+        <div id="overlay" title="Click anywhere to escape">
+            <div>
+                <h3>Click anywhere to escape</h3>
+                <form>
+                    <h2>New Card Info</h2>
+                    <input></input>
+                    <input></input>
+                    <button onlick="off()">Close</button>
+                </form>
+            </div>
+        </div>
+
+        <thead>
+            <tr>
+            </tr>
+        </thead>
+        <tbody asp-action="GetBoard">
+            <tr>
+                <th>X</th>
+                @for (var columnIndex = 0; columnIndex < Model.Columns.Count(); columnIndex++)
+                {
+                    <th>
+                        <p>@Model.Columns[columnIndex].Title</p>
+                    </th>
+                }
+            </tr>
+            @for (var columnIndex = 0; columnIndex < Model.Columns.Count(); columnIndex++)
+            {
+                var swimlanes = Model.Columns[columnIndex].Swimlanes;
+                <tr>
+                    <th>@swimlanes[columnIndex].Title</th>
+                    @for (var swimlaneIndex = 0; swimlaneIndex < swimlanes.Count(); swimlaneIndex++)
+                    {
+                        var cards = swimlanes[swimlaneIndex].Cards;
+                        <td>
+                            <ul class="flex-container">
+                                @foreach (var card in cards)
+                                {
+                                    <li class="flex-item">
+                                        <h6>
+                                            @card.Title
+                                        </h6>
+                                        <hr/>
+                                        <p>
+                                            @card.Description
+                                        </p>
+                                        <p>More...</p>
+                                    </li>
+                                }
+                            </ul>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

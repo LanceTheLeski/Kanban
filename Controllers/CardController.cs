@@ -3,18 +3,18 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Kanban.Controllers;
 
-[ApiController]
-[Route ("kanban/cards")]
+//[ApiController]
+//[Route ("kanban/cards")]
 public class CardController : ControllerBase
 {
-    [HttpGet ("getcard")]
+    //[HttpGet ("getcard")]
     public ActionResult GetCard ()
     {
         //todo
         return StatusCode (StatusCodes.Status200OK, new Card ());
     }
 
-    [HttpPost ("createcard")]
+    //[HttpPost ("createcard")]
     public ActionResult CreateCard ()
     {
         //todo

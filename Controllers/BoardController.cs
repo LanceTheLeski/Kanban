@@ -1,14 +1,16 @@
 ﻿using Azure.Data.Tables;
-using Kanban.DTOs;
+using Kanban.Contexts;
 using Kanban.Models;
+using Kanban.Views.DTOs;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System.Linq;
 
 namespace Kanban.Controllers;
 
-[ApiController]
-[Route ("kanban/boards")]
-public class BoardController : ControllerBase
+//[ApiController]
+//[Route ("kanban")]
+public class BoardController : Controller
 {
     private const string boards = "Boards";
     private const string columns = "Columns";
@@ -16,7 +18,6 @@ public class BoardController : ControllerBase
     private const string cards = "Cards";
     private const string tags = "Tags";
 
-    private readonly IConfiguration _configuration;
     private readonly TableServiceClient _tableServiceClient;
     private readonly TableClient _boardTable;
     private readonly TableClient _columnTable;
@@ -24,10 +25,9 @@ public class BoardController : ControllerBase
     private readonly TableClient _cardTable;
     private readonly TableClient _tagTable;
 
-    public BoardController (IConfiguration configuration)
+    public BoardController (IOptions<CosmosOptions> cosmosOptions)
     {
-        _configuration = configuration;
-        _tableServiceClient = new TableServiceClient (@"DefaultEndpointsProtocol=https;AccountName=honubrain;AccountKey=u+mGlfG8dFCbILdHQHWpkpRTS9iDifga40mMg6PV4Rl9ivvQypmHgYwy0Ib1d6DuTST18rtcfpth+AStijA6GA==;EndpointSuffix=core.windows.net");
+        _tableServiceClient = new TableServiceClient (cosmosOptions.Value.HonuBoards);
         _boardTable = _tableServiceClient.GetTableClient (tableName: boards);
         _columnTable = _tableServiceClient.GetTableClient (tableName: columns);
         _swimlaneTable = _tableServiceClient.GetTableClient (tableName: swimlanes);
@@ -35,11 +35,11 @@ public class BoardController : ControllerBase
         _tagTable = _tableServiceClient.GetTableClient (tableName: tags);
     }
 
-    [HttpGet ("getboard/{ID:guid}")]
-    public async Task<ActionResult> GetBoardAsync (Guid ID)
+    //[HttpGet ("getboard/{ID:guid}")]
+    public async Task<ActionResult> GetBoard (Guid ID)
     {
         var boardList = new List<Board> ();
-        var boardsFromTable = _boardTable.QueryAsync<Board> (board => board.PartitionKey == ID.ToString ());
+        var boardsFromTable = _boardTable.QueryAsync<Board> (board => board.PartitionKey == @"20a88077-10d4-4648-92cb-7dc7ba5b8df5");
         await foreach (var board in boardsFromTable) 
             boardList.Add (board);
 
@@ -88,10 +88,11 @@ public class BoardController : ControllerBase
             .Select (swimlane => swimlane.SwimlaneTitle)
             .ToList ();
 
-        return StatusCode (StatusCodes.Status200OK, boardResponse);
+        return View (boardResponse);
+        //return StatusCode (StatusCodes.Status200OK, boardResponse);
     }
 
-    [HttpPost ("createboard")]
+    //[HttpPost ("createboard")]
     public ActionResult CreateBoard ()
     {
         //todo
@@ -102,28 +103,28 @@ public class BoardController : ControllerBase
         return StatusCode (StatusCodes.Status418ImATeapot);
     }
 
-    [HttpGet ("getcolumn/{ID:guid}")]
+    //[HttpGet ("getcolumn/{ID:guid}")]
     public ActionResult GetColumn (Guid ID)
     {
         //todo
         return StatusCode (StatusCodes.Status200OK, new Column ());
     }
 
-    [HttpPost ("createcolumn")]
+    //[HttpPost ("createcolumn")]
     public ActionResult CreateColumn ()
     {
         //todo
         return StatusCode (StatusCodes.Status418ImATeapot);
     }
 
-    [HttpGet ("getswimlane")]
+    //[HttpGet ("getswimlane")]
     public ActionResult GetSwimlane ()
     {
         //todo
         return StatusCode (StatusCodes.Status200OK, new Swimlane ());
     }
 
-    [HttpPost ("createswimlane")]
+    //[HttpPost ("createswimlane")]
     public ActionResult CreateSwimlane ()
     {
         //todo
