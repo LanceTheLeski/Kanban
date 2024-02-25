@@ -1,8 +1,10 @@
 using Kanban.Contexts;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder (args);
 
 // Add services to the container.
+builder.Services.AddMudServices ();
 
 //builder.Services.AddControllers();
 builder.Services.AddControllersWithViews();

@@ -33,48 +33,50 @@
             </div>
         </div>
 
-        <thead>
-            <tr>
-            </tr>
-        </thead>
-        <tbody asp-action="GetBoard">
-            <tr>
-                <th>X</th>
-                @for (var columnIndex = 0; columnIndex < Model.Columns.Count(); columnIndex++)
-                {
-                    <th>
-                        <p>@Model.Columns[columnIndex].Title</p>
-                    </th>
-                }
-            </tr>
-            @for (var columnIndex = 0; columnIndex < Model.Columns.Count(); columnIndex++)
-            {
-                var swimlanes = Model.Columns[columnIndex].Swimlanes;
-                <tr>
-                    <th>@swimlanes[columnIndex].Title</th>
-                    @for (var swimlaneIndex = 0; swimlaneIndex < swimlanes.Count(); swimlaneIndex++)
-                    {
-                        var cards = swimlanes[swimlaneIndex].Cards;
-                        <td>
-                            <ul class="flex-container">
-                                @foreach (var card in cards)
-                                {
-                                    <li class="flex-item">
-                                        <h6>
-                                            @card.Title
-                                        </h6>
-                                        <hr/>
-                                        <p>
-                                            @card.Description
-                                        </p>
-                                        <p>More...</p>
-                                    </li>
-                                }
-                            </ul>
-                        </td>
-                    }
-                </tr>
-            }
-        </tbody>
-    </table>
+        <MudGrid Style="background-color: lightblue" Spacing="0">
+    <MudItem xs="12">
+        <MudPaper Class="d-flex align-center justify-center mud-width-full mud-theme-primary py-8 px-8 rounded-0">
+            <MudGrid Spacing="3">
+                <MudItem xs="12">
+                    <MudPaper Class="d-flex align-center justify-center mud-width-full py-3">
+                        Item 1
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudPaper Class="d-flex align-center justify-center mud-width-full py-3">
+                        Item 1.5
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="4">
+                    <MudPaper Class="d-flex align-center justify-center mud-width-full">
+                        Item 2
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="2">
+                    <MudPaper Class="d-flex align-center justify-center mud-width-full">
+                        Item 3
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="4">
+        <MudPaper Class="d-flex align-center justify-center mud-width-full">xs=6</MudPaper>
+    </MudItem>
+    <MudItem xs="6">
+        <MudPaper Class="d-flex align-center justify-center mud-width-full">xs=6</MudPaper>
+    </MudItem>
+    <MudItem xs="3">
+        <MudPaper Class="d-flex align-center justify-center">xs=3</MudPaper>
+    </MudItem>
+    <MudItem xs="3">
+        <MudPaper Class="d-flex align-center justify-center mud-width-full py-8">xs=3</MudPaper>
+    </MudItem>
+    <MudItem xs="2">
+        <MudPaper Class="d-flex align-center justify-center mud-width-full py-8">xs=3</MudPaper>
+    </MudItem>
+    <MudItem xs="3">
+        <MudPaper Class="d-flex align-center justify-center mud-width-full py-8">xs=3</MudPaper>
+    </MudItem>
+</MudGrid>
 </div>
