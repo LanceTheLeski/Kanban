@@ -4,7 +4,6 @@ using Kanban.Models;
 using Kanban.Views.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using System.Linq;
 
 namespace Kanban.Controllers;
 

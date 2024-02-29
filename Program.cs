@@ -1,9 +1,13 @@
+using Kanban.Components;
 using Kanban.Contexts;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder (args);
 
 // Add services to the container.
+builder.Services.AddRazorComponents ()
+                .AddInteractiveServerComponents ();
+
 builder.Services.AddMudServices ();
 
 //builder.Services.AddControllers();
@@ -43,5 +47,10 @@ app.MapControllers ();
 app.MapControllerRoute(
 	name: "default",
 	pattern: "{controller=Board}/{action=GetBoard}");
+
+app.UseAntiforgery ();
+
+app.MapRazorComponents<App> ()
+   .AddInteractiveServerRenderMode ();
 
 app.Run ();
