@@ -1,5 +1,7 @@
 ﻿@using Kanban.Components.DTOs
 
+@rendermode RenderMode.InteractiveServer
+
 <MudGrid Class="d-flex flex-column" Style="background-color: lightblue" Spacing="0">
     <MudItem>
         <MudPaper Height="75px" Style="background-color: yellowgreen">
@@ -7,7 +9,7 @@
                 <MudItem>
                     <MudPaper Width="120px">X</MudPaper>
                 </MudItem>
-                @foreach (var rowIndex in Enumerable.Range(1, 4))
+                @foreach (var rowIndex in Enumerable.Range (1, _cards.Select (card => card.RowNumber).Distinct ().Count ()))
                 {
                     <MudItem>
                         <MudPaper Width="150px" Style="background-color: darkturquoise" Class="align-self-center">Column Index: @rowIndex</MudPaper>
@@ -16,27 +18,27 @@
             </MudGrid>
         </MudPaper>
     </MudItem>
-    <MudDropContainer T="DropCard" Items="_cards.SelectMany(list => list).SelectMany(list => list)" ItemDropped="ItemUpdated">
+    <MudDropContainer T="DropCard" Items="_cards" ItemDropped="ItemUpdated" ItemsSelector="@((card, dropzone) => card.CardArea == dropzone)">
         <ChildContent>
             <!--Can convert the below loop and rowList loop to Range of numbers like above... That would probable be better?-->
-            @foreach (var columnList in _cards)
+            @foreach (var columnIndex in Enumerable.Range(0, _cards.Select(card => card.ColumnNumber).Distinct().Count()))
             {
                 <MudItem>
                     <MudPaper Height="250px" Style="background-color: wheat">
                         <MudGrid>
                             <MudItem>
-                                <MudPaper Width="120px" Style="background-color: lightcoral" Class="align-self-center">Row Index: @_cards.IndexOf(columnList)</MudPaper>
+                                <MudPaper Width="120px" Style="background-color: lightcoral" Class="align-self-center">Row Index: @columnIndex</MudPaper>
                             </MudItem>
 
-                            @foreach (var rowList in columnList)
+                            @foreach (var rowIndex in Enumerable.Range (0, _cards.Select (card => card.RowNumber).Distinct ().Count ()))
                             {
-                                var identifier = _cards.IndexOf(columnList) + "_" + columnList.IndexOf(rowList);
-                                <MudItem>
+                                var identifier = columnIndex + "_" + rowIndex;
+                                <MudItem Style="height: 250px;">
+                                    <MudList Clickable="true" Class="d-flex flex-column mud-height-full" Style="height: 250px;">
                                     <!--We want columns to have a set width-->
                                     <!--This paper is important and will hold all fot he cards. There will have to be ways of expanding and moving cards between theses.-->
-                                    <MudPaper Class="d-flex flex-wrap justify-space-around gap-4 pa-2 overflow-auto" Width="150px" Height="200px" Elevation="0" Style="background-color: cornflowerblue">
-                                        <MudDropZone T="DropCard" Identifier="@identifier"/>
-                                    </MudPaper>
+                                        <MudDropZone CanDrop="@((dropcard) => true)" T="DropCard" Identifier="@identifier" CanDropClass="mud-border-success" Style="background-color: cornflowerblue; width: 150px; height: 200px;" Class="d-flex flex-wrap flex-grow-1 justify-space-around gap-4 pa-2 overflow-auto" />
+                                    </MudList>
                                 </MudItem>
                             }
                         </MudGrid>
@@ -45,9 +47,8 @@
             }
         </ChildContent>
         <ItemRenderer>
-            <MudButton OnClick="OpenOverlay" Variant="Variant.Outlined" Style="width: 100px; height: 100px; background-color: lightyellow">
-                <MudPaper Class="object-fill" Style="background-color: transparent">@context.Title</MudPaper>
-            </MudButton>
+            <!--Might want ListItem or something like thar?-->
+            <MudListItem Style="width: 100px; height: 100px; background-color: lightyellow" Text="@context.Title"/>
         </ItemRenderer>
     </MudDropContainer>
 </MudGrid>
@@ -55,7 +56,29 @@
 <MudOverlay @bind-Visible="overlayIsVisible" DarkBackground="true" ZIndex="100" AutoClose="true"/>
 
 @code
+{
+    private void ItemUpdated (MudItemDropInfo<DropItem> dropItem)
     {
+        dropItem.Item.Selector = dropItem.DropzoneIdentifier;
+    }
+
+    private List<DropItem> _items = new ()
+    {
+        new DropItem(){ Name = "Item 1", Selector = "1" },
+        new DropItem(){ Name = "Item 2", Selector = "1" },
+        new DropItem(){ Name = "Item 3", Selector = "1" },
+        new DropItem(){ Name = "Item 4", Selector = "2" },
+        new DropItem(){ Name = "Item 5", Selector = "2" },
+    };
+
+    public class DropItem
+    {
+        public string Name { get; init; }
+        public string Selector { get; set; }
+    }
+
+    //Above is copied code I'm testing
+
     private void ItemUpdated(MudItemDropInfo<DropCard> cardToUpdate)
     {
         cardToUpdate.Item.CardArea = cardToUpdate.DropzoneIdentifier;
@@ -75,72 +98,31 @@
     int _columnNumber = 3;
     int _rowNumber = 4;
 
-    List<List<List<DropCard>>> _cards = new List<List<List<DropCard>>>
+    List<DropCard> _cards = new List<DropCard>
     {
-        new List<List<DropCard>>
-        {
-            new List<DropCard>
-            {
-                new DropCard { Title = "Card 1", ColumnNumber = 0, RowNumber = 0, CardArea = "0_0" },
-                new DropCard { Title = "Card 2", ColumnNumber = 0, RowNumber = 0, CardArea = "0_0" },
-                new DropCard { Title = "Card 3", ColumnNumber = 0, RowNumber = 0, CardArea = "0_0" }
-            },
-            new List<DropCard>
-            {
-                new DropCard { Title = "Card a", ColumnNumber = 0, RowNumber = 1, CardArea = "0_1" },
-                new DropCard { Title = "Card b", ColumnNumber = 0, RowNumber = 1, CardArea = "0_1" },
-                new DropCard { Title = "Card c", ColumnNumber = 0, RowNumber = 1, CardArea = "0_1" }
-            },
-            new List<DropCard>
-            {
-                new DropCard { Title = "Card u", ColumnNumber = 0, RowNumber = 2, CardArea = "0_2" },
-                new DropCard { Title = "Card u", ColumnNumber = 0, RowNumber = 2, CardArea = "0_2" }
-            },
-            new List<DropCard> 
-            { }
-        },
-        new List<List<DropCard>>
-        {
-            new List<DropCard>
-            {
-                new DropCard { Title = "Card v", ColumnNumber = 1, RowNumber = 0, CardArea = "1_0" }
-            },
-            new List<DropCard>
-            { },
-            new List<DropCard>
-            {
-                new DropCard { Title = "Card 1", ColumnNumber = 1, RowNumber = 2, CardArea = "1_2" },
-                new DropCard { Title = "Card 2", ColumnNumber = 1, RowNumber = 2, CardArea = "1_2" },
-                new DropCard { Title = "Card 3", ColumnNumber = 1, RowNumber = 2, CardArea = "1_2" }
-            },
-            new List<DropCard>
-            {
-                new DropCard { Title = "Card d", ColumnNumber = 1, RowNumber = 3, CardArea = "1_3" },
-                new DropCard { Title = "Card e", ColumnNumber = 1, RowNumber = 3, CardArea = "1_3" },
-                new DropCard { Title = "Card f", ColumnNumber = 1, RowNumber = 3, CardArea = "1_3" }
-            }
-        },
-        new List<List<DropCard>>
-        {
-            new List<DropCard>
-            {
-                new DropCard { Title = "Card 1", ColumnNumber = 2, RowNumber = 0, CardArea = "2_0" },
-                new DropCard { Title = "Card 2", ColumnNumber = 2, RowNumber = 0, CardArea = "2_0" },
-                new DropCard { Title = "Card 3", ColumnNumber = 2, RowNumber = 0, CardArea = "2_0" }
-            },
-            new List<DropCard>
-            {
-                new DropCard { Title = "Card l", ColumnNumber = 2, RowNumber = 1, CardArea = "2_1" },
-                new DropCard { Title = "Card a", ColumnNumber = 2, RowNumber = 1, CardArea = "2_1" },
-                new DropCard { Title = "Card n", ColumnNumber = 2, RowNumber = 1, CardArea = "2_1" },
-                new DropCard { Title = "Card c", ColumnNumber = 2, RowNumber = 1, CardArea = "2_1" },
-                new DropCard { Title = "Card e", ColumnNumber = 2, RowNumber = 1, CardArea = "2_1" },
-                new DropCard { Title = "Card l", ColumnNumber = 2, RowNumber = 1, CardArea = "2_1" }
-            },
-            new List<DropCard>
-            { },
-            new List<DropCard>
-            { }
-        }
+        new DropCard { Title = "Card 1", ColumnNumber = 0, RowNumber = 0, CardArea = "0_0" },
+        new DropCard { Title = "Card 2", ColumnNumber = 0, RowNumber = 0, CardArea = "0_0" },
+        new DropCard { Title = "Card 3", ColumnNumber = 0, RowNumber = 0, CardArea = "0_0" },
+        new DropCard { Title = "Card a", ColumnNumber = 0, RowNumber = 1, CardArea = "0_1" },
+        new DropCard { Title = "Card b", ColumnNumber = 0, RowNumber = 1, CardArea = "0_1" },
+        new DropCard { Title = "Card c", ColumnNumber = 0, RowNumber = 1, CardArea = "0_1" },
+        new DropCard { Title = "Card u", ColumnNumber = 0, RowNumber = 2, CardArea = "0_2" },
+        new DropCard { Title = "Card u", ColumnNumber = 0, RowNumber = 2, CardArea = "0_2" },
+        new DropCard { Title = "Card v", ColumnNumber = 1, RowNumber = 0, CardArea = "1_0" },
+        new DropCard { Title = "Card 1", ColumnNumber = 1, RowNumber = 2, CardArea = "1_2" },
+        new DropCard { Title = "Card 2", ColumnNumber = 1, RowNumber = 2, CardArea = "1_2" },
+        new DropCard { Title = "Card 3", ColumnNumber = 1, RowNumber = 2, CardArea = "1_2" },
+        new DropCard { Title = "Card d", ColumnNumber = 1, RowNumber = 3, CardArea = "1_3" },
+        new DropCard { Title = "Card e", ColumnNumber = 1, RowNumber = 3, CardArea = "1_3" },
+        new DropCard { Title = "Card f", ColumnNumber = 1, RowNumber = 3, CardArea = "1_3" },
+        new DropCard { Title = "Card 1", ColumnNumber = 2, RowNumber = 0, CardArea = "2_0" },
+        new DropCard { Title = "Card 2", ColumnNumber = 2, RowNumber = 0, CardArea = "2_0" },
+        new DropCard { Title = "Card 3", ColumnNumber = 2, RowNumber = 0, CardArea = "2_0" },
+        new DropCard { Title = "Card l", ColumnNumber = 2, RowNumber = 1, CardArea = "2_1" },
+        new DropCard { Title = "Card a", ColumnNumber = 2, RowNumber = 1, CardArea = "2_1" },
+        new DropCard { Title = "Card n", ColumnNumber = 2, RowNumber = 1, CardArea = "2_1" },
+        new DropCard { Title = "Card c", ColumnNumber = 2, RowNumber = 1, CardArea = "2_1" },
+        new DropCard { Title = "Card e", ColumnNumber = 2, RowNumber = 1, CardArea = "2_1" },
+        new DropCard { Title = "Card l", ColumnNumber = 2, RowNumber = 1, CardArea = "2_1" }
     };
 }
