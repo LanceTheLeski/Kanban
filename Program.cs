@@ -14,9 +14,10 @@ builder.Services.AddMudServices ();
 builder.Services.AddControllersWithViews();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer ();
+builder.Services.AddEndpointsApiExplorer ();//I think Swagger can be removed soon
 //builder.Services.AddCors ();
-builder.Services.AddSwaggerGen ();
+builder.Services.AddSwaggerGen ();//I think Swagger can be removed soon
+builder.Services.AddHttpClient ();
 
 builder.Services.Configure<CosmosOptions> (builder.Configuration.GetSection ("Cosmos"));
 
@@ -46,7 +47,7 @@ app.UseRouting();
 app.MapControllers ();
 app.MapControllerRoute(
 	name: "default",
-	pattern: "{controller=Board}/{action=GetBoard}");
+	pattern: "{controller=Board}/{action=GetBoard}");//This needs to be adjust for Blazor soon
 
 app.UseAntiforgery ();
 

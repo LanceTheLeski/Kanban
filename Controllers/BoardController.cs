@@ -1,14 +1,14 @@
 ﻿using Azure.Data.Tables;
+using Kanban.Components.DTOs;
 using Kanban.Contexts;
 using Kanban.Models;
-using Kanban.Views.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
 namespace Kanban.Controllers;
 
-//[ApiController]
-//[Route ("kanban")]
+[ApiController]
+[Route ("kanban")]
 public class BoardController : Controller
 {
     private const string boards = "Boards";
@@ -34,7 +34,7 @@ public class BoardController : Controller
         _tagTable = _tableServiceClient.GetTableClient (tableName: tags);
     }
 
-    //[HttpGet ("getboard/{ID:guid}")]
+    [HttpGet ("getboard/{ID:guid}")]
     public async Task<ActionResult> GetBoard (Guid ID)
     {
         var boardList = new List<Board> ();
@@ -87,7 +87,7 @@ public class BoardController : Controller
             .Select (swimlane => swimlane.SwimlaneTitle)
             .ToList ();
 
-        return View (boardResponse);
+        return Ok (boardResponse);
         //return StatusCode (StatusCodes.Status200OK, boardResponse);
     }
 

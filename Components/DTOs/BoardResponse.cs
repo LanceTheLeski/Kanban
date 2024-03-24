@@ -1,4 +1,4 @@
-﻿namespace Kanban.Views.DTOs;
+﻿namespace Kanban.Components.DTOs;
 
 public class BoardResponse
 {
