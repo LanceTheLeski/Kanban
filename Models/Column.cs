@@ -17,6 +17,8 @@ public class Column : ITableEntity
 
     public string Title { get; set; }
 
+    public int ColumnOrder { get; set; }
+
     public bool IsVisible { get; set; } = true;
 
     //public IEnumerable<int> TagIDs { get; set; }

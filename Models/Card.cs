@@ -1,6 +1,5 @@
 ﻿using Azure.Data.Tables;
 using Azure;
-using Kanban.Models.CardExtensions;
 
 namespace Kanban.Models;
 

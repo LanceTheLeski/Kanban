@@ -44,10 +44,10 @@ public class BoardController : Controller
 
         var columnList = boardList
             .OrderBy (board => board.ColumnOrder)
-            .Select (board => (board.ColumnTitle, board.ColumnID));
+            .Select (board => (board.ColumnTitle, board.ColumnID, board.ColumnOrder));
         var swimlaneList = boardList
             .OrderBy (board => board.SwimlaneOrder)
-            .Select (board => (board.SwimlaneTitle, board.SwimlaneID));
+            .Select (board => (board.SwimlaneTitle, board.SwimlaneID, board.SwimlaneOrder));
 
         var boardResponse = new BoardResponse ();
         foreach (var column in columnList)
@@ -72,20 +72,21 @@ public class BoardController : Controller
 
                 swimlanes.Add (new BoardResponse.BasicSwimlane
                 {
+                    ID = swimlane.SwimlaneID.ToString (),
                     Title = swimlane.SwimlaneTitle,
+                    Order = swimlane.SwimlaneOrder,
                     Cards = cards
                 });
             }
 
             boardResponse.Columns.Add (new BoardResponse.BasicColumn
             {
+                ID = column.ColumnID.ToString (),
                 Title = column.ColumnTitle,
+                Order = column.ColumnOrder,
                 Swimlanes = swimlanes
             }); 
         }
-        boardResponse.Swimlanes = swimlaneList
-            .Select (swimlane => swimlane.SwimlaneTitle)
-            .ToList ();
 
         return Ok (boardResponse);
         //return StatusCode (StatusCodes.Status200OK, boardResponse);

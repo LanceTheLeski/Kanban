@@ -8,13 +8,13 @@ public class BoardResponse
 
     public List<BasicColumn> Columns { get; set; } = new List<BasicColumn>();
 
-    public List<string> Swimlanes { get; set; } = new List<string>();
-
     public class BasicColumn
     {
         public string ID { get; set; }
 
         public string Title { get; set; }
+
+        public int Order { get; set; }
 
         public List<BasicSwimlane> Swimlanes { get; set; }
     }
@@ -24,6 +24,8 @@ public class BoardResponse
         public string ID { get; set; }
 
         public string Title { get; set; }
+
+        public int Order { get; set; }
 
         public List<BasicCard> Cards { get; set; }
     }

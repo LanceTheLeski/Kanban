@@ -12,7 +12,7 @@
     <MudButton OnClick="OpenSwimlaneOverlay">Add/Edit Swimlane</MudButton>
     <MudButton OnClick="OpenColumnOverlay">Add/Edit Column</MudButton>
     <MudButton OnClick="OpenBoardOverlay">Edit Board</MudButton>
-    <MudButton>String: @tempString</MudButton>
+    <MudButton OnClick="Troubleshoot">Custom Text: @TroubleshootText</MudButton>
 </MudPaper>
 <MudGrid Class="d-flex flex-column" Style="background-color: lightblue" Spacing="0">
     <MudItem>
@@ -21,10 +21,10 @@
                 <MudItem>
                     <MudPaper Width="120px">X</MudPaper>
                 </MudItem>
-                @foreach (var rowIndex in Enumerable.Range (1, _cards.Select (card => card.RowNumber).Distinct ().Count ()))
+                @foreach (var swimlaneIndex in Enumerable.Range (1, _cards.Select (card => card.SwimlaneNumber).Distinct ().Count ()))
                 {
                     <MudItem>
-                        <MudPaper Width="150px" Style="background-color: darkturquoise" Class="align-self-center">Column Index: @rowIndex</MudPaper>
+                        <MudPaper Width="150px" Style="background-color: darkturquoise" Class="align-self-center">Column Index: @swimlaneIndex</MudPaper>
                     </MudItem>
                 }
             </MudGrid>
@@ -33,7 +33,7 @@
     <MudDropContainer T="DropCard" Items="_cards" ItemDropped="ItemUpdated" ItemsSelector="@((card, dropzone) => card.CardArea == dropzone)">
         <ChildContent>
             <!--Can convert the below loop and rowList loop to Range of numbers like above... That would probable be better?-->
-            @foreach (var columnIndex in Enumerable.Range(0, _cards.Select(card => card.ColumnNumber).Distinct().Count()))
+            @foreach (var columnIndex in Enumerable.Range(0, _cards.Select(card => card.ColumnNumber).Distinct ().Count()))
             {
                 <MudItem>
                     <MudPaper Height="250px" Style="background-color: wheat">
@@ -42,9 +42,9 @@
                                 <MudPaper Width="120px" Style="background-color: lightcoral" Class="align-self-center">Row Index: @columnIndex</MudPaper>
                             </MudItem>
 
-                            @foreach (var rowIndex in Enumerable.Range (0, _cards.Select (card => card.RowNumber).Distinct ().Count ()))
+                            @foreach (var swimlaneIndex in Enumerable.Range (0, _cards.Select (card => card.SwimlaneNumber).Distinct ().Count ()))
                             {
-                                var identifier = columnIndex + "_" + rowIndex;
+                                var identifier = columnIndex + "_" + swimlaneIndex;
                                 <MudItem Style="height: 250px;">
                                     <MudList Clickable="true" Class="d-flex flex-column mud-height-full" Style="height: 250px;">
                                     <!--We want columns to have a set width-->
@@ -142,24 +142,30 @@
 </MudOverlay>
 
 @code
-{
+ {
     //On page load:
     protected override async Task OnInitializedAsync ()
     {
-        //Make async one day..
         var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, @$"{NavigationManager.BaseUri}kanban/getboard/20a88077-10d4-4648-92cb-7dc7ba5b8df5");
 
         var response = await http.SendAsync (httpRequestMessage);
+        var responseBody = await response.Content.ReadAsStringAsync ();
         if (response.IsSuccessStatusCode)
         {
-            var responseBody = await response.Content.ReadAsStringAsync ();
             var deserialized = JsonConvert.DeserializeObject<BoardResponse> (responseBody);
 
-            tempString = deserialized.Columns.FirstOrDefault()?.Title;
+            TroubleshootText = deserialized.Columns.FirstOrDefault()?.Title; //Works!!
+
+            _cards = ConvertBoardResponseToDropCardList (deserialized);
         }
     }
 
-    public string tempString = "...Loading...";
+    public string TroubleshootText = "...Loading...";
+
+    public void Troubleshoot ()
+    {
+
+    }
 
     public Card cardSelected = null;
 
@@ -180,9 +186,46 @@
 
     }
 
-    private void ItemUpdated(MudItemDropInfo<DropCard> cardToUpdate)
+    private void ItemUpdated (MudItemDropInfo<DropCard> cardToUpdate)
     {
         cardToUpdate.Item.CardArea = cardToUpdate.DropzoneIdentifier;
+
+        var newCardArea = ConvertCardAreaToColumnAndSwimlane (cardToUpdate.Item.CardArea);
+        cardToUpdate.Item.ColumnID = _columns [newCardArea.columnPos];
+        cardToUpdate.Item.ColumnName = _columnTitles [newCardArea.columnPos];
+        cardToUpdate.Item.ColumnNumber = newCardArea.columnPos;
+        cardToUpdate.Item.SwimlaneID = _swimlanes [newCardArea.swimlanePos];
+        cardToUpdate.Item.SwimlaneName = _swimlaneTitles [newCardArea.swimlanePos];
+        cardToUpdate.Item.SwimlaneNumber = newCardArea.swimlanePos;
+
+        var cardResponse = Task.Run(() => 
+            SendPatchRequest (cardToUpdate.Item)).Result;
+    }
+
+    private async Task<CardResponse?> SendPatchRequest (DropCard cardToUpdate)
+    {
+        var patchRequest = $@"[
+            {{ ""op"": ""replace"", ""path"": ""/ColumnID"", ""value"": ""{cardToUpdate.ColumnID}"" }}, 
+            {{ ""op"": ""replace"", ""path"": ""/ColumnName"", ""value"": ""{cardToUpdate.ColumnName}"" }},
+            {{ ""op"": ""replace"", ""path"": ""/SwimlaneID"", ""value"": ""{cardToUpdate.SwimlaneID}"" }},
+            {{ ""op"": ""replace"", ""path"": ""/SwimlaneName"", ""value"": ""{cardToUpdate.SwimlaneName}"" }}
+        ]";
+
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{NavigationManager.BaseUri}kanban/cards/updatecard/{cardToUpdate.Id}");
+        httpRequestMessage.Content = new StringContent (patchRequest);
+
+        var response = await http.SendAsync (httpRequestMessage);
+        if (response.IsSuccessStatusCode)
+        {
+            var responseBody = await response.Content.ReadAsStringAsync ();
+            var deserialized = JsonConvert.DeserializeObject<CardResponse> (responseBody);
+
+            //tempString = deserialized.Columns.FirstOrDefault ()?.Title; //Works!!
+
+            return deserialized;
+        }
+
+        return null;
     }
 
     public class DropCard : Card
@@ -198,11 +241,11 @@
     }
 
     public bool cardOverlayIsVisible = false;
-    public void OpenCardOverlay()
+    public void OpenCardOverlay ()
     {
         cardOverlayIsVisible = true;
     }
-    public void CloseCardOverlay()
+    public void CloseCardOverlay ()
     {
         cardOverlayIsVisible = false;
     }
@@ -247,31 +290,70 @@
         calendarOverlayIsVisible = false;
     }
 
-    List<DropCard> _cards = new List<DropCard>
+    private (int columnPos, int swimlanePos) ConvertCardAreaToColumnAndSwimlane(string cardAreaValue)
     {
-        new DropCard { Title = "Card 1", Description = "Words words wrods words words words elephants", ColumnNumber = 0, RowNumber = 0, CardArea = "0_0" },
-        new DropCard { Title = "Card 2", Description = "Words words wrods words words words elephants", ColumnNumber = 0, RowNumber = 0, CardArea = "0_0" },
-        new DropCard { Title = "Card 3", Description = "Words words wrods words words words elephants", ColumnNumber = 0, RowNumber = 0, CardArea = "0_0" },
-        new DropCard { Title = "Card a", Description = "Words words wrods words words words elephants", ColumnNumber = 0, RowNumber = 1, CardArea = "0_1" },
-        new DropCard { Title = "Card b", Description = "Words words wrods words words words elephants", ColumnNumber = 0, RowNumber = 1, CardArea = "0_1" },
-        new DropCard { Title = "Card c", Description = "Words words wrods words words words elephants", ColumnNumber = 0, RowNumber = 1, CardArea = "0_1" },
-        new DropCard { Title = "Card u", Description = "Words words wrods words words words elephants", ColumnNumber = 0, RowNumber = 2, CardArea = "0_2" },
-        new DropCard { Title = "Card u", Description = "Words words wrods words words words elephants", ColumnNumber = 0, RowNumber = 2, CardArea = "0_2" },
-        new DropCard { Title = "Card v", Description = "Words words wrods words words words elephants", ColumnNumber = 1, RowNumber = 0, CardArea = "1_0" },
-        new DropCard { Title = "Card 1", Description = "Words words wrods words words words elephants", ColumnNumber = 1, RowNumber = 2, CardArea = "1_2" },
-        new DropCard { Title = "Card 2", Description = "Words words wrods words words words elephants", ColumnNumber = 1, RowNumber = 2, CardArea = "1_2" },
-        new DropCard { Title = "Card 3", Description = "Words words wrods words words words elephants", ColumnNumber = 1, RowNumber = 2, CardArea = "1_2" },
-        new DropCard { Title = "Card d", Description = "Words words wrods words words words elephants", ColumnNumber = 1, RowNumber = 3, CardArea = "1_3" },
-        new DropCard { Title = "Card e", ColumnNumber = 1, RowNumber = 3, CardArea = "1_3" },
-        new DropCard { Title = "Card f", ColumnNumber = 1, RowNumber = 3, CardArea = "1_3" },
-        new DropCard { Title = "Card 1", ColumnNumber = 2, RowNumber = 0, CardArea = "2_0" },
-        new DropCard { Title = "Card 2", Description = "Words words wrods words words words elephants", ColumnNumber = 2, RowNumber = 0, CardArea = "2_0" },
-        new DropCard { Title = "Card 3", ColumnNumber = 2, RowNumber = 0, CardArea = "2_0" },
-        new DropCard { Title = "Card l", ColumnNumber = 2, RowNumber = 1, CardArea = "2_1" },
-        new DropCard { Title = "Card a", Description = "Words words wrods words words words elephants", ColumnNumber = 2, RowNumber = 1, CardArea = "2_1" },
-        new DropCard { Title = "Card n", ColumnNumber = 2, RowNumber = 1, CardArea = "2_1" },
-        new DropCard { Title = "Card c", ColumnNumber = 2, RowNumber = 1, CardArea = "2_1" },
-        new DropCard { Title = "Card e", ColumnNumber = 2, RowNumber = 1, CardArea = "2_1" },
-        new DropCard { Title = "Card l", ColumnNumber = 2, RowNumber = 1, CardArea = "2_1" }
-    };
+        var colPos_swimlanePos = cardAreaValue.Split ("_");
+        var colPos = int.Parse (colPos_swimlanePos.First ());
+        var swimlanePos = int.Parse (colPos_swimlanePos.Last ());
+
+        return (colPos, swimlanePos);
+    }
+
+    private string ConvertColumnAndSwimlaneToCardArea (int columnPos, int swimlanePos)
+    {
+        return (columnPos + "_" + swimlanePos);
+    }
+
+    private List<DropCard> ConvertBoardResponseToDropCardList (BoardResponse boardResponse)
+    {
+        var dropCardList = new List<DropCard>();
+
+        var columnList = boardResponse.Columns;
+        for (int columnIndex = 0; columnIndex < columnList.Count; columnIndex ++)
+        {
+            var swimlaneList = columnList [columnIndex].Swimlanes;
+
+            for (int swimlaneIndex = 0; swimlaneIndex < swimlaneList.Count; swimlaneIndex ++)
+            {
+                var cardList = swimlaneList [swimlaneIndex].Cards;
+
+                var cardArea = ConvertColumnAndSwimlaneToCardArea(columnList [columnIndex].Order, swimlaneList [swimlaneIndex].Order);
+                foreach (var card in cardList)
+                {
+                    dropCardList.Add(new DropCard
+                    {
+                        Id = card.ID,
+                        Title = card.Title,
+                        Description = card.Description,
+                        ColumnNumber = columnIndex,
+                        ColumnID = Guid.Parse(columnList [columnIndex].ID),
+                        ColumnName = columnList [columnIndex].Title,
+                        SwimlaneNumber = swimlaneIndex,
+                        SwimlaneID = Guid.Parse(swimlaneList [swimlaneIndex].ID),
+                        SwimlaneName = swimlaneList [swimlaneIndex].Title,
+                        CardArea = cardArea
+                    });
+                }
+            }
+
+            _columnTitles.Add (columnList [columnIndex].Title);
+            _columns.Add (Guid.Parse(columnList [columnIndex].ID));
+        }
+
+        for (int swimlaneIndex = 0; swimlaneIndex < columnList [0].Swimlanes.Count; swimlaneIndex ++)
+        {
+            _swimlaneTitles.Add (columnList [0].Swimlanes [swimlaneIndex].Title);
+            _swimlanes.Add(Guid.Parse(columnList[0].Swimlanes[swimlaneIndex].ID));
+        }
+
+        return dropCardList;
+    }
+
+    public List<DropCard> _cards = new List<DropCard>();
+
+    public List<string> _swimlaneTitles = new List<string>();
+    public List<Guid> _swimlanes = new List<Guid> ();
+
+    public List<string> _columnTitles = new List<string>();
+    public List<Guid> _columns = new List<Guid> ();
 }
