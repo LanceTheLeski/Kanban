@@ -55,9 +55,11 @@ public class CardController : ControllerBase
             Title = cardToUpdate.CardTitle,
             Description = cardToUpdate.CardDescription,
             ColumnID = cardToUpdate.ColumnID.ToString (),
-            ColumnName = cardToUpdate.ColumnTitle,
+            ColumnTitle = cardToUpdate.ColumnTitle,
+            ColumnOrder = cardToUpdate.ColumnOrder,
             SwimlaneID = cardToUpdate.SwimlaneID.ToString (),
-            SwimlaneName = cardToUpdate.SwimlaneTitle
+            SwimlaneTitle = cardToUpdate.SwimlaneTitle,
+            SwimlaneOrder = cardToUpdate.SwimlaneOrder
         };
 
         cardPatchRequest.ApplyTo (convertedCardToUpdate); //Could add a ModelState validation somewhere here as well..
@@ -65,9 +67,11 @@ public class CardController : ControllerBase
         cardToUpdate.CardTitle = convertedCardToUpdate.Title;
         cardToUpdate.CardDescription = convertedCardToUpdate.Description;
         cardToUpdate.ColumnID = Guid.Parse (convertedCardToUpdate.ColumnID);
-        cardToUpdate.ColumnTitle = convertedCardToUpdate.ColumnName;
+        cardToUpdate.ColumnTitle = convertedCardToUpdate.ColumnTitle;
+        cardToUpdate.ColumnOrder = convertedCardToUpdate.ColumnOrder;
         cardToUpdate.SwimlaneID = Guid.Parse (convertedCardToUpdate.SwimlaneID);
-        cardToUpdate.SwimlaneTitle = convertedCardToUpdate.SwimlaneName;
+        cardToUpdate.SwimlaneTitle = convertedCardToUpdate.SwimlaneTitle;
+        cardToUpdate.SwimlaneOrder = convertedCardToUpdate.SwimlaneOrder;
 
         var response = await _boardTable.UpdateEntityAsync (cardToUpdate, Azure.ETag.All);
         if (response.IsError) 
@@ -81,9 +85,11 @@ public class CardController : ControllerBase
             Title = cardToUpdate.CardTitle,
             Description = cardToUpdate.CardDescription,
             ColumnID = cardToUpdate.ColumnID.ToString (),
-            ColumnName = cardToUpdate.ColumnTitle,
+            ColumnTitle = cardToUpdate.ColumnTitle,
+            ColumnOrder = cardToUpdate.ColumnOrder,
             SwimlaneID = cardToUpdate.SwimlaneID.ToString (),
-            SwimlaneName = cardToUpdate.SwimlaneTitle
+            SwimlaneTitle = cardToUpdate.SwimlaneTitle,
+            SwimlaneOrder = cardToUpdate.SwimlaneOrder
         };
 
         return Ok (cardResponse);

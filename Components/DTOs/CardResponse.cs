@@ -10,9 +10,13 @@ public class CardResponse
 
     public string ColumnID { get; set; }
 
-    public string ColumnName { get; set; }
+    public string ColumnTitle { get; set; }
+
+    public int ColumnOrder { get; set; }
 
     public string SwimlaneID { get; set; }
 
-    public string SwimlaneName { get; set; }
+    public string SwimlaneTitle { get; set; }
+
+    public int SwimlaneOrder { get; set; }
 }

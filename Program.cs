@@ -10,7 +10,8 @@ builder.Services.AddRazorComponents ()
 
 builder.Services.AddMudServices ();
 
-//builder.Services.AddControllers();
+builder.Services.AddControllers()
+				.AddNewtonsoftJson ();
 builder.Services.AddControllersWithViews();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

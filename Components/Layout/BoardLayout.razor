@@ -1,6 +1,7 @@
 ﻿@using Newtonsoft.Json
 @using Kanban.Components.DTOs
 @using Kanban.Components.DTOs.ToPossiblyDelete
+@using System.Net.Http.Headers
 
 @inject HttpClient http
 @inject NavigationManager NavigationManager
@@ -143,7 +144,7 @@
 
 @code
  {
-                //On page load:
+    //On page load:
     protected override async Task OnInitializedAsync ()
     {
         var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, @$"{NavigationManager.BaseUri}kanban/getboard/20a88077-10d4-4648-92cb-7dc7ba5b8df5");
@@ -206,13 +207,15 @@
     {
         var patchRequest = $@"[
             {{ ""op"": ""replace"", ""path"": ""/ColumnID"", ""value"": ""{cardToUpdate.ColumnID}"" }}, 
-            {{ ""op"": ""replace"", ""path"": ""/ColumnName"", ""value"": ""{cardToUpdate.ColumnName}"" }},
+            {{ ""op"": ""replace"", ""path"": ""/ColumnTitle"", ""value"": ""{cardToUpdate.ColumnName}"" }},
+            {{ ""op"": ""replace"", ""path"": ""/ColumnOrder"", ""value"": ""{cardToUpdate.ColumnNumber}"" }},
             {{ ""op"": ""replace"", ""path"": ""/SwimlaneID"", ""value"": ""{cardToUpdate.SwimlaneID}"" }},
-            {{ ""op"": ""replace"", ""path"": ""/SwimlaneName"", ""value"": ""{cardToUpdate.SwimlaneName}"" }}
+            {{ ""op"": ""replace"", ""path"": ""/SwimlaneTitle"", ""value"": ""{cardToUpdate.SwimlaneName}"" }},
+            {{ ""op"": ""replace"", ""path"": ""/SwimlaneOrder"", ""value"": ""{cardToUpdate.SwimlaneNumber}"" }}
         ]";
-
+        
         var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{NavigationManager.BaseUri}kanban/cards/updatecard/{cardToUpdate.Id}");
-        httpRequestMessage.Content = new StringContent (patchRequest);
+        httpRequestMessage.Content = new StringContent (patchRequest, mediaType: new MediaTypeHeaderValue (@"application/json"));
 
         var response = await http.SendAsync (httpRequestMessage);
         if (response.IsSuccessStatusCode)
@@ -290,13 +293,13 @@
         calendarOverlayIsVisible = false;
     }
 
-    private (int columnPos, int swimlanePos) ConvertCardAreaToColumnAndSwimlane(string cardAreaValue)
+    private (int swimlanePos, int columnPos) ConvertCardAreaToColumnAndSwimlane(string cardAreaValue)
     {
-        var colPos_swimlanePos = cardAreaValue.Split ("_");
-        var colPos = int.Parse (colPos_swimlanePos.First ());
-        var swimlanePos = int.Parse (colPos_swimlanePos.Last ());
+        var swimlanePos_columnPos = cardAreaValue.Split ("_");
+        var swimlanePos = int.Parse (swimlanePos_columnPos.First ());
+        var columnPos = int.Parse (swimlanePos_columnPos.Last ());
 
-        return (colPos, swimlanePos);
+        return (swimlanePos, columnPos);
     }
 
     private string ConvertColumnAndSwimlaneToCardArea (int columnPos, int swimlanePos)
