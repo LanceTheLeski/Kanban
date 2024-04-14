@@ -5,9 +5,9 @@ namespace Kanban.Models;
 
 public class Swimlane : ITableEntity
 {
-    public string PartitionKey { get; set; } //Required -- ID
+    public string PartitionKey { get; set; } //Required -- Swimlane ID
 
-    public string RowKey { get; set; } //Required -- Card ID? ---<> Board ID (following decision for column)
+    public string RowKey { get; set; } //Required -- Board ID
 
     public DateTimeOffset? Timestamp { get; set; } //Required
 

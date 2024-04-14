@@ -15,11 +15,13 @@ public class CardController : ControllerBase
     private const string boards = "Boards";
     private const string columns = "Columns";
     private const string swimlanes = "Swimlanes";
+    private const string cards = "Cards";
 
     private readonly TableServiceClient _tableServiceClient;
     private readonly TableClient _boardTable;
     private readonly TableClient _columnTable;
     private readonly TableClient _swimlaneTable;
+    private readonly TableClient _cardTable;
 
     public CardController (IOptions<CosmosOptions> cosmosOptions)
     {
@@ -27,13 +29,34 @@ public class CardController : ControllerBase
         _boardTable = _tableServiceClient.GetTableClient (tableName: boards);
         _columnTable = _tableServiceClient.GetTableClient (tableName: columns);
         _swimlaneTable = _tableServiceClient.GetTableClient (tableName: swimlanes);
+        _cardTable = _tableServiceClient.GetTableClient (tableName: cards);
     }
 
-    [HttpGet ("getcard")]
-    public ActionResult GetCard ()
+    [HttpGet ("getcard/{ID:guid}")]
+    public async Task<ActionResult> GetCard (Guid ID)
     {
-        //todo
-        return StatusCode (StatusCodes.Status200OK, new Card ());
+        var cardList = new List<Card> ();
+        var cardsFromTable = _boardTable.QueryAsync<Card> (card => card.PartitionKey == ID.ToString());
+        await foreach (var card in cardsFromTable)
+            cardList.Add (card);
+
+        if (cardList.Count () is 0)
+            return NotFound ("The card you are searching for was not found.");
+
+        if (cardList.Count () > 1)
+            return StatusCode (StatusCodes.Status500InternalServerError, "Multiple cards were found with the same ID.");
+
+        var cardFromDatabase = cardList.Single ();
+        var cardToReturn = new CardDetailsResponse
+        {
+            ID = cardFromDatabase.PartitionKey,
+            Title = cardFromDatabase.Title,
+            Description = cardFromDatabase.Description
+        };
+
+        // Fetch other card details like Deadlines and Checklists later.
+
+        return Ok (cardList.Single ());
     }
 
     [HttpPost ("createcard")]
@@ -47,15 +70,11 @@ public class CardController : ControllerBase
         //An error should get thrown before this point if any of the ID's below are null. Will have a concrete validation later using ModelState or FluentValidation
         var columnFromTable = await _columnTable.GetEntityAsync<Column> (partitionKey: cardCreateRequest.ColumnID.ToString (), rowKey: cardCreateRequest.BoardID.ToString ());
         if (columnFromTable.Value is null)
-        {
             return StatusCode (StatusCodes.Status500InternalServerError, "Could not find column.");
-        }
 
         var swimlaneFromTable = await _swimlaneTable.GetEntityAsync<Swimlane> (partitionKey: cardCreateRequest.SwimlaneID.ToString (), rowKey: cardCreateRequest.BoardID.ToString ());
         if (swimlaneFromTable.Value is null)
-        {
             return StatusCode (StatusCodes.Status500InternalServerError, "Could not find swimlane.");
-        }
 
         var newCardID = Guid.NewGuid ();
         var newCard = new Board
@@ -101,7 +120,7 @@ public class CardController : ControllerBase
         return StatusCode (StatusCodes.Status201Created, cardResponse);
     }
 
-    [HttpPatch ("updatecard/{ID:guid}")]//Currently an error where cards can rotate (i.e. column # and swimlane # become swapped). MUST FIX BEFORE ANYTHING ELSE!!!!!!!
+    [HttpPatch ("updatecard/{ID:guid}")]
     public async Task<ActionResult> UpdateCard (Guid ID, [FromBody] JsonPatchDocument<CardPatchRequest> cardPatchRequest)
     {
         if (cardPatchRequest is null)
@@ -155,5 +174,28 @@ public class CardController : ControllerBase
         };
 
         return Ok (cardResponse);
+    }
+
+    [HttpPatch ("deletecard/{ID:guid}")] // Need to delete from board AND card tables. There might also be extensions to remove. For now though, I'm just going to do board.
+    public async Task<ActionResult> DeleteCard  (Guid ID)
+    {
+        var cardList = new List<Card> ();
+        var cardsFromTable = _boardTable.QueryAsync<Card> (card => card.PartitionKey == ID.ToString ());
+        await foreach (var card in cardsFromTable)
+            cardList.Add (card);
+
+        if (cardList.Count () is 0)
+            return NotFound ("The card you are searching for was not found.");
+
+        if (cardList.Count () > 1)
+            return StatusCode (StatusCodes.Status500InternalServerError, "Multiple cards were found with the same ID.");
+
+        var cardFromDatabase = cardList.Single ();
+        var cardToDelete = _boardTable.DeleteEntityAsync (cardFromDatabase.PartitionKey, cardFromDatabase.RowKey);
+
+        if (cardToDelete.IsCompletedSuccessfully)
+            return Ok (); //Is there a better Status to return? NoContent perhaps?
+        else
+            return StatusCode (StatusCodes.Status500InternalServerError, "Could not delete card.");
     }
 }

@@ -42,13 +42,6 @@ public class BoardController : Controller
         await foreach (var board in boardsFromTable) 
             boardList.Add (board);
 
-        /*var columnList = boardList
-            .OrderBy (board => board.ColumnOrder)
-            .Select (board => (board.ColumnTitle, board.ColumnID, board.ColumnOrder));
-        var swimlaneList = boardList
-            .OrderBy (board => board.SwimlaneOrder)
-            .Select (board => (board.SwimlaneTitle, board.SwimlaneID, board.SwimlaneOrder));*/
-
         var columnList = new List<Column> ();
         var columnsFromTable = _columnTable.QueryAsync<Column> (column => column.RowKey == @"20a88077-10d4-4648-92cb-7dc7ba5b8df5");
         await foreach (var column in columnsFromTable)

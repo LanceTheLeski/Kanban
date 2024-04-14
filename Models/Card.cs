@@ -5,15 +5,13 @@ namespace Kanban.Models;
 
 public class Card : ITableEntity
 {
-    public string PartitionKey { get; set; } //Required -- ID
+    public string PartitionKey { get; set; } //Required -- Card ID
 
-    public string RowKey { get; set; } //Required -- Tag ID?
+    public string RowKey { get; set; } //Required -- Tag ID
 
     public DateTimeOffset? Timestamp { get; set; } //Required
 
     public ETag ETag { get; set; } //Required ??
-
-    public int ID { get; set; }
 
     public string Title { get; set; }
 

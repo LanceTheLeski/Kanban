@@ -94,7 +94,9 @@
         <MudTextField T="string" Label="Description" Variant="Variant.Filled" AutoGrow Lines="7" HelperText="Description" />
         <MudSelect T="string" Label="Column" Variant="Variant.Filled" AnchorOrigin="Origin.TopCenter" @bind-Value="columnToAddCard">
 
-            <!--<MudExpansionPanels DisableBorders="true" Elevation="0">-->
+            <MudExpansionPanels DisableBorders="true" Elevation="0">
+                <!--I don't know if this is my answer or not but I think we can use it and things could just look a little janky-->
+            </MudExpansionPanels>
             
             @foreach (var columnIndex in Enumerable.Range(0, _columnTitles.Count()))//THIS IS NOT UPDATING AFTER 
             {
@@ -185,6 +187,33 @@
     {
 
     }
+
+    //This is code I took from the MudExpansionPanel web page - I don't know if it's exctly the answer I need but the RendarFragment looks quite interesting!!!!!!!!!!!!
+    private RenderFragment _panelContent;
+
+    private async Task ExpandedChanged (bool newVal)
+    {
+        if (newVal)
+        {
+            await Task.Delay (600);
+            _panelContent = _bigAsyncContent;
+        }
+        else
+        {
+            // Reset after a while to prevent sudden collapse.
+            Task.Delay (350).ContinueWith (t => _panelContent = null).AndForget ();
+        }
+    }
+
+    private RenderFragment _bigAsyncContent = __builder =>
+    {
+        <div>The expansion of the</div>
+        <div>inner panel is done after</div>
+        <div>IsExpandedChanged</div>
+        <div>has completed to allow for</div>
+        <div>smooth opening of async data</div>
+        <div>of initially unknown height.</div>
+    };
 
     public Card cardSelected = null;
 
