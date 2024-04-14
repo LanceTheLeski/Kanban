@@ -42,21 +42,37 @@ public class BoardController : Controller
         await foreach (var board in boardsFromTable) 
             boardList.Add (board);
 
-        var columnList = boardList
+        /*var columnList = boardList
             .OrderBy (board => board.ColumnOrder)
             .Select (board => (board.ColumnTitle, board.ColumnID, board.ColumnOrder));
         var swimlaneList = boardList
             .OrderBy (board => board.SwimlaneOrder)
-            .Select (board => (board.SwimlaneTitle, board.SwimlaneID, board.SwimlaneOrder));
+            .Select (board => (board.SwimlaneTitle, board.SwimlaneID, board.SwimlaneOrder));*/
+
+        var columnList = new List<Column> ();
+        var columnsFromTable = _columnTable.QueryAsync<Column> (column => column.RowKey == @"20a88077-10d4-4648-92cb-7dc7ba5b8df5");
+        await foreach (var column in columnsFromTable)
+            columnList.Add (column);
+        var columnListOrdered = columnList
+            .OrderBy (column => column.ColumnOrder)
+            .Select (column => (column.Title, column.PartitionKey, column.ColumnOrder));
+
+        var swimlaneList = new List<Swimlane> ();
+        var swimlanesFromTable = _swimlaneTable.QueryAsync<Swimlane> (swimlane => swimlane.RowKey == @"20a88077-10d4-4648-92cb-7dc7ba5b8df5");
+        await foreach (var swimlane in swimlanesFromTable)
+            swimlaneList.Add (swimlane);
+        var swimlaneListOrdered = swimlaneList
+            .OrderBy (swimlane => swimlane.SwimlaneOrder)
+            .Select (swimlane => (swimlane.Title, swimlane.PartitionKey, swimlane.SwimlaneOrder));
 
         var boardResponse = new BoardResponse ();
-        foreach (var column in columnList)
+        foreach (var column in columnListOrdered)
         {
             var swimlanes = new List<BoardResponse.BasicSwimlane> ();
-            foreach (var swimlane in swimlaneList)
+            foreach (var swimlane in swimlaneListOrdered)
             {
                 var cardList = boardList
-                    .Where (board => board.ColumnID == column.ColumnID && board.SwimlaneID == swimlane.SwimlaneID)
+                    .Where (board => board.ColumnID == Guid.Parse (column.PartitionKey) && board.SwimlaneID == Guid.Parse (swimlane.PartitionKey))
                     .Select (board => (board.CardTitle, board.CardDescription, board.RowKey));
 
                 var cards = new List<BoardResponse.BasicCard> ();
@@ -72,8 +88,8 @@ public class BoardController : Controller
 
                 swimlanes.Add (new BoardResponse.BasicSwimlane
                 {
-                    ID = swimlane.SwimlaneID.ToString (),
-                    Title = swimlane.SwimlaneTitle,
+                    ID = swimlane.PartitionKey,
+                    Title = swimlane.Title,
                     Order = swimlane.SwimlaneOrder,
                     Cards = cards
                 });
@@ -81,8 +97,8 @@ public class BoardController : Controller
 
             boardResponse.Columns.Add (new BoardResponse.BasicColumn
             {
-                ID = column.ColumnID.ToString (),
-                Title = column.ColumnTitle,
+                ID = column.PartitionKey,
+                Title = column.Title,
                 Order = column.ColumnOrder,
                 Swimlanes = swimlanes
             }); 
@@ -110,11 +126,51 @@ public class BoardController : Controller
         return StatusCode (StatusCodes.Status200OK, new Column ());
     }
 
-    //[HttpPost ("createcolumn")]
-    public ActionResult CreateColumn ()
+    [HttpPost ("createcolumn")]
+    public async Task<ActionResult> CreateColumn ([FromBody] ColumnCreateRequest columnCreateRequest)
     {
-        //todo
-        return StatusCode (StatusCodes.Status418ImATeapot);
+        if (columnCreateRequest is null)
+        {
+            return BadRequest ("There was no Column Request passed in!");
+        }
+
+        Board boardFromTable = null;
+        var boardsFromTable = _boardTable.QueryAsync<Board> (board => board.PartitionKey == columnCreateRequest.BoardID.ToString ());
+        await foreach (var board in boardsFromTable)//This is VERY inefficient. I want to 
+            boardFromTable = board;
+        if (boardFromTable is null)
+        {
+            return BadRequest ("The board ID passed in does not exist.");
+        }
+
+        var newColumnID = Guid.NewGuid ();
+        var newColumn = new Column
+        {
+            PartitionKey = newColumnID.ToString (),
+            RowKey = columnCreateRequest.BoardID.ToString (),
+
+            Title = columnCreateRequest.Title,
+            ColumnOrder = columnCreateRequest.Order,
+
+            BoardTitle = boardFromTable.Title
+        };
+        
+        var addEntityResponse = await _columnTable.AddEntityAsync (newColumn);
+        if (addEntityResponse.IsError)
+        {
+            //We might want to have better verification later for failures. I'm thinking we actually query the table and grab the column so we can map it to a response object
+            return StatusCode (StatusCodes.Status500InternalServerError, $"Could not insert a new column into database. Internal status: {addEntityResponse.Status}");
+        }
+
+        var columnResponse = new ColumnResponse
+        {
+            ID = Guid.Parse (newColumn.PartitionKey),
+            Title = newColumn.Title,
+            BoardID = Guid.Parse (newColumn.RowKey),
+            Order = newColumn.ColumnOrder
+        };
+
+        return StatusCode (StatusCodes.Status201Created, columnResponse);
     }
 
     //[HttpGet ("getswimlane")]
@@ -124,10 +180,50 @@ public class BoardController : Controller
         return StatusCode (StatusCodes.Status200OK, new Swimlane ());
     }
 
-    //[HttpPost ("createswimlane")]
-    public ActionResult CreateSwimlane ()
+    [HttpPost ("createswimlane")]
+    public async Task<ActionResult> CreateSwimlane ([FromBody] SwimlaneCreateRequest swimlaneCreateRequest)
     {
-        //todo
-        return StatusCode (StatusCodes.Status418ImATeapot);
+        if (swimlaneCreateRequest is null)
+        {
+            return BadRequest ("There was no Swimlane Request passed in!");
+        }
+
+        Board boardFromTable = null;
+        var boardsFromTable = _boardTable.QueryAsync<Board> (board => board.PartitionKey == swimlaneCreateRequest.BoardID.ToString ());
+        await foreach (var board in boardsFromTable)//This is VERY inefficient. I want to 
+            boardFromTable = board;
+        if (boardFromTable is null)
+        {
+            return BadRequest ("The board ID passed in does not exist.");
+        }
+
+        var newSwimlaneID = Guid.NewGuid ();
+        var newSwimlane = new Swimlane
+        {
+            PartitionKey = newSwimlaneID.ToString (),
+            RowKey = swimlaneCreateRequest.BoardID.ToString (),
+
+            Title = swimlaneCreateRequest.Title,
+            SwimlaneOrder = swimlaneCreateRequest.Order,
+
+            BoardTitle = boardFromTable.Title
+        };
+
+        var addEntityResponse = await _swimlaneTable.AddEntityAsync (newSwimlane);
+        if (addEntityResponse.IsError)
+        {
+            //We might want to have better verification later for failures. I'm thinking we actually query the table and grab the swimlane so we can map it to a response object
+            return StatusCode (StatusCodes.Status500InternalServerError, $"Could not insert a new swimlane into database. Internal status: {addEntityResponse.Status}");
+        }
+
+        var swimlaneResponse = new SwimlaneResponse
+        {
+            ID = Guid.Parse (newSwimlane.PartitionKey),
+            Title = newSwimlane.Title,
+            BoardID = Guid.Parse (newSwimlane.RowKey),
+            Order = newSwimlane.SwimlaneOrder
+        };
+
+        return StatusCode (StatusCodes.Status201Created, swimlaneResponse);
     }
 }

@@ -13,14 +13,20 @@ namespace Kanban.Controllers;
 public class CardController : ControllerBase
 {
     private const string boards = "Boards";
+    private const string columns = "Columns";
+    private const string swimlanes = "Swimlanes";
 
     private readonly TableServiceClient _tableServiceClient;
     private readonly TableClient _boardTable;
+    private readonly TableClient _columnTable;
+    private readonly TableClient _swimlaneTable;
 
     public CardController (IOptions<CosmosOptions> cosmosOptions)
     {
         _tableServiceClient = new TableServiceClient (cosmosOptions.Value.HonuBoards);
         _boardTable = _tableServiceClient.GetTableClient (tableName: boards);
+        _columnTable = _tableServiceClient.GetTableClient (tableName: columns);
+        _swimlaneTable = _tableServiceClient.GetTableClient (tableName: swimlanes);
     }
 
     [HttpGet ("getcard")]
@@ -30,14 +36,72 @@ public class CardController : ControllerBase
         return StatusCode (StatusCodes.Status200OK, new Card ());
     }
 
-    //[HttpPost ("createcard")]
-    public ActionResult CreateCard ()
+    [HttpPost ("createcard")]
+    public async Task<ActionResult> CreateCard ([FromBody] CardCreateRequest cardCreateRequest)
     {
-        //todo
-        return StatusCode (StatusCodes.Status418ImATeapot);
+        if (cardCreateRequest is null)
+        {
+            return BadRequest ("There was no Card Request passed in!");
+        }
+
+        //An error should get thrown before this point if any of the ID's below are null. Will have a concrete validation later using ModelState or FluentValidation
+        var columnFromTable = await _columnTable.GetEntityAsync<Column> (partitionKey: cardCreateRequest.ColumnID.ToString (), rowKey: cardCreateRequest.BoardID.ToString ());
+        if (columnFromTable.Value is null)
+        {
+            return StatusCode (StatusCodes.Status500InternalServerError, "Could not find column.");
+        }
+
+        var swimlaneFromTable = await _swimlaneTable.GetEntityAsync<Swimlane> (partitionKey: cardCreateRequest.SwimlaneID.ToString (), rowKey: cardCreateRequest.BoardID.ToString ());
+        if (swimlaneFromTable.Value is null)
+        {
+            return StatusCode (StatusCodes.Status500InternalServerError, "Could not find swimlane.");
+        }
+
+        var newCardID = Guid.NewGuid ();
+        var newCard = new Board
+        {
+            PartitionKey = cardCreateRequest.BoardID.ToString (),
+            RowKey = newCardID.ToString (),
+            
+            Title = columnFromTable.Value.BoardTitle, //Should match swimlane's BoardTitle
+
+            SwimlaneID = cardCreateRequest.SwimlaneID,
+            SwimlaneTitle = swimlaneFromTable.Value.Title,
+            SwimlaneOrder = swimlaneFromTable.Value.SwimlaneOrder,
+
+            ColumnID = cardCreateRequest.ColumnID,
+            ColumnTitle = columnFromTable.Value.Title,
+            ColumnOrder = columnFromTable.Value.ColumnOrder,
+
+            CardTitle = cardCreateRequest.Title,
+            CardDescription = cardCreateRequest.Description,
+
+        };
+        //One day we will create new Card objects too with a lot of niche info. For now I just want shallow cards that we can store in the Board table
+
+        var addEntityResponse = await _boardTable.AddEntityAsync (newCard);
+        if (addEntityResponse.IsError) 
+        { 
+            //We might want to have better verification later for failures. I'm thinking we actually query the table and grab the card so we can map it to a response object
+            return StatusCode (StatusCodes.Status500InternalServerError, $"Could not insert a new card into database. Internal status: {addEntityResponse.Status}");
+        }
+        var cardResponse = new CardResponse
+        {
+            ID = newCard.RowKey.ToString (),
+            Title = newCard.CardTitle,
+            Description = newCard.CardDescription,
+            ColumnID = newCard.ColumnID.ToString (),
+            ColumnTitle = newCard.ColumnTitle,
+            ColumnOrder = newCard.ColumnOrder,
+            SwimlaneID = newCard.SwimlaneID.ToString (),
+            SwimlaneTitle = newCard.SwimlaneTitle,
+            SwimlaneOrder = newCard.SwimlaneOrder
+        };
+        
+        return StatusCode (StatusCodes.Status201Created, cardResponse);
     }
 
-    [HttpPatch ("updatecard/{ID:guid}")]
+    [HttpPatch ("updatecard/{ID:guid}")]//Currently an error where cards can rotate (i.e. column # and swimlane # become swapped). MUST FIX BEFORE ANYTHING ELSE!!!!!!!
     public async Task<ActionResult> UpdateCard (Guid ID, [FromBody] JsonPatchDocument<CardPatchRequest> cardPatchRequest)
     {
         if (cardPatchRequest is null)
@@ -45,10 +109,8 @@ public class CardController : ControllerBase
             return BadRequest ("There was no Patch Request passed in!");
         }
 
-        var boardList = new List<Board> ();
-        var boardsFromTable = await _boardTable.GetEntityAsync<Board> (partitionKey: @"20a88077-10d4-4648-92cb-7dc7ba5b8df5", rowKey: ID.ToString());
-
-        var cardToUpdate = boardsFromTable.Value;
+        var cardFromTable = await _boardTable.GetEntityAsync<Board> (partitionKey: @"20a88077-10d4-4648-92cb-7dc7ba5b8df5", rowKey: ID.ToString());
+        var cardToUpdate = cardFromTable.Value;
 
         var convertedCardToUpdate = new CardPatchRequest
         {

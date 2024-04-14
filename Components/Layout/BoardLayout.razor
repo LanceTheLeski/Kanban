@@ -34,18 +34,18 @@
     <MudDropContainer T="DropCard" Items="_cards" ItemDropped="ItemUpdated" ItemsSelector="@((card, dropzone) => card.CardArea == dropzone)">
         <ChildContent>
             <!--Can convert the below loop and rowList loop to Range of numbers like above... That would probable be better ? -->
-            @foreach (var columnIndex in Enumerable.Range(0, _columnTitles.Count()))
+            @foreach (var rowIndex in Enumerable.Range(0, _swimlaneTitles.Count()))
             {
                 <MudItem>
                     <MudPaper Height="250px" Style="background-color: wheat">
                         <MudGrid>
                             <MudItem>
-                                <MudPaper Width="120px" Style="background-color: lightcoral" Class="align-self-center">@(_swimlaneTitles [columnIndex])</MudPaper>
+                                <MudPaper Width="120px" Style="background-color: lightcoral" Class="align-self-center">@(_swimlaneTitles [rowIndex])</MudPaper>
                             </MudItem>
 
-                            @foreach (var swimlaneIndex in Enumerable.Range (0, _swimlaneTitles.Count ()))
+                            @foreach (var columnIndex in Enumerable.Range (0, _columnTitles.Count ()))
                             {
-                                var identifier = columnIndex + "_" + swimlaneIndex;
+                                var identifier = rowIndex + "_" + columnIndex;
                                 <MudItem Style="height: 250px;">
                                     <MudList Clickable="true" Class="d-flex flex-column mud-height-full" Style="height: 250px;">
                                     <!--We want columns to have a set width-->
@@ -87,13 +87,30 @@
     </MudPaper>
 </MudOverlay>
 
-<MudOverlay @bind-Visible="cardOverlayIsVisible" DarkBackground="true" ZIndex="100"><!--Add card-->
+<MudOverlay @bind-Visible="cardOverlayIsVisible" DarkBackground="true" ZIndex="10"><!--Add card-->
     <MudPaper Width="600px">
         <MudText>Add a New Card</MudText>
-        <MudTextField T="string" Label="Title" Variant="Variant.Filled" AutoGrow HelperText="Card Title" />
+        <MudTextField T="string" Label="Title" Variant="Variant.Filled" HelperText="Card Title" />
         <MudTextField T="string" Label="Description" Variant="Variant.Filled" AutoGrow Lines="7" HelperText="Description" />
+        <MudSelect T="string" Label="Column" Variant="Variant.Filled" AnchorOrigin="Origin.TopCenter" @bind-Value="columnToAddCard">
+
+            <!--<MudExpansionPanels DisableBorders="true" Elevation="0">-->
+            
+            @foreach (var columnIndex in Enumerable.Range(0, _columnTitles.Count()))//THIS IS NOT UPDATING AFTER 
+            {
+                <MudSelectItem T="string" Value="@(_columnTitles [columnIndex])">
+                    @(_columnTitles [columnIndex])
+                </MudSelectItem>
+            }
+        </MudSelect>
+        <MudSelect T="string" Label="Swimlane" Variant="Variant.Filled" AnchorOrigin="Origin.TopCenter" @bind-Value="swimlaneToAddCard">
+            @foreach (var swimlaneTitle in _swimlaneTitles)
+            {
+                <MudSelectItem Style="width: 100px; height: 200px;" T="string" Value="@swimlaneTitle"/>
+            }
+        </MudSelect>
         <MudButtonGroup>
-            <MudButton>Submit</MudButton>
+            <MudButton OnClick="(() => CreateCard())">Submit</MudButton>
             <MudButton OnClick="CloseCardOverlay">Discard</MudButton>
         </MudButtonGroup>
     </MudPaper>
@@ -113,9 +130,10 @@
 <MudOverlay @bind-Visible="columnOverlayIsVisible" DarkBackground="true" ZIndex="100"><!--Add Column-->
      <MudPaper>
         <MudText>Add a New Column</MudText>
-        <MudTextField T="string" Label="Title" Variant="Variant.Filled" AutoGrow HelperText="Column Title" />
+        <MudTextField T="string" @bind-Value="columnTitle" Label="Title" Variant="Variant.Filled" AutoGrow HelperText="Column Title" />
+        <MudTextField T="string" @bind-Value="columnOrder" Label="Order" Variant="Variant.Filled" AutoGrow HelperText="Column Order" />
         <MudButtonGroup>
-            <MudButton>Submit</MudButton>
+            <MudButton OnClick="(() => CreateColumn())">Submit</MudButton>
             <MudButton OnClick="CloseColumnOverlay">Discard</MudButton>
         </MudButtonGroup>
      </MudPaper>
@@ -202,7 +220,6 @@
         var cardResponse = Task.Run(() => 
             SendPatchRequest (cardToUpdate.Item)).Result;
     }
-
     private async Task<CardResponse?> SendPatchRequest (DropCard cardToUpdate)
     {
         var patchRequest = $@"[
@@ -213,7 +230,7 @@
             {{ ""op"": ""replace"", ""path"": ""/SwimlaneTitle"", ""value"": ""{cardToUpdate.SwimlaneName}"" }},
             {{ ""op"": ""replace"", ""path"": ""/SwimlaneOrder"", ""value"": ""{cardToUpdate.SwimlaneNumber}"" }}
         ]";
-        
+
         var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{NavigationManager.BaseUri}kanban/cards/updatecard/{cardToUpdate.Id}");
         httpRequestMessage.Content = new StringContent (patchRequest, mediaType: new MediaTypeHeaderValue (@"application/json"));
 
@@ -244,16 +261,63 @@
     }
 
     public bool cardOverlayIsVisible = false;
+    public string cardTitle = "";
+    public string cardDescription = "";
+    public string columnToAddCard = "";
+    public string swimlaneToAddCard = "";
     public void OpenCardOverlay ()
     {
         cardOverlayIsVisible = true;
+        StateHasChanged();
     }
     public void CloseCardOverlay ()
     {
         cardOverlayIsVisible = false;
     }
+    public async Task<CardResponse> CreateCard () //We will probably want a restriction down the road that swimlanes and columns don't have duplicate titles
+    {
+        var createRequest = new CardCreateRequest
+        {
+            Title = cardTitle,
+            Description = cardDescription,
+            BoardID = Guid.Parse ("20a88077-10d4-4648-92cb-7dc7ba5b8df5"),
+            ColumnID = _columns [_columnTitles.IndexOf (columnToAddCard)],
+            SwimlaneID = _swimlanes [_swimlaneTitles.IndexOf (swimlaneToAddCard)]
+        };
+
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{NavigationManager.BaseUri}kanban/cards/createcard");
+        httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject (createRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
+
+        var response = await http.SendAsync (httpRequestMessage);
+        if (response.IsSuccessStatusCode)
+        {
+            var responseBody = await response.Content.ReadAsStringAsync ();
+            var deserialized = JsonConvert.DeserializeObject<CardResponse> (responseBody);
+
+            //Add it to the DropCard list? And if we want to use the boardResponse as a source of truth then that too? But I don't think that should be the case
+            _cards.Add(new DropCard
+            { 
+                Id = deserialized.ID,
+                Title = deserialized.Title,
+                Description = deserialized.Description,
+                ColumnNumber = deserialized.ColumnOrder,
+                ColumnID = Guid.Parse (deserialized.ColumnID),
+                ColumnName = deserialized.ColumnTitle,
+                SwimlaneNumber = deserialized.SwimlaneOrder,
+                SwimlaneID = Guid.Parse (deserialized.SwimlaneID),
+                SwimlaneName = deserialized.SwimlaneTitle,
+                CardArea = ConvertColumnAndSwimlaneToCardArea (deserialized.SwimlaneOrder, deserialized.ColumnOrder)
+            });
+
+            return deserialized;
+        }
+
+        return null;
+    }
 
     public bool swimlaneOverlayIsVisible = false;
+    private string swimlaneTitle = "";
+    private string swimlaneOrder = "";
     public void OpenSwimlaneOverlay ()
     {
         swimlaneOverlayIsVisible = true;
@@ -262,8 +326,64 @@
     {
         swimlaneOverlayIsVisible = false;
     }
+    public async Task<SwimlaneResponse> CreateSwimlane ()
+    {
+        var createRequest = new SwimlaneCreateRequest
+        {
+            Title = swimlaneTitle,
+            Order = int.Parse (swimlaneOrder),
+            BoardID = Guid.Parse ("20a88077-10d4-4648-92cb-7dc7ba5b8df5")
+        };
+
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{NavigationManager.BaseUri}kanban/updateswimlane");
+        httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject (createRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
+
+        var response = await http.SendAsync (httpRequestMessage);
+        if (response.IsSuccessStatusCode)
+        {
+            var responseBody = await response.Content.ReadAsStringAsync ();
+            var deserialized = JsonConvert.DeserializeObject<SwimlaneResponse> (responseBody);
+
+            _swimlanes.Insert (deserialized.Order, deserialized.ID);
+            _swimlaneTitles.Insert (deserialized.Order, deserialized.Title);
+
+            //Cards will need to have their position (SwimlaneOrder) changed as well
+
+            return deserialized;
+        }
+
+        return null;
+    }
+    public async Task<SwimlaneResponse> EditSwimlane (string swimlaneTitle, int swimlaneOrder) //Parameters should not be null. Defaults should be set in the UI probably
+    {
+        var patchRequest = $@"[
+            {{ ""op"": ""replace"", ""path"": ""/Title"", ""value"": ""{swimlaneTitle}"" }},
+            {{ ""op"": ""replace"", ""path"": ""/Order"", ""value"": ""{swimlaneOrder}"" }}
+        ]";
+
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{NavigationManager.BaseUri}kanban/createswimlane");
+        httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject (patchRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
+
+        var response = await http.SendAsync (httpRequestMessage);
+        if (response.IsSuccessStatusCode)
+        {
+            var responseBody = await response.Content.ReadAsStringAsync ();
+            var deserialized = JsonConvert.DeserializeObject<SwimlaneResponse> (responseBody);
+
+            _swimlanes [deserialized.Order] = deserialized.ID;
+            _swimlaneTitles [deserialized.Order] = deserialized.Title;
+
+            //Cards will need to have their position (SwimlaneOrder) changed as well
+
+            return deserialized;
+        }
+
+        return null;
+    }
 
     public bool columnOverlayIsVisible = false;
+    private string columnTitle = "";
+    private string columnOrder = "";
     public void OpenColumnOverlay ()
     {
         columnOverlayIsVisible = true;
@@ -271,6 +391,32 @@
     public void CloseColumnOverlay ()
     {
         columnOverlayIsVisible = false;
+    }
+    public async Task<ColumnResponse> CreateColumn ()
+    {
+        var createRequest = new ColumnCreateRequest
+        {
+            Title = columnTitle,
+            Order = int.Parse(columnOrder),
+            BoardID = Guid.Parse("20a88077-10d4-4648-92cb-7dc7ba5b8df5")
+        };
+
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{NavigationManager.BaseUri}kanban/createcolumn");
+        httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject(createRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
+
+        var response = await http.SendAsync (httpRequestMessage);
+        if (response.IsSuccessStatusCode)
+        {
+            var responseBody = await response.Content.ReadAsStringAsync ();
+            var deserialized = JsonConvert.DeserializeObject<ColumnResponse> (responseBody);
+
+            _columns.Insert (deserialized.Order, deserialized.ID);
+            _columnTitles.Insert (deserialized.Order, deserialized.Title);
+
+            return deserialized;
+        }
+
+        return null;
     }
 
     public bool boardOverlayIsVisible = false;
@@ -302,9 +448,9 @@
         return (swimlanePos, columnPos);
     }
 
-    private string ConvertColumnAndSwimlaneToCardArea (int columnPos, int swimlanePos)
+    private string ConvertColumnAndSwimlaneToCardArea (int swimlanePos, int columnPos)
     {
-        return (columnPos + "_" + swimlanePos);
+        return (swimlanePos + "_" + columnPos);
     }
 
     private List<DropCard> ConvertBoardResponseToDropCardList (BoardResponse boardResponse)
@@ -320,10 +466,10 @@
             {
                 var cardList = swimlaneList [swimlaneIndex].Cards;
 
-                var cardArea = ConvertColumnAndSwimlaneToCardArea(columnList [columnIndex].Order, swimlaneList [swimlaneIndex].Order);
+                var cardArea = ConvertColumnAndSwimlaneToCardArea(swimlaneList [swimlaneIndex].Order, columnList [columnIndex].Order);
                 foreach (var card in cardList)
                 {
-                dropCardList.Add(new DropCard
+                    dropCardList.Add(new DropCard
                     {
                         Id = card.ID,
                         Title = card.Title,

@@ -7,25 +7,25 @@ public class Column : ITableEntity
 {
     public string PartitionKey { get; set; } //Required -- ID
 
-    public string RowKey { get; set; } //Required -- Card ID?
+    public string RowKey { get; set; } //Required -- Card ID? --> Board ID????? (Let's go with this)
 
     public DateTimeOffset? Timestamp { get; set; } //Required
 
     public ETag ETag { get; set; } //Required ??
 
-    public int ID { get; set; }
-
     public string Title { get; set; }
-
-    public int ColumnOrder { get; set; }
 
     public bool IsVisible { get; set; } = true;
 
-    //public IEnumerable<int> TagIDs { get; set; }
-    public virtual IEnumerable<Tag> Tags { get; set; }
+    public int ColumnOrder { get; set; } //For the given board
 
-    public virtual IEnumerable<Card> Cards { get; set; } 
+    public string BoardTitle { get; set; }
+
+    //public IEnumerable<int> TagIDs { get; set; }
+    //public virtual IEnumerable<Tag> Tags { get; set; } //Let's return to this later
+
+    //public virtual IEnumerable<Card> Cards { get; set; } //I'm not sure about this now that I'm tying columns to boards?
 
     //public IEnumerable<int> TriggerIDs { get; set; }
-    public virtual IEnumerable<Trigger> Triggers { get; set; }
+    //public virtual IEnumerable<Trigger> Triggers { get; set; } //Let's return to this later
 }
