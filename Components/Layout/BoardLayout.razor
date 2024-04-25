@@ -92,19 +92,19 @@
         <MudText>Add a New Card</MudText>
         <MudTextField T="string" Label="Title" Variant="Variant.Filled" HelperText="Card Title" />
         <MudTextField T="string" Label="Description" Variant="Variant.Filled" AutoGrow Lines="7" HelperText="Description" />
-        <MudSelect T="string" Label="Column" Variant="Variant.Filled" AnchorOrigin="Origin.TopCenter" @bind-Value="columnToAddCard">
-
-            <MudExpansionPanels DisableBorders="true" Elevation="0">
-                <!--I don't know if this is my answer or not but I think we can use it and things could just look a little janky-->
-            </MudExpansionPanels>
-            
+        <MudExpansionPanels>
+             <MudExpansionPanel Text="Column" MaxHeight="1000" IsExpandedChanged="ExpandedChanged">
+                @_panelContent
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+        <!--<MudSelect T="string" Label="Column" Variant="Variant.Filled" AnchorOrigin="Origin.TopCenter" @bind-Value="columnToAddCard">
             @foreach (var columnIndex in Enumerable.Range(0, _columnTitles.Count()))//THIS IS NOT UPDATING AFTER 
             {
                 <MudSelectItem T="string" Value="@(_columnTitles [columnIndex])">
                     @(_columnTitles [columnIndex])
                 </MudSelectItem>
             }
-        </MudSelect>
+        </MudSelect>-->
         <MudSelect T="string" Label="Swimlane" Variant="Variant.Filled" AnchorOrigin="Origin.TopCenter" @bind-Value="swimlaneToAddCard">
             @foreach (var swimlaneTitle in _swimlaneTitles)
             {
@@ -188,14 +188,12 @@
 
     }
 
-    //This is code I took from the MudExpansionPanel web page - I don't know if it's exctly the answer I need but the RendarFragment looks quite interesting!!!!!!!!!!!!
     private RenderFragment _panelContent;
 
     private async Task ExpandedChanged (bool newVal)
     {
         if (newVal)
         {
-            await Task.Delay (600);
             _panelContent = _bigAsyncContent;
         }
         else
@@ -205,15 +203,24 @@
         }
     }
 
+    public static Guid? ColumnForCreateCard = null;
     private RenderFragment _bigAsyncContent = __builder =>
     {
-        <div>The expansion of the</div>
-        <div>inner panel is done after</div>
-        <div>IsExpandedChanged</div>
-        <div>has completed to allow for</div>
-        <div>smooth opening of async data</div>
-        <div>of initially unknown height.</div>
+        <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
+            <MudStack Class="flex-grow-1" Width="100%" Height="100%">
+                @foreach (var columnTitle in _columnTitles)
+                {
+                    <MudListItem>
+                        Column Name: @(columnTitle)
+                    </MudListItem>
+                } 
+            </MudStack>
+        </MudPaper>
     };
+    public static void SetColumnForCreateCard(string columnTitle)
+    {
+        ColumnForCreateCard = _columns[_columnTitles.IndexOf(columnTitle)];
+    }
 
     public Card cardSelected = null;
 
@@ -486,6 +493,11 @@
     {
         var dropCardList = new List<DropCard>();
 
+        _columnTitles = new List<string> ();
+        _columns = new List<Guid> ();
+        _swimlaneTitles = new List<string> ();
+        _swimlanes = new List<Guid> ();
+
         var columnList = boardResponse.Columns;
         for (int columnIndex = 0; columnIndex < columnList.Count; columnIndex ++)
         {
@@ -529,9 +541,9 @@
 
     public List<DropCard> _cards = new List<DropCard>();
 
-    public List<string> _swimlaneTitles = new ();
-    public List<Guid> _swimlanes = new List<Guid> ();
+    public static List<string> _swimlaneTitles = new ();
+    public static List<Guid> _swimlanes = new List<Guid> ();
 
-    public List<string> _columnTitles = new ();
-    public List<Guid> _columns = new List<Guid> ();
+    public static List<string> _columnTitles = new ();
+    public static List<Guid> _columns = new List<Guid> ();
 }

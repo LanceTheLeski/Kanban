@@ -38,12 +38,12 @@ public class BoardController : Controller
     public async Task<ActionResult> GetBoard (Guid ID)
     {
         var boardList = new List<Board> ();
-        var boardsFromTable = _boardTable.QueryAsync<Board> (board => board.PartitionKey == @"20a88077-10d4-4648-92cb-7dc7ba5b8df5");
+        var boardsFromTable = _boardTable.QueryAsync<Board> (board => board.PartitionKey == ID.ToString ());
         await foreach (var board in boardsFromTable) 
             boardList.Add (board);
 
         var columnList = new List<Column> ();
-        var columnsFromTable = _columnTable.QueryAsync<Column> (column => column.RowKey == @"20a88077-10d4-4648-92cb-7dc7ba5b8df5");
+        var columnsFromTable = _columnTable.QueryAsync<Column> (column => column.RowKey == ID.ToString ());
         await foreach (var column in columnsFromTable)
             columnList.Add (column);
         var columnListOrdered = columnList
@@ -51,7 +51,7 @@ public class BoardController : Controller
             .Select (column => (column.Title, column.PartitionKey, column.ColumnOrder));
 
         var swimlaneList = new List<Swimlane> ();
-        var swimlanesFromTable = _swimlaneTable.QueryAsync<Swimlane> (swimlane => swimlane.RowKey == @"20a88077-10d4-4648-92cb-7dc7ba5b8df5");
+        var swimlanesFromTable = _swimlaneTable.QueryAsync<Swimlane> (swimlane => swimlane.RowKey == ID.ToString ());
         await foreach (var swimlane in swimlanesFromTable)
             swimlaneList.Add (swimlane);
         var swimlaneListOrdered = swimlaneList
@@ -98,7 +98,6 @@ public class BoardController : Controller
         }
 
         return Ok (boardResponse);
-        //return StatusCode (StatusCodes.Status200OK, boardResponse);
     }
 
     //[HttpPost ("createboard")]
@@ -112,11 +111,28 @@ public class BoardController : Controller
         return StatusCode (StatusCodes.Status418ImATeapot);
     }
 
-    //[HttpGet ("getcolumn/{ID:guid}")]
-    public ActionResult GetColumn (Guid ID)
+    [HttpGet ("getcolumn/{ID:guid}")]
+    public async Task<ActionResult> GetColumn (Guid ID)
     {
-        //todo
-        return StatusCode (StatusCodes.Status200OK, new Column ());
+        var columnList = new List<Column> ();
+        var columnsFromTable = _columnTable.QueryAsync<Column> (column => column.PartitionKey == ID.ToString());
+        await foreach (var column in columnsFromTable)
+            columnList.Add (column);
+
+        //If multiple boards have the same column then there will be multiple results here. I think we only need to grab the first for now
+        if (columnList.Count () is 0)
+            return NotFound ("The column you are searching for was not found.");
+
+        var columnToReturn = columnList.First ();
+        var columnResponse = new ColumnResponse
+        {
+            ID = Guid.Parse (columnToReturn.PartitionKey),
+            Title = columnToReturn.Title,
+            BoardID = Guid.Parse (columnToReturn.RowKey), //Might be an issue later if we need another board's column
+            Order = columnToReturn.ColumnOrder
+        };
+
+        return Ok (columnResponse);
     }
 
     [HttpPost ("createcolumn")]
@@ -129,7 +145,7 @@ public class BoardController : Controller
 
         Board boardFromTable = null;
         var boardsFromTable = _boardTable.QueryAsync<Board> (board => board.PartitionKey == columnCreateRequest.BoardID.ToString ());
-        await foreach (var board in boardsFromTable)//This is VERY inefficient. I want to 
+        await foreach (var board in boardsFromTable)//This is VERY inefficient. I want to simply grab the first board record that matches our criteria. Will fix later.
             boardFromTable = board;
         if (boardFromTable is null)
         {
@@ -166,11 +182,28 @@ public class BoardController : Controller
         return StatusCode (StatusCodes.Status201Created, columnResponse);
     }
 
-    //[HttpGet ("getswimlane")]
-    public ActionResult GetSwimlane ()
+    [HttpGet ("getswimlane/{ID:Guid}")]
+    public async Task<ActionResult> GetSwimlane (Guid ID)
     {
-        //todo
-        return StatusCode (StatusCodes.Status200OK, new Swimlane ());
+        var swimlaneList = new List<Swimlane> ();
+        var swimlanesFromTable = _swimlaneTable.QueryAsync<Swimlane> (swimlane => swimlane.PartitionKey == ID.ToString ());
+        await foreach (var swimlane in swimlanesFromTable)
+            swimlaneList.Add (swimlane);
+
+        //If multiple boards have the same swimlane then there will be multiple results here. I think we only need to grab the first for now
+        if (swimlaneList.Count () is 0)
+            return NotFound ("The column you are searching for was not found.");
+
+        var swimlaneToReturn = swimlaneList.First ();
+        var swimlaneResponse = new ColumnResponse
+        {
+            ID = Guid.Parse (swimlaneToReturn.PartitionKey),
+            Title = swimlaneToReturn.Title,
+            BoardID = Guid.Parse (swimlaneToReturn.RowKey), //Might be an issue later if we need another board's swimlane
+            Order = swimlaneToReturn.SwimlaneOrder
+        };
+
+        return Ok (swimlaneResponse);
     }
 
     [HttpPost ("createswimlane")]
