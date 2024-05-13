@@ -1,0 +1,79 @@
+﻿
+<MudOverlay @bind-Visible="cardOverlayIsVisible" DarkBackground="true" ZIndex="10"><!--Add card-->
+    <MudPaper Width="600px">
+        <MudText>Add a New Card</MudText>
+        <MudTextField T="string" Label="Title" Variant="Variant.Filled" HelperText="Card Title" />
+        <MudTextField T="string" Label="Description" Variant="Variant.Filled" AutoGrow Lines="7" HelperText="Description" />
+         <MudExpansionPanels>
+             <MudExpansionPanel Text="Column" MaxHeight="1000" IsExpandedChanged="ExpandedChanged">
+                 @_panelContent
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+        <!--
+        <MudSelect T="string" Label="Swimlane" Variant="Variant.Filled" AnchorOrigin="Origin.TopCenter" @bind-Value="swimlaneToAddCard">
+            @foreach (var swimlaneTitle in _swimlaneTitles)
+            {
+                <MudSelectItem Style="width: 100px; height: 200px;" T="string" Value="@swimlaneTitle" />
+            }
+        </MudSelect>
+        -->
+        <MudButtonGroup>
+            <MudButton OnClick="(() => CreateCard())">Submit</MudButton>
+            <MudButton OnClick="CloseCardOverlay">Discard</MudButton>
+        </MudButtonGroup>
+    </MudPaper>
+</MudOverlay>
+@code
+{
+    [Parameter]
+    public bool Visible { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> VisibleChanged { get; set; }
+
+    private async Task UpdateVisibleFromChild ()
+    {
+        //await VisibleChanged.InvokeAsync ();
+    }
+
+    [Parameter]
+    public List<Guid> _columns { get; set; }
+    
+    [Parameter]
+    public List<string> _columnTitles { get; set; }
+
+    private RenderFragment _panelContent;
+
+    private async Task ExpandedChanged (bool newVal)
+    {
+        if (newVal)
+        {
+            _panelContent = _bigAsyncContent;
+        }
+        else
+        {
+            // Reset after a while to prevent sudden collapse.
+            Task.Delay (350).ContinueWith (t => _panelContent = null).AndForget ();
+        }
+    }
+
+    public Guid? ColumnForCreateCard = null;
+    private RenderFragment _bigAsyncContent = __builder =>
+    {
+        <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
+            <MudStack Class="flex-grow-1" Width="100%" Height="100%">
+                @foreach (var columnTitle in _columnTitles)
+                {
+                    <MudListItem>
+                        Column Name: @(columnTitle)
+                    </MudListItem>
+                } 
+            </MudStack>
+        </MudPaper>
+    };
+
+    public static void SetColumnForCreateCard(string columnTitle)
+    {
+        ColumnForCreateCard = _columns[_columnTitles.IndexOf(columnTitle)];
+    }
+}

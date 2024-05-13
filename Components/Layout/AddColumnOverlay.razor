@@ -1,0 +1,66 @@
+﻿@using Newtonsoft.Json
+@using Kanban.Components.DTOs
+@using System.Net.Http.Headers
+
+@inject HttpClient http
+@inject NavigationManager NavigationManager
+
+@rendermode RenderMode.InteractiveServer
+
+<MudOverlay @bind-Visible="showColumnOverlay" DarkBackground="true" ZIndex="100">
+    <!--Add Column-->
+    <MudPaper>
+        <MudText>Add a New Column</MudText>
+        <MudTextField T="string" @bind-Value="columnTitle" Label="Title" Variant="Variant.Filled" AutoGrow HelperText="Column Title" />
+         <MudTextField T="string" @bind-Value="columnOrder" Label="Order" Variant="Variant.Filled" AutoGrow HelperText="Column Order" />
+         <MudButtonGroup>
+             <MudButton OnClick="(() => CreateColumn())">Submit</MudButton>
+             <MudButton OnClick="CloseColumnOverlay">Discard</MudButton>
+         </MudButtonGroup>
+     </MudPaper>
+ </MudOverlay>
+
+@code 
+{
+    public bool showColumnOverlay = false;
+    public List<Guid> _columns = new List<Guid> ();
+    public List<string> _columnTitles = new List<string> ();
+
+    private string columnTitle = "";
+    private string columnOrder = "";
+    public void OpenColumnOverlay ()
+    {
+        showColumnOverlay = true;
+    }
+    public void CloseColumnOverlay ()
+    {
+        showColumnOverlay = false;
+    }
+
+    public async Task<ColumnResponse> CreateColumn ()
+    {
+        var createRequest = new ColumnCreateRequest
+        {
+            Title = columnTitle,
+            Order = int.Parse (columnOrder),
+            BoardID = Guid.Parse ("20a88077-10d4-4648-92cb-7dc7ba5b8df5")
+        };
+
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{NavigationManager.BaseUri}kanban/createcolumn");
+        httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject (createRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
+
+        var response = await http.SendAsync (httpRequestMessage);
+        if (response.IsSuccessStatusCode)
+        {
+            var responseBody = await response.Content.ReadAsStringAsync ();
+            var deserialized = JsonConvert.DeserializeObject<ColumnResponse> (responseBody);
+
+            _columns.Insert (deserialized.Order, deserialized.ID);
+            _columnTitles.Insert (deserialized.Order, deserialized.Title);
+
+            return deserialized;
+        }
+
+        return null;
+    }
+}

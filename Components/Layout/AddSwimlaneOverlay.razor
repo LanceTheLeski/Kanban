@@ -1,0 +1,53 @@
+﻿<MudOverlay @bind-Visible="swimlaneOverlayIsVisible" DarkBackground="true" ZIndex="100">
+    <MudPaper>
+        <MudText>Add a New Swimlane</MudText>
+        <MudTextField T="string" Label="Title" Variant="Variant.Filled" AutoGrow HelperText="Swimlane Title" />
+         <MudButtonGroup>
+             <MudButton>Submit</MudButton>
+             <MudButton OnClick="CloseSwimlaneOverlay">Discard</MudButton>
+         </MudButtonGroup>
+     </MudPaper>
+ </MudOverlay>
+
+@code 
+{
+    public bool swimlaneOverlayIsVisible = false;
+    private string swimlaneTitle = "";
+    private string swimlaneOrder = "";
+    public void OpenSwimlaneOverlay ()
+    {
+        swimlaneOverlayIsVisible = true;
+    }
+    public void CloseSwimlaneOverlay ()
+    {
+        swimlaneOverlayIsVisible = false;
+    }
+    public async Task<SwimlaneResponse> CreateSwimlane ()
+    {
+        var createRequest = new SwimlaneCreateRequest
+        {
+            Title = swimlaneTitle,
+            Order = int.Parse (swimlaneOrder),
+            BoardID = Guid.Parse ("20a88077-10d4-4648-92cb-7dc7ba5b8df5")
+        };
+
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{NavigationManager.BaseUri}kanban/updateswimlane");
+        httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject (createRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
+
+        var response = await http.SendAsync (httpRequestMessage);
+        if (response.IsSuccessStatusCode)
+        {
+            var responseBody = await response.Content.ReadAsStringAsync ();
+            var deserialized = JsonConvert.DeserializeObject<SwimlaneResponse> (responseBody);
+
+            _swimlanes.Insert (deserialized.Order, deserialized.ID);
+            _swimlaneTitles.Insert (deserialized.Order, deserialized.Title);
+
+            //Cards will need to have their position (SwimlaneOrder) changed as well
+
+            return deserialized;
+        }
+
+        return null;
+    }
+}

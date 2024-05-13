@@ -1,0 +1,28 @@
+﻿<MudPaper Class="rounded-lg gap-0" Style="width: 100px; height: 200px; text-align: center; background-color: lightyellow">
+    <MudStack Class="d-inline-flex flex-grow-1" AlignItems="AlignItems.Center" Spacing="0">
+        <MudPaper Width="100%" MinHeight="160px;">
+            <MudListItem OnClick="(() => OpenOverlay(context))">
+
+                <MudText Align="Align.Center">@context.Title</MudText>
+                <br />
+                <MudText Style="max-height: 70px;">@context.Description</MudText>
+
+            </MudListItem>
+        </MudPaper>
+        <MudPaper Width="100%">
+            <MudButton Size="Size.Small">Edit</MudButton>
+        </MudPaper>
+    </MudStack>
+</MudPaper>
+
+@code 
+{
+    public Card cardSelected = null;
+
+    public bool overlayIsVisible = false;
+    public void OpenOverlay (Card cardToOverlay)
+    {
+        cardSelected = cardToOverlay;
+        overlayIsVisible = true;
+    }
+}
