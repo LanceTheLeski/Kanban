@@ -4,7 +4,6 @@
 @using Kanban.Components.Layout
 @using System.Net.Http.Headers
 
-
 @inject HttpClient http
 @inject NavigationManager NavigationManager
 
@@ -72,15 +71,9 @@
     </MudDropContainer>
 </MudGrid>
 
-<MudOverlay @bind-Visible="overlayIsVisible" DarkBackground="true" ZIndex="100" AutoClose="true"><!--Edit card-->
-    <MudPaper>
-        @cardSelected.Title
-    </MudPaper>
-</MudOverlay>
-
 <AddCardOverlay @bind-Visible="cardOverlayIsVisible"/>
 
-<AddSwimlaneOverlay/>
+<AddSwimlaneOverlay @bind-Visible="swimlaneOverlayIsVisible"/>
 
 <AddColumnOverlay/>
 
@@ -96,7 +89,7 @@
 </MudOverlay>
 
 @code
- {
+{
     //On page load:
     protected override async Task OnInitializedAsync ()
     {
@@ -268,7 +261,31 @@
         return null;
     }
 
+    public bool swimlaneOverlayIsVisible = false;
+    private string swimlaneTitle = "";
+    private string swimlaneOrder = "";
+    public void OpenSwimlaneOverlay ()
+    {
+        swimlaneOverlayIsVisible = true;
+    }
+    public void CloseSwimlaneOverlay ()
+    {
+        swimlaneOverlayIsVisible = false;
+    }
+
     public bool columnOverlayIsVisible = false;
+    private string columnTitle = "";
+    private string columnOrder = "";
+
+    public bool showColumnOverlay = false;
+    public void OpenColumnOverlay ()
+    {
+        showColumnOverlay = true;
+    }
+    public void CloseColumnOverlay ()
+    {
+        showColumnOverlay = false;
+    }
 
     public bool boardOverlayIsVisible = false;
     public void OpenBoardOverlay ()

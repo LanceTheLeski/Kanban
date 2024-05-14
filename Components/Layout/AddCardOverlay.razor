@@ -1,4 +1,14 @@
-﻿
+﻿@using Newtonsoft.Json
+@using Kanban.Components.DTOs
+@using Kanban.Components.DTOs.ToPossiblyDelete
+@using Kanban.Components.Layout
+@using System.Net.Http.Headers
+
+@inject HttpClient http
+@inject NavigationManager NavigationManager
+
+@inherits LayoutComponentBase
+
 <MudOverlay @bind-Visible="cardOverlayIsVisible" DarkBackground="true" ZIndex="10"><!--Add card-->
     <MudPaper Width="600px">
         <MudText>Add a New Card</MudText>
@@ -25,8 +35,20 @@
 </MudOverlay>
 @code
 {
+    public bool cardOverlayIsVisible = false;
+
+    public void OpenCardOverlay ()
+    {
+        cardOverlayIsVisible = true;
+        StateHasChanged ();
+    }
+    public void CloseCardOverlay ()
+    {
+        cardOverlayIsVisible = false;
+    }
+
     [Parameter]
-    public bool Visible { get; set; }
+    public bool? Visible { get; set; }
 
     [Parameter]
     public EventCallback<bool> VisibleChanged { get; set; }
@@ -37,10 +59,21 @@
     }
 
     [Parameter]
-    public List<Guid> _columns { get; set; }
+    public static List<Guid> _columns { get; set; }
     
     [Parameter]
-    public List<string> _columnTitles { get; set; }
+    public static List<string> _columnTitles { get; set; }
+
+    public List<DropCard> _cards = new List<DropCard> ();
+
+    public static List<string> _swimlaneTitles = new ();
+    public static List<Guid> _swimlanes = new List<Guid> ();
+
+    //Local. Not tied to other page yet
+    public class DropCard : Card
+    {
+        public string CardArea { get; set; }
+    }
 
     private RenderFragment _panelContent;
 
@@ -57,7 +90,7 @@
         }
     }
 
-    public Guid? ColumnForCreateCard = null;
+    public static Guid? ColumnForCreateCard = null;
     private RenderFragment _bigAsyncContent = __builder =>
     {
         <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
@@ -75,5 +108,55 @@
     public static void SetColumnForCreateCard(string columnTitle)
     {
         ColumnForCreateCard = _columns[_columnTitles.IndexOf(columnTitle)];
+    }
+
+    public string cardTitle = "";
+    public string cardDescription = "";
+    public string columnToAddCard = "";
+    public string swimlaneToAddCard = "";
+    public async Task<CardResponse> CreateCard () //We will probably want a restriction down the road that swimlanes and columns don't have duplicate titles
+    {
+        var createRequest = new CardCreateRequest
+            {
+                Title = cardTitle,
+                Description = cardDescription,
+                BoardID = Guid.Parse ("20a88077-10d4-4648-92cb-7dc7ba5b8df5"),
+                ColumnID = _columns [_columnTitles.IndexOf (columnToAddCard)],
+                SwimlaneID = _swimlanes [_swimlaneTitles.IndexOf (swimlaneToAddCard)]
+            };
+
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{NavigationManager.BaseUri}kanban/cards/createcard");
+        httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject (createRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
+
+        var response = await http.SendAsync (httpRequestMessage);
+        if (response.IsSuccessStatusCode)
+        {
+            var responseBody = await response.Content.ReadAsStringAsync ();
+            var deserialized = JsonConvert.DeserializeObject<CardResponse> (responseBody);
+
+            //Add it to the DropCard list? And if we want to use the boardResponse as a source of truth then that too? But I don't think that should be the case
+            _cards.Add (new DropCard
+                {
+                    Id = deserialized.ID,
+                    Title = deserialized.Title,
+                    Description = deserialized.Description,
+                    ColumnNumber = deserialized.ColumnOrder,
+                    ColumnID = Guid.Parse (deserialized.ColumnID),
+                    ColumnName = deserialized.ColumnTitle,
+                    SwimlaneNumber = deserialized.SwimlaneOrder,
+                    SwimlaneID = Guid.Parse (deserialized.SwimlaneID),
+                    SwimlaneName = deserialized.SwimlaneTitle,
+                    CardArea = ConvertColumnAndSwimlaneToCardArea (deserialized.SwimlaneOrder, deserialized.ColumnOrder)
+                });
+
+            return deserialized;
+        }
+
+        return null;
+    }
+
+    private string ConvertColumnAndSwimlaneToCardArea (int swimlanePos, int columnPos)
+    {
+        return (swimlanePos + "_" + columnPos);
     }
 }

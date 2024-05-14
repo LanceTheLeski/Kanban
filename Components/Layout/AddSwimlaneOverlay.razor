@@ -1,16 +1,32 @@
-﻿<MudOverlay @bind-Visible="swimlaneOverlayIsVisible" DarkBackground="true" ZIndex="100">
+﻿@using Newtonsoft.Json
+@using Kanban.Components.DTOs;
+@using System.Net.Http.Headers
+
+@inject HttpClient http
+@inject NavigationManager NavigationManager
+
+<MudOverlay @bind-Visible="swimlaneOverlayIsVisible" DarkBackground="true" ZIndex="10">
     <MudPaper>
         <MudText>Add a New Swimlane</MudText>
         <MudTextField T="string" Label="Title" Variant="Variant.Filled" AutoGrow HelperText="Swimlane Title" />
-         <MudButtonGroup>
-             <MudButton>Submit</MudButton>
-             <MudButton OnClick="CloseSwimlaneOverlay">Discard</MudButton>
-         </MudButtonGroup>
-     </MudPaper>
- </MudOverlay>
+        <MudButtonGroup>
+            <MudButton>Submit</MudButton>
+            <MudButton OnClick="CloseSwimlaneOverlay">Discard</MudButton>
+        </MudButtonGroup>
+    </MudPaper>
+</MudOverlay>
 
 @code 
 {
+    [Parameter]
+    public bool Visible { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> VisibleChanged { get; set; }
+
+    public static List<string> _swimlaneTitles = new ();
+    public static List<Guid> _swimlanes = new List<Guid> ();
+
     public bool swimlaneOverlayIsVisible = false;
     private string swimlaneTitle = "";
     private string swimlaneOrder = "";
@@ -18,10 +34,12 @@
     {
         swimlaneOverlayIsVisible = true;
     }
+
     public void CloseSwimlaneOverlay ()
     {
         swimlaneOverlayIsVisible = false;
     }
+
     public async Task<SwimlaneResponse> CreateSwimlane ()
     {
         var createRequest = new SwimlaneCreateRequest
