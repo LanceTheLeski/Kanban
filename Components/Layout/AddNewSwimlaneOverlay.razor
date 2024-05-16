@@ -19,10 +19,10 @@
 @code 
 {
     [Parameter]
-    public bool Visible { get; set; }
+    public bool Open { get; set; }
 
     [Parameter]
-    public EventCallback<bool> VisibleChanged { get; set; }
+    public EventCallback<bool> OpenChanged { get; set; }
 
     public static List<string> _swimlaneTitles = new ();
     public static List<Guid> _swimlanes = new List<Guid> ();

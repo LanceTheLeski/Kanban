@@ -1,0 +1,27 @@
+﻿<MudOverlay @bind-Visible="overlayIsVisible" DarkBackground="true" ZIndex="100">
+<!--Board Menu-->
+    <MudPaper>
+        <MudText>Add/Edit Board</MudText>
+        <MudTextField T="string" Label="Title" Variant="Variant.Filled" AutoGrow HelperText="Board Title" />
+        <MudButtonGroup>
+            <MudButton>Submit</MudButton>
+            <MudButton OnClick="CloseBoardOverlay">Discard</MudButton>
+        </MudButtonGroup>
+    </MudPaper>
+</MudOverlay>
+
+@code 
+{
+    [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    private bool overlayIsVisible = false;
+
+    public void CloseBoardOverlay ()
+    {
+        overlayIsVisible = false;
+    }
+}

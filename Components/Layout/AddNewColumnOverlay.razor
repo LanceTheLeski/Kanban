@@ -7,8 +7,7 @@
 
 @rendermode RenderMode.InteractiveServer
 
-<MudOverlay @bind-Visible="showColumnOverlay" DarkBackground="true" ZIndex="100">
-    <!--Add Column-->
+<MudOverlay @bind-Visible="Open" DarkBackground="true" ZIndex="100"><!--Add Column-->
     <MudPaper>
         <MudText>Add a New Column</MudText>
         <MudTextField T="string" @bind-Value="columnTitle" Label="Title" Variant="Variant.Filled" AutoGrow HelperText="Column Title" />
@@ -21,20 +20,24 @@
  </MudOverlay>
 
 @code 
-{
-    public bool showColumnOverlay = false;
+ {
+    [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    //public bool overlayIsVisible = false;
     public List<Guid> _columns = new List<Guid> ();
     public List<string> _columnTitles = new List<string> ();
 
     private string columnTitle = "";
     private string columnOrder = "";
-    public void OpenColumnOverlay ()
-    {
-        showColumnOverlay = true;
-    }
+
     public void CloseColumnOverlay ()
     {
-        showColumnOverlay = false;
+        //overlayIsVisible = false;
+        Open = false;
     }
 
     public async Task<ColumnResponse> CreateColumn ()

@@ -9,7 +9,7 @@
 
 @inherits LayoutComponentBase
 
-<MudOverlay @bind-Visible="cardOverlayIsVisible" DarkBackground="true" ZIndex="10"><!--Add card-->
+<MudOverlay @bind-Visible="overlayIsVisible" DarkBackground="true" ZIndex="10"><!--Add card-->
     <MudPaper Width="600px">
         <MudText>Add a New Card</MudText>
         <MudTextField T="string" Label="Title" Variant="Variant.Filled" HelperText="Card Title" />
@@ -35,45 +35,45 @@
 </MudOverlay>
 @code
 {
-    public bool cardOverlayIsVisible = false;
 
-    public void OpenCardOverlay ()
-    {
-        cardOverlayIsVisible = true;
-        StateHasChanged ();
-    }
+    public bool overlayIsVisible = false;
+
+    //public void OpenCardOverlay ()
+    //{
+        //cardOverlayIsVisible = true;
+        //StateHasChanged ();
+    //}
     public void CloseCardOverlay ()
     {
-        cardOverlayIsVisible = false;
+        overlayIsVisible = false;
     }
 
     [Parameter]
-    public bool? Visible { get; set; }
+    public bool? Open { get; set; }
 
     [Parameter]
-    public EventCallback<bool> VisibleChanged { get; set; }
-
-    private async Task UpdateVisibleFromChild ()
-    {
-        //await VisibleChanged.InvokeAsync ();
-    }
+    public EventCallback<bool> OpenChanged { get; set; }
 
     [Parameter]
-    public static List<Guid> _columns { get; set; }
-    
-    [Parameter]
-    public static List<string> _columnTitles { get; set; }
+    public List<Guid>? Columns { get; set; }
 
-    public List<DropCard> _cards = new List<DropCard> ();
+    [Parameter]
+    public EventCallback<List<Guid>> ColumnsChanged { get; set; }
+
+    [Parameter]
+    public List<string>? ColumnTitles { get; set; }
+
+    [Parameter]
+    public EventCallback<List<string>> ColumnTitlesChanged { get; set; }
+
+    [Parameter]
+    public List<DropCard>? Cards { get; set; }
+
+    [Parameter]
+    public EventCallback<List<DropCard>> CardsChanged { get; set; }
 
     public static List<string> _swimlaneTitles = new ();
     public static List<Guid> _swimlanes = new List<Guid> ();
-
-    //Local. Not tied to other page yet
-    public class DropCard : Card
-    {
-        public string CardArea { get; set; }
-    }
 
     private RenderFragment _panelContent;
 
@@ -95,7 +95,7 @@
     {
         <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
             <MudStack Class="flex-grow-1" Width="100%" Height="100%">
-                @foreach (var columnTitle in _columnTitles)
+                @foreach (var columnTitle in /*ColumnTitles*/ _swimlaneTitles/*Just to make this segment of code work. Revert to other comment later*/)
                 {
                     <MudListItem>
                         Column Name: @(columnTitle)
@@ -107,7 +107,7 @@
 
     public static void SetColumnForCreateCard(string columnTitle)
     {
-        ColumnForCreateCard = _columns[_columnTitles.IndexOf(columnTitle)];
+        //ColumnForCreateCard = Columns[ColumnTitles.IndexOf(columnTitle)];
     }
 
     public string cardTitle = "";
@@ -121,7 +121,7 @@
                 Title = cardTitle,
                 Description = cardDescription,
                 BoardID = Guid.Parse ("20a88077-10d4-4648-92cb-7dc7ba5b8df5"),
-                ColumnID = _columns [_columnTitles.IndexOf (columnToAddCard)],
+                ColumnID = Columns [ColumnTitles.IndexOf (columnToAddCard)],
                 SwimlaneID = _swimlanes [_swimlaneTitles.IndexOf (swimlaneToAddCard)]
             };
 
@@ -135,7 +135,7 @@
             var deserialized = JsonConvert.DeserializeObject<CardResponse> (responseBody);
 
             //Add it to the DropCard list? And if we want to use the boardResponse as a source of truth then that too? But I don't think that should be the case
-            _cards.Add (new DropCard
+            Cards.Add (new DropCard
                 {
                     Id = deserialized.ID,
                     Title = deserialized.Title,
