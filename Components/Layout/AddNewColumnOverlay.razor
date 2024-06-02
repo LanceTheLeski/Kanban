@@ -20,27 +20,25 @@
  </MudOverlay>
 
 @code 
- {
+{
     [Parameter]
     public bool Open { get; set; }
-
     [Parameter]
     public EventCallback<bool> OpenChanged { get; set; }
 
-    //public bool overlayIsVisible = false;
-    public List<Guid> _columns = new List<Guid> ();
-    public List<string> _columnTitles = new List<string> ();
+    [Parameter]
+    public List<Guid> Columns { get; set; }
+    [Parameter]
+    public EventCallback<bool> ColumnsChanged { get; set; }
+
+    [Parameter]
+    public List<string> ColumnTitles { get; set; }
+    [Parameter]
+    public EventCallback<bool> ColumnTitlesChanged { get; set; }
 
     private string columnTitle = "";
     private string columnOrder = "";
-
-    public void CloseColumnOverlay ()
-    {
-        //overlayIsVisible = false;
-        Open = false;
-    }
-
-    public async Task<ColumnResponse> CreateColumn ()
+    private async Task<ColumnResponse> CreateColumn ()
     {
         var createRequest = new ColumnCreateRequest
         {
@@ -58,12 +56,17 @@
             var responseBody = await response.Content.ReadAsStringAsync ();
             var deserialized = JsonConvert.DeserializeObject<ColumnResponse> (responseBody);
 
-            _columns.Insert (deserialized.Order, deserialized.ID);
-            _columnTitles.Insert (deserialized.Order, deserialized.Title);
+            Columns.Insert (deserialized.Order, deserialized.ID);
+            ColumnTitles.Insert (deserialized.Order, deserialized.Title);
 
             return deserialized;
         }
 
         return null;
+    }
+
+    private void CloseColumnOverlay ()
+    {
+        Open = false;
     }
 }

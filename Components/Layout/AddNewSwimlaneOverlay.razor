@@ -5,7 +5,7 @@
 @inject HttpClient http
 @inject NavigationManager NavigationManager
 
-<MudOverlay @bind-Visible="swimlaneOverlayIsVisible" DarkBackground="true" ZIndex="10">
+<MudOverlay @bind-Visible="Open" DarkBackground="true" ZIndex="10">
     <MudPaper>
         <MudText>Add a New Swimlane</MudText>
         <MudTextField T="string" Label="Title" Variant="Variant.Filled" AutoGrow HelperText="Swimlane Title" />
@@ -17,30 +17,25 @@
 </MudOverlay>
 
 @code 
-{
+ {
     [Parameter]
     public bool Open { get; set; }
-
     [Parameter]
     public EventCallback<bool> OpenChanged { get; set; }
 
-    public static List<string> _swimlaneTitles = new ();
-    public static List<Guid> _swimlanes = new List<Guid> ();
+    [Parameter]
+    public static List<string> SwimlaneTitles { get; set; }
+    [Parameter]
+    public EventCallback<List<string>> SwimlaneTitlesChanged { get; set; }
 
-    public bool swimlaneOverlayIsVisible = false;
+    [Parameter]
+    public static List<Guid> Swimlanes { get; set; }
+    [Parameter]
+    public EventCallback<List<Guid>> SwimlanesChanged { get; set; }
+
     private string swimlaneTitle = "";
     private string swimlaneOrder = "";
-    public void OpenSwimlaneOverlay ()
-    {
-        swimlaneOverlayIsVisible = true;
-    }
-
-    public void CloseSwimlaneOverlay ()
-    {
-        swimlaneOverlayIsVisible = false;
-    }
-
-    public async Task<SwimlaneResponse> CreateSwimlane ()
+    private async Task<SwimlaneResponse> CreateSwimlane ()
     {
         var createRequest = new SwimlaneCreateRequest
         {
@@ -58,8 +53,8 @@
             var responseBody = await response.Content.ReadAsStringAsync ();
             var deserialized = JsonConvert.DeserializeObject<SwimlaneResponse> (responseBody);
 
-            _swimlanes.Insert (deserialized.Order, deserialized.ID);
-            _swimlaneTitles.Insert (deserialized.Order, deserialized.Title);
+            Swimlanes.Insert (deserialized.Order, deserialized.ID);
+            SwimlaneTitles.Insert (deserialized.Order, deserialized.Title);
 
             //Cards will need to have their position (SwimlaneOrder) changed as well
 
@@ -67,5 +62,11 @@
         }
 
         return null;
+    }
+
+
+    private void CloseSwimlaneOverlay ()
+    {
+        Open = false;
     }
 }
