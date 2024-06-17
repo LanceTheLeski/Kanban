@@ -1,13 +1,14 @@
-﻿@using Kanban.Components.DTOs.ToPossiblyDelete;
+﻿@using Kanban.Components.DTOs
+@using Kanban.Components.DTOs.ToPossiblyDelete;
 
 <MudPaper Class="rounded-lg gap-0" Style="width: 100px; height: 200px; text-align: center; background-color: lightyellow">
     <MudStack Class="d-inline-flex flex-grow-1" AlignItems="AlignItems.Center" Spacing="0">
         <MudPaper Width="100%" MinHeight="160px;">
-            <MudListItem OnClick="(() => OpenOverlay(cardSelected))">
+            <MudListItem OnClick="(() => OpenOverlay(Card))">
 
-                <MudText Align="Align.Center">@cardSelected.Title</MudText>
+                <MudText Align="Align.Center">@Card.Title</MudText>
                 <br />
-                <MudText Style="max-height: 70px;">@cardSelected.Description</MudText>
+                <MudText Style="max-height: 70px;">@Card.Description</MudText>
 
             </MudListItem>
         </MudPaper>
@@ -19,12 +20,13 @@
 
 @code 
 {
-    public Card cardSelected = null;
+    [Parameter]
+    public DropCard Card { get; set; }
+    [Parameter]
+    public EventCallback<DropCard> CardChanged { get; set; }
 
-    public bool overlayIsVisible = false;
-    public void OpenOverlay (Card cardToOverlay)
+    public void OpenOverlay (DropCard cardToOverlay)
     {
-        cardSelected = cardToOverlay;
-        overlayIsVisible = true;
+        
     }
 }

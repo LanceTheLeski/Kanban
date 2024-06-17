@@ -4,20 +4,19 @@
 
 @inject HttpClient http
 @inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
 
 @rendermode RenderMode.InteractiveServer
 
-<MudOverlay @bind-Visible="Open" DarkBackground="true" ZIndex="100"><!--Add Column-->
-    <MudPaper>
-        <MudText>Add a New Column</MudText>
-        <MudTextField T="string" @bind-Value="columnTitle" Label="Title" Variant="Variant.Filled" AutoGrow HelperText="Column Title" />
-         <MudTextField T="string" @bind-Value="columnOrder" Label="Order" Variant="Variant.Filled" AutoGrow HelperText="Column Order" />
-         <MudButtonGroup>
-             <MudButton OnClick="(() => CreateColumn())">Submit</MudButton>
-             <MudButton OnClick="CloseColumnOverlay">Discard</MudButton>
-         </MudButtonGroup>
-     </MudPaper>
- </MudOverlay>
+<MudPaper>
+    <MudText>Add a New Column</MudText>
+    <MudTextField T="string" @bind-Value="columnTitle" Label="Title" Variant="Variant.Filled" AutoGrow HelperText="Column Title" />
+    <MudTextField T="string" @bind-Value="columnOrder" Label="Order" Variant="Variant.Filled" AutoGrow HelperText="Column Order" />
+    <MudButtonGroup>
+        <MudButton OnClick="CreateColumn">Submit</MudButton>
+        <MudButton OnClick="CloseColumnOverlay">Discard</MudButton>
+    </MudButtonGroup>
+</MudPaper>
 
 @code 
 {
@@ -29,21 +28,43 @@
     [Parameter]
     public List<Guid> Columns { get; set; }
     [Parameter]
-    public EventCallback<bool> ColumnsChanged { get; set; }
+    public EventCallback<List<Guid>> ColumnsChanged { get; set; }
 
     [Parameter]
     public List<string> ColumnTitles { get; set; }
     [Parameter]
-    public EventCallback<bool> ColumnTitlesChanged { get; set; }
+    public EventCallback<List<string>> ColumnTitlesChanged { get; set; }
+
+    private static List<Guid> _columns = new List<Guid> ();
+    private static List<string> _columnTitles = new List<string> ();
+
+    public AddNewColumnOverlay ()
+    {
+        Open = false;
+        _columns = Columns;
+        _columnTitles = ColumnTitles;
+    }
 
     private string columnTitle = "";
     private string columnOrder = "";
     private async Task<ColumnResponse> CreateColumn ()
     {
+        int? order = null;
+        try
+        {
+            order = columnOrder is not null ?
+                int.Parse (columnOrder) :
+                Columns.Count ();
+        }
+        catch (FormatException)
+        {
+            Snackbar.Add("Could not add new Column. The input for Order was invalid.");
+        }
+
         var createRequest = new ColumnCreateRequest
         {
             Title = columnTitle,
-            Order = int.Parse (columnOrder),
+            Order = order!.Value,
             BoardID = Guid.Parse ("20a88077-10d4-4648-92cb-7dc7ba5b8df5")
         };
 
@@ -57,7 +78,10 @@
             var deserialized = JsonConvert.DeserializeObject<ColumnResponse> (responseBody);
 
             Columns.Insert (deserialized.Order, deserialized.ID);
+            await ColumnsChanged.InvokeAsync ();
+
             ColumnTitles.Insert (deserialized.Order, deserialized.Title);
+            await ColumnTitlesChanged.InvokeAsync();
 
             return deserialized;
         }
@@ -68,5 +92,6 @@
     private void CloseColumnOverlay ()
     {
         Open = false;
+        OpenChanged.InvokeAsync (Open);
     }
 }

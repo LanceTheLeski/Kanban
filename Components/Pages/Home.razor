@@ -1,7 +1,10 @@
 ﻿@using Newtonsoft.Json
 @using Kanban.Components.DTOs
 @using Kanban.Components.DTOs.ToPossiblyDelete
-@using Kanban.Components.Layout
+@using Kanban.Components.Layout.Board
+@using Kanban.Components.Layout.Card
+@using Kanban.Components.Layout.Column
+@using Kanban.Components.Layout.Swimlane
 @using System.Net.Http.Headers
 
 @inject HttpClient http
@@ -14,56 +17,103 @@
 @rendermode RenderMode.InteractiveServer
 
 <MudPaper>
-    <MudButton OnClick="OpenCardOverlay">Add Card</MudButton><!--Should be added to each CardArea instead so the card goes there immediately-->
-    <AddNewCardOverlay @bind-Open="cardOverlayIsOpen" @bind-Cards="_cards" @bind-Columns="_columns" @bind-ColumnTitles="_columnTitles" />
-
-    <MudButton OnClick="OpenSwimlaneOverlay">Add/Edit Swimlane</MudButton>
-    <AddNewSwimlaneOverlay @bind-Open="swimlaneOverlayIsOpen" />
-
-    <MudButton OnClick="OpenColumnOverlay">Add/Edit Column</MudButton>
-    <AddNewColumnOverlay @bind-Open="columnOverlayIsOpen" />
-
-    <MudButton OnClick="OpenBoardOverlay">Edit Board</MudButton>
-    <AddManageBoardOverlay @bind-Open="boardOverlayIsOpen" />
-
-    <MudButton OnClick="Troubleshoot">Custom Text: @TroubleshootText</MudButton>
+    <MudMenu Label="Cards">
+        <MudMenuItem OnClick="OpenCardOverlay">Add</MudMenuItem>
+    </MudMenu>
+    <MudMenu Label="Swimlanes">
+        <MudMenuItem OnClick="OpenSwimlaneOverlay">Add</MudMenuItem>
+    </MudMenu>
+    <MudMenu Label="Columns">
+        <MudMenuItem OnClick="OpenColumnOverlay">Add</MudMenuItem>
+        <MudMenuItem OnClick="OpenEditColumnOverlay">Edit</MudMenuItem>
+    </MudMenu>
+    <MudMenu Label="Boards">
+        <MudMenuItem OnClick="OpenBoardOverlay">Edit</MudMenuItem>
+    </MudMenu>
 </MudPaper>
-<MudGrid Class="d-flex flex-column" Style="background-color: lightblue" Spacing="0">
+
+<MudOverlay @bind-Visible="swimlaneOverlayIsOpen" DarkBackground="true" ZIndex="10">
+    <AddNewSwimlaneOverlay @bind-Open="swimlaneOverlayIsOpen"
+                           @bind-Swimlanes="_swimlanes"
+                           @bind-SwimlaneTitles="_swimlaneTitles" />
+</MudOverlay>
+<MudOverlay @bind-Visible="allNewColumnOverlayIsOpen" DarkBackground="true" ZIndex="10">
+    <AddNewColumnOverlay @bind-Open="allNewColumnOverlayIsOpen"
+                         @bind-Columns="_columns"
+                         @bind-ColumnTitles="_columnTitles" />
+</MudOverlay>
+<MudOverlay @bind-Visible="editColumnOverlayIsOpen" DarkBackground="true" ZIndex="10">
+    <EditColumnOverlay @bind-Open="editColumnOverlayIsOpen"
+                       @bind-Columns="_columns"
+                       @bind-ColumnTitles="_columnTitles" /> 
+</MudOverlay>
+<MudOverlay @bind-Visible="Open" DarkBackground="true" ZIndex="10">
+    <AddNewCardOverlay @bind-Open="Open"
+                       @bind-Cards="_cards"
+                       @bind-Columns="_columns"
+                       @bind-ColumnTitles="_columnTitles"
+                       @bind-Swimlanes="_swimlanes"
+                       @bind-SwimlaneTitles="_swimlaneTitles" />
+</MudOverlay>
+<MudOverlay @bind-Visible="boardOverlayIsOpen" DarkBackground="true" ZIndex="10">
+    <AddManageBoardOverlay @bind-Open="boardOverlayIsOpen" />
+</MudOverlay>
+
+<MudGrid Spacing="0" 
+         Class="d-flex flex-column"
+         Style="background-color: lightblue">
     <MudItem>
-        <MudPaper Height="75px" Style="background-color: yellowgreen">
+        <MudPaper Height="75px" 
+                  Style="background-color: yellowgreen">
             <MudGrid>
                 <MudItem>
                     <MudPaper Width="120px">X</MudPaper>
                 </MudItem>
-                @foreach (var columnIndex in Enumerable.Range (0, _columnTitles.Count ()))
+                @foreach (var columnIndex in Enumerable.Range (0, _columnTitles.Count ()))//Just tried to delete a column and _columnTitles is null here, resulting in an exception. Maybe call the StateHasChanged method?
                 {
                     <MudItem>
-                        <MudPaper Width="150px" Style="background-color: darkturquoise" Class="align-self-center">@(_columnTitles [columnIndex])</MudPaper>
+                        <MudPaper Width="150px" 
+                                  Class="align-self-center" 
+                                  Style="background-color: darkturquoise;">
+                            @(_columnTitles [columnIndex])
+                        </MudPaper>
                     </MudItem>
                 }
             </MudGrid>
         </MudPaper>
     </MudItem>
-    <MudDropContainer T="DropCard" Items="_cards" ItemDropped="UpdateCard" ItemsSelector="@((card, dropzone) => card.CardArea == dropzone)">
+    <MudDropContainer T="DropCard" 
+                      Items="_cards" 
+                      ItemDropped="UpdateCard" 
+                      ItemsSelector="@((card, dropzone) => card.CardArea == dropzone)">
         <ChildContent>
-            <!--Can convert the below loop and rowList loop to Range of numbers like above... That would probable be better ? -->
             @foreach (var rowIndex in Enumerable.Range(0, _swimlaneTitles.Count()))
             {
                 <MudItem>
-                    <MudPaper Height="250px" Style="background-color: wheat">
+                    <MudPaper Height="250px" 
+                              Style="background-color: wheat">
                         <MudGrid>
                             <MudItem>
-                                <MudPaper Width="120px" Style="background-color: lightcoral" Class="align-self-center">@(_swimlaneTitles [rowIndex])</MudPaper>
+                                <MudPaper Width="120px" 
+                                          Class="align-self-center"
+                                          Style="background-color: lightcoral">
+                                    @(_swimlaneTitles [rowIndex])
+                                </MudPaper>
                             </MudItem>
 
                             @foreach (var columnIndex in Enumerable.Range (0, _columnTitles.Count ()))
                             {
                                 var identifier = rowIndex + "_" + columnIndex;
                                 <MudItem Style="height: 250px;">
-                                    <MudList Clickable="true" Class="d-flex flex-column mud-height-full" Style="height: 250px;">
                                     <!--We want columns to have a set width-->
-                                    <!--This paper is important and will hold all fot he cards. There will have to be ways of expanding and moving cards between theses.-->
-                                        <MudDropZone CanDrop="@((dropcard) => true)" T="DropCard" Identifier="@identifier" CanDropClass="mud-border-success" Style="background-color: cornflowerblue; width: 150px; height: 200px;" Class="d-flex flex-wrap flex-grow-1 justify-space-around gap-4 pa-2 overflow-auto" />
+                                    <MudList Clickable="true" 
+                                             Class="d-flex flex-column mud-height-full" 
+                                             Style="height: 250px;">
+                                        <MudDropZone T="DropCard" 
+                                                     Identifier="@identifier" 
+                                                     CanDropClass="mud-border-success"
+                                                     Class="d-flex flex-wrap flex-grow-1 justify-space-around gap-4 pa-2 overflow-auto"
+                                                     Style="background-color: cornflowerblue; width: 150px; height: 200px;"/>
                                     </MudList>
                                 </MudItem>
                             }
@@ -72,21 +122,25 @@
                 </MudItem>
             }
         </ChildContent>
-        <ItemRenderer>
-            
-        </ItemRenderer>
 
+        <!--The ItemRenderer is a component of the MudDropZone and is in charge of randering individual DropCards within it-->
+        <ItemRenderer>
+            <DisplayCard @bind-Card="context"/>
+        </ItemRenderer>
     </MudDropContainer>
 </MudGrid>
 
 @code
 {
+    // Lets run a test to see how quickly these are updated. Set a watch on one of these and hit a 
+    // breakpoint immediately after a binding is updated and the invoke method is called. If it's 
+    // updated then we're in business and can abstract away more stuff
     public List<DropCard> _cards = new List<DropCard> ();
 
     public List<string> _swimlaneTitles = new ();
     public List<Guid> _swimlanes = new List<Guid> ();
 
-    public static List<string> _columnTitles = new ();
+    public List<string> _columnTitles = new ();
     public List<Guid> _columns = new List<Guid> ();
 
     //On page load:
@@ -98,19 +152,12 @@
         var responseBody = await response.Content.ReadAsStringAsync ();
         if (response.IsSuccessStatusCode)
         {
-            var deserialized = JsonConvert.DeserializeObject<BoardResponse> (responseBody);
+            var deserializedResponseBody = JsonConvert.DeserializeObject<BoardResponse> (responseBody);
 
-            TroubleshootText = deserialized.Columns.FirstOrDefault()?.Title; //Works!!
-
-            _cards = ConvertBoardResponseToDropCardList (deserialized);
+            _cards = ConvertBoardResponseToDropCardList (deserializedResponseBody!);
         }
     }
 
-    public string TroubleshootText = "...Loading...";
-    public void Troubleshoot()
-    { }
-
-    
     private void UpdateCard (MudItemDropInfo<DropCard> cardToUpdate)
     {
         cardToUpdate.Item.CardArea = cardToUpdate.DropzoneIdentifier;
@@ -123,13 +170,14 @@
         cardToUpdate.Item.SwimlaneName = _swimlaneTitles [newCardArea.swimlanePos];
         cardToUpdate.Item.SwimlaneNumber = newCardArea.swimlanePos;
 
-        var cardResponse = Task.Run(() => 
+        var cardResponse = Task.Run (() => 
             SendPatchRequest (cardToUpdate.Item)).Result;
     }
 
     private async Task<CardResponse?> SendPatchRequest (DropCard cardToUpdate)
     {
-        var patchRequest = $@"[
+        var patchRequest = 
+        $@"[
             {{ ""op"": ""replace"", ""path"": ""/ColumnID"", ""value"": ""{cardToUpdate.ColumnID}"" }}, 
             {{ ""op"": ""replace"", ""path"": ""/ColumnTitle"", ""value"": ""{cardToUpdate.ColumnName}"" }},
             {{ ""op"": ""replace"", ""path"": ""/ColumnOrder"", ""value"": ""{cardToUpdate.ColumnNumber}"" }},
@@ -145,21 +193,32 @@
         if (response.IsSuccessStatusCode)
         {
             var responseBody = await response.Content.ReadAsStringAsync ();
-            var deserialized = JsonConvert.DeserializeObject<CardResponse> (responseBody);
+            var deserializedResponseBody = JsonConvert.DeserializeObject<CardResponse> (responseBody);
 
-            //tempString = deserialized.Columns.FirstOrDefault ()?.Title; //Works!!
-
-            return deserialized;
+            return deserializedResponseBody;
         }
 
         return null;
     }
 
-    public bool cardOverlayIsOpen = false;
+    public bool editColumnOverlayIsOpen = false;
+    public void OpenEditColumnOverlay ()//Move elsewhere later
+    {
+        editColumnOverlayIsOpen = true;
+    }
+    public void UpdateEditColumnOverlay (bool setEditColumnOverlayIsOpen)
+    {
+        editColumnOverlayIsOpen = setEditColumnOverlayIsOpen;
+    }
+
+    public bool Open = false;
     public void OpenCardOverlay ()
     {
-        cardOverlayIsOpen = true;
-        StateHasChanged();
+        Open = true;
+    }
+    public void UpdateCardOverlayIsOpen (bool setCardOverlayIsOpen)
+    {
+        Open = setCardOverlayIsOpen;
     }
 
     public async Task<SwimlaneResponse> EditSwimlane (string swimlaneTitle, int swimlaneOrder) //Parameters should not be null. Defaults should be set in the UI probably
@@ -194,11 +253,19 @@
     {
         swimlaneOverlayIsOpen = true;
     }
+    public void CloseSwimlaneOverlay ()
+    {
+        swimlaneOverlayIsOpen = false;
+    }
 
-    public bool columnOverlayIsOpen = false;
+    public bool allNewColumnOverlayIsOpen = false;
     public void OpenColumnOverlay ()
     {
-        columnOverlayIsOpen = true;
+        allNewColumnOverlayIsOpen = true;
+    }
+    public void CloseColumnOverlay ()
+    {
+        allNewColumnOverlayIsOpen = false;
     }
 
     public bool boardOverlayIsOpen = false;

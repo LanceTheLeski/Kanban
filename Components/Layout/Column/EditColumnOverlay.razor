@@ -1,0 +1,127 @@
+﻿@using Newtonsoft.Json
+@using Kanban.Components.DTOs
+@using System.Net.Http.Headers
+
+@inject HttpClient http
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+@rendermode RenderMode.InteractiveServer
+
+<MudPaper>
+    <MudText>Edit Column</MudText>
+    <MudExpansionPanels>
+        <MudExpansionPanel Text="Column" MaxHeight="1000" IsExpandedChanged="ColumnListExpandedChanged">
+            @_columnList
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+    <MudButtonGroup>
+        <MudButton OnClick="RemoveColumn">Submit</MudButton>
+        <MudButton OnClick="CloseColumnOverlay">Discard</MudButton>
+    </MudButtonGroup>
+ </MudPaper>
+
+@code
+{
+    [Parameter]
+    public bool Open { get; set; }
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public List<Guid> Columns { get; set; }
+    [Parameter]
+    public EventCallback<List<Guid>> ColumnsChanged { get; set; }
+
+    [Parameter]
+    public List<string> ColumnTitles { get; set; }
+    [Parameter]
+    public EventCallback<List<string>> ColumnTitlesChanged { get; set; }
+
+    private static List<Guid> _columns = new List<Guid> ();
+    private static List<string> _columnTitles = new List<string> ();
+
+    public EditColumnOverlay ()
+    {
+        Open = false;
+        _columns = Columns;
+        _columnTitles = ColumnTitles;
+    }
+
+    private RenderFragment _columnList;
+    private async Task ColumnListExpandedChanged (bool showColumns)
+    {
+        _columns = Columns;
+        _columnTitles = ColumnTitles;
+
+        if (showColumns)
+        {
+            _columnList = _columnListRenderFragment ();
+        }
+        else
+        {
+            // Reset after a while to prevent sudden collapse.
+            Task.Delay (350).ContinueWith (task => _columnList = null).AndForget ();
+        }
+    }
+
+    private static string columnSelectedToDelete = "";
+    private RenderFragment _columnListRenderFragment ()
+    {
+        return __builder =>
+        {
+            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
+                <MudStack Class="flex-grow-1" Width="100%" Height="100%">
+                    <MudList Clickable="true">
+                        @foreach (var columnTitle in _columnTitles)
+                        {
+                            <MudListItem OnClick="(() => SetColumnNameToDelete (columnTitle))">
+                                Column Name: @(columnTitle)
+                            </MudListItem>
+                        }
+                    </MudList>
+                </MudStack>
+            </MudPaper>
+        };
+    }
+
+    private static async Task SetColumnNameToDelete (string columnName)
+    {
+        var matchingColumnNameCount = _columnTitles.FindAll (column => column == columnName).Count ();
+        if (matchingColumnNameCount is not 1)
+        {
+            // Should we throw exceptions? Or have the snackbar display exceptions?
+            // I think that the API should throw exceptions and the Blazor UI should maybe use something reliable like the snackbar.
+            throw new Exception ($"The column selected does not correspond to a single column in our list of columns. Number of this column found: {matchingColumnNameCount}");
+        }
+
+        columnSelectedToDelete = columnName;
+    }
+
+    private async Task RemoveColumn ()
+    {
+        //Keep in mind that on a given board, column names should be unique.
+        var columnToDeleteListIndex = _columnTitles.IndexOf (columnSelectedToDelete);
+        var columnToDeleteGuid = _columns [columnToDeleteListIndex];
+
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Delete, @$"{NavigationManager.BaseUri}kanban/deletecolumn/{columnToDeleteGuid}");
+
+        var response = await http.SendAsync (httpRequestMessage);
+        if (!response.IsSuccessStatusCode)
+        {
+            Snackbar.Add ($"Could not delete Column. Error code: {response.StatusCode}");
+        }
+
+        Columns.RemoveAt (columnToDeleteListIndex);
+        await ColumnsChanged.InvokeAsync ();
+
+        ColumnTitles.RemoveAt (columnToDeleteListIndex);
+        await ColumnTitlesChanged.InvokeAsync ();
+    }
+
+    private void CloseColumnOverlay ()
+    {
+        Open = false;
+        OpenChanged.InvokeAsync (Open);
+    }
+}

@@ -176,7 +176,7 @@ public class CardController : ControllerBase
         return Ok (cardResponse);
     }
 
-    [HttpPatch ("deletecard/{ID:guid}")] // Need to delete from board AND card tables. There might also be extensions to remove. For now though, I'm just going to do board.
+    [HttpDelete ("deletecard/{ID:guid}")] // Need to delete from board AND card tables. There might also be extensions to remove. For now though, I'm just going to do board.
     public async Task<ActionResult> DeleteCard  (Guid ID)
     {
         var cardList = new List<Card> ();

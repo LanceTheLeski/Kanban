@@ -5,33 +5,41 @@
 @inject HttpClient http
 @inject NavigationManager NavigationManager
 
-<MudOverlay @bind-Visible="Open" DarkBackground="true" ZIndex="10">
-    <MudPaper>
-        <MudText>Add a New Swimlane</MudText>
-        <MudTextField T="string" Label="Title" Variant="Variant.Filled" AutoGrow HelperText="Swimlane Title" />
-        <MudButtonGroup>
-            <MudButton>Submit</MudButton>
-            <MudButton OnClick="CloseSwimlaneOverlay">Discard</MudButton>
-        </MudButtonGroup>
-    </MudPaper>
-</MudOverlay>
+<MudPaper>
+    <MudText>Add a New Swimlane</MudText>
+    <MudTextField T="string" Label="Title" Variant="Variant.Filled" AutoGrow HelperText="Swimlane Title" />
+    <MudButtonGroup>
+        <MudButton OnClick="CreateSwimlane">Submit</MudButton>
+        <MudButton OnClick="CloseSwimlaneOverlay">Discard</MudButton>
+    </MudButtonGroup>
+</MudPaper>
 
 @code 
- {
+{
     [Parameter]
     public bool Open { get; set; }
     [Parameter]
     public EventCallback<bool> OpenChanged { get; set; }
 
     [Parameter]
-    public static List<string> SwimlaneTitles { get; set; }
+    public List<string> SwimlaneTitles { get; set; }
     [Parameter]
     public EventCallback<List<string>> SwimlaneTitlesChanged { get; set; }
 
     [Parameter]
-    public static List<Guid> Swimlanes { get; set; }
+    public List<Guid> Swimlanes { get; set; }
     [Parameter]
     public EventCallback<List<Guid>> SwimlanesChanged { get; set; }
+
+    private static List<Guid> _swimlanes = new List<Guid> ();
+    private static List<string> _swimlaneTitles = new List<string> ();
+
+    public AddNewSwimlaneOverlay ()
+    {
+        Open = false;
+        _swimlanes = Swimlanes;
+        _swimlaneTitles = SwimlaneTitles;
+    }
 
     private string swimlaneTitle = "";
     private string swimlaneOrder = "";
@@ -54,12 +62,17 @@
             var deserialized = JsonConvert.DeserializeObject<SwimlaneResponse> (responseBody);
 
             Swimlanes.Insert (deserialized.Order, deserialized.ID);
-            SwimlaneTitles.Insert (deserialized.Order, deserialized.Title);
+            await SwimlanesChanged.InvokeAsync ();
 
-            //Cards will need to have their position (SwimlaneOrder) changed as well
+            SwimlaneTitles.Insert (deserialized.Order, deserialized.Title);
+            await SwimlaneTitlesChanged.InvokeAsync();
+            
+            //Cards will need to have their position (SwimlaneOrder) changed as well..
 
             return deserialized;
         }
+
+        //Show an error on the snackbar.
 
         return null;
     }
@@ -68,5 +81,6 @@
     private void CloseSwimlaneOverlay ()
     {
         Open = false;
+        OpenChanged.InvokeAsync (Open);
     }
 }

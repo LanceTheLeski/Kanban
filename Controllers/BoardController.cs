@@ -2,6 +2,7 @@
 using Kanban.Components.DTOs;
 using Kanban.Contexts;
 using Kanban.Models;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -115,7 +116,7 @@ public class BoardController : Controller
     public async Task<ActionResult> GetColumn (Guid ID)
     {
         var columnList = new List<Column> ();
-        var columnsFromTable = _columnTable.QueryAsync<Column> (column => column.PartitionKey == ID.ToString());
+        var columnsFromTable = _columnTable.QueryAsync<Column> (column => column.PartitionKey == ID.ToString ());
         await foreach (var column in columnsFromTable)
             columnList.Add (column);
 
@@ -164,7 +165,7 @@ public class BoardController : Controller
             BoardTitle = boardFromTable.Title
         };
         
-        var addEntityResponse = await _columnTable.AddEntityAsync (newColumn);
+        var addEntityResponse = await _columnTable.AddEntityAsync (newColumn);//Do we need to update the boardTable as well?
         if (addEntityResponse.IsError)
         {
             //We might want to have better verification later for failures. I'm thinking we actually query the table and grab the column so we can map it to a response object
@@ -180,6 +181,71 @@ public class BoardController : Controller
         };
 
         return StatusCode (StatusCodes.Status201Created, columnResponse);
+    }
+
+    [HttpPatch ("updatecolumn/{ID:Guid}")]
+    public async Task<ActionResult> UpdateColumn (Guid ID, [FromBody] JsonPatchDocument<ColumnPatchRequest> columnPatchRequest)
+    {
+        if (columnPatchRequest is null)
+        {
+            return BadRequest ("There was no Patch Request passed in!");
+        }
+
+        //Currently we are doing this for the ColumnTable. But we might need to update the boards table as well?
+        var columnFromTable = await _columnTable.GetEntityAsync<Column> (partitionKey: ID.ToString (), rowKey: @"20a88077-10d4-4648-92cb-7dc7ba5b8df5");
+        var columnToUpdate = columnFromTable.Value;
+
+        var convertedColumnToUpdate = new ColumnPatchRequest
+        {
+            Title = columnToUpdate.Title,
+            Order = columnToUpdate.ColumnOrder
+        };
+
+        columnPatchRequest.ApplyTo (convertedColumnToUpdate); //Could add a ModelState validation somewhere here as well..
+
+        columnToUpdate.Title = convertedColumnToUpdate.Title;
+        columnToUpdate.ColumnOrder = convertedColumnToUpdate.Order;
+
+        var response = await _boardTable.UpdateEntityAsync (columnToUpdate, Azure.ETag.All);
+        if (response.IsError)
+        {
+            return BadRequest ($"Could not update card. Internal status: {response.Status}");
+        }
+
+        var columnResponse = new ColumnResponse
+        {
+            ID = Guid.Parse(columnToUpdate.PartitionKey),
+            Title = columnToUpdate.Title,
+            BoardID = Guid.Parse(columnToUpdate.RowKey),
+            Order = columnToUpdate.ColumnOrder
+        };
+
+        return Ok (columnResponse);
+    }
+
+    //What happens if cards are in this column? Where do they get moved to?
+    [HttpDelete ("deletecolumn/{ID:guid}")] // Need to delete from board AND column tables. There might also be extensions to remove. For now though, I'm just going to do board.
+    public async Task<ActionResult> DeleteColumn (Guid ID)
+    {
+        var columnList = new List<Column> ();
+        var columnsFromTable = _columnTable.QueryAsync<Column> (column => column.PartitionKey == ID.ToString ());
+        await foreach (var column in columnsFromTable)
+            columnList.Add (column);
+
+        if (columnList.Count () is 0)
+            return NotFound ("The column you are searching for was not found.");
+
+        if (columnList.Count () > 1)
+            return StatusCode (StatusCodes.Status500InternalServerError, "Multiple columns were found with the same ID.");
+
+        //Currently we are doing this for the ColumnTable. But we might need to update the boards table as well?
+        var columnFromDatabase = columnList.Single ();
+        var columnToDelete = _columnTable.DeleteEntityAsync (columnFromDatabase.PartitionKey, columnFromDatabase.RowKey);
+
+        if (columnToDelete.IsCompletedSuccessfully)
+            return Ok (); //Is there a better Status to return? NoContent perhaps?
+        else
+            return StatusCode (StatusCodes.Status500InternalServerError, "Could not delete column.");
     }
 
     [HttpGet ("getswimlane/{ID:Guid}")]
@@ -203,7 +269,7 @@ public class BoardController : Controller
             Order = swimlaneToReturn.SwimlaneOrder
         };
 
-        return Ok (swimlaneResponse);
+        return Ok (swimlaneResponse); 
     }
 
     [HttpPost ("createswimlane")]
@@ -235,7 +301,7 @@ public class BoardController : Controller
             BoardTitle = boardFromTable.Title
         };
 
-        var addEntityResponse = await _swimlaneTable.AddEntityAsync (newSwimlane);
+        var addEntityResponse = await _swimlaneTable.AddEntityAsync (newSwimlane);//Do we need to update the boardTable as well?
         if (addEntityResponse.IsError)
         {
             //We might want to have better verification later for failures. I'm thinking we actually query the table and grab the swimlane so we can map it to a response object
@@ -251,5 +317,70 @@ public class BoardController : Controller
         };
 
         return StatusCode (StatusCodes.Status201Created, swimlaneResponse);
+    }
+
+    [HttpPatch ("updateswimlane/{ID:Guid}")]
+    public async Task<ActionResult> UpdateSwimlane (Guid ID, [FromBody] JsonPatchDocument<SwimlanePatchRequest> swimlanePatchRequest)
+    {
+        if (swimlanePatchRequest is null)
+        {
+            return BadRequest ("There was no Patch Request passed in!");
+        }
+
+        //Currently we are doing this for the SwimlaneTable. But we might need to update the boards table as well?
+        var swimlaneFromTable = await _swimlaneTable.GetEntityAsync<Swimlane> (partitionKey: ID.ToString (), rowKey: @"20a88077-10d4-4648-92cb-7dc7ba5b8df5");
+        var swimlaneToUpdate = swimlaneFromTable.Value;
+
+        var convertedSwimlaneToUpdate = new SwimlanePatchRequest
+        {
+            Title = swimlaneToUpdate.Title,
+            Order = swimlaneToUpdate.SwimlaneOrder
+        };
+
+        swimlanePatchRequest.ApplyTo (convertedSwimlaneToUpdate); //Could add a ModelState validation somewhere here as well..
+
+        swimlaneToUpdate.Title = convertedSwimlaneToUpdate.Title;
+        swimlaneToUpdate.SwimlaneOrder = convertedSwimlaneToUpdate.Order;
+
+        var response = await _swimlaneTable.UpdateEntityAsync (swimlaneToUpdate, Azure.ETag.All);
+        if (response.IsError)
+        {
+            return BadRequest ($"Could not update card. Internal status: {response.Status}");
+        }
+
+        var swimlaneResponse = new ColumnResponse
+        {
+            ID = Guid.Parse (swimlaneToUpdate.PartitionKey),
+            Title = swimlaneToUpdate.Title,
+            BoardID = Guid.Parse (swimlaneToUpdate.RowKey),
+            Order = swimlaneToUpdate.SwimlaneOrder
+        };
+
+        return Ok (swimlaneResponse);
+    }
+
+    //What happens if cards are in this swimlane? Where do they get moved to?
+    [HttpDelete ("deleteswimlane/{ID:Guid}")]
+    public async Task<ActionResult> DeleteSwimlane (Guid ID)
+    {
+        var swimlaneList = new List<Swimlane> ();
+        var swimlanesFromTable = _swimlaneTable.QueryAsync<Swimlane> (column => column.PartitionKey == ID.ToString ());
+        await foreach (var swimlane in swimlanesFromTable)
+            swimlaneList.Add (swimlane);
+
+        if (swimlaneList.Count () is 0)
+            return NotFound ("The swimlane you are searching for was not found.");
+
+        if (swimlaneList.Count () > 1)
+            return StatusCode (StatusCodes.Status500InternalServerError, "Multiple sswimlanes were found with the same ID.");
+        
+        //Currently we are doing this for the ColumnTable. But we might need to update the boards table as well?
+        var swimlaneFromDatabase = swimlaneList.Single ();
+        var swimlaneToDelete = _swimlaneTable.DeleteEntityAsync (swimlaneFromDatabase.PartitionKey, swimlaneFromDatabase.RowKey);
+
+        if (swimlaneToDelete.IsCompletedSuccessfully)
+            return Ok (); //Is there a better Status to return? NoContent perhaps?
+        else
+            return StatusCode (StatusCodes.Status500InternalServerError, "Could not delete column.");
     }
 }
