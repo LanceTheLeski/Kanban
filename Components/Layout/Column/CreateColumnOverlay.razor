@@ -38,7 +38,7 @@
     private static List<Guid> _columns = new List<Guid> ();
     private static List<string> _columnTitles = new List<string> ();
 
-    public AddNewColumnOverlay ()
+    public CreateColumnOverlay ()
     {
         Open = false;
         _columns = Columns;
@@ -68,7 +68,7 @@
             BoardID = Guid.Parse ("20a88077-10d4-4648-92cb-7dc7ba5b8df5")
         };
 
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{NavigationManager.BaseUri}kanban/createcolumn");
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{NavigationManager.BaseUri}kanban/columns/create");
         httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject (createRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
 
         var response = await http.SendAsync (httpRequestMessage);
@@ -78,10 +78,10 @@
             var deserialized = JsonConvert.DeserializeObject<ColumnResponse> (responseBody);
 
             Columns.Insert (deserialized.Order, deserialized.ID);
-            await ColumnsChanged.InvokeAsync ();
+            await ColumnsChanged.InvokeAsync (Columns);
 
             ColumnTitles.Insert (deserialized.Order, deserialized.Title);
-            await ColumnTitlesChanged.InvokeAsync();
+            await ColumnTitlesChanged.InvokeAsync (ColumnTitles);
 
             return deserialized;
         }

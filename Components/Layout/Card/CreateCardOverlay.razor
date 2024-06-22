@@ -159,7 +159,7 @@
             SwimlaneID = Swimlanes [SwimlaneTitles.IndexOf (swimlaneToAddCard)]
         };
 
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{NavigationManager.BaseUri}kanban/cards/createcard");
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{NavigationManager.BaseUri}kanban/cards/create");
         httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject (createRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
 
         var response = await http.SendAsync (httpRequestMessage);

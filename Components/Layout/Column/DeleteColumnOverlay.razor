@@ -15,8 +15,15 @@
             @_columnList
         </MudExpansionPanel>
     </MudExpansionPanels>
+
+    <MudExpansionPanels>
+        <MudExpansionPanel Text="Order" MaxHeight="1000" IsExpandedChanged="ColumnListExpandedChanged">
+            @_columnList
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+
     <MudButtonGroup>
-        <MudButton OnClick="RemoveColumn">Submit</MudButton>
+        <MudButton OnClick="RemoveColumn">Delete</MudButton>
         <MudButton OnClick="CloseColumnOverlay">Discard</MudButton>
     </MudButtonGroup>
  </MudPaper>
@@ -41,7 +48,7 @@
     private static List<Guid> _columns = new List<Guid> ();
     private static List<string> _columnTitles = new List<string> ();
 
-    public EditColumnOverlay ()
+    public DeleteColumnOverlay ()
     {
         Open = false;
         _columns = Columns;
@@ -98,13 +105,50 @@
         columnSelectedToDelete = columnName;
     }
 
+    private RenderFragment _columnOrderList;
+    private async Task ColumnOrderListExpandedChanged (bool showColumnOrders)
+    {
+        _columns = Columns;
+        _columnTitles = ColumnTitles;
+
+        if (showColumnOrders)
+        {
+            _columnOrderList = _columnOrderListRenderFragment ();
+        }
+        else
+        {
+            // Reset after a while to prevent sudden collapse.
+            Task.Delay (350).ContinueWith (task => _columnOrderList = null).AndForget ();
+        }
+    }
+
+    private static int columnOrderSelected = -1;//Have a method set this later...
+    private RenderFragment _columnOrderListRenderFragment ()
+    {
+        return __builder =>
+        {
+            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
+                <MudStack Class="flex-grow-1" Width="100%" Height="100%">
+                    <MudList Clickable="true">
+                        @foreach (var columnOrder in Enumerable.Range (0, _columnTitles.Count ()))
+                        {
+                            <MudListItem OnClick="(() => columnOrderSelected = columnOrder)">
+                                Column Name: @(columnOrder)
+                            </MudListItem>
+                        }
+                    </MudList>
+                </MudStack>
+            </MudPaper>
+        };
+    }
+
     private async Task RemoveColumn ()
     {
         //Keep in mind that on a given board, column names should be unique.
         var columnToDeleteListIndex = _columnTitles.IndexOf (columnSelectedToDelete);
         var columnToDeleteGuid = _columns [columnToDeleteListIndex];
 
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Delete, @$"{NavigationManager.BaseUri}kanban/deletecolumn/{columnToDeleteGuid}");
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Delete, @$"{NavigationManager.BaseUri}kanban/columns/delete/{columnToDeleteGuid}");
 
         var response = await http.SendAsync (httpRequestMessage);
         if (!response.IsSuccessStatusCode)
@@ -113,10 +157,10 @@
         }
 
         Columns.RemoveAt (columnToDeleteListIndex);
-        await ColumnsChanged.InvokeAsync ();
+        await ColumnsChanged.InvokeAsync (_columns);
 
         ColumnTitles.RemoveAt (columnToDeleteListIndex);
-        await ColumnTitlesChanged.InvokeAsync ();
+        await ColumnTitlesChanged.InvokeAsync (_columnTitles);
     }
 
     private void CloseColumnOverlay ()

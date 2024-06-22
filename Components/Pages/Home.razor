@@ -33,22 +33,22 @@
 </MudPaper>
 
 <MudOverlay @bind-Visible="swimlaneOverlayIsOpen" DarkBackground="true" ZIndex="10">
-    <AddNewSwimlaneOverlay @bind-Open="swimlaneOverlayIsOpen"
+    <CreateSwimlaneOverlay @bind-Open="swimlaneOverlayIsOpen"
                            @bind-Swimlanes="_swimlanes"
                            @bind-SwimlaneTitles="_swimlaneTitles" />
 </MudOverlay>
 <MudOverlay @bind-Visible="allNewColumnOverlayIsOpen" DarkBackground="true" ZIndex="10">
-    <AddNewColumnOverlay @bind-Open="allNewColumnOverlayIsOpen"
+    <CreateColumnOverlay @bind-Open="allNewColumnOverlayIsOpen"
                          @bind-Columns="_columns"
                          @bind-ColumnTitles="_columnTitles" />
 </MudOverlay>
 <MudOverlay @bind-Visible="editColumnOverlayIsOpen" DarkBackground="true" ZIndex="10">
-    <EditColumnOverlay @bind-Open="editColumnOverlayIsOpen"
+    <DeleteColumnOverlay @bind-Open="editColumnOverlayIsOpen"
                        @bind-Columns="_columns"
                        @bind-ColumnTitles="_columnTitles" /> 
 </MudOverlay>
 <MudOverlay @bind-Visible="Open" DarkBackground="true" ZIndex="10">
-    <AddNewCardOverlay @bind-Open="Open"
+    <CreateCardOverlay @bind-Open="Open"
                        @bind-Cards="_cards"
                        @bind-Columns="_columns"
                        @bind-ColumnTitles="_columnTitles"
@@ -125,7 +125,7 @@
 
         <!--The ItemRenderer is a component of the MudDropZone and is in charge of randering individual DropCards within it-->
         <ItemRenderer>
-            <DisplayCard @bind-Card="context"/>
+            <BoardCard @bind-Card="context"/>
         </ItemRenderer>
     </MudDropContainer>
 </MudGrid>
@@ -146,7 +146,7 @@
     //On page load:
     protected override async Task OnInitializedAsync ()
     {
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, @$"{NavigationManager.BaseUri}kanban/getboard/20a88077-10d4-4648-92cb-7dc7ba5b8df5");
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, @$"{NavigationManager.BaseUri}kanban/boards/fetch/20a88077-10d4-4648-92cb-7dc7ba5b8df5");
 
         var response = await http.SendAsync (httpRequestMessage);
         var responseBody = await response.Content.ReadAsStringAsync ();
@@ -186,7 +186,7 @@
             {{ ""op"": ""replace"", ""path"": ""/SwimlaneOrder"", ""value"": ""{cardToUpdate.SwimlaneNumber}"" }}
         ]";
 
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{NavigationManager.BaseUri}kanban/cards/updatecard/{cardToUpdate.Id}");
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{NavigationManager.BaseUri}kanban/cards/update/{cardToUpdate.Id}");
         httpRequestMessage.Content = new StringContent (patchRequest, mediaType: new MediaTypeHeaderValue (@"application/json"));
 
         var response = await http.SendAsync (httpRequestMessage);
@@ -228,7 +228,7 @@
             {{ ""op"": ""replace"", ""path"": ""/Order"", ""value"": ""{swimlaneOrder}"" }}
         ]";
 
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{NavigationManager.BaseUri}kanban/createswimlane");
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{NavigationManager.BaseUri}kanban/swimlanes/create");
         httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject (patchRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
 
         var response = await http.SendAsync (httpRequestMessage);

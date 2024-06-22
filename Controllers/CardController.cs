@@ -32,8 +32,8 @@ public class CardController : ControllerBase
         _cardTable = _tableServiceClient.GetTableClient (tableName: cards);
     }
 
-    [HttpGet ("getcard/{ID:guid}")]
-    public async Task<ActionResult> GetCard (Guid ID)
+    [HttpGet ("fetch/{ID:guid}")]
+    public async Task<ActionResult> FetchCard (Guid ID)
     {
         var cardList = new List<Card> ();
         var cardsFromTable = _boardTable.QueryAsync<Card> (card => card.PartitionKey == ID.ToString());
@@ -59,7 +59,7 @@ public class CardController : ControllerBase
         return Ok (cardList.Single ());
     }
 
-    [HttpPost ("createcard")]
+    [HttpPost ("create")]
     public async Task<ActionResult> CreateCard ([FromBody] CardCreateRequest cardCreateRequest)
     {
         if (cardCreateRequest is null)
@@ -120,7 +120,7 @@ public class CardController : ControllerBase
         return StatusCode (StatusCodes.Status201Created, cardResponse);
     }
 
-    [HttpPatch ("updatecard/{ID:guid}")]
+    [HttpPatch ("update/{ID:guid}")]
     public async Task<ActionResult> UpdateCard (Guid ID, [FromBody] JsonPatchDocument<CardPatchRequest> cardPatchRequest)
     {
         if (cardPatchRequest is null)
@@ -176,7 +176,7 @@ public class CardController : ControllerBase
         return Ok (cardResponse);
     }
 
-    [HttpDelete ("deletecard/{ID:guid}")] // Need to delete from board AND card tables. There might also be extensions to remove. For now though, I'm just going to do board.
+    [HttpDelete ("delete/{ID:guid}")] // Need to delete from board AND card tables. There might also be extensions to remove. For now though, I'm just going to do board.
     public async Task<ActionResult> DeleteCard  (Guid ID)
     {
         var cardList = new List<Card> ();

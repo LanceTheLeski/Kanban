@@ -34,7 +34,7 @@
     private static List<Guid> _swimlanes = new List<Guid> ();
     private static List<string> _swimlaneTitles = new List<string> ();
 
-    public AddNewSwimlaneOverlay ()
+    public CreateSwimlaneOverlay ()
     {
         Open = false;
         _swimlanes = Swimlanes;
@@ -52,7 +52,7 @@
             BoardID = Guid.Parse ("20a88077-10d4-4648-92cb-7dc7ba5b8df5")
         };
 
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{NavigationManager.BaseUri}kanban/updateswimlane");
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{NavigationManager.BaseUri}kanban/swimlanes/update");
         httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject (createRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
 
         var response = await http.SendAsync (httpRequestMessage);
