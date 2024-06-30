@@ -14,10 +14,11 @@
     <MudTextField T="string" Label="Title" Variant="Variant.Filled" HelperText="Card Title" />
     <MudTextField T="string" Label="Description" Variant="Variant.Filled" AutoGrow Lines="7" HelperText="Description" />
     <MudExpansionPanels>
-            <MudExpansionPanel Text="Column" MaxHeight="1000" IsExpandedChanged="ColumnListExpandedChanged">
-                @_columnList
+        <MudExpansionPanel Text="Column" MaxHeight="1000" IsExpandedChanged="ColumnListExpandedChanged">
+            @_columnList
         </MudExpansionPanel>
     </MudExpansionPanels>
+
     <MudExpansionPanels>
         <MudExpansionPanel Text="Swimlane" MaxHeight="1000" IsExpandedChanged="SwimlaneListExpandedChanged">
             @_swimlaneList
