@@ -18,7 +18,6 @@ public class ColumnController : Controller
     private const string columns = "Columns";
 
     private readonly TableServiceClient _tableServiceClient;
-    private readonly TableClient _boardTable;
     private readonly TableClient _columnTable;
 
     private readonly BoardRepository _boardRepository;
@@ -27,7 +26,6 @@ public class ColumnController : Controller
     public ColumnController (IOptions<CosmosOptions> cosmosOptions, ColumnRepository columnRepository, BoardRepository boardRepository)
     {
         _tableServiceClient = new TableServiceClient (cosmosOptions.Value.HonuBoards);
-        _boardTable = _tableServiceClient.GetTableClient (tableName: boards);
         _columnTable = _tableServiceClient.GetTableClient (tableName: columns);
 
         _boardRepository = boardRepository;
@@ -159,22 +157,21 @@ public class ColumnController : Controller
     [HttpDelete ("delete/{ID:guid}")]
     public async Task<ActionResult> DeleteColumn (Guid ID)
     {
-        var columnList = new List<Column> ();
-        var columnsFromTable = _columnTable.QueryAsync<Column> (column => column.PartitionKey == ID.ToString ());
-        await foreach (var column in columnsFromTable)
-            columnList.Add (column);
+        var columnCollection = await _columnRepository.QueryColumnsAsync (column => column.PartitionKey == ID.ToString ());
 
-        if (columnList.Count () is 0)
+        if (columnCollection.Count () is 0)
             return NotFound ("The column you are searching for was not found.");
 
-        if (columnList.Count () > 1)
+        if (columnCollection.Count () > 1)
             return StatusCode (StatusCodes.Status500InternalServerError, "Multiple columns were found with the same ID.");
 
-        var columnFromDatabase = columnList.Single ();
+        var columnFromDatabase = columnCollection.Single ();
         var columnToDelete = _columnTable.DeleteEntityAsync (columnFromDatabase.PartitionKey, columnFromDatabase.RowKey);
 
-        // Move cards to a higher column in a repository method. Call it here.
-        await _columnRepository.UpdateBoardCardsWithNewColumnInfoAsync ()
+        var columnsToUpdateOrder = columnCollection.Where (column => column.ColumnOrder > columnFromDatabase.ColumnOrder) as Collection<Column>;
+        foreach (var column in columnsToUpdateOrder!)
+            column.ColumnOrder --;
+        await _columnRepository.UpdateBoardCardsWithNewColumnInfoAsync (columnsToUpdateOrder);
 
         if (!columnToDelete.IsFaulted)
             return Ok (); //Is there a better Status to return? NoContent perhaps?

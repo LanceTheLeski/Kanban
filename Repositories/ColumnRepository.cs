@@ -5,6 +5,7 @@ using Kanban.Models;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.Extensions.Options;
 using System.Collections.ObjectModel;
+using System.Linq.Expressions;
 
 namespace Kanban.Repositories;
 
@@ -43,6 +44,17 @@ public class ColumnRepository
         return response?.Value.GetType () == typeof (Column) ? 
             response.Value : 
             null;
+    }
+
+    public async Task<Collection<Column>> QueryColumnsAsync (Expression<Func<Column, bool>> columnQueryExpression)
+    {
+        var columnCollection = new Collection<Column> ();
+
+        var columnsFromTable = _columnTable.QueryAsync (columnQueryExpression);
+        await foreach (var column in columnsFromTable)
+            columnCollection.Add (column);
+
+        return columnCollection;
     }
 
     public bool TryApplyJsonPatchDocumentToColumn (JsonPatchDocument<ColumnPatchRequest> columnPatchRequest, Column columnToUpdate, out ColumnPatchRequest convertedColumnToUpdate)
