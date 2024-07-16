@@ -1,0 +1,194 @@
+﻿@using Kanban.UI.Options
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using Kanban.UI.Components.DTOs
+@using System.Net.Http.Headers
+
+@inject HttpClient http
+@inject IOptions<InterfaceOptions> interfaceOptions
+@inject ISnackbar Snackbar
+
+@rendermode RenderMode.InteractiveServer
+
+<MudPaper>
+    <MudText>Edit Swimlane</MudText>
+
+    <MudExpansionPanels>
+        <MudExpansionPanel Text="Swimlane" MaxHeight="1000" IsExpandedChanged="SwimlaneListExpandedChanged">
+            @_swimlaneList
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+
+    <MudTextField T="string" @bind-Value="swimlaneTitle" Label="New Title" Variant="Variant.Filled" AutoGrow HelperText="Swimlane Title" />
+
+     <MudExpansionPanels>
+         <MudExpansionPanel Text="Order" MaxHeight="1000" IsExpandedChanged="SwimlaneOrderListExpandedChanged">
+             @_swimlaneOrderList
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+
+    <MudButtonGroup>
+        <MudButton OnClick="UpdateSwimlane">Submit</MudButton>
+        <MudButton OnClick="CloseSwimlaneOverlay">Cancel</MudButton>
+    </MudButtonGroup>
+ </MudPaper>
+
+@code 
+{
+    [Parameter]
+    public bool Open { get; set; }
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public List<Guid> Swimlanes { get; set; }
+    [Parameter]
+    public EventCallback<List<Guid>> SwimlanesChanged { get; set; }
+
+    [Parameter]
+    public List<string> SwimlaneTitles { get; set; }
+    [Parameter]
+    public EventCallback<List<string>> SwimlaneTitlesChanged { get; set; }
+
+    private static List<Guid> _swimlanes = new List<Guid> ();
+    private static List<string> _swimlaneTitles = new List<string> ();
+
+    public UpdateSwimlaneOverlay ()
+    {
+        Open = false;
+        _swimlanes = Swimlanes;
+        _swimlaneTitles = SwimlaneTitles;
+    }
+
+    private RenderFragment _swimlaneList;
+    private async Task SwimlaneListExpandedChanged (bool showSwimlanes)
+    {
+        _swimlanes = Swimlanes;
+        _swimlaneTitles = SwimlaneTitles;
+
+        if (showSwimlanes)
+        {
+            _swimlaneList = _swimlaneListRenderFragment ();
+        }
+        else
+        {
+            // Reset after a while to prevent sudden collapse.
+            Task.Delay (350).ContinueWith (task => _swimlaneList = null).AndForget ();
+        }
+    }
+
+    private string swimlaneTitle = "";
+    private static string swimlaneSelectedToDelete = "";
+    private RenderFragment _swimlaneListRenderFragment ()
+    {
+        return __builder =>
+        {
+            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
+                <MudStack Class="flex-grow-1" Width="100%" Height="100%">
+                    <MudList Clickable="true">
+                        @foreach (var swimlaneTitle in _swimlaneTitles)
+                        {
+                            <MudListItem OnClick="(() => SetSwimlaneNameToUpdate (swimlaneTitle))">
+                                Swimlane Name: @(swimlaneTitle)
+                            </MudListItem>
+                        }
+                    </MudList>
+                </MudStack>
+            </MudPaper>
+        };
+    }
+
+    private static async Task SetSwimlaneNameToUpdate (string swimlaneName)
+    {
+        var matchingSwimlaneNameCount = _swimlaneTitles.FindAll (swimlane => swimlane == swimlaneName).Count ();
+        if (matchingSwimlaneNameCount is not 1)
+        {
+            // Should we throw exceptions? Or have the snackbar display exceptions?
+            // I think that the API should throw exceptions and the Blazor UI should maybe use something reliable like the snackbar.
+            throw new Exception ($"The swimlane selected does not correspond to a single swimlane in our list of swimlanes. Number of this swimlane found: {matchingSwimlaneNameCount}");
+        }
+
+        swimlaneSelectedToDelete = swimlaneName;
+    }
+
+    private RenderFragment _swimlaneOrderList;
+    private async Task SwimlaneOrderListExpandedChanged (bool showSwimlaneOrders)
+    {
+        _swimlanes = Swimlanes;
+        _swimlaneTitles = SwimlaneTitles;
+
+        if (showSwimlaneOrders)
+        {
+            _swimlaneOrderList = _swimlaneOrderListRenderFragment ();
+        }
+        else
+        {
+            // Reset after a while to prevent sudden collapse.
+            Task.Delay (350).ContinueWith (task => _swimlaneOrderList = null).AndForget ();
+        }
+    }
+
+    private static int swimlaneOrderSelected = -1;//Have a method set this later...
+    private RenderFragment _swimlaneOrderListRenderFragment ()
+    {
+        return __builder =>
+        {
+            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
+                <MudStack Class="flex-grow-1" Width="100%" Height="100%">
+                    <MudList Clickable="true">
+                        @foreach (var swimlaneOrder in Enumerable.Range (0, _swimlaneTitles.Count ()))
+                        {
+                            <MudListItem OnClick="(() => swimlaneOrderSelected = swimlaneOrder)">
+                                Swimlane Name: @(swimlaneOrder)
+                            </MudListItem>
+                        }
+                    </MudList>
+                </MudStack>
+            </MudPaper>
+        };
+    }
+
+    private async Task UpdateSwimlane ()
+    {
+        //Keep in mind that on a given board, swimlane names should be unique.
+        var swimlaneToDeleteListIndex = _swimlaneTitles.IndexOf (swimlaneSelectedToDelete);
+        var swimlaneToDeleteGuid = _swimlanes [swimlaneToDeleteListIndex];
+
+        var patchRequestForTitle = string.IsNullOrWhiteSpace (swimlaneTitle) ? 
+                                        "" : 
+                                        $@"{{ ""op"": ""replace"", ""path"": ""/Title"", ""value"": ""{swimlaneTitle}"" }},";
+        var patchRequestForOrder = swimlaneOrderSelected is -1 ? 
+                                        "" : 
+                                        $@"{{ ""op"": ""replace"", ""path"": ""/Order"", ""value"": ""{swimlaneOrderSelected}"" }}";
+
+        if (patchRequestForTitle is "" && patchRequestForOrder is "") 
+            return;
+
+        var patchRequest =
+        $@"[
+            {patchRequestForTitle}
+            {patchRequestForOrder}
+        ]";
+
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{interfaceOptions.Value.URL}kanban/swimlanes/update/{swimlaneToDeleteGuid}");
+        httpRequestMessage.Content = new StringContent (patchRequest, mediaType: new MediaTypeHeaderValue (@"application/json"));
+
+        var response = await http.SendAsync (httpRequestMessage);
+        if (!response.IsSuccessStatusCode)
+        {
+            Snackbar.Add ($"Could not update Swimlane. Error code: {response.StatusCode}");
+        }
+
+        //Swimlanes.(swimlaneToDeleteListIndex); adjust later..
+        await SwimlanesChanged.InvokeAsync (_swimlanes);
+
+        SwimlaneTitles.RemoveAt (swimlaneToDeleteListIndex);
+        await SwimlaneTitlesChanged.InvokeAsync (_swimlaneTitles);
+    }
+
+    private void CloseSwimlaneOverlay ()
+    {
+        Open = false;
+        OpenChanged.InvokeAsync (Open);
+    }
+}

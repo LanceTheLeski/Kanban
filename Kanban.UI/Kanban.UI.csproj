@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.0-rc.2.23480.2" />
+    <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="8.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.6" />
+    <PackageReference Include="MudBlazor" Version="6.20.0" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="Components\App.razor" />
+    <None Include="Components\Layout\MainLayout.razor" />
+    <None Include="Components\MyMudProviders.razor" />
+    <None Include="Components\MyMudThemeProvider.razor" />
+    <None Include="Components\Pages\Error.razor" />
+    <None Include="Components\Pages\Home.razor" />
+    <None Include="Components\Routes.razor" />
+    <None Include="Components\_Imports.razor" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Kanban.Contracts\Kanban.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

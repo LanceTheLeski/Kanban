@@ -1,0 +1,1094 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AD1F6C96-0329-473A-BB8A-3800EE33E94F}|..\\Kanban.UI\\Kanban.UI.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.ui\\components\\pages\\home.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.api\\kanban.api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|solutionrelative:kanban.api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.api\\controllers\\columncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|solutionrelative:controllers\\columncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.api\\validators\\cardcreatevalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|solutionrelative:validators\\cardcreatevalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.api\\repositories\\swimlanerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|solutionrelative:repositories\\swimlanerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.api\\repositories\\iswimlanerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|solutionrelative:repositories\\iswimlanerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.api\\repositories\\icolumnrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|solutionrelative:repositories\\icolumnrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.api\\repositories\\columnrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|solutionrelative:repositories\\columnrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.api\\controllers\\swimlanecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|solutionrelative:controllers\\swimlanecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.api\\controllers\\cardcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|solutionrelative:controllers\\cardcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.api\\controllers\\boardcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|solutionrelative:controllers\\boardcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AD1F6C96-0329-473A-BB8A-3800EE33E94F}|..\\Kanban.UI\\Kanban.UI.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.ui\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AD1F6C96-0329-473A-BB8A-3800EE33E94F}|..\\Kanban.UI\\Kanban.UI.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.ui\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AD1F6C96-0329-473A-BB8A-3800EE33E94F}|..\\Kanban.UI\\Kanban.UI.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.ui\\kanban.ui.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.api\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|solutionrelative:properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.api\\kanban.api.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
+      "RelativeMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|solutionrelative:kanban.api.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AD1F6C96-0329-473A-BB8A-3800EE33E94F}|..\\Kanban.UI\\Kanban.UI.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.ui\\components\\layout\\mainlayout.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AD1F6C96-0329-473A-BB8A-3800EE33E94F}|..\\Kanban.UI\\Kanban.UI.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.ui\\components\\layout\\column\\createcolumnoverlay.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AD1F6C96-0329-473A-BB8A-3800EE33E94F}|..\\Kanban.UI\\Kanban.UI.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.ui\\components\\layout\\board\\addmanageboardoverlay.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AD1F6C96-0329-473A-BB8A-3800EE33E94F}|..\\Kanban.UI\\Kanban.UI.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.ui\\components\\layout\\swimlane\\createswimlaneoverlay.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AD1F6C96-0329-473A-BB8A-3800EE33E94F}|..\\Kanban.UI\\Kanban.UI.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.ui\\components\\layout\\menuoverlay.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AD1F6C96-0329-473A-BB8A-3800EE33E94F}|..\\Kanban.UI\\Kanban.UI.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.ui\\components\\layout\\swimlane\\updateswimlaneoverlay.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AD1F6C96-0329-473A-BB8A-3800EE33E94F}|..\\Kanban.UI\\Kanban.UI.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.ui\\components\\layout\\swimlane\\deleteswimlaneoverlay.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AD1F6C96-0329-473A-BB8A-3800EE33E94F}|..\\Kanban.UI\\Kanban.UI.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.ui\\components\\layout\\column\\updatecolumnoverlay.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AD1F6C96-0329-473A-BB8A-3800EE33E94F}|..\\Kanban.UI\\Kanban.UI.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.ui\\components\\layout\\column\\deletecolumnoverlay.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AD1F6C96-0329-473A-BB8A-3800EE33E94F}|..\\Kanban.UI\\Kanban.UI.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.ui\\components\\layout\\card\\updatecardoverlay.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AD1F6C96-0329-473A-BB8A-3800EE33E94F}|..\\Kanban.UI\\Kanban.UI.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.ui\\components\\layout\\card\\deletecardoverlay.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AD1F6C96-0329-473A-BB8A-3800EE33E94F}|..\\Kanban.UI\\Kanban.UI.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.ui\\components\\layout\\card\\createcardoverlay.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AD1F6C96-0329-473A-BB8A-3800EE33E94F}|..\\Kanban.UI\\Kanban.UI.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.ui\\components\\layout\\card\\boardcard.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AD1F6C96-0329-473A-BB8A-3800EE33E94F}|..\\Kanban.UI\\Kanban.UI.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.ui\\options\\interfaceoptions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AD1F6C96-0329-473A-BB8A-3800EE33E94F}|..\\Kanban.UI\\Kanban.UI.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.ui\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.api\\options\\cosmosoptions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|solutionrelative:options\\cosmosoptions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AD1F6C96-0329-473A-BB8A-3800EE33E94F}|..\\Kanban.UI\\Kanban.UI.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.ui\\kanban.ui.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.api\\repositories\\boardrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|solutionrelative:repositories\\boardrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.api\\models\\column.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|solutionrelative:models\\column.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.api\\models\\swimlane.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|solutionrelative:models\\swimlane.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.api\\repositories\\iboardrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|solutionrelative:repositories\\iboardrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.api\\repositories\\cardrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|solutionrelative:repositories\\cardrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|c:\\users\\lance\\source\\repos\\kanban\\kanban.api\\repositories\\icardrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}|Kanban.API.csproj|solutionrelative:repositories\\icardrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Response\\CardResponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\_Imports.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Column\\UpdateColumnOverlay.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Swimlane\\DeleteSwimlaneOverlay.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Swimlane\\UpdateSwimlaneOverlay.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\MainLayout.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Routes.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Column\\DeleteColumnOverlay.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\DTOs\\DropCard.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Pages\\Home.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Pages\\Calendar.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Swimlane\\CreateSwimlaneOverlay.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Column\\CreateColumnOverlay.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Card\\BoardCard.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\DTOs\\Card.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Card\\CreateCardOverlay.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Response\\SwimlaneResponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Response\\ColumnResponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Response\\CardDetailsResponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Response\\BoardResponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Request\\Patch\\SwimlanePatchRequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Request\\Patch\\ColumnPatchRequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Request\\Patch\\CardPatchRequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Request\\Create\\SwimlaneCreateRequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Request\\Create\\ColumnCreateRequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Request\\Create\\CardCreateRequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Kanban.UI.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Kanban.Contracts.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 159,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 69,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "Properties\\launchSettings.json",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Properties\\launchSettings.json",
+              "RelativeToolTip": "Properties\\launchSettings.json",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2024-07-15T06:23:18.646Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "Kanban.API",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Kanban.API.csproj",
+              "RelativeDocumentMoniker": "Kanban.API.csproj",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Kanban.API.csproj",
+              "RelativeToolTip": "Kanban.API.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2024-07-15T06:23:13.02Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "MenuOverlay.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\MenuOverlay.razor",
+              "RelativeDocumentMoniker": "..\\Kanban.UI\\Components\\Layout\\MenuOverlay.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\MenuOverlay.razor",
+              "RelativeToolTip": "..\\Kanban.UI\\Components\\Layout\\MenuOverlay.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-15T05:56:28.173Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "MainLayout.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\MainLayout.razor",
+              "RelativeDocumentMoniker": "..\\Kanban.UI\\Components\\Layout\\MainLayout.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\MainLayout.razor",
+              "RelativeToolTip": "..\\Kanban.UI\\Components\\Layout\\MainLayout.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-15T05:56:24.138Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "UpdateSwimlaneOverlay.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Swimlane\\UpdateSwimlaneOverlay.razor",
+              "RelativeDocumentMoniker": "..\\Kanban.UI\\Components\\Layout\\Swimlane\\UpdateSwimlaneOverlay.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Swimlane\\UpdateSwimlaneOverlay.razor",
+              "RelativeToolTip": "..\\Kanban.UI\\Components\\Layout\\Swimlane\\UpdateSwimlaneOverlay.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAKwAAABpAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-15T05:54:11.972Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "DeleteSwimlaneOverlay.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Swimlane\\DeleteSwimlaneOverlay.razor",
+              "RelativeDocumentMoniker": "..\\Kanban.UI\\Components\\Layout\\Swimlane\\DeleteSwimlaneOverlay.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Swimlane\\DeleteSwimlaneOverlay.razor",
+              "RelativeToolTip": "..\\Kanban.UI\\Components\\Layout\\Swimlane\\DeleteSwimlaneOverlay.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAG0AAABqAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-15T05:52:51.03Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "CreateSwimlaneOverlay.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Swimlane\\CreateSwimlaneOverlay.razor",
+              "RelativeDocumentMoniker": "..\\Kanban.UI\\Components\\Layout\\Swimlane\\CreateSwimlaneOverlay.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Swimlane\\CreateSwimlaneOverlay.razor",
+              "RelativeToolTip": "..\\Kanban.UI\\Components\\Layout\\Swimlane\\CreateSwimlaneOverlay.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAEoAAABoAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-15T05:48:22.408Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "UpdateColumnOverlay.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Column\\UpdateColumnOverlay.razor",
+              "RelativeDocumentMoniker": "..\\Kanban.UI\\Components\\Layout\\Column\\UpdateColumnOverlay.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Column\\UpdateColumnOverlay.razor",
+              "RelativeToolTip": "..\\Kanban.UI\\Components\\Layout\\Column\\UpdateColumnOverlay.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAcAAAAtAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-15T05:47:13.182Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 26,
+              "Title": "DeleteColumnOverlay.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Column\\DeleteColumnOverlay.razor",
+              "RelativeDocumentMoniker": "..\\Kanban.UI\\Components\\Layout\\Column\\DeleteColumnOverlay.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Column\\DeleteColumnOverlay.razor",
+              "RelativeToolTip": "..\\Kanban.UI\\Components\\Layout\\Column\\DeleteColumnOverlay.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAHIAAABqAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-15T05:45:42.064Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 27,
+              "Title": "UpdateCardOverlay.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Card\\UpdateCardOverlay.razor",
+              "RelativeDocumentMoniker": "..\\Kanban.UI\\Components\\Layout\\Card\\UpdateCardOverlay.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Card\\UpdateCardOverlay.razor",
+              "RelativeToolTip": "..\\Kanban.UI\\Components\\Layout\\Card\\UpdateCardOverlay.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-15T05:44:32.553Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 28,
+              "Title": "DeleteCardOverlay.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Card\\DeleteCardOverlay.razor",
+              "RelativeDocumentMoniker": "..\\Kanban.UI\\Components\\Layout\\Card\\DeleteCardOverlay.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Card\\DeleteCardOverlay.razor",
+              "RelativeToolTip": "..\\Kanban.UI\\Components\\Layout\\Card\\DeleteCardOverlay.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-15T05:44:28.484Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 30,
+              "Title": "BoardCard.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Card\\BoardCard.razor",
+              "RelativeDocumentMoniker": "..\\Kanban.UI\\Components\\Layout\\Card\\BoardCard.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Card\\BoardCard.razor",
+              "RelativeToolTip": "..\\Kanban.UI\\Components\\Layout\\Card\\BoardCard.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-15T05:42:47.844Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "AddManageBoardOverlay.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Board\\AddManageBoardOverlay.razor",
+              "RelativeDocumentMoniker": "..\\Kanban.UI\\Components\\Layout\\Board\\AddManageBoardOverlay.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Board\\AddManageBoardOverlay.razor",
+              "RelativeToolTip": "..\\Kanban.UI\\Components\\Layout\\Board\\AddManageBoardOverlay.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-15T05:42:38.568Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Home.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Pages\\Home.razor",
+              "RelativeDocumentMoniker": "..\\Kanban.UI\\Components\\Pages\\Home.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Pages\\Home.razor",
+              "RelativeToolTip": "..\\Kanban.UI\\Components\\Pages\\Home.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAK4AAAAIAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-15T05:38:49.168Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 31,
+              "Title": "InterfaceOptions.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Options\\InterfaceOptions.cs",
+              "RelativeDocumentMoniker": "..\\Kanban.UI\\Options\\InterfaceOptions.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Options\\InterfaceOptions.cs",
+              "RelativeToolTip": "..\\Kanban.UI\\Options\\InterfaceOptions.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAQAAAAVAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-11T06:48:34.564Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Program.cs",
+              "RelativeDocumentMoniker": "..\\Kanban.UI\\Program.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Program.cs",
+              "RelativeToolTip": "..\\Kanban.UI\\Program.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAwAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-11T06:47:01.207Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\appsettings.json",
+              "RelativeDocumentMoniker": "appsettings.json",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\appsettings.json",
+              "RelativeToolTip": "appsettings.json",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAsAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2024-07-11T06:42:33.992Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 32,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\appsettings.json",
+              "RelativeDocumentMoniker": "..\\Kanban.UI\\appsettings.json",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\appsettings.json",
+              "RelativeToolTip": "..\\Kanban.UI\\appsettings.json",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAsAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2024-07-11T06:42:19.645Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "..\\Kanban.UI\\Properties\\launchSettings.json",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Properties\\launchSettings.json",
+              "RelativeToolTip": "..\\Kanban.UI\\Properties\\launchSettings.json",
+              "ViewState": "AQIAAAMAAAAAAAAAAAAAAB8AAAAeAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2024-07-11T06:41:48.785Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 34,
+              "Title": "Kanban.UI",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Kanban.UI.csproj",
+              "RelativeDocumentMoniker": "..\\Kanban.UI\\Kanban.UI.csproj",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Kanban.UI.csproj",
+              "RelativeToolTip": "..\\Kanban.UI\\Kanban.UI.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2024-07-11T06:41:44.061Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "CreateColumnOverlay.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Column\\CreateColumnOverlay.razor",
+              "RelativeDocumentMoniker": "..\\Kanban.UI\\Components\\Layout\\Column\\CreateColumnOverlay.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Column\\CreateColumnOverlay.razor",
+              "RelativeToolTip": "..\\Kanban.UI\\Components\\Layout\\Column\\CreateColumnOverlay.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAEoAAABoAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-11T06:40:18.583Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "Kanban.UI.csproj",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Kanban.UI.csproj",
+              "RelativeDocumentMoniker": "..\\Kanban.UI\\Kanban.UI.csproj",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Kanban.UI.csproj",
+              "RelativeToolTip": "..\\Kanban.UI\\Kanban.UI.csproj",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAIAAAARAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2024-07-11T06:40:02.386Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 29,
+              "Title": "CreateCardOverlay.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Card\\CreateCardOverlay.razor",
+              "RelativeDocumentMoniker": "..\\Kanban.UI\\Components\\Layout\\Card\\CreateCardOverlay.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.UI\\Components\\Layout\\Card\\CreateCardOverlay.razor",
+              "RelativeToolTip": "..\\Kanban.UI\\Components\\Layout\\Card\\CreateCardOverlay.razor",
+              "ViewState": "AQIAAOoAAAAAAAAAAAAAAAoAAAAsAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-11T06:39:54.896Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 41,
+              "Title": "CardResponse.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Response\\CardResponse.cs",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.Contracts3\\Response\\CardResponse.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Response\\CardResponse.cs",
+              "RelativeToolTip": "..\\..\\Kanban.Contracts3\\Response\\CardResponse.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAjAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-09T07:42:52.854Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 42,
+              "Title": "_Imports.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\_Imports.razor",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\_Imports.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\_Imports.razor",
+              "RelativeToolTip": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\_Imports.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAoAAAAQAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-09T07:40:19.06Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 43,
+              "Title": "UpdateColumnOverlay.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Column\\UpdateColumnOverlay.razor",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Column\\UpdateColumnOverlay.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Column\\UpdateColumnOverlay.razor",
+              "RelativeToolTip": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Column\\UpdateColumnOverlay.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAEAAAAQAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-09T07:39:07.634Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 44,
+              "Title": "DeleteSwimlaneOverlay.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Swimlane\\DeleteSwimlaneOverlay.razor",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Swimlane\\DeleteSwimlaneOverlay.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Swimlane\\DeleteSwimlaneOverlay.razor",
+              "RelativeToolTip": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Swimlane\\DeleteSwimlaneOverlay.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAEAAAAQAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-09T07:38:53.545Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 45,
+              "Title": "UpdateSwimlaneOverlay.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Swimlane\\UpdateSwimlaneOverlay.razor",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Swimlane\\UpdateSwimlaneOverlay.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Swimlane\\UpdateSwimlaneOverlay.razor",
+              "RelativeToolTip": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Swimlane\\UpdateSwimlaneOverlay.razor",
+              "ViewState": "AQIAABsAAAAAAAAAAAAAAAEAAAAQAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-09T07:38:21.617Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 46,
+              "Title": "MainLayout.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\MainLayout.razor",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Layout\\MainLayout.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\MainLayout.razor",
+              "RelativeToolTip": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Layout\\MainLayout.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAQAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-09T07:38:08.698Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 47,
+              "Title": "Routes.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Routes.razor",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Routes.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Routes.razor",
+              "RelativeToolTip": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Routes.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-09T07:37:13.628Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 48,
+              "Title": "DeleteColumnOverlay.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Column\\DeleteColumnOverlay.razor",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Column\\DeleteColumnOverlay.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Column\\DeleteColumnOverlay.razor",
+              "RelativeToolTip": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Column\\DeleteColumnOverlay.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAEAAAAQAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-09T07:35:31.711Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 49,
+              "Title": "DropCard.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\DTOs\\DropCard.cs",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\DTOs\\DropCard.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\DTOs\\DropCard.cs",
+              "RelativeToolTip": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\DTOs\\DropCard.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-09T07:33:50.712Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 50,
+              "Title": "Home.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Pages\\Home.razor",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Pages\\Home.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Pages\\Home.razor",
+              "RelativeToolTip": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Pages\\Home.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAMAAAAgAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-09T07:32:06.799Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 51,
+              "Title": "Calendar.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Pages\\Calendar.razor",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Pages\\Calendar.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Pages\\Calendar.razor",
+              "RelativeToolTip": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Pages\\Calendar.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAQAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-09T07:31:51.997Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 52,
+              "Title": "CreateSwimlaneOverlay.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Swimlane\\CreateSwimlaneOverlay.razor",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Swimlane\\CreateSwimlaneOverlay.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Swimlane\\CreateSwimlaneOverlay.razor",
+              "RelativeToolTip": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Swimlane\\CreateSwimlaneOverlay.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAEAAAAQAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-09T07:29:43.452Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 53,
+              "Title": "CreateColumnOverlay.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Column\\CreateColumnOverlay.razor",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Column\\CreateColumnOverlay.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Column\\CreateColumnOverlay.razor",
+              "RelativeToolTip": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Column\\CreateColumnOverlay.razor",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAEAAAAmAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-09T07:25:37.787Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 54,
+              "Title": "BoardCard.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Card\\BoardCard.razor",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Card\\BoardCard.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Card\\BoardCard.razor",
+              "RelativeToolTip": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Card\\BoardCard.razor",
+              "ViewState": "AQIAAAQAAAAAAAAAAAApwBoAAAAdAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-09T07:25:20.166Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 55,
+              "Title": "Card.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\DTOs\\Card.cs",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\DTOs\\Card.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\DTOs\\Card.cs",
+              "RelativeToolTip": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\DTOs\\Card.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-09T07:24:02.94Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 56,
+              "Title": "CreateCardOverlay.razor",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Card\\CreateCardOverlay.razor",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Card\\CreateCardOverlay.razor",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Card\\CreateCardOverlay.razor",
+              "RelativeToolTip": "..\\..\\Kanban.UI\\Kanban.UI\\Components\\Layout\\Card\\CreateCardOverlay.razor",
+              "ViewState": "AQIAAKEAAAAAAAAAAAApwLcAAAAWAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2024-07-09T07:23:01.244Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 57,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Program.cs",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.UI\\Kanban.UI\\Program.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Program.cs",
+              "RelativeToolTip": "..\\..\\Kanban.UI\\Kanban.UI\\Program.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABoAAAAXAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-09T07:12:20.232Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 33,
+              "Title": "CosmosOptions.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Options\\CosmosOptions.cs",
+              "RelativeDocumentMoniker": "Options\\CosmosOptions.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Options\\CosmosOptions.cs",
+              "RelativeToolTip": "Options\\CosmosOptions.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-08T00:06:31.058Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 58,
+              "Title": "SwimlaneResponse.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Response\\SwimlaneResponse.cs",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.Contracts3\\Response\\SwimlaneResponse.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Response\\SwimlaneResponse.cs",
+              "RelativeToolTip": "..\\..\\Kanban.Contracts3\\Response\\SwimlaneResponse.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAEAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-08T00:02:02.457Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 59,
+              "Title": "ColumnResponse.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Response\\ColumnResponse.cs",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.Contracts3\\Response\\ColumnResponse.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Response\\ColumnResponse.cs",
+              "RelativeToolTip": "..\\..\\Kanban.Contracts3\\Response\\ColumnResponse.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAEAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-08T00:01:52.626Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 60,
+              "Title": "CardDetailsResponse.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Response\\CardDetailsResponse.cs",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.Contracts3\\Response\\CardDetailsResponse.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Response\\CardDetailsResponse.cs",
+              "RelativeToolTip": "..\\..\\Kanban.Contracts3\\Response\\CardDetailsResponse.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABIAAAAGAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-08T00:01:13.924Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 61,
+              "Title": "BoardResponse.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Response\\BoardResponse.cs",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.Contracts3\\Response\\BoardResponse.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Response\\BoardResponse.cs",
+              "RelativeToolTip": "..\\..\\Kanban.Contracts3\\Response\\BoardResponse.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-08T00:00:58.649Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 62,
+              "Title": "SwimlanePatchRequest.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Request\\Patch\\SwimlanePatchRequest.cs",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.Contracts3\\Request\\Patch\\SwimlanePatchRequest.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Request\\Patch\\SwimlanePatchRequest.cs",
+              "RelativeToolTip": "..\\..\\Kanban.Contracts3\\Request\\Patch\\SwimlanePatchRequest.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAApAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-08T00:00:14.976Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 63,
+              "Title": "ColumnPatchRequest.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Request\\Patch\\ColumnPatchRequest.cs",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.Contracts3\\Request\\Patch\\ColumnPatchRequest.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Request\\Patch\\ColumnPatchRequest.cs",
+              "RelativeToolTip": "..\\..\\Kanban.Contracts3\\Request\\Patch\\ColumnPatchRequest.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAEAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-08T00:00:07.421Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 64,
+              "Title": "CardPatchRequest.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Request\\Patch\\CardPatchRequest.cs",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.Contracts3\\Request\\Patch\\CardPatchRequest.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Request\\Patch\\CardPatchRequest.cs",
+              "RelativeToolTip": "..\\..\\Kanban.Contracts3\\Request\\Patch\\CardPatchRequest.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-07T23:59:43.468Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 65,
+              "Title": "SwimlaneCreateRequest.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Request\\Create\\SwimlaneCreateRequest.cs",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.Contracts3\\Request\\Create\\SwimlaneCreateRequest.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Request\\Create\\SwimlaneCreateRequest.cs",
+              "RelativeToolTip": "..\\..\\Kanban.Contracts3\\Request\\Create\\SwimlaneCreateRequest.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAEAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-07T23:59:19.108Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 66,
+              "Title": "ColumnCreateRequest.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Request\\Create\\ColumnCreateRequest.cs",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.Contracts3\\Request\\Create\\ColumnCreateRequest.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Request\\Create\\ColumnCreateRequest.cs",
+              "RelativeToolTip": "..\\..\\Kanban.Contracts3\\Request\\Create\\ColumnCreateRequest.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAEAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-07T23:59:12.055Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 67,
+              "Title": "CardCreateRequest.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Request\\Create\\CardCreateRequest.cs",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.Contracts3\\Request\\Create\\CardCreateRequest.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Request\\Create\\CardCreateRequest.cs",
+              "RelativeToolTip": "..\\..\\Kanban.Contracts3\\Request\\Create\\CardCreateRequest.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-07T23:58:31.125Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "CardCreateValidator.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Validators\\CardCreateValidator.cs",
+              "RelativeDocumentMoniker": "Validators\\CardCreateValidator.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Validators\\CardCreateValidator.cs",
+              "RelativeToolTip": "Validators\\CardCreateValidator.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAEAAAAmAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-07T23:47:08.831Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 68,
+              "Title": "Kanban.UI.csproj",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Kanban.UI.csproj",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.UI\\Kanban.UI\\Kanban.UI.csproj",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.UI\\Kanban.UI\\Kanban.UI.csproj",
+              "RelativeToolTip": "..\\..\\Kanban.UI\\Kanban.UI\\Kanban.UI.csproj",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABoAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2024-07-07T01:34:26.672Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 37,
+              "Title": "Swimlane.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Models\\Swimlane.cs",
+              "RelativeDocumentMoniker": "Models\\Swimlane.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Models\\Swimlane.cs",
+              "RelativeToolTip": "Models\\Swimlane.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAACIAAAAHAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-06T21:53:08.877Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 36,
+              "Title": "Column.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Models\\Column.cs",
+              "RelativeDocumentMoniker": "Models\\Column.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Models\\Column.cs",
+              "RelativeToolTip": "Models\\Column.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABgAAAABAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-06T18:32:07.07Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Kanban.API.csproj",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Kanban.API.csproj",
+              "RelativeDocumentMoniker": "Kanban.API.csproj",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Kanban.API.csproj",
+              "RelativeToolTip": "Kanban.API.csproj",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAwAAABaAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2024-07-05T17:11:50.935Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "SwimlaneController.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Controllers\\SwimlaneController.cs",
+              "RelativeDocumentMoniker": "Controllers\\SwimlaneController.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Controllers\\SwimlaneController.cs",
+              "RelativeToolTip": "Controllers\\SwimlaneController.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAQAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-05T17:04:27.365Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "ColumnController.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Controllers\\ColumnController.cs",
+              "RelativeDocumentMoniker": "Controllers\\ColumnController.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Controllers\\ColumnController.cs",
+              "RelativeToolTip": "Controllers\\ColumnController.cs",
+              "ViewState": "AQIAAG8AAAAAAAAAAAAlwIEAAAA7AAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-05T17:04:09.054Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "CardController.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Controllers\\CardController.cs",
+              "RelativeDocumentMoniker": "Controllers\\CardController.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Controllers\\CardController.cs",
+              "RelativeToolTip": "Controllers\\CardController.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAMAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-05T17:03:51.566Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "ISwimlaneRepository.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Repositories\\ISwimlaneRepository.cs",
+              "RelativeDocumentMoniker": "Repositories\\ISwimlaneRepository.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Repositories\\ISwimlaneRepository.cs",
+              "RelativeToolTip": "Repositories\\ISwimlaneRepository.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-05T16:37:26.55Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "SwimlaneRepository.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Repositories\\SwimlaneRepository.cs",
+              "RelativeDocumentMoniker": "Repositories\\SwimlaneRepository.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Repositories\\SwimlaneRepository.cs",
+              "RelativeToolTip": "Repositories\\SwimlaneRepository.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAYAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-05T16:37:08.565Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "ColumnRepository.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Repositories\\ColumnRepository.cs",
+              "RelativeDocumentMoniker": "Repositories\\ColumnRepository.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Repositories\\ColumnRepository.cs",
+              "RelativeToolTip": "Repositories\\ColumnRepository.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAYAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-05T16:31:45.073Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "IColumnRepository.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Repositories\\IColumnRepository.cs",
+              "RelativeDocumentMoniker": "Repositories\\IColumnRepository.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Repositories\\IColumnRepository.cs",
+              "RelativeToolTip": "Repositories\\IColumnRepository.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-05T16:31:35.642Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 39,
+              "Title": "CardRepository.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Repositories\\CardRepository.cs",
+              "RelativeDocumentMoniker": "Repositories\\CardRepository.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Repositories\\CardRepository.cs",
+              "RelativeToolTip": "Repositories\\CardRepository.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAIAAAAtAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-05T16:31:14.397Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 40,
+              "Title": "ICardRepository.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Repositories\\ICardRepository.cs",
+              "RelativeDocumentMoniker": "Repositories\\ICardRepository.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Repositories\\ICardRepository.cs",
+              "RelativeToolTip": "Repositories\\ICardRepository.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAiAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-05T16:31:07.59Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 35,
+              "Title": "BoardRepository.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Repositories\\BoardRepository.cs",
+              "RelativeDocumentMoniker": "Repositories\\BoardRepository.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Repositories\\BoardRepository.cs",
+              "RelativeToolTip": "Repositories\\BoardRepository.cs",
+              "ViewState": "AQIAACYAAAAAAAAAAAAowDMAAAAIAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-05T16:25:45.098Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 38,
+              "Title": "IBoardRepository.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Repositories\\IBoardRepository.cs",
+              "RelativeDocumentMoniker": "Repositories\\IBoardRepository.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Repositories\\IBoardRepository.cs",
+              "RelativeToolTip": "Repositories\\IBoardRepository.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAA4AAAA2AAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-05T16:25:31.541Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "BoardController.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Controllers\\BoardController.cs",
+              "RelativeDocumentMoniker": "Controllers\\BoardController.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Controllers\\BoardController.cs",
+              "RelativeToolTip": "Controllers\\BoardController.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAEAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-05T16:23:19.405Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban\\Kanban.API\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAwAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-05T16:18:26.327Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 69,
+              "Title": "Kanban.Contracts.csproj",
+              "DocumentMoniker": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Kanban.Contracts.csproj",
+              "RelativeDocumentMoniker": "..\\..\\Kanban.Contracts3\\Kanban.Contracts.csproj",
+              "ToolTip": "C:\\Users\\lance\\source\\repos\\Kanban.Contracts3\\Kanban.Contracts.csproj",
+              "RelativeToolTip": "..\\..\\Kanban.Contracts3\\Kanban.Contracts.csproj",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAcAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2024-07-04T03:08:54.413Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
