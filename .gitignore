@@ -1,0 +1,10 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/Kanban.Contracts/bin/Debug/net8.0
+/Kanban.Contracts/obj
+/Kanban.UI/bin/Debug/net8.0
+/Kanban.UI/Kanban.UI.Client/obj
+/Kanban.UI/obj/Debug/net8.0
+/Kanban.UI/obj
