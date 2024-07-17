@@ -130,7 +130,8 @@
                                 var identifier = rowIndex + "_" + columnIndex;
                                 <MudItem Style="height: 250px;">
                                     <!--We want columns to have a set width-->
-                                    <MudList Clickable="true" 
+                                    <MudList T="MudDropZone<DropCard>"
+                                             ReadOnly="false"
                                              Class="d-flex flex-column mud-height-full" 
                                              Style="height: 250px;">
                                         <MudDropZone T="DropCard" 

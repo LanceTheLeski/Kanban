@@ -13,7 +13,7 @@
 <MudPaper>
     <MudText>Edit Swimlane</MudText>
     <MudExpansionPanels>
-        <MudExpansionPanel Text="Swimlane" MaxHeight="1000" IsExpandedChanged="SwimlaneListExpandedChanged">
+        <MudExpansionPanel Text="Swimlane" MaxHeight="1000" ExpandedChanged="SwimlaneListExpandedChanged">
             @_swimlaneList
         </MudExpansionPanel>
     </MudExpansionPanels>
@@ -64,7 +64,7 @@
         else
         {
             // Reset after a while to prevent sudden collapse.
-            Task.Delay (350).ContinueWith (task => _swimlaneList = null).AndForget ();
+            Task.Delay (350).ContinueWith (task => _swimlaneList = null);
         }
     }
 
@@ -75,7 +75,7 @@
         {
             <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
                 <MudStack Class="flex-grow-1" Width="100%" Height="100%">
-                    <MudList Clickable="true">
+                    <MudList T="string" ReadOnly="false">
                         @foreach (var swimlaneTitle in _swimlaneTitles)
                         {
                             <MudListItem OnClick="(() => SetSwimlaneNameToDelete (swimlaneTitle))">

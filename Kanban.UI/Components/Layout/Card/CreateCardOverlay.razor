@@ -17,13 +17,13 @@
     <MudTextField @bind-Value="cardTitle" T="string" Label="Title" Variant="Variant.Filled" HelperText="Card Title" />
     <MudTextField @bind-Value="cardDescription" T="string" Label="Description" Variant="Variant.Filled" AutoGrow Lines="7" HelperText="Description" />
     <MudExpansionPanels>
-        <MudExpansionPanel Text="Column" MaxHeight="1000" IsExpandedChanged="ColumnListExpandedChanged">
+        <MudExpansionPanel Text="Column" MaxHeight="1000" ExpandedChanged="ColumnListExpandedChanged">
             @_columnList
         </MudExpansionPanel>
     </MudExpansionPanels>
 
     <MudExpansionPanels>
-        <MudExpansionPanel Text="Swimlane" MaxHeight="1000" IsExpandedChanged="SwimlaneListExpandedChanged">
+        <MudExpansionPanel Text="Swimlane" MaxHeight="1000" ExpandedChanged="SwimlaneListExpandedChanged">
             @_swimlaneList
         </MudExpansionPanel>
     </MudExpansionPanels>
@@ -33,6 +33,7 @@
         <MudButton OnClick="CloseCardOverlay">Discard</MudButton>
     </MudButtonGroup>
 </MudPaper>
+
 @code
 {
     [Parameter]
@@ -100,7 +101,7 @@
         else
         {
             // Reset after a while to prevent sudden collapse.
-            Task.Delay (350).ContinueWith (t => _columnList = null).AndForget ();
+            Task.Delay (350).ContinueWith (t => _columnList = null);
         }
     }
 
@@ -110,7 +111,7 @@
         {
             <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
                 <MudStack Class="flex-grow-1" Width="100%" Height="100%">
-                    <MudList Clickable="true">
+                    <MudList T="string" ReadOnly="false">
                         @foreach (var columnTitle in _columnTitles)
                         {
                             <MudListItem OnClick="(() => SetColumnNameToAddCard(columnTitle))">
@@ -148,7 +149,7 @@
         else
         {
             // Reset after a while to prevent sudden collapse.
-            Task.Delay (350).ContinueWith (t => _swimlaneList = null).AndForget ();
+            Task.Delay (350).ContinueWith (t => _swimlaneList = null);
         }
     }
 
@@ -158,7 +159,7 @@
         {
             <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
                 <MudStack Class="flex-grow-1" Width="100%" Height="100%">
-                    <MudList Clickable="true">
+                    <MudList T="string" ReadOnly="false">
                         @foreach (var swimlaneTitle in _swimlaneTitles)
                         {
                             <MudListItem OnClick="(() => SetSwimlaneNameToAddCard (swimlaneTitle))">

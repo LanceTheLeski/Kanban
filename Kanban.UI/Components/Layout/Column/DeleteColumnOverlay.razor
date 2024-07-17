@@ -13,7 +13,7 @@
 <MudPaper>
     <MudText>Edit Column</MudText>
     <MudExpansionPanels>
-        <MudExpansionPanel Text="Column" MaxHeight="1000" IsExpandedChanged="ColumnListExpandedChanged">
+        <MudExpansionPanel Text="Column" MaxHeight="1000" ExpandedChanged="ColumnListExpandedChanged">
             @_columnList
         </MudExpansionPanel>
     </MudExpansionPanels>
@@ -67,7 +67,7 @@
         else
         {
             // Reset after a while to prevent sudden collapse.
-            Task.Delay (350).ContinueWith (task => _columnList = null).AndForget ();
+            Task.Delay (350).ContinueWith (task => _columnList = null);
         }
     }
 
@@ -78,7 +78,7 @@
         {
             <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
                 <MudStack Class="flex-grow-1" Width="100%" Height="100%">
-                    <MudList Clickable="true">
+                    <MudList T="string" ReadOnly="false">
                         @foreach (var columnTitle in _columnTitles)
                         {
                             <MudListItem OnClick="(() => SetColumnNameToDelete (columnTitle))">
