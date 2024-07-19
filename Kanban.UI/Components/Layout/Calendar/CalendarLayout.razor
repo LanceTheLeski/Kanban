@@ -1,0 +1,200 @@
+﻿@inject HttpClient http
+@inject NavigationManager NavigationManager
+
+@rendermode RenderMode.InteractiveServer
+
+<MudPaper Width="85%">
+    <MudGrid Justify="Justify.Center" Spacing="0">
+        <MudItem>
+            <MudPaper Width="100px;" Style="background-color: azure; text-align: center;">
+                Sunday
+            </MudPaper>
+        </MudItem>
+        <MudItem>
+            <MudPaper Width="100px;" Style="background-color: azure; text-align: center;">
+                Monday
+            </MudPaper>
+        </MudItem>
+        <MudItem>
+            <MudPaper Width="100px;" Style="background-color: azure; text-align: center;">
+                Tuesday
+            </MudPaper>
+        </MudItem>
+        <MudItem>
+            <MudPaper Width="100px;" Style="background-color: azure; text-align: center;">
+                Wednesday
+            </MudPaper>
+        </MudItem>
+        <MudItem>
+            <MudPaper Width="100px;" Style="background-color: azure; text-align: center;">
+                Thursday
+            </MudPaper>
+        </MudItem>
+        <MudItem>
+            <MudPaper Width="100px;" Style="background-color: azure; text-align: center;">
+                Friday
+            </MudPaper>
+        </MudItem>
+        <MudItem>
+            <MudPaper Width="100px;" Style="background-color: azure; text-align: center;">
+                Saturday
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    <MudGrid Class="d-flex flex-column" Justify="Justify.Center" Spacing="0">
+        @foreach (var week in Enumerable.Range (0, testMonth.Weeks.Count ())) 
+        {
+            <MudItem>
+                <MudPaper Outlined="true" Style="background-color: pink" Height="100%">
+
+                    <MudGrid Justify="Justify.Center" Spacing="0">
+                        <MudItem>
+                            <MudPaper Width="100px;" Height="100px" Style="background-color: azure; text-align: center;">
+                                <MudPaper>
+                                    <MudText>@(testMonth.Weeks [week].Sunday.DayOfTheMonth)</MudText>
+                                </MudPaper>
+                                <MudChart ChartType="ChartType.Donut" Width="35px" Height="35px" InputData="@data" InputLabels="@labels" ChartOptions="@options"></MudChart>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem>
+                            <MudPaper Width="100px;" Height="100px" Style="background-color: azure; text-align: center;">
+                                @(testMonth.Weeks [week].Monday.DayOfTheMonth)
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem>
+                            <MudPaper Width="100px;" Height="100px" Style="background-color: azure; text-align: center;">
+                                @(testMonth.Weeks [week].Tuesday.DayOfTheMonth)
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem>
+                            <MudPaper Width="100px;" Height="100px" Style="background-color: azure; text-align: center;">
+                                @(testMonth.Weeks [week].Wednesday.DayOfTheMonth)
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem>
+                            <MudPaper Width="100px;" Height="100px" Style="background-color: azure; text-align: center;">
+                                @(testMonth.Weeks [week].Thursday.DayOfTheMonth)
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem>
+                            <MudPaper Width="100px;" Height="100px" Style="background-color: azure; text-align: center;">
+                                @(testMonth.Weeks [week].Friday.DayOfTheMonth)
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem>
+                            <MudPaper Width="100px;" Height="100px" Style="background-color: azure; text-align: center;">
+                                @(testMonth.Weeks [week].Saturday.DayOfTheMonth)
+                            </MudPaper>
+                        </MudItem>
+                    </MudGrid>
+                
+                </MudPaper>
+            </MudItem>
+        }
+    </MudGrid>
+</MudPaper>
+
+@code
+{
+    private ChartOptions options = new ChartOptions ()
+    {
+        ShowLegend = false
+    };
+
+    // 0 = Sunday
+    // 1 = Monday
+    // 2 = Tuesday
+    // 3 = Wednesday
+    // 4 = Thursday
+    // 5 = Friday
+    // 6 = Saturday
+    public class Month ()
+    {
+        public int DaysInMonth { get; set; }
+
+        public int FirstDayIndex { get; set; }
+
+        public List<Week> Weeks { get; set; }
+    }
+
+    public class Week ()
+    {
+        public Day Sunday { get; set; }
+        public Day Monday { get; set; }
+        public Day Tuesday { get; set; }
+        public Day Wednesday { get; set; }
+        public Day Thursday { get; set; }
+        public Day Friday { get; set; }
+        public Day Saturday { get; set; }
+    }
+
+    public class Day ()
+    {
+        public int DayOfTheMonth { get; set; }
+
+        public bool IsFromDifferentMonth { get; set; } = false;
+    }
+
+    public Month testMonth = new Month
+        {
+            DaysInMonth = 29,
+            FirstDayIndex = 4,
+            Weeks = new List<Week>
+        {
+            new Week
+            {
+                Sunday = new Day { DayOfTheMonth = 28, IsFromDifferentMonth = true },
+                Monday = new Day { DayOfTheMonth = 29, IsFromDifferentMonth = true },
+                Tuesday = new Day { DayOfTheMonth = 30, IsFromDifferentMonth = true },
+                Wednesday = new Day { DayOfTheMonth = 31, IsFromDifferentMonth = true },
+                Thursday = new Day { DayOfTheMonth = 1 },
+                Friday = new Day { DayOfTheMonth = 2 },
+                Saturday = new Day { DayOfTheMonth = 3 }
+            },
+            new Week
+            {
+                Sunday = new Day { DayOfTheMonth = 4 },
+                Monday = new Day { DayOfTheMonth = 5 },
+                Tuesday = new Day { DayOfTheMonth = 6 },
+                Wednesday = new Day { DayOfTheMonth = 7 },
+                Thursday = new Day { DayOfTheMonth = 8 },
+                Friday = new Day { DayOfTheMonth = 9 },
+                Saturday = new Day { DayOfTheMonth = 10 }
+            },
+            new Week
+            {
+                Sunday = new Day { DayOfTheMonth = 11 },
+                Monday = new Day { DayOfTheMonth = 12 },
+                Tuesday = new Day { DayOfTheMonth = 13 },
+                Wednesday = new Day { DayOfTheMonth = 14 },
+                Thursday = new Day { DayOfTheMonth = 15 },
+                Friday = new Day { DayOfTheMonth = 16 },
+                Saturday = new Day { DayOfTheMonth = 17 }
+            },
+            new Week
+            {
+                Sunday = new Day { DayOfTheMonth = 18 },
+                Monday = new Day { DayOfTheMonth = 19 },
+                Tuesday = new Day { DayOfTheMonth = 20 },
+                Wednesday = new Day { DayOfTheMonth = 21 },
+                Thursday = new Day { DayOfTheMonth = 22 },
+                Friday = new Day { DayOfTheMonth = 23 },
+                Saturday = new Day { DayOfTheMonth = 24 }
+            },
+            new Week
+            {
+                Sunday = new Day { DayOfTheMonth = 25 },
+                Monday = new Day { DayOfTheMonth = 26 },
+                Tuesday = new Day { DayOfTheMonth = 27 },
+                Wednesday = new Day { DayOfTheMonth = 28 },
+                Thursday = new Day { DayOfTheMonth = 29 },
+                Friday = new Day { DayOfTheMonth = 30 },
+                Saturday = new Day { DayOfTheMonth = 1, IsFromDifferentMonth = true }
+            }
+        }
+    };
+
+    public double[] data = { 56, 4, 65 };
+    public string[] labels = { };
+}
