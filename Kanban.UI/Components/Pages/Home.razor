@@ -20,68 +20,12 @@
 
 @rendermode RenderMode.InteractiveServer
 
-<MudPaper>
-    <MudMenu Label="Cards">
-        <MudMenuItem OnClick="OpenCardOverlay">Add</MudMenuItem>
-    </MudMenu>
-    <MudMenu Label="Swimlanes">
-        <MudMenuItem OnClick="OpenSwimlaneOverlay">Add</MudMenuItem>
-        <MudMenuItem OnClick="OpenEditSwimlaneOverlay">Edit</MudMenuItem>
-        <MudMenuItem OnClick="OpenDeleteSwimlaneOverlay">Delete</MudMenuItem>
-    </MudMenu>
-    <MudMenu Label="Columns">
-        <MudMenuItem OnClick="OpenColumnOverlay">Add</MudMenuItem>
-        <MudMenuItem OnClick="OpenEditColumnOverlay">Edit</MudMenuItem>
-        <MudMenuItem OnClick="OpenDeleteColumnOverlay">Delete</MudMenuItem>
-    </MudMenu>
-    <MudMenu Label="Boards">
-        <MudMenuItem OnClick="OpenBoardOverlay">Edit</MudMenuItem>
-    </MudMenu>
-</MudPaper>
-
-<MudOverlay @bind-Visible="swimlaneOverlayIsOpen" DarkBackground="true" ZIndex="10">
-    <CreateSwimlaneOverlay @bind-Open="swimlaneOverlayIsOpen"
-                           @bind-Swimlanes="_swimlanes"
-                           @bind-SwimlaneTitles="_swimlaneTitles" />
-</MudOverlay>
-<MudOverlay @bind-Visible="deleteSwimlaneOverlayIsOpen" DarkBackground="true" ZIndex="10">
-    <DeleteSwimlaneOverlay @bind-Open="deleteSwimlaneOverlayIsOpen"
-                           @bind-Swimlanes="_swimlanes"
-                           @bind-SwimlaneTitles="_swimlaneTitles" />
-</MudOverlay>
-<MudOverlay @bind-Visible="editSwimlaneOverlayIsOpen" DarkBackground="true" ZIndex="10">
-    <UpdateSwimlaneOverlay @bind-Open="editSwimlaneOverlayIsOpen"
-                           @bind-Swimlanes="_swimlanes"
-                           @bind-SwimlaneTitles="_swimlaneTitles" />
-</MudOverlay>
-
-<MudOverlay @bind-Visible="allNewColumnOverlayIsOpen" DarkBackground="true" ZIndex="10">
-    <CreateColumnOverlay @bind-Open="allNewColumnOverlayIsOpen"
-                         @bind-Columns="_columns"
-                         @bind-ColumnTitles="_columnTitles" />
-</MudOverlay>
-<MudOverlay @bind-Visible="deleteColumnOverlayIsOpen" DarkBackground="true" ZIndex="10">
-    <DeleteColumnOverlay @bind-Open="deleteColumnOverlayIsOpen"
-                         @bind-Columns="_columns"
-                         @bind-ColumnTitles="_columnTitles" /> 
-</MudOverlay>
-<MudOverlay @bind-Visible="editColumnOverlayIsOpen" DarkBackground="true" ZIndex="10">
-    <UpdateColumnOverlay @bind-Open="editColumnOverlayIsOpen"
-                         @bind-Columns="_columns"
-                         @bind-ColumnTitles="_columnTitles" />
-</MudOverlay>
-
-<MudOverlay @bind-Visible="Open" DarkBackground="true" ZIndex="10">
-    <CreateCardOverlay @bind-Open="Open"
-                       @bind-Cards="_cards"
-                       @bind-Columns="_columns"
-                       @bind-ColumnTitles="_columnTitles"
-                       @bind-Swimlanes="_swimlanes"
-                       @bind-SwimlaneTitles="_swimlaneTitles" />
-</MudOverlay>
-<MudOverlay @bind-Visible="boardOverlayIsOpen" DarkBackground="true" ZIndex="10">
-    <AddManageBoardOverlay @bind-Open="boardOverlayIsOpen" />
-</MudOverlay>
+<BoardManagementNavigationBar @bind-Cards="_cards"
+                              @bind-Swimlanes="_swimlanes"
+                              @bind-SwimlaneTitles="_swimlaneTitles"
+                              @bind-Columns="_columns"
+                              @bind-ColumnTitles="_columnTitles"
+                              Refresh="Refresh"/>
 
 <MudGrid Spacing="0" 
          Class="d-flex flex-column"
@@ -106,7 +50,8 @@
             </MudGrid>
         </MudPaper>
     </MudItem>
-    <MudDropContainer T="DropCard" 
+    <MudDropContainer @ref="_dropContainer"
+                      T="DropCard" 
                       Items="_cards" 
                       ItemDropped="UpdateCard" 
                       ItemsSelector="@((card, dropzone) => card.CardArea == dropzone)">
@@ -160,13 +105,16 @@
     // Lets run a test to see how quickly these are updated. Set a watch on one of these and hit a 
     // breakpoint immediately after a binding is updated and the invoke method is called. If it's 
     // updated then we're in business and can abstract away more stuff
+
     public List<DropCard> _cards = new List<DropCard> ();
 
-    public List<string> _swimlaneTitles = new ();
     public List<Guid> _swimlanes = new List<Guid> ();
+    public List<string> _swimlaneTitles = new ();
 
-    public List<string> _columnTitles = new ();
     public List<Guid> _columns = new List<Guid> ();
+    public List<string> _columnTitles = new ();
+
+    private MudDropContainer<DropCard> _dropContainer;
 
     //On page load:
     protected override async Task OnInitializedAsync ()
@@ -183,6 +131,17 @@
         }
     }
 
+    private async Task Refresh (bool stateHasChanged)
+    {
+        if (stateHasChanged)
+        {
+            await OnInitializedAsync ();
+            _dropContainer.Items = _cards;
+            _dropContainer.Refresh ();
+            StateHasChanged();
+        }
+    }
+
     private void UpdateCard (MudItemDropInfo<DropCard> cardToUpdate)
     {
         cardToUpdate.Item.CardArea = cardToUpdate.DropzoneIdentifier;
@@ -196,10 +155,10 @@
         cardToUpdate.Item.SwimlaneNumber = newCardArea.swimlanePos;
 
         var cardResponse = Task.Run (() => 
-            SendPatchRequest (cardToUpdate.Item)).Result;
+            SendCardPatchRequest (cardToUpdate.Item)).Result;
     }
 
-    private async Task<CardResponse?> SendPatchRequest (DropCard cardToUpdate)
+    private async Task<CardResponse?> SendCardPatchRequest (DropCard cardToUpdate)
     {
         var patchRequest = 
         $@"[
@@ -224,112 +183,6 @@
         }
 
         return null;
-    }
-
-    public async Task<SwimlaneResponse> EditSwimlane (string swimlaneTitle, int swimlaneOrder) //Parameters should not be null. Defaults should be set in the UI probably
-    {
-        var patchRequest = $@"[
-            {{ ""op"": ""replace"", ""path"": ""/Title"", ""value"": ""{swimlaneTitle}"" }},
-            {{ ""op"": ""replace"", ""path"": ""/Order"", ""value"": ""{swimlaneOrder}"" }}
-        ]";
-
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{interfaceOptions.Value.URL}kanban/swimlanes/create");
-        httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject (patchRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
-
-        var response = await http.SendAsync (httpRequestMessage);
-        if (response.IsSuccessStatusCode)
-        {
-            var responseBody = await response.Content.ReadAsStringAsync ();
-            var deserialized = JsonConvert.DeserializeObject<SwimlaneResponse> (responseBody);
-
-            _swimlanes [deserialized.Order] = deserialized.ID;
-            _swimlaneTitles [deserialized.Order] = deserialized.Title;
-
-            //Cards will need to have their position (SwimlaneOrder) changed as well
-
-            return deserialized;
-        }
-
-        return null;
-    }
-
-    public bool Open = false;
-    public void OpenCardOverlay ()
-    {
-        Open = true;
-    }
-    public void UpdateCardOverlayIsOpen (bool setCardOverlayIsOpen)
-    {
-        Open = setCardOverlayIsOpen;
-    }
-
-    public bool deleteColumnOverlayIsOpen = false;
-    public void OpenDeleteColumnOverlay ()//Move elsewhere later
-    {
-        deleteColumnOverlayIsOpen = true;
-    }
-    public void UpdateDeleteColumnOverlay (bool setEditColumnOverlayIsOpen)
-    {
-        deleteColumnOverlayIsOpen = setEditColumnOverlayIsOpen;
-    }
-    public bool editColumnOverlayIsOpen = false;
-    public void OpenEditColumnOverlay ()//Move elsewhere later
-    {
-        editColumnOverlayIsOpen = true;
-    }
-    public void UpdateEditColumnOverlay (bool setEditColumnOverlayIsOpen)
-    {
-        editColumnOverlayIsOpen = setEditColumnOverlayIsOpen;
-    }
-    public bool allNewColumnOverlayIsOpen = false;
-    public void OpenColumnOverlay ()
-    {
-        allNewColumnOverlayIsOpen = true;
-    }
-    public void CloseColumnOverlay ()
-    {
-        allNewColumnOverlayIsOpen = false;
-    }
-
-    public bool deleteSwimlaneOverlayIsOpen = false;
-    public void OpenDeleteSwimlaneOverlay ()//Move elsewhere later
-    {
-        deleteSwimlaneOverlayIsOpen = true;
-    }
-    public void UpdateDeleteSwimlaneOverlay (bool setEditSwimlaneOverlayIsOpen)
-    {
-        deleteSwimlaneOverlayIsOpen = setEditSwimlaneOverlayIsOpen;
-    }
-
-    public bool editSwimlaneOverlayIsOpen = false;
-    public void OpenEditSwimlaneOverlay ()//Move elsewhere later
-    {
-        editSwimlaneOverlayIsOpen = true;
-    }
-    public void UpdateEditSwimlaneOverlay (bool setEditSwimlaneOverlayIsOpen)
-    {
-        editSwimlaneOverlayIsOpen = setEditSwimlaneOverlayIsOpen;
-    }
-    public bool swimlaneOverlayIsOpen = false;
-    public void OpenSwimlaneOverlay ()
-    {
-        swimlaneOverlayIsOpen = true;
-    }
-    public void CloseSwimlaneOverlay ()
-    {
-        swimlaneOverlayIsOpen = false;
-    }
-
-    public bool boardOverlayIsOpen = false;
-    public void OpenBoardOverlay ()
-    {
-        boardOverlayIsOpen = true;
-    }
-
-    public bool calendarOverlayIsVisible = false;
-    public void OpenCalendarOverlay ()
-    {
-        calendarOverlayIsVisible = true;
     }
 
     private (int swimlanePos, int columnPos) ConvertCardAreaToColumnAndSwimlane(string cardAreaValue)

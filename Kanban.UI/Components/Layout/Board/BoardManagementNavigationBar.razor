@@ -1,0 +1,228 @@
+﻿@using Kanban.UI.Components.DTOs
+@using Kanban.UI.Components.Layout.Board
+@using Kanban.UI.Components.Layout.Card
+@using Kanban.UI.Components.Layout.Column
+@using Kanban.UI.Components.Layout.Swimlane
+
+@rendermode RenderMode.InteractiveServer
+
+@inherits LayoutComponentBase
+
+<MudPaper>
+    <MudMenu Label="Cards">
+        <MudMenuItem OnClick="OpenAddCardOverlay">Add</MudMenuItem>
+    </MudMenu>
+    <MudMenu Label="Swimlanes">
+        <MudMenuItem OnClick="OpenAddSwimlaneOverlay">Add</MudMenuItem>
+        <MudMenuItem OnClick="OpenEditSwimlaneOverlay">Edit</MudMenuItem>
+        <MudMenuItem OnClick="OpenDeleteSwimlaneOverlay">Delete</MudMenuItem>
+    </MudMenu>
+    <MudMenu Label="Columns">
+        <MudMenuItem OnClick="OpenAddColumnOverlay">Add</MudMenuItem>
+        <MudMenuItem OnClick="OpenEditColumnOverlay">Edit</MudMenuItem>
+        <MudMenuItem OnClick="OpenDeleteColumnOverlay">Delete</MudMenuItem>
+    </MudMenu>
+    <MudMenu Label="Boards">
+        <MudMenuItem OnClick="OpenEditBoardOverlay">Edit</MudMenuItem>
+    </MudMenu>
+</MudPaper>
+
+<MudOverlay @bind-Visible="addSwimlaneOverlayIsOpen" DarkBackground="true" ZIndex="10">
+    <CreateSwimlaneOverlay @bind-Open="addSwimlaneOverlayIsOpen"
+                           @bind-Swimlanes="_swimlanes"
+                           @bind-SwimlaneTitles="_swimlaneTitles" 
+                           Refresh="Refresh" />
+</MudOverlay>
+<MudOverlay @bind-Visible="deleteSwimlaneOverlayIsOpen" DarkBackground="true" ZIndex="10">
+    <DeleteSwimlaneOverlay @bind-Open="deleteSwimlaneOverlayIsOpen"
+                           @bind-Swimlanes="_swimlanes"
+                           @bind-SwimlaneTitles="_swimlaneTitles" 
+                           Refresh="Refresh" />
+</MudOverlay>
+<MudOverlay @bind-Visible="editSwimlaneOverlayIsOpen" DarkBackground="true" ZIndex="10">
+    <UpdateSwimlaneOverlay @bind-Open="editSwimlaneOverlayIsOpen"
+                           @bind-Swimlanes="_swimlanes"
+                           @bind-SwimlaneTitles="_swimlaneTitles" 
+                           Refresh="Refresh" />
+</MudOverlay>
+
+<MudOverlay @bind-Visible="addColumnOverlayIsOpen" DarkBackground="true" ZIndex="10">
+    <CreateColumnOverlay @bind-Open="addColumnOverlayIsOpen"
+                         @bind-Columns="_columns"
+                         @bind-ColumnTitles="_columnTitles" 
+                         Refresh="Refresh" />
+</MudOverlay>
+<MudOverlay @bind-Visible="deleteColumnOverlayIsOpen" DarkBackground="true" ZIndex="10">
+    <DeleteColumnOverlay @bind-Open="deleteColumnOverlayIsOpen"
+                         @bind-Columns="_columns"
+                         @bind-ColumnTitles="_columnTitles" 
+                         Refresh="Refresh" />
+</MudOverlay>
+<MudOverlay @bind-Visible="editColumnOverlayIsOpen" DarkBackground="true" ZIndex="10">
+    <UpdateColumnOverlay @bind-Open="editColumnOverlayIsOpen"
+                         @bind-Columns="_columns"
+                         @bind-ColumnTitles="_columnTitles" 
+                         Refresh="Refresh" />
+</MudOverlay>
+
+<MudOverlay @bind-Visible="addCardOverlayIsOpen" DarkBackground="true" ZIndex="10">
+    <CreateCardOverlay @bind-Open="addCardOverlayIsOpen"
+                       @bind-Cards="_cards"
+                       @bind-Columns="_columns"
+                       @bind-ColumnTitles="_columnTitles"
+                       @bind-Swimlanes="_swimlanes"
+                       @bind-SwimlaneTitles="_swimlaneTitles" 
+                       Refresh="Refresh" />
+</MudOverlay>
+
+<MudOverlay @bind-Visible="editBoardOverlayIsOpen" DarkBackground="true" ZIndex="10">
+    <AddManageBoardOverlay @bind-Open="editBoardOverlayIsOpen" />
+</MudOverlay>
+
+@code 
+{
+    [Parameter]
+    public List<DropCard>? Cards { get; set; }
+    [Parameter]
+    public EventCallback<List<DropCard>> CardsChanged { get; set; }
+
+    [Parameter]
+    public List<string>? SwimlaneTitles { get; set; }
+    [Parameter]
+    public EventCallback<List<string>> SwimlaneTitlesChanged { get; set; }
+
+    [Parameter]
+    public List<Guid>? Swimlanes { get; set; }
+    [Parameter]
+    public EventCallback<List<Guid>> SwimlanesChanged { get; set; }
+
+    [Parameter]
+    public List<string>? ColumnTitles { get; set; }
+    [Parameter]
+    public EventCallback<List<string>> ColumnTitlesChanged { get; set; }
+
+    [Parameter]
+    public List<Guid>? Columns { get; set; }
+    [Parameter]
+    public EventCallback<List<Guid>> ColumnsChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> Refresh { get; set; }
+
+    public List<DropCard> _cards = new List<DropCard> ();
+
+    public List<string> _swimlaneTitles = new ();
+    public List<Guid> _swimlanes = new List<Guid> ();
+
+    public List<string> _columnTitles = new ();
+    public List<Guid> _columns = new List<Guid> ();
+
+    //On page load. Not async.
+    protected override void OnInitialized ()
+    {
+        FetchUpdatedBoardItems();
+    }
+
+    private void FetchUpdatedBoardItems ()
+    {
+        _cards = Cards!;
+
+        _swimlaneTitles = SwimlaneTitles!;
+        _swimlanes = Swimlanes!;
+
+        _columnTitles = ColumnTitles!;
+        _columns = Columns!;
+    }
+
+    public bool addCardOverlayIsOpen = false;
+    public void OpenAddCardOverlay ()
+    {
+        FetchUpdatedBoardItems ();
+        addCardOverlayIsOpen = true;
+    }
+    public void UpdateAddCardOverlayIsOpen (bool setCardOverlayIsOpen)
+    {
+        addCardOverlayIsOpen = setCardOverlayIsOpen;
+        Refresh.InvokeAsync (true);
+    }
+
+    public bool deleteColumnOverlayIsOpen = false;
+    public void OpenDeleteColumnOverlay ()
+    {
+        FetchUpdatedBoardItems ();
+        deleteColumnOverlayIsOpen = true;
+    }
+    public void UpdateDeleteColumnOverlay (bool setEditColumnOverlayIsOpen)
+    {
+        deleteColumnOverlayIsOpen = setEditColumnOverlayIsOpen;
+        Refresh.InvokeAsync (true);
+    }
+    public bool editColumnOverlayIsOpen = false;
+    public void OpenEditColumnOverlay ()
+    {
+        FetchUpdatedBoardItems ();
+        editColumnOverlayIsOpen = true;
+    }
+    public void UpdateEditColumnOverlay (bool setEditColumnOverlayIsOpen)
+    {
+        editColumnOverlayIsOpen = setEditColumnOverlayIsOpen;
+        Refresh.InvokeAsync(true);
+    }
+    public bool addColumnOverlayIsOpen = false;
+    public void OpenAddColumnOverlay ()
+    {
+        FetchUpdatedBoardItems ();
+        addColumnOverlayIsOpen = true;
+    }
+    public void CloseAddColumnOverlay ()
+    {
+        addColumnOverlayIsOpen = false;
+        Refresh.InvokeAsync (true);
+    }
+
+    public bool deleteSwimlaneOverlayIsOpen = false;
+    public void OpenDeleteSwimlaneOverlay ()
+    {
+        FetchUpdatedBoardItems ();
+        deleteSwimlaneOverlayIsOpen = true;
+    }
+    public void UpdateDeleteSwimlaneOverlay (bool setEditSwimlaneOverlayIsOpen)
+    {
+        deleteSwimlaneOverlayIsOpen = setEditSwimlaneOverlayIsOpen;
+    }
+
+    public bool editSwimlaneOverlayIsOpen = false;
+    public void OpenEditSwimlaneOverlay ()
+    {
+        FetchUpdatedBoardItems ();
+        editSwimlaneOverlayIsOpen = true;
+    }
+    public void UpdateEditSwimlaneOverlay (bool setEditSwimlaneOverlayIsOpen)
+    {
+        editSwimlaneOverlayIsOpen = setEditSwimlaneOverlayIsOpen;
+    }
+    public bool addSwimlaneOverlayIsOpen = false;
+    public void OpenAddSwimlaneOverlay ()
+    {
+        FetchUpdatedBoardItems ();
+        addSwimlaneOverlayIsOpen = true;
+    }
+    public void CloseAddSwimlaneOverlay ()
+    {
+        addSwimlaneOverlayIsOpen = false;
+    }
+
+    public bool editBoardOverlayIsOpen = false;
+    public void OpenEditBoardOverlay ()
+    {
+        FetchUpdatedBoardItems ();
+        editBoardOverlayIsOpen = true;
+    }
+
+    public bool calendarOverlayIsOpen = false;
+    public void OpenCalendarOverlay ()
+    {
+        FetchUpdatedBoardItems ();
+        calendarOverlayIsOpen = true;
+    }
+}

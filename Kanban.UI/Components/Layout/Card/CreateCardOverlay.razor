@@ -66,6 +66,9 @@
     [Parameter]
     public EventCallback<List<string>> SwimlaneTitlesChanged { get; set; }
 
+    [Parameter]
+    public EventCallback<bool> Refresh { get; set; }
+
     private static List<DropCard> _cards = new List<DropCard>();
     private static List<Guid> _columns = new List<Guid>();
     private static List<string> _columnTitles = new List<string>();
@@ -218,6 +221,8 @@
                 SwimlaneName = deserialized.SwimlaneTitle,
                 CardArea = ConvertColumnAndSwimlaneToCardArea (deserialized.SwimlaneOrder, deserialized.ColumnOrder)
             });
+
+            Refresh.InvokeAsync (true);
 
             return deserialized;
         }

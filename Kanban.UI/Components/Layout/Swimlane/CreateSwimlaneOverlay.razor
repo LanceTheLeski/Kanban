@@ -39,6 +39,9 @@
     [Parameter]
     public EventCallback<List<string>> SwimlaneTitlesChanged { get; set; }
 
+    [Parameter]
+    public EventCallback<bool> Refresh { get; set; }
+
     private static List<Guid> _swimlanes = new List<Guid> ();
     private static List<string> _swimlaneTitles = new List<string> ();
 
@@ -86,6 +89,8 @@
 
             SwimlaneTitles.Insert (deserialized.Order, deserialized.Title);
             await SwimlaneTitlesChanged.InvokeAsync (SwimlaneTitles);
+
+            Refresh.InvokeAsync (true);
 
             return deserialized;
         }

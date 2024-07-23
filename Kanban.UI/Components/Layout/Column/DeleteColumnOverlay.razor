@@ -41,6 +41,9 @@
     [Parameter]
     public EventCallback<List<string>> ColumnTitlesChanged { get; set; }
 
+    [Parameter]
+    public EventCallback<bool> Refresh { get; set; }
+
     private static List<Guid> _columns = new List<Guid> ();
     private static List<string> _columnTitles = new List<string> ();
 
@@ -120,11 +123,13 @@
             Snackbar.Add ($"Could not delete Column. Error code: {response.StatusCode}");
         }
 
-        Columns.RemoveAt (columnToDeleteListIndex);
+        Columns.RemoveAt (columnToDeleteListIndex);//This needs to be better
         await ColumnsChanged.InvokeAsync (_columns);
 
-        ColumnTitles.RemoveAt (columnToDeleteListIndex);
+        ColumnTitles.RemoveAt (columnToDeleteListIndex);//This needs to be better
         await ColumnTitlesChanged.InvokeAsync (_columnTitles);
+
+        Refresh.InvokeAsync (true);
     }
 
     private void CloseColumnOverlay ()
