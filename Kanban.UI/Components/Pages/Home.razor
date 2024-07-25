@@ -4,6 +4,7 @@
 @using Kanban.Contracts.Request.Create
 @using Kanban.Contracts.Request.Patch
 @using Kanban.Contracts.Response
+@using Kanban.UI.Components;
 @using Kanban.UI.Components.DTOs
 @using Kanban.UI.Components.Layout.Board
 @using Kanban.UI.Components.Layout.Card
@@ -20,92 +21,88 @@
 
 @rendermode RenderMode.InteractiveServer
 
-<BoardManagementNavigationBar @bind-Cards="_cards"
-                              @bind-Swimlanes="_swimlanes"
-                              @bind-SwimlaneTitles="_swimlaneTitles"
-                              @bind-Columns="_columns"
-                              @bind-ColumnTitles="_columnTitles"
-                              Refresh="Refresh"/>
-
-<MudGrid Spacing="0" 
-         Class="d-flex flex-column"
-         Style="background-color: lightblue">
-    <MudItem>
-        <MudPaper Height="75px" 
-                  Style="background-color: yellowgreen">
-            <MudGrid>
-                <MudItem>
-                    <MudPaper Width="120px">X</MudPaper>
-                </MudItem>
-                @foreach (var columnIndex in Enumerable.Range (0, _columnTitles.Count ()))//Just tried to delete a column and _columnTitles is null here, resulting in an exception. Maybe call the StateHasChanged method?
+<MudThemeProvider Theme="@MyMudThemeProvider._kanbanBoardDefaultTheme"/>
+<MudPaper Class="mud-theme-backgroundgray">
+    <BoardManagementNavigationBar @bind-Cards="_cards"
+                                  @bind-Swimlanes="_swimlanes"
+                                  @bind-SwimlaneTitles="_swimlaneTitles"
+                                  @bind-Columns="_columns"
+                                  @bind-ColumnTitles="_columnTitles"
+                                  Refresh="Refresh"/>
+    <MudGrid Spacing="0" 
+             Class="d-flex flex-column">
+        <MudItem>
+            <MudPaper Height="75px"
+                      Class="mud-theme-primary">
+                <MudGrid>
+                    <MudItem>
+                        <MudPaper Width="120px">X</MudPaper>
+                    </MudItem>
+                    @foreach (var columnIndex in Enumerable.Range (0, _columnTitles.Count ()))//Just tried to delete a column and _columnTitles is null here, resulting in an exception. Maybe call the StateHasChanged method?
+                    {
+                        <MudItem>
+                            <MudPaper Width="150px" 
+                                      Class="align-self-center">
+                                @(_columnTitles [columnIndex])
+                            </MudPaper>
+                        </MudItem>
+                    }
+                </MudGrid>
+            </MudPaper>
+        </MudItem>
+        <MudDropContainer @ref="_dropContainer"
+                          T="DropCard" 
+                          Items="_cards" 
+                          ItemDropped="UpdateCard" 
+                          ItemsSelector="@((card, dropzone) => card.CardArea == dropzone)">
+            <ChildContent>
+                @foreach (var rowIndex in Enumerable.Range(0, _swimlaneTitles.Count()))
                 {
                     <MudItem>
-                        <MudPaper Width="150px" 
-                                  Class="align-self-center" 
-                                  Style="background-color: darkturquoise;">
-                            @(_columnTitles [columnIndex])
+                        <MudPaper Height="250px" 
+                                  Style="background-color: wheat">
+                            <MudGrid>
+                                <MudItem>
+                                    <MudPaper Width="120px" 
+                                                Class="align-self-center"
+                                                Style="background-color: lightcoral">
+                                        @(_swimlaneTitles [rowIndex])
+                                    </MudPaper>
+                                </MudItem>
+
+                                @foreach (var columnIndex in Enumerable.Range (0, _columnTitles.Count ()))
+                                {
+                                    var identifier = rowIndex + "_" + columnIndex;
+                                    <MudItem Style="height: 250px;">
+                                        <!--We want columns to have a set width-->
+                                        <MudList T="MudDropZone<DropCard>"
+                                                    ReadOnly="false"
+                                                    Class="d-flex flex-column mud-height-full" 
+                                                    Style="height: 250px;">
+                                            <MudDropZone T="DropCard" 
+                                                            Identifier="@identifier" 
+                                                            CanDropClass="mud-border-success"
+                                                            Class="d-flex flex-wrap flex-grow-1 justify-space-around gap-4 pa-2 overflow-auto"
+                                                            Style="background-color: cornflowerblue; width: 150px; height: 200px;"/>
+                                        </MudList>
+                                    </MudItem>
+                                }
+                            </MudGrid>
                         </MudPaper>
                     </MudItem>
                 }
-            </MudGrid>
-        </MudPaper>
-    </MudItem>
-    <MudDropContainer @ref="_dropContainer"
-                      T="DropCard" 
-                      Items="_cards" 
-                      ItemDropped="UpdateCard" 
-                      ItemsSelector="@((card, dropzone) => card.CardArea == dropzone)">
-        <ChildContent>
-            @foreach (var rowIndex in Enumerable.Range(0, _swimlaneTitles.Count()))
-            {
-                <MudItem>
-                    <MudPaper Height="250px" 
-                              Style="background-color: wheat">
-                        <MudGrid>
-                            <MudItem>
-                                <MudPaper Width="120px" 
-                                          Class="align-self-center"
-                                          Style="background-color: lightcoral">
-                                    @(_swimlaneTitles [rowIndex])
-                                </MudPaper>
-                            </MudItem>
+            </ChildContent>
 
-                            @foreach (var columnIndex in Enumerable.Range (0, _columnTitles.Count ()))
-                            {
-                                var identifier = rowIndex + "_" + columnIndex;
-                                <MudItem Style="height: 250px;">
-                                    <!--We want columns to have a set width-->
-                                    <MudList T="MudDropZone<DropCard>"
-                                             ReadOnly="false"
-                                             Class="d-flex flex-column mud-height-full" 
-                                             Style="height: 250px;">
-                                        <MudDropZone T="DropCard" 
-                                                     Identifier="@identifier" 
-                                                     CanDropClass="mud-border-success"
-                                                     Class="d-flex flex-wrap flex-grow-1 justify-space-around gap-4 pa-2 overflow-auto"
-                                                     Style="background-color: cornflowerblue; width: 150px; height: 200px;"/>
-                                    </MudList>
-                                </MudItem>
-                            }
-                        </MudGrid>
-                    </MudPaper>
-                </MudItem>
-            }
-        </ChildContent>
-
-        <!--The ItemRenderer is a component of the MudDropZone and is in charge of randering individual DropCards within it-->
-        <ItemRenderer>
-            <BoardCard @bind-Card="context"/>
-        </ItemRenderer>
-    </MudDropContainer>
-</MudGrid>
+            <!--The ItemRenderer is a component of the MudDropZone and is in charge of rendering individual DropCards within it-->
+            <ItemRenderer>
+                <BoardCard @bind-Card="context"/>
+            </ItemRenderer>
+        </MudDropContainer>
+    </MudGrid>
+</MudPaper>
 
 @code
 {
-    // Lets run a test to see how quickly these are updated. Set a watch on one of these and hit a 
-    // breakpoint immediately after a binding is updated and the invoke method is called. If it's 
-    // updated then we're in business and can abstract away more stuff
-
     public List<DropCard> _cards = new List<DropCard> ();
 
     public List<Guid> _swimlanes = new List<Guid> ();
@@ -138,7 +135,6 @@
             await OnInitializedAsync ();
             _dropContainer.Items = _cards;
             _dropContainer.Refresh ();
-            StateHasChanged();
         }
     }
 

@@ -71,7 +71,7 @@
         }
     }
 
-    private static string swimlaneSelectedToDelete = "";
+    private static string swimlaneTitleSelected = "";
     private RenderFragment _swimlaneListRenderFragment ()
     {
         return __builder =>
@@ -101,13 +101,13 @@
             throw new Exception ($"The swimlane selected does not correspond to a single swimlane in our list of swimlanes. Number of this swimlane found: {matchingSwimlaneNameCount}");
         }
 
-        swimlaneSelectedToDelete = swimlaneName;
+        swimlaneTitleSelected = swimlaneName;
     }
 
     private async Task RemoveSwimlane ()
     {
         //Keep in mind that on a given board, swimlane names should be unique.
-        var swimlaneToDeleteListIndex = _swimlaneTitles.IndexOf (swimlaneSelectedToDelete);
+        var swimlaneToDeleteListIndex = _swimlaneTitles.IndexOf (swimlaneTitleSelected);
         var swimlaneToDeleteGuid = _swimlanes [swimlaneToDeleteListIndex];
 
         var httpRequestMessage = new HttpRequestMessage (HttpMethod.Delete, @$"{interfaceOptions.Value.URL}kanban/swimlanes/delete/{swimlaneToDeleteGuid}");
@@ -125,6 +125,8 @@
         await SwimlaneTitlesChanged.InvokeAsync (_swimlaneTitles);
 
         Refresh.InvokeAsync (true);
+
+        CloseSwimlaneOverlay ();
     }
 
     private void CloseSwimlaneOverlay ()

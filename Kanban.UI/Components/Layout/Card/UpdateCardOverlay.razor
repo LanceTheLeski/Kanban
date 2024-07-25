@@ -1,6 +1,243 @@
-﻿<h3>UpdateCardOverlay</h3>
+﻿@using Kanban.UI.Options
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using Kanban.Contracts.Request.Create
+@using Kanban.Contracts.Response
+@using Kanban.UI.Components.DTOs
+@using Kanban.UI.Components.Layout
+@using System.Net.Http.Headers
+
+@inject HttpClient http
+@inject IOptions<InterfaceOptions> interfaceOptions
+
+@inherits LayoutComponentBase
+
+<MudPaper Width="600px">
+    <MudText>Add a New Card</MudText>
+    <MudTextField @bind-Value="cardTitle" T="string" Label="Title" Variant="Variant.Filled" HelperText="Card Title" />
+    <MudTextField @bind-Value="cardDescription" T="string" Label="Description" Variant="Variant.Filled" AutoGrow Lines="7" HelperText="Description" />
+    <MudExpansionPanels>
+        <MudExpansionPanel Text="Column" MaxHeight="1000" ExpandedChanged="ColumnListExpandedChanged">
+            @_columnList
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+
+    <MudExpansionPanels>
+        <MudExpansionPanel Text="Swimlane" MaxHeight="1000" ExpandedChanged="SwimlaneListExpandedChanged">
+            @_swimlaneList
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+
+    <MudButtonGroup>
+        <MudButton OnClick="(() => CreateCard())">Submit</MudButton>
+        <MudButton OnClick="CloseCardOverlay">Discard</MudButton>
+    </MudButtonGroup>
+</MudPaper>
 
 @code 
 {
+    [Parameter]
+    public bool Open { get; set; }
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
 
+    [Parameter]
+    public List<DropCard>? Cards { get; set; }
+    [Parameter]
+    public EventCallback<List<DropCard>> CardsChanged { get; set; }
+
+    [Parameter]
+    public List<Guid>? Columns { get; set; }
+    [Parameter]
+    public EventCallback<List<Guid>> ColumnsChanged { get; set; }
+
+    [Parameter]
+    public List<string>? ColumnTitles { get; set; }
+    [Parameter]
+    public EventCallback<List<string>> ColumnTitlesChanged { get; set; }
+
+    [Parameter]
+    public List<Guid>? Swimlanes { get; set; }
+    [Parameter]
+    public EventCallback<List<Guid>> SwimlanesChanged { get; set; }
+
+    [Parameter]
+    public List<string>? SwimlaneTitles { get; set; }
+    [Parameter]
+    public EventCallback<List<string>> SwimlaneTitlesChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> Refresh { get; set; }
+
+    private static List<DropCard> _cards = new List<DropCard> ();
+    private static List<Guid> _columns = new List<Guid> ();
+    private static List<string> _columnTitles = new List<string> ();
+    private static List<Guid> _swimlanes = new List<Guid> ();
+    private static List<string> _swimlaneTitles = new List<string> ();
+
+    public string cardTitle = "";
+    public string cardDescription = "";
+    public static string columnToAddCard = "";
+    public static string swimlaneToAddCard = "";
+
+    //On page load. Not async.
+    protected override void OnInitialized ()
+    {
+        Open = false;
+        _cards = Cards;
+        _columns = Columns;
+        _columnTitles = ColumnTitles;
+        _swimlanes = Swimlanes;
+        _swimlaneTitles = SwimlaneTitles;
+    }
+
+    private RenderFragment _columnList;
+    private async Task ColumnListExpandedChanged (bool showColumns)
+    {
+        _columns = Columns;
+        _columnTitles = ColumnTitles;
+
+        if (showColumns)
+        {
+            _columnList = _columnListRenderFragment ();
+        }
+        else
+        {
+            // Reset after a while to prevent sudden collapse.
+            Task.Delay (350).ContinueWith (t => _columnList = null);
+        }
+    }
+
+    private RenderFragment _columnListRenderFragment ()
+    {
+        return __builder =>
+        {
+            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
+                <MudStack Class="flex-grow-1" Width="100%" Height="100%">
+                    <MudList T="string" ReadOnly="false">
+                        @foreach (var columnTitle in _columnTitles)
+                        {
+                            <MudListItem OnClick="(() => SetColumnNameToAddCard(columnTitle))">
+                                Column Name: @(columnTitle)
+                            </MudListItem>
+                        }
+                    </MudList>
+                </MudStack>
+            </MudPaper>
+        };
+    }
+    private static async Task SetColumnNameToAddCard (string columnName)
+    {
+        var matchingColumnNameCount = _columnTitles.FindAll (column => column == columnName).Count ();
+        if (matchingColumnNameCount is not 1)
+        {
+            // Should we throw exceptions? Or have the snackbar display exceptions?
+            // I think that the UI should throw exceptions and the Blazor UI should maybe use something reliable like the snackbar.
+            throw new Exception ($"The column selected does not correspond to a single column in our list of columns. Number of this column found: {matchingColumnNameCount}");
+        }
+
+        columnToAddCard = columnName;
+    }
+
+    private RenderFragment _swimlaneList;
+    private async Task SwimlaneListExpandedChanged (bool showSwimlanes)
+    {
+        _swimlanes = Swimlanes;
+        _swimlaneTitles = SwimlaneTitles;
+
+        if (showSwimlanes)
+        {
+            _swimlaneList = _swimlaneListRenderFragment ();
+        }
+        else
+        {
+            // Reset after a while to prevent sudden collapse.
+            Task.Delay (350).ContinueWith (t => _swimlaneList = null);
+        }
+    }
+
+    private RenderFragment _swimlaneListRenderFragment ()
+    {
+        return __builder =>
+        {
+            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
+                <MudStack Class="flex-grow-1" Width="100%" Height="100%">
+                    <MudList T="string" ReadOnly="false">
+                        @foreach (var swimlaneTitle in _swimlaneTitles)
+                        {
+                            <MudListItem OnClick="(() => SetSwimlaneNameToAddCard (swimlaneTitle))">
+                                Swimlane Name: @(swimlaneTitle)
+                            </MudListItem>
+                        }
+                    </MudList>
+                </MudStack>
+            </MudPaper>
+        };
+    }
+    private static async Task SetSwimlaneNameToAddCard (string swimlaneName)
+    {
+        var matchingSwimlaneNameCount = _swimlaneTitles.FindAll (swimlane => swimlane == swimlaneName).Count ();
+        if (matchingSwimlaneNameCount is not 1)
+        {
+            // Should we throw exceptions? Or have the snackbar display exceptions?
+            // I think that the UI should throw exceptions and the Blazor UI should maybe use something reliable like the snackbar.
+            throw new Exception ($"The swimlane selected does not correspond to a single column in our list of swimlanes. Number of this swimlane found: {matchingSwimlaneNameCount}");
+        }
+
+        swimlaneToAddCard = swimlaneName;
+    }
+
+    public async Task<CardResponse> CreateCard () //We will probably want a restriction down the road that swimlanes and columns don't have duplicate titles
+    {
+        var createRequest = new CardCreateRequest
+            {
+                Title = cardTitle,
+                Description = cardDescription,
+                BoardID = Guid.Parse ("20a88077-10d4-4648-92cb-7dc7ba5b8df5"),
+                ColumnID = Columns [ColumnTitles.IndexOf (columnToAddCard)],
+                SwimlaneID = Swimlanes [SwimlaneTitles.IndexOf (swimlaneToAddCard)]
+            };
+
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{interfaceOptions.Value.URL}kanban/cards/create");
+        httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject (createRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
+
+        var response = await http.SendAsync (httpRequestMessage);
+        if (response.IsSuccessStatusCode)
+        {
+            var responseBody = await response.Content.ReadAsStringAsync ();
+            var deserialized = JsonConvert.DeserializeObject<CardResponse> (responseBody);
+
+            //Add it to the DropCard list? And if we want to use the boardResponse as a source of truth then that too? But I don't think that should be the case
+            Cards.Add (new DropCard
+                {
+                    Id = deserialized.ID,
+                    Title = deserialized.Title,
+                    Description = deserialized.Description,
+                    ColumnNumber = deserialized.ColumnOrder,
+                    ColumnID = Guid.Parse (deserialized.ColumnID),
+                    ColumnName = deserialized.ColumnTitle,
+                    SwimlaneNumber = deserialized.SwimlaneOrder,
+                    SwimlaneID = Guid.Parse (deserialized.SwimlaneID),
+                    SwimlaneName = deserialized.SwimlaneTitle,
+                    CardArea = ConvertColumnAndSwimlaneToCardArea (deserialized.SwimlaneOrder, deserialized.ColumnOrder)
+                });
+
+            Refresh.InvokeAsync (true);
+
+            return deserialized;
+        }
+
+        return null;
+    }
+
+    private string ConvertColumnAndSwimlaneToCardArea (int swimlanePos, int columnPos)
+    {
+        return (swimlanePos + "_" + columnPos);
+    }
+
+    private void CloseCardOverlay ()
+    {
+        Open = false;
+        OpenChanged.InvokeAsync (Open);
+    }
 }

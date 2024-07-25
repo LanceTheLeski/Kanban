@@ -19,7 +19,7 @@
         </MudExpansionPanel>
     </MudExpansionPanels>
 
-    <MudTextField T="string" @bind-Value="columnTitle" Label="New Title" Variant="Variant.Filled" AutoGrow HelperText="Column Title" />
+    <MudTextField @ref="columnText" T="string" @bind-Value="columnTitleSelected" Label="New Title" Variant="Variant.Filled" AutoGrow HelperText="Column Title" />
 
      <MudExpansionPanels>
          <MudExpansionPanel Text="Order" MaxHeight="1000" ExpandedChanged="ColumnOrderListExpandedChanged">
@@ -56,6 +56,8 @@
     private static List<Guid> _columns = new List<Guid> ();
     private static List<string> _columnTitles = new List<string> ();
 
+    private MudTextField<string> columnText;
+
     public UpdateColumnOverlay ()
     {
         Open = false;
@@ -80,8 +82,7 @@
         }
     }
 
-    private string columnTitle = "";
-    private static string columnSelectedToDelete = "";
+    private static string columnTitleSelected = "";
     private RenderFragment _columnListRenderFragment ()
     {
         return __builder =>
@@ -111,7 +112,7 @@
             throw new Exception ($"The column selected does not correspond to a single column in our list of columns. Number of this column found: {matchingColumnNameCount}");
         }
 
-        columnSelectedToDelete = columnName;
+        columnTitleSelected = columnName;
     }
 
     private RenderFragment _columnOrderList;
@@ -139,10 +140,10 @@
             <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
                 <MudStack Class="flex-grow-1" Width="100%" Height="100%">
                     <MudList T="string" ReadOnly="false">
-                        @foreach (var columnOrder in Enumerable.Range (0, _columnTitles.Count ()))
+                        @foreach (var columnTitle in Enumerable.Range (0, _columnTitles.Count ()))
                         {
-                            <MudListItem OnClick="(() => columnOrderSelected = columnOrder)">
-                                Column Name: @(columnOrder)
+                            <MudListItem OnClick="(() => columnOrderSelected = columnTitle)">
+                                Column Name: @(columnTitle)
                             </MudListItem>
                         }
                     </MudList>
@@ -154,12 +155,12 @@
     private async Task UpdateColumn ()
     {
         //Keep in mind that on a given board, column names should be unique.
-        var columnToDeleteListIndex = _columnTitles.IndexOf (columnSelectedToDelete);
-        var columnToDeleteGuid = _columns [columnToDeleteListIndex];
+        var columnToUpdateListIndex = _columnTitles.IndexOf (columnTitleSelected);
+        var columnToUpdateGuid = _columns [columnToUpdateListIndex];
 
-        var patchRequestForTitle = string.IsNullOrWhiteSpace (columnTitle) ? 
+        var patchRequestForTitle = string.IsNullOrWhiteSpace (columnTitleSelected) ?
                                         "" : 
-                                        $@"{{ ""op"": ""replace"", ""path"": ""/Title"", ""value"": ""{columnTitle}"" }},";
+                                        $@"{{ ""op"": ""replace"", ""path"": ""/Title"", ""value"": ""{columnTitleSelected}"" }},";
         var patchRequestForOrder = columnOrderSelected is -1 ? 
                                         "" : 
                                         $@"{{ ""op"": ""replace"", ""path"": ""/Order"", ""value"": ""{columnOrderSelected}"" }}";
@@ -173,7 +174,7 @@
             {patchRequestForOrder}
         ]";
 
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{interfaceOptions.Value.URL}kanban/columns/update/{columnToDeleteGuid}");
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{interfaceOptions.Value.URL}kanban/columns/update/{columnToUpdateGuid}");
         httpRequestMessage.Content = new StringContent (patchRequest, mediaType: new MediaTypeHeaderValue (@"application/json"));
 
         var response = await http.SendAsync (httpRequestMessage);
@@ -182,13 +183,14 @@
             Snackbar.Add ($"Could not update Column. Error code: {response.StatusCode}");
         }
 
-        //Columns.(columnToDeleteListIndex); adjust later..
         await ColumnsChanged.InvokeAsync (_columns);
 
-        ColumnTitles.RemoveAt (columnToDeleteListIndex);
+        ColumnTitles.RemoveAt (columnToUpdateListIndex);
         await ColumnTitlesChanged.InvokeAsync (_columnTitles);
 
-        Refresh.InvokeAsync (true);
+        Refresh.InvokeAsync (true); // Some Card info has possibly changed.
+
+        CloseColumnOverlay ();
     }
 
     private void CloseColumnOverlay ()

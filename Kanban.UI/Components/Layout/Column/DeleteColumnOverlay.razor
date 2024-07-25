@@ -74,7 +74,7 @@
         }
     }
 
-    private static string columnSelectedToDelete = "";
+    private static string columnTitleSelected = "";
     private RenderFragment _columnListRenderFragment ()
     {
         return __builder =>
@@ -104,15 +104,13 @@
             throw new Exception ($"The column selected does not correspond to a single column in our list of columns. Number of this column found: {matchingColumnNameCount}");
         }
 
-        columnSelectedToDelete = columnName;
-
-        //columnListIsExpanded = false;// This is a test. Let's see if it works.
+        columnTitleSelected = columnName;
     }
 
     private async Task RemoveColumn ()
     {
         //Keep in mind that on a given board, column names should be unique.
-        var columnToDeleteListIndex = _columnTitles.IndexOf (columnSelectedToDelete);
+        var columnToDeleteListIndex = _columnTitles.IndexOf (columnTitleSelected);
         var columnToDeleteGuid = _columns [columnToDeleteListIndex];
 
         var httpRequestMessage = new HttpRequestMessage (HttpMethod.Delete, @$"{interfaceOptions.Value.URL}kanban/columns/delete/{columnToDeleteGuid}");
@@ -130,6 +128,8 @@
         await ColumnTitlesChanged.InvokeAsync (_columnTitles);
 
         Refresh.InvokeAsync (true);
+
+        CloseColumnOverlay();
     }
 
     private void CloseColumnOverlay ()

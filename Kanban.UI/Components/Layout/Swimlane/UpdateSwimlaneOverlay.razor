@@ -19,7 +19,7 @@
         </MudExpansionPanel>
     </MudExpansionPanels>
 
-    <MudTextField T="string" @bind-Value="swimlaneTitle" Label="New Title" Variant="Variant.Filled" AutoGrow HelperText="Swimlane Title" />
+    <MudTextField T="string" @bind-Value="swimlaneTitleSelected" Label="New Title" Variant="Variant.Filled" AutoGrow HelperText="Swimlane Title" />
 
      <MudExpansionPanels>
          <MudExpansionPanel Text="Order" MaxHeight="1000" ExpandedChanged="SwimlaneOrderListExpandedChanged">
@@ -80,19 +80,18 @@
         }
     }
 
-    private string swimlaneTitle = "";
-    private static string swimlaneSelectedToDelete = "";
+    private static string swimlaneTitleSelected = "";
     private RenderFragment _swimlaneListRenderFragment ()
     {
         return __builder =>
         {
-            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
+            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px; background-color: darkgoldenrod">
                 <MudStack Class="flex-grow-1" Width="100%" Height="100%">
                     <MudList T="string" ReadOnly="false">
                         @foreach (var swimlaneTitle in _swimlaneTitles)
                         {
                             <MudListItem OnClick="(() => SetSwimlaneNameToUpdate (swimlaneTitle))">
-                                Swimlane Name: @(swimlaneTitle)
+                                @(swimlaneTitle)
                             </MudListItem>
                         }
                     </MudList>
@@ -111,7 +110,7 @@
             throw new Exception ($"The swimlane selected does not correspond to a single swimlane in our list of swimlanes. Number of this swimlane found: {matchingSwimlaneNameCount}");
         }
 
-        swimlaneSelectedToDelete = swimlaneName;
+        swimlaneTitleSelected = swimlaneName;
     }
 
     private RenderFragment _swimlaneOrderList;
@@ -142,7 +141,7 @@
                         @foreach (var swimlaneOrder in Enumerable.Range (0, _swimlaneTitles.Count ()))
                         {
                             <MudListItem OnClick="(() => swimlaneOrderSelected = swimlaneOrder)">
-                                Swimlane Name: @(swimlaneOrder)
+                                @(swimlaneOrder)
                             </MudListItem>
                         }
                     </MudList>
@@ -154,12 +153,12 @@
     private async Task UpdateSwimlane ()
     {
         //Keep in mind that on a given board, swimlane names should be unique.
-        var swimlaneToDeleteListIndex = _swimlaneTitles.IndexOf (swimlaneSelectedToDelete);
+        var swimlaneToDeleteListIndex = _swimlaneTitles.IndexOf (swimlaneTitleSelected);
         var swimlaneToDeleteGuid = _swimlanes [swimlaneToDeleteListIndex];
 
-        var patchRequestForTitle = string.IsNullOrWhiteSpace (swimlaneTitle) ? 
+        var patchRequestForTitle = string.IsNullOrWhiteSpace (swimlaneTitleSelected) ? 
                                         "" : 
-                                        $@"{{ ""op"": ""replace"", ""path"": ""/Title"", ""value"": ""{swimlaneTitle}"" }},";
+                                        $@"{{ ""op"": ""replace"", ""path"": ""/Title"", ""value"": ""{swimlaneTitleSelected}"" }},";
         var patchRequestForOrder = swimlaneOrderSelected is -1 ? 
                                         "" : 
                                         $@"{{ ""op"": ""replace"", ""path"": ""/Order"", ""value"": ""{swimlaneOrderSelected}"" }}";
@@ -182,13 +181,15 @@
             Snackbar.Add ($"Could not update Swimlane. Error code: {response.StatusCode}");
         }
 
-        //Swimlanes.(swimlaneToDeleteListIndex); adjust later..
+        Swimlanes.RemoveAt (swimlaneToDeleteListIndex);
         await SwimlanesChanged.InvokeAsync (_swimlanes);
 
         SwimlaneTitles.RemoveAt (swimlaneToDeleteListIndex);
         await SwimlaneTitlesChanged.InvokeAsync (_swimlaneTitles);
 
         Refresh.InvokeAsync (true);
+
+        CloseSwimlaneOverlay();
     }
 
     private void CloseSwimlaneOverlay ()

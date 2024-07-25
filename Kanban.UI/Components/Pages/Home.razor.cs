@@ -1,10 +1,11 @@
-﻿<CascadingValue Value=true Name="UsePopoverProvider">
-    <MudThemeProvider Theme="_kanbanBoardDefaultTheme"></MudThemeProvider>
-</CascadingValue>
+﻿using Microsoft.AspNetCore.Components;
+using MudBlazor;
 
-@code 
+namespace Kanban.UI.Components.Pages;
+
+public partial class Home : ComponentBase
 {
-    public static MudTheme _kanbanBoardDefaultTheme = new MudTheme
+    MudTheme _kanbanBoardDefaultTheme = new MudTheme
     {
         PaletteLight = new PaletteLight
         {
@@ -17,5 +18,6 @@
             Secondary = "#56EBEC",
             Tertiary = "#56EBEC"
         }
+
     };
 }
