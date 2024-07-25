@@ -8,7 +8,9 @@
 
 @inherits LayoutComponentBase
 
-<MudPaper Class="mud-theme-appbarbackground">
+<MudThemeProvider Theme="@MyMudThemeProvider._kanbanBoardDefaultTheme" />
+
+<MudPaper Class="mud-theme-primary">
     <MudMenu Label="Cards">
         <MudMenuItem OnClick="OpenAddCardOverlay">Add</MudMenuItem>
     </MudMenu>

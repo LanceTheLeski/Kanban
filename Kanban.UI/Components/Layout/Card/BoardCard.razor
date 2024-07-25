@@ -1,18 +1,18 @@
 ﻿@using Kanban.UI.Components.DTOs;
 
-<MudPaper Class="rounded-lg gap-0" Style="width: 100px; height: 200px; text-align: center; background-color: lightyellow">
-    <MudStack Class="d-inline-flex flex-grow-1" AlignItems="AlignItems.Center" Spacing="0">
+<MudPaper Class="rounded-lg gap-0" Style="width: 120px; height: 200px; text-align: center; background-color: lightyellow; overflow:hidden; text-overflow:clip">
+    <MudStack Class="d-inline-flex flex-grow-1" AlignItems="AlignItems.Center" Spacing="0" Style="width:110px; height:200px">
         <MudPaper Width="100%" MinHeight="160px;">
             <MudListItem T="string" OnClick="(() => OpenOverlay(Card))">
 
-                <MudText Align="Align.Center">@Card.Title</MudText>
+                <MudText Style="height: 20px; max-width: 110px; text-overflow:clip; overflow:hidden" Align="Align.Center">@Card.Title</MudText>
                 <br />
-                <MudText Style="max-height: 70px;">@Card.Description</MudText>
+                <MudText Style="height: 100px; max-width: 110px; text-overflow:clip;">@Card.Description</MudText>
 
             </MudListItem>
         </MudPaper>
         <MudPaper Width="100%">
-            <MudButton Size="Size.Small">Edit</MudButton>
+            <MudButton Style="max-height: 50px; width: 110px; " Size="Size.Small">Edit</MudButton>
         </MudPaper>
     </MudStack>
 </MudPaper>

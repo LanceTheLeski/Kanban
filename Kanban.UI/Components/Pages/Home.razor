@@ -16,12 +16,11 @@
 @inject IOptions<InterfaceOptions> interfaceOptions
 
 @page "/"
-
-<PageTitle>Board</PageTitle>
-
 @rendermode RenderMode.InteractiveServer
 
+<PageTitle>Board</PageTitle>
 <MudThemeProvider Theme="@MyMudThemeProvider._kanbanBoardDefaultTheme"/>
+
 <MudPaper Class="mud-theme-backgroundgray">
     <BoardManagementNavigationBar @bind-Cards="_cards"
                                   @bind-Swimlanes="_swimlanes"
@@ -32,16 +31,21 @@
     <MudGrid Spacing="0" 
              Class="d-flex flex-column">
         <MudItem>
-            <MudPaper Height="75px"
+            <MudPaper Height="90px"
                       Class="mud-theme-primary">
                 <MudGrid>
                     <MudItem>
-                        <MudPaper Width="120px">X</MudPaper>
+                        <MudPaper Width="120px" Height="80px" Style="background-color:transparent;">
+                            <MudText Align="Align.Center" Style="font-family:'Freestyle Script';
+                                                                 font-weight:bold;
+                                                                 font-size:xx-large;
+                                                                 color:aquamarine;">Honu Boards</MudText>
+                        </MudPaper>
                     </MudItem>
                     @foreach (var columnIndex in Enumerable.Range (0, _columnTitles.Count ()))//Just tried to delete a column and _columnTitles is null here, resulting in an exception. Maybe call the StateHasChanged method?
                     {
                         <MudItem>
-                            <MudPaper Width="150px" 
+                            <MudPaper Width="300px" 
                                       Class="align-self-center">
                                 @(_columnTitles [columnIndex])
                             </MudPaper>
@@ -64,8 +68,8 @@
                             <MudGrid>
                                 <MudItem>
                                     <MudPaper Width="120px" 
-                                                Class="align-self-center"
-                                                Style="background-color: lightcoral">
+                                              Class="align-self-center"
+                                              Style="background-color: lightcoral">
                                         @(_swimlaneTitles [rowIndex])
                                     </MudPaper>
                                 </MudItem>
@@ -83,7 +87,7 @@
                                                             Identifier="@identifier" 
                                                             CanDropClass="mud-border-success"
                                                             Class="d-flex flex-wrap flex-grow-1 justify-space-around gap-4 pa-2 overflow-auto"
-                                                            Style="background-color: cornflowerblue; width: 150px; height: 200px;"/>
+                                                            Style="background-color: cornflowerblue; width: 300px; height: 200px;"/>
                                         </MudList>
                                     </MudItem>
                                 }
