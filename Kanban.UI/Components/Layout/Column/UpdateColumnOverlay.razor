@@ -19,7 +19,7 @@
         </MudExpansionPanel>
     </MudExpansionPanels>
 
-    <MudTextField @ref="columnText" T="string" @bind-Value="columnTitleSelected" Label="New Title" Variant="Variant.Filled" AutoGrow HelperText="Column Title" />
+    <MudTextField @ref="columnText" T="string" @bind-Value="columnTitleReplacement" Label="New Title" Variant="Variant.Filled" AutoGrow HelperText="Column Title" />
 
      <MudExpansionPanels>
          <MudExpansionPanel Text="Order" MaxHeight="1000" ExpandedChanged="ColumnOrderListExpandedChanged">
@@ -102,6 +102,7 @@
         };
     }
 
+    private static string columnTitleReplacement = "";
     private static async Task SetColumnNameToUpdate (string columnName)
     {
         var matchingColumnNameCount = _columnTitles.FindAll (column => column == columnName).Count ();
@@ -113,6 +114,7 @@
         }
 
         columnTitleSelected = columnName;
+        columnTitleReplacement = columnName;
     }
 
     private RenderFragment _columnOrderList;
@@ -158,9 +160,9 @@
         var columnToUpdateListIndex = _columnTitles.IndexOf (columnTitleSelected);
         var columnToUpdateGuid = _columns [columnToUpdateListIndex];
 
-        var patchRequestForTitle = string.IsNullOrWhiteSpace (columnTitleSelected) ?
+        var patchRequestForTitle = string.IsNullOrWhiteSpace (columnTitleReplacement) ?
                                         "" : 
-                                        $@"{{ ""op"": ""replace"", ""path"": ""/Title"", ""value"": ""{columnTitleSelected}"" }},";
+                                        $@"{{ ""op"": ""replace"", ""path"": ""/Title"", ""value"": ""{columnTitleReplacement}"" }},";
         var patchRequestForOrder = columnOrderSelected is -1 ? 
                                         "" : 
                                         $@"{{ ""op"": ""replace"", ""path"": ""/Order"", ""value"": ""{columnOrderSelected}"" }}";

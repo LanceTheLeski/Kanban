@@ -19,7 +19,7 @@
         </MudExpansionPanel>
     </MudExpansionPanels>
 
-    <MudTextField T="string" @bind-Value="swimlaneTitleSelected" Label="New Title" Variant="Variant.Filled" AutoGrow HelperText="Swimlane Title" />
+    <MudTextField T="string" @bind-Value="swimlaneTitleReplacement" Label="New Title" Variant="Variant.Filled" AutoGrow HelperText="Swimlane Title" />
 
      <MudExpansionPanels>
          <MudExpansionPanel Text="Order" MaxHeight="1000" ExpandedChanged="SwimlaneOrderListExpandedChanged">
@@ -100,6 +100,7 @@
         };
     }
 
+    private static string swimlaneTitleReplacement = "";
     private static async Task SetSwimlaneNameToUpdate (string swimlaneName)
     {
         var matchingSwimlaneNameCount = _swimlaneTitles.FindAll (swimlane => swimlane == swimlaneName).Count ();
@@ -111,6 +112,7 @@
         }
 
         swimlaneTitleSelected = swimlaneName;
+        swimlaneTitleReplacement = swimlaneName;
     }
 
     private RenderFragment _swimlaneOrderList;
@@ -156,9 +158,9 @@
         var swimlaneToDeleteListIndex = _swimlaneTitles.IndexOf (swimlaneTitleSelected);
         var swimlaneToDeleteGuid = _swimlanes [swimlaneToDeleteListIndex];
 
-        var patchRequestForTitle = string.IsNullOrWhiteSpace (swimlaneTitleSelected) ? 
+        var patchRequestForTitle = string.IsNullOrWhiteSpace (swimlaneTitleReplacement) ?
                                         "" : 
-                                        $@"{{ ""op"": ""replace"", ""path"": ""/Title"", ""value"": ""{swimlaneTitleSelected}"" }},";
+                                        $@"{{ ""op"": ""replace"", ""path"": ""/Title"", ""value"": ""{swimlaneTitleReplacement}"" }},";
         var patchRequestForOrder = swimlaneOrderSelected is -1 ? 
                                         "" : 
                                         $@"{{ ""op"": ""replace"", ""path"": ""/Order"", ""value"": ""{swimlaneOrderSelected}"" }}";

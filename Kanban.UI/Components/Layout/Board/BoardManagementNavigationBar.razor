@@ -10,23 +10,36 @@
 
 <MudThemeProvider Theme="@MyMudThemeProvider._kanbanBoardDefaultTheme" />
 
-<MudPaper Class="mud-theme-primary">
-    <MudMenu Label="Cards">
-        <MudMenuItem OnClick="OpenAddCardOverlay">Add</MudMenuItem>
-    </MudMenu>
-    <MudMenu Label="Swimlanes">
-        <MudMenuItem OnClick="OpenAddSwimlaneOverlay">Add</MudMenuItem>
-        <MudMenuItem OnClick="OpenEditSwimlaneOverlay">Edit</MudMenuItem>
-        <MudMenuItem OnClick="OpenDeleteSwimlaneOverlay">Delete</MudMenuItem>
-    </MudMenu>
-    <MudMenu Label="Columns">
-        <MudMenuItem OnClick="OpenAddColumnOverlay">Add</MudMenuItem>
-        <MudMenuItem OnClick="OpenEditColumnOverlay">Edit</MudMenuItem>
-        <MudMenuItem OnClick="OpenDeleteColumnOverlay">Delete</MudMenuItem>
-    </MudMenu>
-    <MudMenu Label="Boards">
-        <MudMenuItem OnClick="OpenEditBoardOverlay">Edit</MudMenuItem>
-    </MudMenu>
+<MudPaper Elevation="25" Class="d-inline justify-center mud-theme-primary">
+    <MudToolBar Class="mud-theme-primary justify-left">
+        <MudPaper Elevation="0" Class="mud-theme-primary">
+            <MudImage Width="30" Height="30" Src="Honu.png"/>
+        </MudPaper>
+        <MudPaper Elevation="0" MaxWidth="150px" MaxHeight="30px" Style="padding-left:40px; padding-right:40px;" Class="mud-theme-primary">
+            <MudMenu Label="Cards" TransformOrigin="Origin.TopCenter" AnchorOrigin="Origin.BottomCenter">
+                <MudMenuItem OnClick="OpenAddCardOverlay" Style="@($"background-color:{Theme.PaletteLight.Background};")">Add</MudMenuItem>
+            </MudMenu>
+        </MudPaper>
+        <MudPaper Elevation="0" MaxWidth="150px" MaxHeight="30px" Style="padding-left:40px; padding-right:40px;" Class="mud-theme-primary">
+            <MudMenu Label="Swimlanes" TransformOrigin="Origin.TopCenter" AnchorOrigin="Origin.BottomCenter">
+                <MudMenuItem OnClick="OpenAddSwimlaneOverlay">Add</MudMenuItem>
+                <MudMenuItem OnClick="OpenEditSwimlaneOverlay">Edit</MudMenuItem>
+                <MudMenuItem OnClick="OpenDeleteSwimlaneOverlay">Delete</MudMenuItem>
+            </MudMenu>
+        </MudPaper>
+        <MudPaper Elevation="0" MaxWidth="150px" MaxHeight="30px" Style="padding-left:40px; padding-right:40px;" Class="mud-theme-primary">
+            <MudMenu Label="Columns" TransformOrigin="Origin.TopCenter" AnchorOrigin="Origin.BottomCenter">
+                <MudMenuItem OnClick="OpenAddColumnOverlay">Add</MudMenuItem>
+                <MudMenuItem OnClick="OpenEditColumnOverlay">Edit</MudMenuItem>
+                <MudMenuItem OnClick="OpenDeleteColumnOverlay">Delete</MudMenuItem>
+            </MudMenu>
+        </MudPaper>
+        <MudPaper Elevation="0" MaxWidth="150px" MaxHeight="30px" Style="padding-left:40px; padding-right:40px;" Class="mud-theme-primary">
+            <MudMenu Label="Boards" TransformOrigin="Origin.TopCenter" AnchorOrigin="Origin.BottomCenter">
+                <MudMenuItem OnClick="OpenEditBoardOverlay">Edit</MudMenuItem>
+            </MudMenu>
+        </MudPaper>
+    </MudToolBar>
 </MudPaper>
 
 <MudOverlay @bind-Visible="addSwimlaneOverlayIsOpen" DarkBackground="true" ZIndex="10">
@@ -83,6 +96,8 @@
 
 @code 
 {
+    private MudTheme Theme = new MudTheme ();
+
     [Parameter]
     public List<DropCard>? Cards { get; set; }
     [Parameter]

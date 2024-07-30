@@ -1,11 +1,14 @@
 ﻿@using Kanban.UI.Components.DTOs;
+@using Kanban.UI.Components.Layout.Card;
+
+@rendermode RenderMode.InteractiveServer
 
 <MudPaper Class="rounded-lg gap-0" Style="width: 120px; height: 200px; text-align: center; background-color: lightyellow; overflow:hidden; text-overflow:clip">
     <MudStack Class="d-inline-flex flex-grow-1" AlignItems="AlignItems.Center" Spacing="0" Style="width:110px; height:200px">
         <MudPaper Width="100%" MinHeight="160px;">
             <MudListItem T="string" OnClick="(() => OpenOverlay(Card))">
 
-                <MudText Style="height: 20px; max-width: 110px; text-overflow:clip; overflow:hidden" Align="Align.Center">@Card.Title</MudText>
+                <MudText Style="height: 20px; max-width: 110px; text-overflow:clip; overflow:hidden;" Align="Align.Center">@Card.Title</MudText>
                 <br />
                 <MudText Style="height: 100px; max-width: 110px; text-overflow:clip;">@Card.Description</MudText>
 
@@ -20,13 +23,41 @@
 @code 
 {
     [Parameter]
-    public DropCard Card { get; set; }
+    public bool OpenCardOverlay { get; set; }
+    [Parameter]
+    public EventCallback<bool> OpenCardOverlayChanged { get; set; }
 
+    [Parameter]
+    public DropCard Card { get; set; }
     [Parameter]
     public EventCallback<DropCard> CardChanged { get; set; }
 
+    [Parameter]
+    public DropCard? UpdateOrDeleteCard { get; set; }
+    [Parameter]
+    public EventCallback<DropCard?> UpdateOrDeleteCardChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> Refresh { get; set; }
+
+    private static DropCard _card = new DropCard ();
     public void OpenOverlay (DropCard cardToOverlay)
     {
-        
+        _card = Card;
+        UpdateOrDeleteCardChanged.InvokeAsync (_card);
+        OpenCardOverlayChanged.InvokeAsync (true);
+
+        OpenUpdateColumnOverlay();
+    }
+
+    public bool updateCardOverlayIsOpen = false;
+    public void OpenUpdateColumnOverlay ()
+    {
+        updateCardOverlayIsOpen = true;
+    }
+    public void UpdateDeleteColumnOverlay (bool setEditCardOverlayIsOpen)
+    {
+        updateCardOverlayIsOpen = setEditCardOverlayIsOpen;
+        Refresh.InvokeAsync (true);
     }
 }

@@ -22,20 +22,22 @@
 <MudThemeProvider Theme="@MyMudThemeProvider._kanbanBoardDefaultTheme"/>
 
 <MudPaper Class="mud-theme-backgroundgray">
-    <BoardManagementNavigationBar @bind-Cards="_cards"
-                                  @bind-Swimlanes="_swimlanes"
-                                  @bind-SwimlaneTitles="_swimlaneTitles"
-                                  @bind-Columns="_columns"
-                                  @bind-ColumnTitles="_columnTitles"
-                                  Refresh="Refresh"/>
+    <MudPaper Height="50px" Width="100%" Class="d-inline mud-theme-primary">
+        <BoardManagementNavigationBar @bind-Cards="_cards"
+                                      @bind-Swimlanes="_swimlanes"
+                                      @bind-SwimlaneTitles="_swimlaneTitles"
+                                      @bind-Columns="_columns"
+                                      @bind-ColumnTitles="_columnTitles"
+                                      Refresh="Refresh"/>
+    </MudPaper>
     <MudGrid Spacing="0" 
              Class="d-flex flex-column">
         <MudItem>
-            <MudPaper Height="90px"
+            <MudPaper Height="70px"
                       Class="mud-theme-primary">
                 <MudGrid>
                     <MudItem>
-                        <MudPaper Width="120px" Height="80px" Style="background-color:transparent;">
+                        <MudPaper Width="120px" Height="40px" Elevation="0" Style="background-color:transparent; padding-left: 12px;">
                             <MudText Align="Align.Center" Style="font-family:'Freestyle Script';
                                                                  font-weight:bold;
                                                                  font-size:xx-large;
@@ -45,9 +47,13 @@
                     @foreach (var columnIndex in Enumerable.Range (0, _columnTitles.Count ()))//Just tried to delete a column and _columnTitles is null here, resulting in an exception. Maybe call the StateHasChanged method?
                     {
                         <MudItem>
-                            <MudPaper Width="300px" 
-                                      Class="align-self-center">
-                                @(_columnTitles [columnIndex])
+                            <MudPaper Width="300px" Height="55px;" Class="mud-theme-tertiary align-content-center">
+                                <MudText Align="Align.Center" Style="font-family: 'calibri condensed', 'bodoni MT condensed', 'bahnschrift light condensed';
+                                                                     font-size: small;
+                                                                     font-weight: bold;
+                                                                     color: black;">
+                                    @(_columnTitles [columnIndex])
+                                </MudText>
                             </MudPaper>
                         </MudItem>
                     }
@@ -57,7 +63,7 @@
         <MudDropContainer @ref="_dropContainer"
                           T="DropCard" 
                           Items="_cards" 
-                          ItemDropped="UpdateCard" 
+                          ItemDropped="UpdateCard"
                           ItemsSelector="@((card, dropzone) => card.CardArea == dropzone)">
             <ChildContent>
                 @foreach (var rowIndex in Enumerable.Range(0, _swimlaneTitles.Count()))
@@ -65,33 +71,39 @@
                     <MudItem>
                         <MudPaper Height="250px" 
                                   Style="background-color: wheat">
-                            <MudGrid>
-                                <MudItem>
-                                    <MudPaper Width="120px" 
-                                              Class="align-self-center"
-                                              Style="background-color: lightcoral">
-                                        @(_swimlaneTitles [rowIndex])
-                                    </MudPaper>
-                                </MudItem>
-
-                                @foreach (var columnIndex in Enumerable.Range (0, _columnTitles.Count ()))
-                                {
-                                    var identifier = rowIndex + "_" + columnIndex;
-                                    <MudItem Style="height: 250px;">
-                                        <!--We want columns to have a set width-->
-                                        <MudList T="MudDropZone<DropCard>"
-                                                    ReadOnly="false"
-                                                    Class="d-flex flex-column mud-height-full" 
-                                                    Style="height: 250px;">
-                                            <MudDropZone T="DropCard" 
-                                                            Identifier="@identifier" 
-                                                            CanDropClass="mud-border-success"
-                                                            Class="d-flex flex-wrap flex-grow-1 justify-space-around gap-4 pa-2 overflow-auto"
-                                                            Style="background-color: cornflowerblue; width: 300px; height: 200px;"/>
-                                        </MudList>
+                            <MudPaper Style="background-color: #C7EEE6; border: 25px, solid, wheat; border-left-width: 5px; border-right:width: 5px;" Elevation="0">
+                                <MudGrid>
+                                    <MudItem Class="align-content-center">
+                                        <MudPaper Width="110px"
+                                                  Style="background-color: lightcoral; margin-left: 10px;">
+                                            <MudText Align="Align.Center" Style="font-family: 'calibri condensed', 'bodoni MT condensed', 'bahnschrift light condensed';
+                                                                                 font-size: small;
+                                                                                 font-weight: bold;
+                                                                                 color: black;">
+                                                @(_swimlaneTitles [rowIndex])
+                                            </MudText>
+                                        </MudPaper>
                                     </MudItem>
-                                }
-                            </MudGrid>
+
+                                    @foreach (var columnIndex in Enumerable.Range (0, _columnTitles.Count ()))
+                                    {
+                                        var identifier = rowIndex + "_" + columnIndex;
+                                        <MudItem Style="height: 250px;">
+                                            <!--We want columns to have a set width-->
+                                            <MudList T="MudDropZone<DropCard>"
+                                                        ReadOnly="false"
+                                                        Class="d-flex flex-column mud-height-full" 
+                                                        Style="height: 250px;">
+                                                <MudDropZone T="DropCard" 
+                                                                Identifier="@identifier" 
+                                                                CanDropClass="mud-border-success"
+                                                                Class="d-flex flex-wrap flex-grow-1 justify-space-around gap-4 pa-2 overflow-auto"
+                                                                Style="background-color: #ECED7b; width: 300px; height: 200px;"/>
+                                            </MudList>
+                                        </MudItem>
+                                    }
+                                </MudGrid>
+                            </MudPaper>
                         </MudPaper>
                     </MudItem>
                 }
@@ -99,11 +111,17 @@
 
             <!--The ItemRenderer is a component of the MudDropZone and is in charge of rendering individual DropCards within it-->
             <ItemRenderer>
-                <BoardCard @bind-Card="context"/>
+                <BoardCard @bind-Card="context" 
+                           @bind-OpenCardOverlay="editCardOverlayIsOpen" 
+                           @bind-UpdateOrDeleteCard="_activeCard" />
             </ItemRenderer>
         </MudDropContainer>
     </MudGrid>
 </MudPaper>
+
+<UpdateCardOverlay @bind-Open="editCardOverlayIsOpen"
+                   @bind-ActiveCard="_activeCard"
+                   Refresh="Refresh" />
 
 @code
 {
@@ -130,6 +148,18 @@
 
             _cards = ConvertBoardResponseToDropCardList (deserializedResponseBody!);
         }
+    }
+
+    public static DropCard? _activeCard = null;
+
+    public bool editCardOverlayIsOpen = false;
+    public void OpenEditCardOverlay ()
+    {
+        editCardOverlayIsOpen = true;
+    }
+    public void UpdateEditCardOverlay (bool setEditCardOverlayIsOpen)
+    {
+        editCardOverlayIsOpen = setEditCardOverlayIsOpen;
     }
 
     private async Task Refresh (bool stateHasChanged)
