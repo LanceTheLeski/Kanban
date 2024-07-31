@@ -35,7 +35,7 @@
         <MudItem>
             <MudPaper Height="70px"
                       Class="mud-theme-primary">
-                <MudGrid>
+                <MudGrid Class="d-flex flex-nowrap">
                     <MudItem>
                         <MudPaper Width="120px" Height="40px" Elevation="0" Style="background-color:transparent; padding-left: 12px;">
                             <MudText Align="Align.Center" Style="font-family:'Freestyle Script';
@@ -44,7 +44,7 @@
                                                                  color:aquamarine;">Honu Boards</MudText>
                         </MudPaper>
                     </MudItem>
-                    @foreach (var columnIndex in Enumerable.Range (0, _columnTitles.Count ()))//Just tried to delete a column and _columnTitles is null here, resulting in an exception. Maybe call the StateHasChanged method?
+                    @foreach (var columnIndex in Enumerable.Range (0, _columnTitles.Count ()))
                     {
                         <MudItem>
                             <MudPaper Width="300px" Height="55px;" Class="mud-theme-tertiary align-content-center">
@@ -72,7 +72,7 @@
                         <MudPaper Height="250px" 
                                   Style="background-color: wheat">
                             <MudPaper Style="background-color: #C7EEE6; border: 25px, solid, wheat; border-left-width: 5px; border-right:width: 5px;" Elevation="0">
-                                <MudGrid>
+                                <MudGrid Class="d-flex flex-nowrap">
                                     <MudItem Class="align-content-center">
                                         <MudPaper Width="110px"
                                                   Style="background-color: lightcoral; margin-left: 10px;">

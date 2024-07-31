@@ -13,11 +13,11 @@
 
 @inherits LayoutComponentBase
 
-<MudOverlay @bind-Visible="Open" DarkBackground="true" ZIndex="10">
-    <MudPaper Width="600px">
-        <MudTextField @bind-Value="cardTitle" T="string" Label="Title" Variant="Variant.Filled" HelperText="Card Title" />
-        <MudTextField @bind-Value="cardDescription" T="string" Label="Description" Variant="Variant.Filled" AutoGrow Lines="7" HelperText="Description" />
-        <MudButtonGroup>
+<MudOverlay @ref="populator" @bind-Visible="Open" DarkBackground="true" ZIndex="10">
+    <MudPaper Width="600px" Class="mud-background">
+        <MudTextField @bind-Value="ActiveCard.Title" T="string" Label="Title" Variant="Variant.Filled" HelperText="Card Title" Class="mud-theme-secondary"/>
+        <MudTextField @bind-Value="ActiveCard.Description" T="string" Label="Description" Variant="Variant.Filled" AutoGrow Lines="7" HelperText="Description" Class="mud-theme-secondary"/>
+        <MudButtonGroup Class="mud-background">
             <MudButton OnClick="(() => UpdateCard())">Save</MudButton>
             <MudButton OnClick="(() => DeleteCard())">Delete</MudButton>
             <MudButton OnClick="CloseCardOverlay">Discard</MudButton>
@@ -38,30 +38,21 @@
     public EventCallback<DropCard?> ActiveCardChanged { get; set; }
 
     [Parameter]
-    public List<Guid>? Columns { get; set; }
-    [Parameter]
-    public EventCallback<List<Guid>> ColumnsChanged { get; set; }
-
-    [Parameter]
-    public List<string>? ColumnTitles { get; set; }
-    [Parameter]
-    public EventCallback<List<string>> ColumnTitlesChanged { get; set; }
-
-    [Parameter]
-    public List<Guid>? Swimlanes { get; set; }
-    [Parameter]
-    public EventCallback<List<Guid>> SwimlanesChanged { get; set; }
-
-    [Parameter]
-    public List<string>? SwimlaneTitles { get; set; }
-    [Parameter]
-    public EventCallback<List<string>> SwimlaneTitlesChanged { get; set; }
-
-    [Parameter]
     public EventCallback<bool> Refresh { get; set; }
 
     public string cardTitle = "";
     public string cardDescription = "";
+
+    private MudOverlay populator;
+
+    private void Fire (bool changed)
+    {
+        if (ActiveCard is not null)
+        {
+            cardTitle = ActiveCard.Title;
+            cardDescription = ActiveCard.Description;
+        }
+    }
 
     private async Task UpdateCard ()
     {
@@ -98,7 +89,7 @@
     private async Task DeleteCard ()
     {
         var httpRequestMessage = new HttpRequestMessage (HttpMethod.Delete, @$"{interfaceOptions.Value.URL}kanban/boards/delete/{ActiveCard.Id}");//Not sure if this should be
-                                                                                                                                                        //boards or cards
+                                                                                                                                                  //boards or cards
 
         var response = await http.SendAsync (httpRequestMessage);
         if (!response.IsSuccessStatusCode)
