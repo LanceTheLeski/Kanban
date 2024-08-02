@@ -1,13 +1,24 @@
-﻿namespace Kanban.API.Models;
+﻿using Azure.Data.Tables;
+using Azure;
 
-public class Tag
+namespace Kanban.API.Models;
+
+public class Tag : ITableEntity
 {
-    public int ID { get; set; }
+    public string PartitionKey { get; set; } //Required -- Tag ID
+
+    public string RowKey { get; set; } //Required -- Parent Object ID -- interesting idea?
+
+    public DateTimeOffset? Timestamp { get; set; } = default!; //Required
+
+    public ETag ETag { get; set; } = default!; //Required ??
 
     public string Title { get; set; }
 
-    public string TagType { get; set; }
+    public int TagType { get; set; }
 
-    public IEnumerable<int> TriggerIDs { get; set; }
-    public virtual IEnumerable<Trigger> Triggers { get; set; }
+    
+
+    //public IEnumerable<int> TriggerIDs { get; set; }
+    //public virtual IEnumerable<Trigger> Triggers { get; set; }
 }

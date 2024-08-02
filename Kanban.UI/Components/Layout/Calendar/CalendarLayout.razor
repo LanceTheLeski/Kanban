@@ -50,11 +50,35 @@
 
                     <MudGrid Justify="Justify.Center" Spacing="0">
                         <MudItem>
-                            <MudPaper Width="100px;" Height="100px" Style="background-color: azure; text-align: center;">
-                                <MudPaper>
-                                    <MudText>@(testMonth.Weeks [week].Sunday.DayOfTheMonth)</MudText>
-                                </MudPaper>
-                                <MudChart ChartType="ChartType.Donut" Width="35px" Height="35px" InputData="@data" InputLabels="@labels" ChartOptions="@options"></MudChart>
+                            <MudPaper Width="100px" Height="135px" Style="background-color: azure; text-align: center;" Elevation="0">
+                                <MudStack>
+                                    <MudPaper>
+                                        <MudText>@(testMonth.Weeks [week].Sunday.DayOfTheMonth)</MudText>
+                                    </MudPaper>
+                                    <MudGrid Style="height: 50px">
+                                        <MudItem Style="width: 45px;">
+                                            <MudPaper Style="margin-left: 2px" Elevation="0">
+                                                <MudChart ChartType="ChartType.Donut" Width="35px" Height="35px" InputData="@data" InputLabels="@labels" ChartOptions="@options"></MudChart>
+                                            </MudPaper>
+                                        </MudItem>
+                                        <MudItem Style="height: 50px;">
+                                            <MudPaper Elevation="0">
+                                                <MudChart ChartType="ChartType.Line" Width="50px" Height="40px" XAxisLabels="_xAxisLabels" ChartSeries="@_series" ChartOptions="@options"></MudChart>
+                                            </MudPaper>
+                                        </MudItem>
+                                    </MudGrid>
+                                    <MudPaper>
+                                        <MudPaper Style="background-color: aquamarine; font-size:small; height: 20px;">
+                                            Task 1
+                                        </MudPaper>
+                                        <MudPaper Style="background-color: aquamarine; font-size:small; height: 20px;">
+                                            Task 2
+                                        </MudPaper>
+                                        <MudPaper Style="background-color: aquamarine; font-size:small; height: 20px;">
+                                            Task 3
+                                        </MudPaper>
+                                    </MudPaper>
+                                </MudStack>
                             </MudPaper>
                         </MudItem>
                         <MudItem>
@@ -97,10 +121,27 @@
 
 @code
 {
+    private List<ChartSeries> _series = new();
+
+    private string[] _xAxisLabels = { "1", "11", "111", "12", "122", "13" };
+
     private ChartOptions options = new ChartOptions ()
     {
-        ShowLegend = false
+        ShowLegend = false,
+        YAxisTicks = 7,
+        LineStrokeWidth = 10
     };
+
+    protected override void OnInitialized ()
+    {
+        double [] data1 = { 3, 3, 5, 0, 2, 0, 5 };
+        double [] data2 = { 3, 2, 1, 6, 6, 1, 3 };
+        double [] data3 = { 1, 1, 1, 1, 4, 5, 5 };
+
+        _series.Add (new ChartSeries { Data = data1 });
+        _series.Add (new ChartSeries { Data = data2 });
+        _series.Add (new ChartSeries { Data = data3 });
+    }
 
     // 0 = Sunday
     // 1 = Monday
