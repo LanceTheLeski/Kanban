@@ -24,5 +24,5 @@ public class Date : ITableEntity
 
     public int TaskTypeCount { get; set; }
  
-    public Guid DateTagGroupID { get; set; }
+    public Guid DateTagGroupID { get; set; } // Links to a group of Tasks
 }

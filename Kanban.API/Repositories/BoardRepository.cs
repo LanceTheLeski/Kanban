@@ -5,6 +5,8 @@ using Microsoft.Extensions.Options;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
+using Task = System.Threading.Tasks.Task;
+
 namespace Kanban.API.Repositories;
 
 public class BoardRepository : IBoardRepository
