@@ -34,20 +34,20 @@ public class TaskRepository
     public async Task<Azure.Response> UpdateTaskAsync (Models.Task taskToUpdate)
         => await _taskTable.UpdateEntityAsync (taskToUpdate, Azure.ETag.All);
 
-    public async Task<Collection<Models.Task>> QueryTagsAsync (Expression<Func<Models.Task, bool>> tagQueryExpression)
+    public async Task<Collection<Models.Task>> QueryTasksAsync (Expression<Func<Models.Task, bool>> taskQueryExpression)
     {
         var taskCollection = new Collection<Models.Task> ();
 
-        var taskFromTable = _taskTable.QueryAsync (tagQueryExpression); //This seems to fail with certain expressions
+        var taskFromTable = _taskTable.QueryAsync (taskQueryExpression); //This seems to fail with certain expressions
         await foreach (var task in taskFromTable)
             taskCollection.Add (task);
 
         return taskCollection;
     }
 
-    #region Tag Group
+    #region Task Group
 
-    public async Task<TaskType?> GetTagGroupAsync (Guid taskTypeID, Guid tagGroupID)
+    public async Task<TaskType?> GetTaskGroupAsync (Guid taskTypeID, Guid tagGroupID)
     {
         var response = await _taskTable.GetEntityAsync<TaskType> (partitionKey: taskTypeID.ToString (), rowKey: tagGroupID.ToString ());
         return response?.Value.GetType () == typeof (TaskType) ?
@@ -55,5 +55,5 @@ public class TaskRepository
             null;
     }
 
-    #endregion Tag Group
+    #endregion Task Group
 }

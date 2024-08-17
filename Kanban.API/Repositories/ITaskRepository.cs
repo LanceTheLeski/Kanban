@@ -1,5 +1,16 @@
-﻿namespace Kanban.API.Repositories;
+﻿using Kanban.API.Models;
+using System.Collections.ObjectModel;
+using System.Linq.Expressions;
+
+namespace Kanban.API.Repositories;
 
 public interface ITaskRepository
 {
+    public Task<Models.Task?> GetTaskAsync (Guid taskID, Guid tagGroupID);
+
+    public Task<Azure.Response> UpdateTaskAsync (Models.Task taskToUpdate);
+
+    public Task<Collection<Models.Task>> QueryTasksAsync (Expression<Func<Models.Task, bool>> taskQueryExpression);
+
+    public Task<TaskType?> GetTaskGroupAsync (Guid taskTypeID, Guid tagGroupID);
 }

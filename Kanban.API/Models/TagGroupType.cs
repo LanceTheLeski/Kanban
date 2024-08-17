@@ -5,7 +5,7 @@ namespace Kanban.API.Models;
 
 public class TagGroupType : ITableEntity
 {
-    public string PartitionKey { get; set; } //Required -- Tag Group ID
+    public string PartitionKey { get; set; } //Required -- Tag Group Type ID
 
     public string RowKey { get; set; } //Required -- Tag Group ID - Actions linked to this type 
 

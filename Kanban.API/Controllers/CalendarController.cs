@@ -1,67 +1,172 @@
 ﻿using Kanban.API.Models;
 using Kanban.API.Repositories;
+using Kanban.Contracts.Request.Create;
+using Kanban.Contracts.Request.Patch;
+using Kanban.Contracts.Response;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kanban.API.Controllers;
 
 [ApiController]
-[Route ("kanban/calendars/dates")]
+[Route ("kanban/calendars")]
 public class CalendarController : Controller
 {
-    private readonly ICalendarRepository _calendarRepository;
+    private readonly IDateRepository _dateRepository;
+    private readonly ITagRepository _tagRepository;
+    private readonly ITaskRepository _taskRepository;
 
-    public CalendarController (ICalendarRepository calendarRepository)
+    public CalendarController (IDateRepository dateRepository,
+                               ITagRepository tagRepository,
+                               ITaskRepository taskRepository)
     {
-        _calendarRepository = calendarRepository;
+        _dateRepository = dateRepository;
+        _tagRepository = tagRepository;
+        _taskRepository = taskRepository;
     }
 
-    [HttpGet ("fetch/{ID:guid}")]
-    public async Task<ActionResult> FetchCalendar (Guid ID)
+    [HttpGet ("months/fetch/{ID:guid}")]
+    public async Task<ActionResult> FetchMonth (Guid ID)
     {
-        var dates = _calendarRepository.QueryDatesAsync (date => date.RowKey == ID.ToString ());
+        var dates = await _dateRepository.QueryDatesAsync (date => date.RowKey == ID.ToString ());
+
+        //I like to think that a really nice JOIN will be the solution to this one day :)
+        var tagGroupIDsForMonth = dates.Select (date => date.DateTagGroupID.ToString ());
+        var tagGroupsForMonth = await _tagRepository.QueryTagGroupsAsync (tagGroup => tagGroupIDsForMonth.Contains (tagGroup.PartitionKey));//This could very well break
+
+        var tagIDsForMonth = tagGroupsForMonth.Select (tagGroup => tagGroup.RowKey.ToString ());
+        var tagsForMonth = await _tagRepository.QueryTagsAsync (tag => tagIDsForMonth.Contains (tag.PartitionKey));
+
+        var taskIDsForMonth = tagsForMonth.Select (tag => tag.RowKey.ToString ());
+        var tasksForMonth = await _taskRepository.QueryTasksAsync (task => taskIDsForMonth.Contains (task.PartitionKey));
+
+        var monthResponse = new MonthResponse ();
+        foreach (var date in dates)
+        {
+            var tagGroupForDay = tagGroupsForMonth.SingleOrDefault (tagGroup => tagGroup.RowKey == date.DateTagGroupID.ToString ());
+            var tagIDsForDay = tagsForMonth.Where (tag => tag.PartitionKey == tagGroupForDay?.RowKey)
+                                           .Select (tag => tag.RowKey);
+            var tasksForDay = tasksForMonth.Where (task => tagIDsForDay.Contains (task.PartitionKey));
+
+            var tasks = new List<MonthResponse.BasicTask> ();
+            foreach (var task in tasksForDay)
+                tasks.Add (new MonthResponse.BasicTask { Title = task.Title });
+
+            monthResponse.Days.Add (new MonthResponse.BasicDate
+            {
+                ID = date.PartitionKey,
+                DateOrder = date.DateOrder,
+                WeekOrder = date.WeekOrder,
+                DayOfTheWeekOrder = date.DayOfTheWeekOrder,
+                Tasks = tasks
+            });
+        }
 
         return Ok ();
     }
 
-    [HttpPost ("create")]
-    public ActionResult CreateBoard ()
+    [HttpPost ("dates/create")]
+    public async Task<ActionResult> CreateDate ([FromBody] DateCreateRequest dateCreateRequest)
+    {
+        if (dateCreateRequest is null)
+        {
+            return BadRequest ("There was no Date Request passed in!");
+        }
+
+        //Validation for correct month later..
+
+        var newDateID = Guid.NewGuid ();
+        var newDate = new Date
+        {
+            PartitionKey = newDateID.ToString (),
+            RowKey = dateCreateRequest.MonthID.ToString (),
+
+            DateOrder = dateCreateRequest.DateOrder,
+            WeekOrder = dateCreateRequest.WeekOrder,
+            DayOfTheWeekOrder = dateCreateRequest.DayOfTheWeekOrder,
+            MonthOrder = dateCreateRequest.MonthOrder,
+            MonthName = dateCreateRequest.MonthName,
+            Year = dateCreateRequest.Year,
+
+            TaskTypeCount = 0,
+            DateTagGroupID = Guid.Empty
+        };
+
+        var addDateResponse = await _dateRepository.AddDateAsync (newDate);
+        if (addDateResponse.IsError)
+        {
+            //We might want to have better verification later for failures. I'm thinking we actually query the table and grab the date so we can map it to a response object
+            return StatusCode (StatusCodes.Status500InternalServerError, $"Could not insert a new date into database. Internal status: {addDateResponse.Status}");
+        }
+        var dateResponse = new DateResponse
+        {
+            ID = newDate.PartitionKey,
+
+            DateOrder = newDate.DateOrder,
+            WeekOrder = newDate.WeekOrder,
+            DayOfTheWeekOrder = newDate.DayOfTheWeekOrder,
+
+            Tasks = new List<DateResponse.BasicTask> ()
+        };
+
+        return StatusCode (StatusCodes.Status201Created, dateResponse);
+    }
+
+    [HttpPatch ("months/{monthID:guid}/dates/update/{dateID:guid}")]
+    public async Task<ActionResult> UpdateDate (Guid dateID, Guid monthID, [FromBody] JsonPatchDocument<DatePatchRequest> datePatchRequest)
+    {
+        if (datePatchRequest is null)
+        {
+            return BadRequest ("There was no Patch Request passed in!");
+        }
+
+        var dateFromTable = await _dateRepository.GetDateAsync (dateID: dateID, monthID: monthID);
+        if (dateFromTable is null)
+            return BadRequest ("The date you want to update does not exist!");
+        
+        var dateToUpdate = dateFromTable!;
+        var convertedDateToUpdate = new DatePatchRequest
+        {
+            DateOrder = dateToUpdate.DateOrder,
+            WeekOrder = dateToUpdate.WeekOrder,
+            DayOfTheWeekOrder = dateToUpdate.DayOfTheWeekOrder,
+            MonthOrder = dateToUpdate.MonthOrder,
+            MonthName = dateToUpdate.MonthName,
+            Year = dateToUpdate.Year
+        };
+
+        datePatchRequest.ApplyTo (convertedDateToUpdate); //Could add a ModelState validation somewhere here as well..
+
+        dateToUpdate.DateOrder = convertedDateToUpdate.DateOrder;
+        dateToUpdate.WeekOrder = convertedDateToUpdate.WeekOrder;
+        dateToUpdate.DayOfTheWeekOrder = convertedDateToUpdate.DayOfTheWeekOrder;
+        dateToUpdate.MonthOrder = convertedDateToUpdate.MonthOrder;
+        dateToUpdate.MonthName = convertedDateToUpdate.MonthName;
+        dateToUpdate.Year = convertedDateToUpdate.Year;
+
+        var response = await _dateRepository.UpdateDateAsync (dateToUpdate);
+        if (response.IsError)
+        {
+            return BadRequest ($"Could not update date. Internal status: {response.Status}");
+        }
+
+        var dateResponse = new DateResponse
+        {
+            ID = dateToUpdate.PartitionKey,
+            DateOrder = dateToUpdate.DateOrder,
+            WeekOrder = dateToUpdate.WeekOrder,
+            DayOfTheWeekOrder = dateToUpdate.DayOfTheWeekOrder,
+            Tasks = new List<DateResponse.BasicTask> ()
+        };
+
+        return Ok (dateResponse);
+    }
+
+    [HttpDelete ("dates/delete/{ID:guid}")]
+    public async Task<ActionResult> DeleteDate (Guid ID)
     {
         //todo
 
-        //For later when we create in the table
-        //await tableClient.AddEntityAsync<Product>(prod1);
-
         return StatusCode (StatusCodes.Status418ImATeapot);
-    }
-
-    [HttpPatch ("update/{IG:guid}")]
-    public ActionResult UpdateBoard ()
-    {
-        //todo
-
-        return StatusCode (StatusCodes.Status418ImATeapot);
-    }
-
-    [HttpDelete ("delete/{ID:guid}")] // Need to delete from board AND card tables. There might also be extensions to remove. For now though, I'm just going to do board.
-    public async Task<ActionResult> DeleteCard (Guid ID)
-    {
-        var boardList = new List<Board> ();
-        var boardsFromTable = _calendarTable.QueryAsync<Board> (board => board.RowKey == ID.ToString ());
-        await foreach (var board in boardsFromTable)
-            boardList.Add (board);
-
-        if (boardList.Count () is 0)
-            return NotFound ("The board card you are searching for was not found.");
-
-        if (boardList.Count () > 1)
-            return StatusCode (StatusCodes.Status500InternalServerError, "Multiple board cards were found with the same ID.");
-
-        var boardFromDatabase = boardList.Single ();
-        var cardToDelete = await _calendarRepository.DeleteEntityAsync (boardFromDatabase.PartitionKey, boardFromDatabase.RowKey);
-
-        if (!cardToDelete.IsError)
-            return Ok (); //Is there a better Status to return? NoContent perhaps?
-        else
-            return StatusCode (StatusCodes.Status500InternalServerError, "Could not delete board card.");
     }
 }

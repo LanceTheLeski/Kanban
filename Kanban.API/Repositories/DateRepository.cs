@@ -7,14 +7,14 @@ using System.Linq.Expressions;
 
 namespace Kanban.API.Repositories;
 
-public class CalendarRepository : ICalendarRepository
+public class DateRepository : IDateRepository
 {
     private const string dates = "Dates";
 
     private readonly TableServiceClient _tableServiceClient;
     private readonly TableClient _dateTable;
 
-    public CalendarRepository (IOptions<CosmosOptions> cosmosOptions)
+    public DateRepository (IOptions<CosmosOptions> cosmosOptions)
     {
         _tableServiceClient = new TableServiceClient (cosmosOptions.Value.HonuBoards);
         _dateTable = _tableServiceClient.GetTableClient (tableName: dates);
@@ -28,7 +28,10 @@ public class CalendarRepository : ICalendarRepository
             null;
     }
 
-    public async Task<Azure.Response> UpdateDateAsync (Board dateToUpdate)
+    public async Task<Azure.Response> AddDateAsync (Date dateToAdd)
+        => await _dateTable.AddEntityAsync (dateToAdd);
+
+    public async Task<Azure.Response> UpdateDateAsync (Date dateToUpdate)
         => await _dateTable.UpdateEntityAsync (dateToUpdate, Azure.ETag.All);
 
     public async Task<Collection<Date>> QueryDatesAsync (Expression<Func<Date, bool>> dateQueryExpression)
