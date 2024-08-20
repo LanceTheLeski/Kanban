@@ -1,5 +1,4 @@
-﻿using Azure.Data.Tables;
-using Kanban.Contracts.Request.Patch;
+﻿using Kanban.Contracts.Request.Patch;
 using Kanban.API.Models;
 using Kanban.API.Options;
 using Microsoft.AspNetCore.JsonPatch;
@@ -8,24 +7,20 @@ using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
 using Task = System.Threading.Tasks.Task;
+using Kanban.API.Helpers;
 
 namespace Kanban.API.Repositories;
 
-public class ColumnRepository : IColumnRepository
+public class ColumnRepository : EntityRepository<Column>, IColumnRepository
 {
     private const string columns = "Columns";
-
-    private readonly TableServiceClient _tableServiceClient;
-    private readonly TableClient _columnTable;
 
     private readonly IBoardRepository _boardRepository;
 
     public ColumnRepository (IOptions<CosmosOptions> cosmosOptions,
-                             IBoardRepository boardRepository)
+                             IBoardRepository boardRepository) 
+                                : base (columns, cosmosOptions)
     {
-        _tableServiceClient = new TableServiceClient (cosmosOptions.Value.HonuBoards);
-        _columnTable = _tableServiceClient.GetTableClient (tableName: columns);
-
         _boardRepository = boardRepository;
     }
 
@@ -33,31 +28,18 @@ public class ColumnRepository : IColumnRepository
     {
         var columnCollection = new Collection<Column> ();
 
-        var columnsFromTable = _columnTable.QueryAsync<Column> (column => column.RowKey == boardID.ToString ());
+        var columnsFromTable = _table.QueryAsync<Column> (column => column.RowKey == boardID.ToString ());
         await foreach (var column in columnsFromTable)
             columnCollection.Add (column);
 
         return columnCollection;
     }
 
-    public async Task<Column?> GetColumnAsync (Guid columnID, Guid boardID)
-    {
-        var response = await _columnTable.GetEntityAsync<Column> (partitionKey: columnID.ToString (), rowKey: boardID.ToString ());
-        return response?.Value.GetType () == typeof (Column) ?
-            response.Value :
-            null;
-    }
+    public async Task<Column?> GetColumnAsync (Guid columnID, Guid boardID) 
+        => await GetEntityAsync (columnID, boardID);
 
     public async Task<Collection<Column>> QueryColumnsAsync (Expression<Func<Column, bool>> columnQueryExpression)
-    {
-        var columnCollection = new Collection<Column> ();
-
-        var columnsFromTable = _columnTable.QueryAsync (columnQueryExpression);
-        await foreach (var column in columnsFromTable)
-            columnCollection.Add (column);
-
-        return columnCollection;
-    }
+        => await QueryEntitiesAsync (columnQueryExpression);
 
     public ColumnPatchRequest ApplyJsonPatchDocumentToColumn (JsonPatchDocument<ColumnPatchRequest> columnPatchRequest, Column columnToUpdate)
     {
@@ -134,7 +116,7 @@ public class ColumnRepository : IColumnRepository
     {
         foreach (var column in columnCollection)
         {
-            var response = await _columnTable.UpdateEntityAsync (column, Azure.ETag.All);
+            var response = await _table.UpdateEntityAsync (column, Azure.ETag.All);
             if (response.IsError)
                 throw new Exception ($"Update error: {response.ReasonPhrase}");
         }
