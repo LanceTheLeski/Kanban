@@ -7,7 +7,7 @@ using System.Linq.Expressions;
 
 namespace Kanban.API.Repositories;
 
-public class TagRepsitory
+public class TagRepository : ITagRepository
 {
     private const string tags = "Tags";
     private const string tagTypes = "TagTypes";
@@ -20,7 +20,7 @@ public class TagRepsitory
     private readonly TableClient _tagGroupTable;
     private readonly TableClient _tagGroupTypeTable;
 
-    public TagRepsitory (IOptions<CosmosOptions> cosmosOptions)
+    public TagRepository (IOptions<CosmosOptions> cosmosOptions)
     {
         _tableServiceClient = new TableServiceClient (cosmosOptions.Value.HonuBoards);
         _tagTable = _tableServiceClient.GetTableClient (tableName: tags);
@@ -90,6 +90,7 @@ public class TagRepsitory
     public async Task<Azure.Response> UpdateTagGroupAsync (TagGroup tagGroupToUpdate)
         => await _tagGroupTable.UpdateEntityAsync (tagGroupToUpdate, Azure.ETag.All);
 
+    // adjust query stuff to only use equals
     public async Task<Collection<TagGroup>> QueryTagGroupsAsync (Expression<Func<TagGroup, bool>> tagGroupQueryExpression)
     {
         var tagGroupCollection = new Collection<TagGroup> ();

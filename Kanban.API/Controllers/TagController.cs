@@ -26,11 +26,12 @@ public class TagController : Controller
     private readonly TableClient _swimlaneTable;
     private readonly TableClient _cardTable;
 
-    private readonly ICardRepository _cardRepository;
     private readonly IBoardRepository _boardRepository;
+    private readonly ITagRepository _tagRepository;
 
     public TagController (IOptions<CosmosOptions> cosmosOptions,
-                          ITagRepository cardRepository)
+                          IBoardRepository boardRepository,
+                          ITagRepository tagRepository)
     {
         _tableServiceClient = new TableServiceClient (cosmosOptions.Value.HonuBoards);
         _boardTable = _tableServiceClient.GetTableClient (tableName: tags);
@@ -38,8 +39,8 @@ public class TagController : Controller
         _swimlaneTable = _tableServiceClient.GetTableClient (tableName: swimlanes);
         _cardTable = _tableServiceClient.GetTableClient (tableName: cards);
 
-        _cardRepository = cardRepository;
         _boardRepository = boardRepository;
+        _tagRepository = tagRepository;
     }
 
     [HttpGet ("fetch/{ID:guid}")]

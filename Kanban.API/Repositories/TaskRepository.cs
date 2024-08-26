@@ -7,7 +7,7 @@ using System.Linq.Expressions;
 
 namespace Kanban.API.Repositories;
 
-public class TaskRepository
+public class TaskRepository : ITaskRepository
 {
     private const string tasks = "Tasks";
     private const string taskTypes = "TaskTypes";

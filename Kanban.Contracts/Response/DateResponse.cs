@@ -4,11 +4,11 @@ public class DateResponse
 {
     public string ID { get; set; }
 
-    public byte DateOrder { get; set; }
+    public int DateOrder { get; set; }
 
-    public byte WeekOrder { get; set; }
+    public int WeekOrder { get; set; }
 
-    public byte DayOfTheWeekOrder { get; set; }
+    public int DayOfTheWeekOrder { get; set; }
 
     public List<BasicTask> Tasks { get; set; } = new List<BasicTask> ();
 

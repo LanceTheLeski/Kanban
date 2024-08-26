@@ -32,18 +32,25 @@ public class CalendarController : Controller
 
         //I like to think that a really nice JOIN will be the solution to this one day :)
         var tagGroupIDsForMonth = dates.Select (date => date.DateTagGroupID.ToString ());
-        var tagGroupsForMonth = await _tagRepository.QueryTagGroupsAsync (tagGroup => tagGroupIDsForMonth.Contains (tagGroup.PartitionKey));//This could very well break
+        var tagGroupsForMonth = new List<TagGroup> ();
+        foreach (var tagGroupID in tagGroupIDsForMonth)
+            tagGroupsForMonth.AddRange (await _tagRepository.QueryTagGroupsAsync (tagGroup => tagGroup.PartitionKey == tagGroupID));//This could very well break
 
         var tagIDsForMonth = tagGroupsForMonth.Select (tagGroup => tagGroup.RowKey.ToString ());
-        var tagsForMonth = await _tagRepository.QueryTagsAsync (tag => tagIDsForMonth.Contains (tag.PartitionKey));
+        var tagsForMonth = new List<Tag> ();
+        foreach (var tagID in tagIDsForMonth)
+            tagsForMonth.AddRange (await _tagRepository.QueryTagsAsync (tag => tag.PartitionKey == tagID));
 
         var taskIDsForMonth = tagsForMonth.Select (tag => tag.RowKey.ToString ());
-        var tasksForMonth = await _taskRepository.QueryTasksAsync (task => taskIDsForMonth.Contains (task.PartitionKey));
+        var tasksForMonth = new List<Models.Task> ();
+        foreach (var taskID in taskIDsForMonth)
+            tasksForMonth.AddRange (await _taskRepository.QueryTasksAsync (task => task.PartitionKey == taskID));
 
         var monthResponse = new MonthResponse ();
         foreach (var date in dates)
         {
-            var tagGroupForDay = tagGroupsForMonth.SingleOrDefault (tagGroup => tagGroup.RowKey == date.DateTagGroupID.ToString ());
+            //tagGroup => tagGroup.RowKey == "36594846-e614-41ed-aed7-bd4554d24c0a"
+            var tagGroupForDay = tagGroupsForMonth.SingleOrDefault (tagGroup => tagGroup.PartitionKey == date.DateTagGroupID.ToString ());
             var tagIDsForDay = tagsForMonth.Where (tag => tag.PartitionKey == tagGroupForDay?.RowKey)
                                            .Select (tag => tag.RowKey);
             var tasksForDay = tasksForMonth.Where (task => tagIDsForDay.Contains (task.PartitionKey));
@@ -62,7 +69,7 @@ public class CalendarController : Controller
             });
         }
 
-        return Ok ();
+        return Ok (monthResponse);
     }
 
     [HttpPost ("dates/create")]

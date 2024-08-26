@@ -7,6 +7,9 @@ builder.Services.AddTransient<IBoardRepository, BoardRepository>();
 builder.Services.AddTransient<IColumnRepository, ColumnRepository> ();
 builder.Services.AddTransient<ISwimlaneRepository, SwimlaneRepository> (); 
 builder.Services.AddTransient<ICardRepository, CardRepository> ();
+builder.Services.AddTransient<IDateRepository, DateRepository> ();
+builder.Services.AddTransient<ITagRepository, TagRepository> ();
+builder.Services.AddTransient<ITaskRepository, TaskRepository> ();
 
 builder.Services.AddControllers()
                 .AddNewtonsoftJson ();
