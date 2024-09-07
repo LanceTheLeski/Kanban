@@ -44,7 +44,7 @@ public class TagController : Controller
     }
 
     [HttpGet ("fetch/{ID:guid}")]
-    public async Task<ActionResult> FetchCard (Guid ID)
+    public async Task<ActionResult> FetchTag (Guid ID)
     {
         var cardList = new List<Card> ();
         var cardsFromTable = _boardTable.QueryAsync<Card> (card => card.PartitionKey == ID.ToString ());
@@ -207,5 +207,23 @@ public class TagController : Controller
             return Ok (); //Is there a better Status to return? NoContent perhaps?
         else
             return StatusCode (StatusCodes.Status500InternalServerError, "Could not delete card.");
+    }
+
+    [HttpGet ("types/fetch/{ID:guid}")]
+    public async Task<ActionResult> FetchTagTypeAsync (Guid ID)
+    {
+        return Ok ();
+    }
+
+    [HttpGet ("groups/fetch/{ID:guid}")]
+    public async Task<ActionResult> FetchTagGroupAsync (Guid ID)
+    {
+        return Ok ();
+    }
+
+    [HttpGet ("groups/types/fetch/{ID:guid}")]
+    public async Task<ActionResult> FetchTagGroupTypeAsync (Guid ID)
+    {
+        return Ok ();
     }
 }

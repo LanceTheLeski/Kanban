@@ -1,4 +1,5 @@
 ﻿@using Kanban.Contracts.Response
+@using Kanban.UI.Components.Layout.Calendar
 @using Kanban.UI.Options
 @using Microsoft.Extensions.Options
 @using Microsoft.Net.Http.Headers
@@ -12,7 +13,7 @@
 
 @rendermode RenderMode.InteractiveServer
 
-<MudPaper Width="85%">
+<MudPaper Width="85%" Style="width: 100%">
     <MudGrid Justify="Justify.Center" Spacing="0">
         <MudItem>
             <MudPaper Width="100px;" Style="background-color: azure; text-align: center;">
@@ -52,43 +53,14 @@
     </MudGrid>
 
     <MudGrid Class="d-flex flex-column" Justify="Justify.Center" Spacing="0">
-        @foreach (var week in Enumerable.Range (0, monthResponse.Days.Count () / 7))
+        @foreach (var week in Enumerable.Range (0, testMonth.DaysInMonth / 7))
         {
             <MudItem>
-                <MudPaper Outlined="true" Style="background-color: pink" Height="100%">
+                <MudPaper Outlined="true" Style="background-color: greenyellow" Height="100%">
 
-                    <MudGrid Justify="Justify.Center" Spacing="0">
+                    <MudGrid Justify="Justify.Center" Spacing="0" Style="background-color:blue">
                         <MudItem>
-                            <MudPaper Width="100px" Height="135px" Style="background-color: azure; text-align: center;" Elevation="0">
-                                <MudStack>
-                                    <MudPaper>
-                                        <MudText>@(monthResponse.Days [week].DayOfTheWeekOrder)</MudText>
-                                    </MudPaper>
-                                    <MudGrid Style="height: 50px">
-                                        <MudItem Style="width: 45px;">
-                                            <MudPaper Style="margin-left: 2px" Elevation="0">
-                                                <MudChart ChartType="ChartType.Donut" Width="35px" Height="35px" InputData="@data" InputLabels="@labels" ChartOptions="@options"></MudChart>
-                                            </MudPaper>
-                                        </MudItem>
-                                        <MudItem Style="height: 50px;">
-                                            <MudPaper Elevation="0">
-                                                <MudChart ChartType="ChartType.Line" Width="50px" Height="40px" XAxisLabels="_xAxisLabels" ChartSeries="@_series" ChartOptions="@options"></MudChart>
-                                            </MudPaper>
-                                        </MudItem>
-                                    </MudGrid>
-                                    <MudPaper>
-                                        <MudPaper Style="background-color: aquamarine; font-size:small; height: 20px;">
-                                            Task 1
-                                        </MudPaper>
-                                        <MudPaper Style="background-color: aquamarine; font-size:small; height: 20px;">
-                                            Task 2
-                                        </MudPaper>
-                                        <MudPaper Style="background-color: aquamarine; font-size:small; height: 20px;">
-                                            Task 3
-                                        </MudPaper>
-                                    </MudPaper>
-                                </MudStack>
-                            </MudPaper>
+                                <CalendarDate DayNumber="week" @bind-Series="_series" @bind-Labels="labels" @bind-Data="data" @bind-xAxisLabels="_xAxisLabels" />
                         </MudItem>
                         <MudItem>
                             <MudPaper Width="100px;" Height="100px" Style="background-color: azure; text-align: center;">
@@ -130,7 +102,7 @@
 
 @code
 {
-    private List<ChartSeries> _series = new();
+    private List<ChartSeries> _series = new ();
 
     private string[] _xAxisLabels = { "1", "11", "111", "12", "122", "13" };
 
@@ -144,6 +116,8 @@
     protected override async Task OnInitializedAsync ()
     {
         //Test call here:
+        var month = GetAllMonthDates (2024, 8);
+
         var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, @$"{interfaceOptions.Value.URL}kanban/calendars/months/fetch/{"55d6ce15-fb1b-4041-bc21-e76275e1c685"}");
 
         var response = await http.SendAsync (httpRequestMessage);
@@ -152,7 +126,23 @@
             var responseBody = await response.Content.ReadAsStringAsync ();
             var deserialized = JsonConvert.DeserializeObject<MonthResponse> (responseBody);
 
+            foreach (var day in monthResponse.Days)
+            {
+                switch (day.DayOfTheWeekOrder)
+                {
+                    case 0:
+                        var week = month.Weeks.Single (Week => Week.Sunday.DayOfTheMonth == day.DateOrder);
 
+                        month.Weeks [month.Weeks.IndexOf (week)].Sunday = new Day
+                        {
+                            DayOfTheMonth = day.DateOrder,
+                            DonutChartData = CountTaskTypes (day.Tasks),
+                            LineChartData = GetTaskTypeData (day.Tasks)
+                        };
+
+                        break;
+                }
+            }
         }
 
 
@@ -164,6 +154,83 @@
         _series.Add (new ChartSeries { Data = data1 });
         _series.Add (new ChartSeries { Data = data2 });
         _series.Add (new ChartSeries { Data = data3 });
+    }
+
+    private Month GetAllMonthDates (int year, int month)
+    {
+        var daysInMonth = DateTime.DaysInMonth (year, month);
+        var firstDayOfMonth = new DateTime (year, month, 1);
+
+        var newMonth = new Month ();
+
+        newMonth.Weeks = new List<Week> ();
+        newMonth.Weeks.Add (new Week ());
+        var weekIndex = 0;
+
+        for (var dayIndex = 0; dayIndex < daysInMonth; dayIndex ++)
+        {
+            switch (dayIndex % 7)
+            {
+                case 0:
+                    newMonth.Weeks [weekIndex].Sunday = new Day { DayOfTheMonth = dayIndex };
+                    break;
+                case 1:
+                    newMonth.Weeks [weekIndex].Monday = new Day { DayOfTheMonth = dayIndex };
+                    break;
+                case 2:
+                    newMonth.Weeks [weekIndex].Tuesday = new Day { DayOfTheMonth = dayIndex };
+                    break;
+                case 3:
+                    newMonth.Weeks [weekIndex].Wednesday = new Day { DayOfTheMonth = dayIndex };
+                    break;
+                case 4:
+                    newMonth.Weeks [weekIndex].Thursday = new Day { DayOfTheMonth = dayIndex };
+                    break;
+                case 5:
+                    newMonth.Weeks [weekIndex].Friday = new Day { DayOfTheMonth = dayIndex };
+                    break;
+                case 6:
+                    newMonth.Weeks [weekIndex].Saturday = new Day { DayOfTheMonth = dayIndex };
+                    newMonth.Weeks.Add (new Week ());
+                    weekIndex += 1;
+                    break;
+            } 
+        }
+
+        return newMonth;
+    }
+
+    private double [] CountTaskTypes (List<MonthResponse.BasicTask> tasks)
+    {
+        var tasksDistinctByType = tasks.Select (task => task.TaskType)
+                                       .Distinct ();
+
+        var taskCounts = new double [tasksDistinctByType.Count ()];
+        for (var taskCountIndex = 0; taskCountIndex < taskCounts.Length; taskCountIndex++)
+            taskCounts [taskCountIndex] = tasks.Where (task => task.TaskType == tasksDistinctByType.ElementAt (taskCountIndex))
+                                               .Count ();
+
+        return taskCounts;
+    }
+
+    private List<ChartSeries> GetTaskTypeData (List<MonthResponse.BasicTask> tasks)
+    {
+        var taskTypesList = tasks.Select (task => task.TaskType)
+                                 .Distinct ();
+
+        var tasksCompletedList = new List<ChartSeries> ();
+        foreach (var taskType in taskTypesList)
+        {
+            var tasksCompleted = new double [taskTypesList.Count ()];
+            for (var tasksIndex = 0; tasksIndex < tasksCompleted.Length; tasksIndex++)
+                tasksCompleted [tasksIndex] = tasks.Where (task => task.TaskType == taskTypesList.ElementAt (tasksIndex)
+                                                                   && task.isCompleted)
+                                                   .Count ();
+
+            tasksCompletedList.Add (new ChartSeries { Data = tasksCompleted });
+        }
+
+        return tasksCompletedList;
     }
 
     // 0 = Sunday
@@ -198,9 +265,22 @@
         public int DayOfTheMonth { get; set; }
 
         public bool IsFromDifferentMonth { get; set; } = false;
+
+        public List<MonthResponse.BasicTask> Tasks { get; set; }
+
+        /// <summary>
+        /// Task Total
+        /// </summary>
+        public double [] DonutChartData { get; set; }
+
+        /// <summary>
+        /// Tasks completed out of total expected to be completed by task group
+        /// </summary>
+        public List<ChartSeries> LineChartData { get; set; }
     }
 
     public MonthResponse monthResponse = new MonthResponse();
+    public Month month = new Month ();
 
     public Month testMonth = new Month
     {

@@ -24,5 +24,9 @@ public class MonthResponse
     public class BasicTask
     {
         public string Title { get; set; }
+
+        public string TaskType { get; set; }
+
+        public bool isCompleted { get; set; }
     }
 }

@@ -1,0 +1,75 @@
+﻿<MudPaper Width="200px;" Height="175px">
+    <MudStack Spacing="0" Style="position: relative;">
+        <MudPaper Style="background-color: rgba(0, 0, 0, 0); position:absolute; z-index: 1; text-align: center; padding-left: 16px; padding-top: 13px;" Elevation="0" Height="25px;">
+            <MudText>@(DayNumber.ToString ())</MudText>
+        </MudPaper>
+        <MudGrid Style="height: 50px; background-color:crimson; flex-direction: row;" Spacing="0" Justify="Justify.FlexStart">
+            <MudItem Style="width: 40px;">
+                <MudPaper Style="background-color: sandybrown;" Width="40px" Elevation="0">
+                    <MudChart ChartType="ChartType.Donut" Width="40px" Height="50px" InputData="@Data" InputLabels="@Labels" ChartOptions="@options" Style="background-color:aquamarine;"></MudChart>
+                </MudPaper>
+            </MudItem>
+            <MudItem Style="width: 80px">
+                <MudPaper Elevation="0" Style="background-color: olive" Width="80px">
+                    <MudChart ChartType="ChartType.Line" Width="80px" Height="50px" XAxisLabels="xAxisLabels" ChartSeries="@Series" ChartOptions="@options" Style="background-color:cornflowerblue"></MudChart>
+                </MudPaper>
+            </MudItem>
+            <MudItem>
+                <MudPaper>
+                    <MudText Style="font-family: Georgia, 'Times New Roman', Times, serif; font-size:large">Aug</MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+        <MudPaper>
+            <MudPaper Style="background-color: aquamarine; font-size:small; height: 20px;">
+                Task 1
+            </MudPaper>
+            <MudPaper Style="background-color: aquamarine; font-size:small; height: 20px;">
+                Task 2
+            </MudPaper>
+            <MudPaper Style="background-color: aquamarine; font-size:small; height: 20px;">
+                Task 3
+            </MudPaper>
+        </MudPaper>
+    </MudStack>
+</MudPaper>
+
+@code 
+{
+    [Parameter]
+    public int DayNumber { get; set; }
+
+    [Parameter]
+    public EventCallback<int> DayNumberChanged { get; set; }
+
+    [Parameter]
+    public List<ChartSeries> Series { get; set; }
+
+    [Parameter]
+    public EventCallback<List<ChartSeries>> SeriesChanged { get; set; }
+
+    [Parameter]
+    public string [] xAxisLabels { get; set; }
+
+    [Parameter]
+    public EventCallback<string []> xAxisLabelsChanged { get; set; }
+
+    [Parameter]
+    public double [] Data { get; set; }
+
+    [Parameter]
+    public EventCallback<double []> DataChanged { get; set; }
+
+    [Parameter]
+    public string [] Labels { get; set; }
+
+    [Parameter]
+    public EventCallback<string []> LabelsChanged { get; set; }
+
+    private ChartOptions options = new ChartOptions
+    {
+        ShowLegend = false,
+        YAxisTicks = 7,
+        LineStrokeWidth = 10
+    };
+}
