@@ -48,11 +48,9 @@
                     <MudPaper Width="80px" Height="32px" Style="background-color: #c4001e;">
                         <MudGrid Spacing="0" Style="width: 80px; height: 32px;">
                             <MudItem Style="width: 40px; height: 20px;">
-                                <!--icons8-menu-vertical-50.png-->
                                 <MudImage Width="30" Height="32" Fluid="true" ObjectFit="ObjectFit.ScaleDown" ObjectPosition="ObjectPosition.Center" Src="icons8-menu-vertical-50.png" Style="filter: y" />
                             </MudItem>
                             <MudItem Style="width: 40px; height: 20px;">
-                                <!--icons8-expand-50.png-->
                                 <MudImage Width="30" Height="32" Fluid="true" ObjectFit="ObjectFit.ScaleDown" ObjectPosition="ObjectPosition.Center" Src="icons8-expand-50.png" />
                             </MudItem>
                         </MudGrid>
@@ -108,31 +106,6 @@
 
 @code 
 {
-    /*[Parameter]
-    public int DayNumber { get; set; }
-    [Parameter]
-    public EventCallback<int> DayNumberChanged { get; set; }
-
-    [Parameter]
-    public List<ChartSeries> Series { get; set; }
-    [Parameter]
-    public EventCallback<List<ChartSeries>> SeriesChanged { get; set; }
-
-    [Parameter]
-    public string [] xAxisLabels { get; set; }
-    [Parameter]
-    public EventCallback<string []> xAxisLabelsChanged { get; set; }
-
-    [Parameter]
-    public double [] Data { get; set; }
-    [Parameter]
-    public EventCallback<double []> DataChanged { get; set; }
-
-    [Parameter]
-    public string [] Labels { get; set; }
-    [Parameter]
-    public EventCallback<string []> LabelsChanged { get; set; }*/
-
     [Parameter]
     public List<string []> TempTaskPagedist { get; set; }
     [Parameter]
@@ -162,28 +135,4 @@
             new string [] { "Yo", "Hi", "Pah" }
         };
     }
-
-    /*private RenderFragment _columnListRenderFragment ()
-        {
-        return __builder =>
-            {
-            <MudCarouselItem>
-                <MudPaper Style="background-color: aquamarine;
-                                     font-size:small;
-                    height: 40px;">
-                Task 1
-                </MudPaper>
-                <MudPaper Style="background-color: aquamarine;
-                                     font-size:small;
-                    height: 40px;">
-                Task 2
-                </MudPaper>
-                <MudPaper Style="background-color: aquamarine;
-                                     font-size:small;
-                    height: 40px;">
-                Task 3
-            </MudPaper>
-            </MudCarouselItem>
-            };
-    }*/
 }
