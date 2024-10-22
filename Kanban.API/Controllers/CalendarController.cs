@@ -49,15 +49,15 @@ public class CalendarController : Controller
         var monthResponse = new MonthResponse ();
         foreach (var date in dates)
         {
-            //tagGroup => tagGroup.RowKey == "36594846-e614-41ed-aed7-bd4554d24c0a"
-            var tagGroupForDay = tagGroupsForMonth.SingleOrDefault (tagGroup => tagGroup.PartitionKey == date.DateTagGroupID.ToString ());
-            var tagIDsForDay = tagsForMonth.Where (tag => tag.PartitionKey == tagGroupForDay?.RowKey)
-                                           .Select (tag => tag.RowKey);
-            var tasksForDay = tasksForMonth.Where (task => tagIDsForDay.Contains (task.PartitionKey));
+            var tagIDsForDay = tagGroupsForMonth.Where (tagGroup => tagGroup.PartitionKey == date.DateTagGroupID.ToString ())
+                                                .Select (tagGroup => tagGroup.RowKey);
+            var taskIDsForDay = tagsForMonth.Where (tag => tagIDsForDay.Contains(tag.PartitionKey))
+                                           .Select (tagGroup => tagGroup.RowKey);
+            var tasksForDay = tasksForMonth.Where (task => taskIDsForDay.Contains (task.PartitionKey));
 
             var tasks = new List<MonthResponse.BasicTask> ();
             foreach (var task in tasksForDay)
-                tasks.Add (new MonthResponse.BasicTask { Title = task.Title });
+                tasks.Add (new MonthResponse.BasicTask { Title = task.Title, isCompleted = new Random ().Next(2) == 0, TaskType = "API-defined Placeholder" });
 
             monthResponse.Days.Add (new MonthResponse.BasicDate
             {
