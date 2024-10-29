@@ -91,10 +91,6 @@
 
 @code
 {
-    private List<ChartSeries> _series = new ();
-
-    private string[] _xAxisLabels = { "1", "11", "111", "12", "122", "13" };
-
     private ChartOptions options = new ChartOptions ()
     {
         ShowLegend = false,
@@ -105,7 +101,7 @@
     protected override async Task OnInitializedAsync ()
     {
         //Test call here:
-        var month = GetAllMonthDates (2024, 8);
+        //var month = GetAllMonthDates (2024, 8);
 
         var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, @$"{interfaceOptions.Value.URL}kanban/calendars/months/fetch/{"55d6ce15-fb1b-4041-bc21-e76275e1c685"}");
 
@@ -131,7 +127,7 @@
                             DayOfTheMonth = day.DateOrder,
                             DonutChartData = CountTaskTypes (day.Tasks),
                             LineChartData = GetTaskTypeData (day.Tasks),
-                            Tasks = day.Tasks ?? new List<MonthResponse.BasicTask> ()
+                            Tasks = day.Tasks ?? new List<MonthResponse.BasicTask> () { }
                         };
 
                         break;
@@ -144,7 +140,7 @@
                             DayOfTheMonth = day.DateOrder,
                             DonutChartData = CountTaskTypes (day.Tasks),
                             LineChartData = GetTaskTypeData (day.Tasks),
-                            Tasks = day.Tasks ?? new List<MonthResponse.BasicTask> ()
+                            Tasks = day.Tasks ?? new List<MonthResponse.BasicTask> () { }
                         };
 
                         break;
@@ -157,7 +153,7 @@
                             DayOfTheMonth = day.DateOrder,
                             DonutChartData = CountTaskTypes (day.Tasks),
                             LineChartData = GetTaskTypeData (day.Tasks),
-                            Tasks = day.Tasks ?? new List<MonthResponse.BasicTask> ()
+                            Tasks = day.Tasks ?? new List<MonthResponse.BasicTask> () { }
                         };
 
                         break;
@@ -170,7 +166,7 @@
                             DayOfTheMonth = day.DateOrder,
                             DonutChartData = CountTaskTypes (day.Tasks),
                             LineChartData = GetTaskTypeData (day.Tasks),
-                            Tasks = day.Tasks ?? new List<MonthResponse.BasicTask> ()
+                            Tasks = day.Tasks ?? new List<MonthResponse.BasicTask> () { }
                         };
 
                         break;
@@ -182,8 +178,10 @@
                         {
                             DayOfTheMonth = day.DateOrder,
                             DonutChartData = CountTaskTypes (day.Tasks),
-                            LineChartData = GetTaskTypeData (day.Tasks),
-                            Tasks = day.Tasks ?? new List<MonthResponse.BasicTask> ()
+                            Labels = new string [] { "1" },//POPULATE THIS IF POSSIBLE - Might not need to
+                            LineChartData = new List<ChartSeries>() { new ChartSeries { Data = new double [] { 1, 11, 111 } } },//GetTaskTypeData (day.Tasks),
+                            xAxisLabels = new string [] { "1", "11", "111", "12", "122", "13" },//POPULATE THIS IF POSSIBLE
+                            Tasks = day.Tasks ?? new List<MonthResponse.BasicTask> () { }
                         };
 
                         break;
@@ -196,7 +194,7 @@
                             DayOfTheMonth = day.DateOrder,
                             DonutChartData = CountTaskTypes (day.Tasks),
                             LineChartData = GetTaskTypeData (day.Tasks),
-                            Tasks = day.Tasks ?? new List<MonthResponse.BasicTask> ()
+                            Tasks = day.Tasks ?? new List<MonthResponse.BasicTask> () { }
                         };
 
                         break;
@@ -209,7 +207,7 @@
                             DayOfTheMonth = day.DateOrder,
                             DonutChartData = CountTaskTypes (day.Tasks),
                             LineChartData = GetTaskTypeData (day.Tasks),
-                            Tasks = day.Tasks ?? new List<MonthResponse.BasicTask> ()
+                            Tasks = day.Tasks ?? new List<MonthResponse.BasicTask> () { }
                         };
 
                         break;

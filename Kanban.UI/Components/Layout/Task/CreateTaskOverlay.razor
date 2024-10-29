@@ -1,0 +1,240 @@
+﻿@using Kanban.Contracts.Request.Create
+@using Kanban.Contracts.Response
+@using Kanban.UI.Components.DTOs
+@using Kanban.UI.Options
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using System.Net.Http.Headers
+@using static Kanban.Contracts.Response.BoardResponse
+@using static Kanban.Contracts.Response.MonthResponse
+
+@inject HttpClient http
+@inject IOptions<InterfaceOptions> interfaceOptions
+
+@inherits LayoutComponentBase
+
+<MudPaper Width="600px">
+    <MudText>Add a New Task</MudText>
+    <MudTextField @bind-Value="taskTitle" T="string" Label="Title" Variant="Variant.Filled" HelperText="Task Title" />
+    <MudExpansionPanels>
+        <MudExpansionPanel Text="Task Type" MaxHeight="1000" ExpandedChanged="TaskTypeListExpandedChanged">
+            @_taskTypeList
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+
+    <MudExpansionPanels>
+        <MudExpansionPanel Text="Card" MaxHeight="1000" ExpandedChanged="CardListExpandedChanged">
+            @_cardList
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+
+    <MudButtonGroup>
+        <MudButton OnClick="(() => CreateTaskAsync())">Submit</MudButton>
+        <MudButton OnClick="CloseTaskOverlay">Discard</MudButton>
+    </MudButtonGroup>
+</MudPaper>
+
+@code
+{
+    [Parameter]
+    public bool Open { get; set; }
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public Date.Day Day { get; set; }
+    [Parameter]
+    public EventCallback<Date.Day> DayChanged { get; set; }
+
+    [Parameter]
+    public Guid? CardID { get; set; }
+    [Parameter]
+    public EventCallback<Guid?> DayIDChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> Refresh { get; set; }
+
+    private static List<string> _taskTypeTitles = new List<string> ();
+    private static List<string> _cardTitles = new List<string> ();
+
+    public string taskTitle = "";
+    public static string columnToAddCard = "";
+    public static string parentCardID = "";
+
+    //On page load. Not async.
+    protected async override Task OnInitializedAsync ()
+    {
+        var taskTypesResponse = await FetchTaskTypesAsync();
+
+        if (CardID is null)
+        {
+            var cards = await FetchCardsAsync ();
+            _cardTitles = cards.Select (card => card.Title)
+                               .ToList ();
+        }
+        // At some point we'll have to worry about a scenario where a CardID is not null. I think e should rethink the strucutre of this class if that happens.
+
+        _taskTypeTitles = taskTypesResponse.Titles;
+    }
+
+    private RenderFragment _taskTypeList;
+    private async Task TaskTypeListExpandedChanged (bool showTaskTypes)
+    {
+        if (showTaskTypes)
+        {
+            _taskTypeList = _taskTypeListRenderFragment ();
+        }
+        else
+        {
+            // Reset after a while to prevent sudden collapse.
+            Task.Delay (350).ContinueWith (t => _taskTypeList = null);
+        }
+    }
+
+    private RenderFragment _taskTypeListRenderFragment ()
+    {
+        return __builder =>
+        {
+            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
+                <MudStack Class="flex-grow-1" Width="100%" Height="100%">
+                    <MudList T="string" ReadOnly="false">
+                        @foreach (var taskTypeTitle in _taskTypeTitles)
+                        {
+                            <MudListItem OnClick="(() => SetTaskTypeOnTask(taskTypeTitle))">
+                                List Type Name: @(taskTypeTitle)
+                            </MudListItem>
+                        }
+                    </MudList>
+                </MudStack>
+            </MudPaper>
+        };
+    }
+    private static async Task SetTaskTypeOnTask (string taskTypeName)
+    {
+        var matchingColumnNameCount = _taskTypeTitles.FindAll (taskType => taskType == taskTypeName).Count ();
+        if (matchingColumnNameCount is not 1)
+        {
+            // Should we throw exceptions? Or have the snackbar display exceptions?
+            // I think that the UI should throw exceptions and the Blazor UI should maybe use something reliable like the snackbar.
+            throw new Exception ($"The column selected does not correspond to a single column in our list of columns. Number of this column found: {matchingColumnNameCount}");
+        }
+
+        columnToAddCard = taskTypeName;
+    }
+
+    private RenderFragment _cardList;
+    private async Task CardListExpandedChanged (bool showCards)
+    {
+        if (showCards)
+        {
+            _cardList = _cardListRenderFragment ();
+        }
+        else
+        {
+            // Reset after a while to prevent sudden collapse.
+            Task.Delay (350).ContinueWith (t => _cardList = null);
+        }
+    }
+
+    private RenderFragment _cardListRenderFragment ()
+    {
+        return __builder =>
+        {
+            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
+                <MudStack Class="flex-grow-1" Width="100%" Height="100%">
+                    <MudList T="string" ReadOnly="false">
+                        @foreach (var cardTitle in _cardTitles)
+                        {
+                            <MudListItem OnClick="(() => SetCardParentForTask (cardTitle))">
+                                Card Name: @(cardTitle)
+                            </MudListItem>
+                        }
+                    </MudList>
+                </MudStack>
+            </MudPaper>
+        };
+    }
+    private static async Task SetCardParentForTask (string cardName)
+    {
+        var matchingSwimlaneNameCount = _cardTitles.FindAll (card => card == cardName).Count ();
+        if (matchingSwimlaneNameCount is not 1)
+        {
+            // Should we throw exceptions? Or have the snackbar display exceptions?
+            // I think that the UI should throw exceptions and the Blazor UI should maybe use something reliable like the snackbar.
+            throw new Exception ($"The swimlane selected does not correspond to a single column in our list of swimlanes. Number of this swimlane found: {matchingSwimlaneNameCount}");
+        }
+
+        parentCardID = cardName;
+    }
+
+    public async Task<TaskTypesResponse?> FetchTaskTypesAsync ()
+    {
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, @$"{interfaceOptions.Value.URL}kanban/tasks/types/fetch");
+
+        var response = await http.SendAsync (httpRequestMessage);
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception ("Could not fetch TaskTypes");
+        }
+
+        var responseBody = await response.Content.ReadAsStringAsync ();
+        return JsonConvert.DeserializeObject<TaskTypesResponse> (responseBody);
+    }
+
+    public async Task<List<BasicCard>> FetchCardsAsync ()
+    {
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, @$"{interfaceOptions.Value.URL}kanban/boards/fetch/20a88077-10d4-4648-92cb-7dc7ba5b8df5");
+        //This seems like a terrible way to fetch cards only.. This should definitely berevised later..
+
+        var response = await http.SendAsync (httpRequestMessage);
+        var responseBody = await response.Content.ReadAsStringAsync ();
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception ("Could not fetch cards.");
+        }
+
+        var deserializedResponseBody = JsonConvert.DeserializeObject<BoardResponse> (responseBody);
+
+        //_cards = ConvertBoardResponseToDropCardList (deserializedResponseBody!);
+        return deserializedResponseBody.Columns.SelectMany (column => column.Swimlanes.SelectMany (swimlane => swimlane.Cards)).ToList ();
+    }
+
+    public async Task<TaskResponse> CreateTaskAsync () //We will probably want a restriction down the road that swimlanes and columns don't have duplicate titles
+    {
+        var createRequest = new TaskCreateRequest
+        {
+            Title = taskTitle,
+            TaskTypeID = 0,//Replace later..
+            CardID = Guid.Empty//Replace later..
+        };
+
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{interfaceOptions.Value.URL}kanban/tasks/create");
+        httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject (createRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
+
+        var response = await http.SendAsync (httpRequestMessage);
+        if (response.IsSuccessStatusCode)
+        {
+            var responseBody = await response.Content.ReadAsStringAsync ();
+            var deserialized = JsonConvert.DeserializeObject<TaskResponse> (responseBody);
+
+            Day.Tasks.Add (new BasicTask
+            {
+                Title = deserialized.Title,
+                TaskType = deserialized.TaskType,
+                isCompleted = false//replace later..
+            });
+
+            Refresh.InvokeAsync (true);
+
+            return deserialized;
+        }
+
+        return null;
+    }
+
+    private void CloseTaskOverlay ()
+    {
+        Open = false;
+        OpenChanged.InvokeAsync (Open);
+    }
+}

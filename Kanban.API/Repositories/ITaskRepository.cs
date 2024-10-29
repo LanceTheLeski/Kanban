@@ -12,5 +12,9 @@ public interface ITaskRepository
 
     public Task<Collection<Models.Task>> QueryTasksAsync (Expression<Func<Models.Task, bool>> taskQueryExpression);
 
-    public Task<TaskType?> GetTaskGroupAsync (Guid taskTypeID, Guid tagGroupID);
+    public Task<Azure.Response> CreateTaskAsync (Models.Task taskToCreate);
+
+    public Task<Collection<TaskType>> GetTaskTypesAsync (Expression<Func<TaskType, bool>> taskTypeQueryExpression);
+
+    public Task<TaskType?> GetTaskTypeAsync (Guid taskTypeID, Guid tagGroupID);
 }

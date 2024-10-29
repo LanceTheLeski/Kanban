@@ -23,6 +23,8 @@ public class TaskRepository : ITaskRepository
         _taskTypeTable = _tableServiceClient.GetTableClient (tableName: taskTypes);
     }
 
+    #region Task
+
     public async Task<Models.Task?> GetTaskAsync (Guid taskID, Guid tagGroupID)
     {
         var response = await _taskTable.GetEntityAsync<Models.Task> (partitionKey: taskID.ToString (), rowKey: tagGroupID.ToString ());
@@ -45,9 +47,29 @@ public class TaskRepository : ITaskRepository
         return taskCollection;
     }
 
+    public async Task<Azure.Response> CreateTaskAsync (Models.Task taskToCreate)
+        => await _taskTable.AddEntityAsync (taskToCreate);
+
+    #endregion Task
+
+    #region Task Type
+
+    public async Task<Collection<TaskType>> GetTaskTypesAsync (Expression<Func<TaskType, bool>> taskTypeQueryExpression)
+    {
+        var taskTypeCollection = new Collection<TaskType> ();
+
+        var taskTypeFromTable = _taskTypeTable.QueryAsync (taskTypeQueryExpression);
+        await foreach (var taskType in taskTypeFromTable)
+            taskTypeCollection.Add (taskType);
+
+        return taskTypeCollection;
+    }
+
+    #endregion Task Type
+
     #region Task Group
 
-    public async Task<TaskType?> GetTaskGroupAsync (Guid taskTypeID, Guid tagGroupID)
+    public async Task<TaskType?> GetTaskTypeAsync (Guid taskTypeID, Guid tagGroupID)
     {
         var response = await _taskTable.GetEntityAsync<TaskType> (partitionKey: taskTypeID.ToString (), rowKey: tagGroupID.ToString ());
         return response?.Value.GetType () == typeof (TaskType) ?

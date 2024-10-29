@@ -1,0 +1,52 @@
+﻿@using Kanban.Contracts.Response
+<MudPaper Width="600px">
+    <MudText>@TaskData.Title</MudText>
+    <MudText>Completed: @(TaskData.isCompleted)</MudText>
+    <!--<MudExpansionPanels>
+        <MudExpansionPanel Text="Column" MaxHeight="1000" ExpandedChanged="TaskTypeListExpandedChanged">
+            @_taskTypeList
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+
+    <MudExpansionPanels>
+        <MudExpansionPanel Text="Swimlane" MaxHeight="1000" ExpandedChanged="SwimlaneListExpandedChanged">
+            @_swimlaneList
+        </MudExpansionPanel>
+    </MudExpansionPanels>-->
+
+    <MudButtonGroup>
+        <!--<MudButton OnClick="(() => CreateCard())">Submi</MudButton>-->
+        <MudButton OnClick="CloseTaskOverlay">Discard</MudButton>
+    </MudButtonGroup>
+</MudPaper>
+
+<!--<MudOverlay @bind-Visible="_taskViewIsOpen" DarkBackground="true" ZIndex="20">
+    <UpdateTaskOverlay @bind-Open="_taskViewIsOpen"
+                       @bind-TaskData="_swimlanes"
+                       Refresh="Refresh" />
+</MudOverlay>-->
+
+@code 
+{
+    [Parameter]
+    public bool Open { get; set; }
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public MonthResponse.BasicTask TaskData { get; set; }
+    [Parameter]
+    public EventCallback<MonthResponse.BasicTask> TaskDataChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> Refresh { get; set; }
+
+    private static bool _taskViewIsOpen = false;
+    private static MonthResponse.BasicTask _taskToView = null;
+
+    private void CloseTaskOverlay ()
+    {
+        Open = false;
+        OpenChanged.InvokeAsync (Open);
+    }
+}

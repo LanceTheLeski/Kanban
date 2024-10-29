@@ -1,0 +1,140 @@
+﻿@using Kanban.Contracts.Response
+@using Kanban.UI.Components.DTOs
+@using Kanban.UI.Components.Layout.Task
+@using Microsoft.Extensions.Options
+
+@inject HttpClient http
+
+@inherits LayoutComponentBase
+
+<MudPaper Width="600px">
+    <MudText>@DayData.DayOfTheMonth</MudText>
+    <MudExpansionPanels>
+        <MudExpansionPanel Text="Column" MaxHeight="1000" ExpandedChanged="TaskTypeListExpandedChanged">
+            @_taskTypeList
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+
+    <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
+        <MudStack Class="flex-grow-1" Width="100%" Height="100%">
+            <MudList T="string" ReadOnly="false">
+                @if (DayData.Tasks is not null)
+                {
+                    @foreach (var task in DayData.Tasks)
+                    {
+                        <MudListItem OnClick="(() => ExpandTaskView(task))">
+                            Task Name: @(task.Title)
+                        </MudListItem>
+                    }
+                }
+            </MudList>
+        </MudStack>
+    </MudPaper>
+
+    <MudPaper>
+        <MudButton OnClick="ExpandCreateNewTaskView">
+            Add New Task
+        </MudButton>
+    </MudPaper>
+
+    <MudButtonGroup>
+        <!--<MudButton OnClick="(() => CreateCard())">Submi</MudButton>-->
+        <MudButton OnClick="CloseDateOverlay">Discard</MudButton>
+    </MudButtonGroup>
+</MudPaper>
+
+<MudOverlay @bind-Visible="_taskViewIsOpen" DarkBackground="true" ZIndex="20">
+    <UpdateTaskOverlay @bind-Open="_taskViewIsOpen"
+                       @bind-TaskData="_taskToView"
+                       Refresh="Refresh" />
+</MudOverlay>
+
+<MudOverlay @bind-Visible="_addTaskIsOpen" DarkBackground="true" ZIndex="20">
+    <CreateTaskOverlay @bind-Open="_addTaskIsOpen"
+                       @bind-Day="DayData"
+                       Refresh="Refresh" />
+</MudOverlay>
+
+@code 
+{
+    [Parameter]
+    public bool Open { get; set; }
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public Date.Day DayData { get; set; }
+    [Parameter]
+    public EventCallback<Date.Day> DayDataChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> Refresh { get; set; }
+
+    private static bool _taskViewIsOpen = false;
+    private static bool _addTaskIsOpen = false;
+    private static MonthResponse.BasicTask _taskToView = null;
+    private static string _taskTypeToFilter = null;
+
+    private RenderFragment _taskTypeList;
+    private async Task TaskTypeListExpandedChanged (bool showTasks)
+    {
+        //_columns = Columns;
+        //_columnTitles = ColumnTitles;
+
+        if (showTasks)
+        {
+            _taskTypeList = _taskTypeListRenderFragment ();
+        }
+        else
+        {
+            // Reset after a while to prevent sudden collapse.
+            Task.Delay (350).ContinueWith (t => _taskTypeList = null);
+        }
+    }
+
+    private RenderFragment _taskTypeListRenderFragment ()
+    {
+        var taskTypes = DayData.Tasks?.Select(task => task.TaskType)
+                                      .Distinct() ?? new List<string> { };
+
+        return __builder =>
+        {
+            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
+                <MudStack Class="flex-grow-1" Width="100%" Height="100%">
+                    <MudList T="string" ReadOnly="false">
+                        <MudListItem>
+                            ALL
+                        </MudListItem>
+                        @foreach (var taskType in taskTypes)
+                        {
+                            <MudListItem OnClick="(() => ChooseTaskTypeToFilter(taskType))">
+                                Task Type Name: @(taskType)
+                            </MudListItem>
+                        }
+                    </MudList>
+                </MudStack>
+            </MudPaper>
+        };
+    }
+    private static void ChooseTaskTypeToFilter (string taskType)
+    {
+        _taskTypeToFilter = taskType;
+    }
+
+    private static async Task ExpandTaskView (MonthResponse.BasicTask task)
+    {
+        _taskToView = task;
+        _taskViewIsOpen = true;
+    }
+
+    private static async Task ExpandCreateNewTaskView ()
+    {
+        _addTaskIsOpen = true;
+    }
+
+    private void CloseDateOverlay ()
+    {
+        Open = false;
+        OpenChanged.InvokeAsync (Open);
+    }
+}

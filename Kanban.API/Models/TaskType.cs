@@ -7,7 +7,7 @@ public class TaskType : ITableEntity
 {
     public string PartitionKey { get; set; } //Required -- Task Type ID
 
-    public string RowKey { get; set; } //Required -- Tag Group ID -- We can have tagged event's attached to a Type. We need something else to tie to an ID. Why not...
+    public string RowKey { get; set; } //Required -- Tag Group ID -- We can have tagged events attached to a Type. We need something else to tie to an ID. Why not...
 
     public DateTimeOffset? Timestamp { get; set; } = default!; //Required
 

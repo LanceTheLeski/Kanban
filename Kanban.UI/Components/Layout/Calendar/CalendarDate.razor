@@ -1,4 +1,6 @@
-﻿@using static Kanban.UI.Components.DTOs.Date
+﻿@using Kanban.UI.Components.DTOs
+@using static Kanban.UI.Components.DTOs.Date
+
 <MudPaper Width="200px;" 
           Height="170px">
     <MudStack Spacing="0" 
@@ -51,7 +53,9 @@
                                 <MudImage Width="30" Height="32" Fluid="true" ObjectFit="ObjectFit.ScaleDown" ObjectPosition="ObjectPosition.Center" Src="icons8-menu-vertical-50.png" Style="filter: y" />
                             </MudItem>
                             <MudItem Style="width: 40px; height: 20px;">
-                                <MudImage Width="30" Height="32" Fluid="true" ObjectFit="ObjectFit.ScaleDown" ObjectPosition="ObjectPosition.Center" Src="icons8-expand-50.png" />
+                                <MudButton OnClick="(() => UpdateDateIsOpen())">
+                                    <MudImage Width="30" Height="32" Fluid="true" ObjectFit="ObjectFit.ScaleDown" ObjectPosition="ObjectPosition.Center" Src="icons8-expand-50.png" />
+                                </MudButton>
                             </MudItem>
                         </MudGrid>
                     </MudPaper>
@@ -104,6 +108,11 @@
     </MudStack>
 </MudPaper>
 
+<MudOverlay @bind-Visible="open" DarkBackground="true" ZIndex="10">
+    <UpdateDateOverlay @bind-Open="open"
+                       @bind-DayData="DayData" />
+</MudOverlay>
+
 @code 
 {
     [Parameter]
@@ -115,6 +124,12 @@
     public Day DayData { get; set; }
     [Parameter]
     public EventCallback<Day> DayDataChanged { get; set; }
+
+    private bool open = false;
+    private void UpdateDateIsOpen()
+    {
+        open = true;
+    }
 
     private ChartOptions options = new ChartOptions
     {
