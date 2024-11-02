@@ -17,4 +17,10 @@ public interface ITaskRepository
     public Task<Collection<TaskType>> GetTaskTypesAsync (Expression<Func<TaskType, bool>> taskTypeQueryExpression);
 
     public Task<TaskType?> GetTaskTypeAsync (Guid taskTypeID, Guid tagGroupID);
+
+    public Task<Timeline?> GetTimelineAsync (Guid timelineID, Guid taskID);
+
+    public Task<Collection<Timeline>> QueryTimelinesAsync (Expression<Func<Timeline, bool>> timelineQueryExpression);
+
+    public Task<Azure.Response> CreateTimelineAsync (Timeline timelineToCreate);
 }

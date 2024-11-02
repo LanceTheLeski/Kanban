@@ -31,7 +31,7 @@ public class CalendarController : Controller
         var dates = await _dateRepository.QueryDatesAsync (date => date.RowKey == ID.ToString ());
 
         //I like to think that a really nice JOIN will be the solution to this one day :)
-        var tagGroupIDsForMonth = dates.Select (date => date.DateTagGroupID.ToString ());
+        var tagGroupIDsForMonth = dates.Select (date => date.CardTagGroupID.ToString ());
         var tagGroupsForMonth = new List<TagGroup> ();
         foreach (var tagGroupID in tagGroupIDsForMonth)
             tagGroupsForMonth.AddRange (await _tagRepository.QueryTagGroupsAsync (tagGroup => tagGroup.PartitionKey == tagGroupID));//This could very well break
@@ -49,7 +49,7 @@ public class CalendarController : Controller
         var monthResponse = new MonthResponse ();
         foreach (var date in dates)
         {
-            var tagIDsForDay = tagGroupsForMonth.Where (tagGroup => tagGroup.PartitionKey == date.DateTagGroupID.ToString ())
+            var tagIDsForDay = tagGroupsForMonth.Where (tagGroup => tagGroup.PartitionKey == date.CardTagGroupID.ToString ())
                                                 .Select (tagGroup => tagGroup.RowKey);
             var taskIDsForDay = tagsForMonth.Where (tag => tagIDsForDay.Contains(tag.PartitionKey))
                                            .Select (tagGroup => tagGroup.RowKey);
@@ -95,8 +95,8 @@ public class CalendarController : Controller
             MonthName = dateCreateRequest.MonthName,
             Year = dateCreateRequest.Year,
 
-            TaskTypeCount = 0,
-            DateTagGroupID = Guid.Empty
+            DistinctBoardCount = 0,
+            CardTagGroupID = Guid.Empty
         };
 
         var addDateResponse = await _dateRepository.AddDateAsync (newDate);

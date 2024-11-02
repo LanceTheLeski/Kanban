@@ -17,5 +17,7 @@ public class Task : ITableEntity
 
     public int TaskTypeID { get; set; }
 
-    public Guid DeadlineID { get; set; } //Not sure how to do this yet so I'm abstracting it away
+    public int TaskOrder { get; set; }
+
+    public Guid TimelineID { get; set; } //Not sure how to do this yet so I'm abstracting it away
 }

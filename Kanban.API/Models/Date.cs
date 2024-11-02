@@ -28,7 +28,7 @@ public class Date : ITableEntity
 
     public int Year { get; set; }
 
-    public int TaskTypeCount { get; set; }
+    public int DistinctBoardCount { get; set; }
  
-    public Guid DateTagGroupID { get; set; } // Links to a group of Tasks
+    public Guid CardTagGroupID { get; set; } // Links to a group of Cards!
 }

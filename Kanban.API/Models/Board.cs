@@ -31,7 +31,7 @@ public class Board : ITableEntity
 
     public int ColumnOrder { get; set; }
 
-    public string CardTitle { get; set; }
+    public string CardTitle { get; set; } //To remove soon?
 
-    public string CardDescription { get; set; }
+    public string CardDescription { get; set; } //To remove soon?
 }

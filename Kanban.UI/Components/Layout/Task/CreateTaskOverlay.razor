@@ -22,6 +22,14 @@
         </MudExpansionPanel>
     </MudExpansionPanels>
 
+    <MudDateRangePicker Label="Preferrd" Editable="true" @bind-DateRange="_dateRangePreferred" />
+    <MudTimePicker Label="Preferred Start" Editable="true" AmPm="true" AnchorOrigin="Origin.CenterLeft" TransformOrigin="Origin.CenterRight" @bind-Time="_timePreferredStart" />
+    <MudTimePicker Label="Preferred End" Editable="true" AmPm="true" @bind-Time="_timePreferredEnd" />
+
+    <MudDateRangePicker Label="Deadlines" Editable="true" @bind-DateRange="_dateRangeRequired" />
+    <MudTimePicker Label="Required Start" Editable="true" AmPm="true" @bind-Time="_timeRequiredStart" />
+    <MudTimePicker Label="Required End" Editable="true" AmPm="true" @bind-Time="_timeRequiredEnd" />
+
     <MudExpansionPanels>
         <MudExpansionPanel Text="Card" MaxHeight="1000" ExpandedChanged="CardListExpandedChanged">
             @_cardList
@@ -60,6 +68,15 @@
     public string taskTitle = "";
     public static string columnToAddCard = "";
     public static string parentCardID = "";
+
+    public DateRange _dateRangePreferred = new DateRange ();
+    public TimeSpan? _timePreferredStart = new TimeSpan ();
+    public TimeSpan? _timePreferredEnd = new TimeSpan ();
+
+    public DateRange _dateRangeRequired = new DateRange ();
+    public TimeSpan? _timeRequiredStart = new TimeSpan ();
+    public TimeSpan? _timeRequiredEnd = new TimeSpan ();
+
 
     //On page load. Not async.
     protected async override Task OnInitializedAsync ()
@@ -199,7 +216,7 @@
         return deserializedResponseBody.Columns.SelectMany (column => column.Swimlanes.SelectMany (swimlane => swimlane.Cards)).ToList ();
     }
 
-    public async Task<TaskResponse> CreateTaskAsync () //We will probably want a restriction down the road that swimlanes and columns don't have duplicate titles
+    public async Task<TaskResponse> CreateTaskAsync ()
     {
         var createRequest = new TaskCreateRequest
         {
