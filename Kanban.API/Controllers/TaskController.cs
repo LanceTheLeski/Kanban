@@ -43,7 +43,7 @@ public class TaskController : Controller
         var taskResponse = new TaskResponse
         {
             Title = newTask.Title,
-            TaskType = "Placehlder"//Fix later..
+            TaskTypeTitle = "Placehlder"//Fix later..
         };
 
         return StatusCode (StatusCodes.Status201Created, taskResponse);

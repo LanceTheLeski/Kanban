@@ -2,21 +2,15 @@
 
 public class CardResponse
 {
-    public string ID { get; set; }
+    public Guid ID { get; set; } = Guid.Empty;
 
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
 
-    public string Description { get; set; }
+    public string Description { get; set; } = string.Empty;
 
-    public string ColumnID { get; set; }
+    public List<TaskResponse>? Tasks { get; set; } = null;
 
-    public string ColumnTitle { get; set; }
+    public TimelineResponse? Timeline { get; set; } = null;
 
-    public int ColumnOrder { get; set; }
-
-    public string SwimlaneID { get; set; }
-
-    public string SwimlaneTitle { get; set; }
-
-    public int SwimlaneOrder { get; set; }
+    public List<TagResponse>? Tags { get; set; } = null;
 }

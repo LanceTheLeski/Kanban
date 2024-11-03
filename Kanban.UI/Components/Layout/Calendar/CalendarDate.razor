@@ -1,4 +1,6 @@
-﻿@using Kanban.UI.Components.DTOs
+﻿@using Kanban.Contracts.Response
+@using Kanban.UI.Components.DTOs
+@using System.Collections.ObjectModel
 @using static Kanban.UI.Components.DTOs.Date
 
 <MudPaper Width="200px;" 
@@ -84,10 +86,12 @@
             </MudItem>
         </MudGrid>
         <MudCarousel TData="object" ShowArrows="false" ShowBullets="false" AutoCycle="@Cycle" SelectedIndex="@DateBodyIndex" Style="height: 120px;">
-            @foreach (var taskList in TempTaskPagedist)
+            @foreach (var boardID in DayData.Cards.Select (card => card.BoardID).Distinct ())
             {
-                <MudCarouselItem>
-                    <MudPaper Style="background-color: palegoldenrod;
+                <MudCarouselItem Class="overflow-hidden overflow-y-scroll">
+
+
+                    <!--<MudPaper Style="background-color: palegoldenrod;
                                  font-size:small;
                                  height: 40px;">
                         @(taskList [0])
@@ -101,7 +105,21 @@
                                  font-size:small;
                                  height: 40px;">
                         @(taskList [2])
+                    </MudPaper>-->
+                    <!---------------------------------------------------------->
+                @foreach (var card in DayData.Cards.Where (card => card.BoardID == boardID).Take (3).ToList ())
+                {
+                    <MudPaper>
+                        <MudText>@card.Title</MudText>
+                        @foreach (var task in card.Tasks.Take (3).ToList ())
+                        {
+                            <MudPaper>
+                                @task.Title
+                            </MudPaper>
+                        }
                     </MudPaper>
+                }
+
                 </MudCarouselItem>
             }
         </MudCarousel>
@@ -115,11 +133,6 @@
 
 @code 
 {
-    [Parameter]
-    public List<string []> TempTaskPagedist { get; set; }
-    [Parameter]
-    public EventCallback<List<List<string>>> TempTaskPagedistChanged { get; set; }
-
     [Parameter]
     public Day DayData { get; set; }
     [Parameter]
@@ -140,14 +153,4 @@
 
     private bool Cycle = true;
     private int DateBodyIndex = 0;
-
-    protected override void OnInitialized ()
-    {
-        TempTaskPagedist ??= new List<string[]>
-        {
-            new string [] { "Task 1", "Task 2", "Task 3" },
-            new string [] { "Honu 1", "Honu 2", "Mouse" },
-            new string [] { "Yo", "Hi", "Pah" }
-        };
-    }
 }

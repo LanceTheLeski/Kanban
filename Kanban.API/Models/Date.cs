@@ -27,8 +27,6 @@ public class Date : ITableEntity
     public string MonthName { get; set; }
 
     public int Year { get; set; }
-
-    public int DistinctBoardCount { get; set; }
  
     public Guid CardTagGroupID { get; set; } // Links to a group of Cards!
 }

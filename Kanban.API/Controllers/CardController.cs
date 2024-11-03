@@ -114,7 +114,7 @@ public class CardController : ControllerBase
             //We might want to have better verification later for failures. I'm thinking we actually query the table and grab the card so we can map it to a response object
             return StatusCode (StatusCodes.Status500InternalServerError, $"Could not insert a new card into database. Internal status: {addEntityResponse.Status}");
         }
-        var cardResponse = new CardResponse
+        var cardResponse = new BoardCardResponse
         {
             ID = newCard.RowKey.ToString (),
             Title = newCard.CardTitle,
@@ -170,7 +170,7 @@ public class CardController : ControllerBase
             return BadRequest ($"Could not update card. Internal status: {response.Status}");
         }
 
-        var cardResponse = new CardResponse
+        var cardResponse = new BoardCardResponse
         {
             ID = cardToUpdate.RowKey,
             Title = cardToUpdate.CardTitle,

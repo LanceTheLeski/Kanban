@@ -10,10 +10,5 @@ public class DateResponse
 
     public int DayOfTheWeekOrder { get; set; }
 
-    public List<BasicTask> Tasks { get; set; } = new List<BasicTask> ();
-
-    public class BasicTask
-    { 
-        public string Title { get; set; }
-    }
+    public List<CardResponse> Cards { get; set; } = new List<CardResponse> { };
 }

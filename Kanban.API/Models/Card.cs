@@ -17,6 +17,8 @@ public class Card : ITableEntity
 
     public string Description { get; set; }
 
+    public Guid? TimelineID { get; set; }
+
     public Guid? StartDependencyTagGroupID { get; set; }
 
     public DateTime? StartPreferenceUTC { get; set; }
@@ -34,9 +36,6 @@ public class Card : ITableEntity
 
     //public IEnumerable<int> TriggerIDs { get; set; }
     //public virtual IEnumerable<Trigger> Triggers { get; set; }
-
-    //public int DeadlineID { get; set; }
-    //public virtual Deadline Deadline { get; set; }
 
     //public int ChecklistID { get; set; }
     //public virtual Checklist Checklist { get; set; }

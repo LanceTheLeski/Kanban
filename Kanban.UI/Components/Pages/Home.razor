@@ -188,7 +188,7 @@
             SendCardPatchRequest (cardToUpdate.Item)).Result;
     }
 
-    private async Task<CardResponse?> SendCardPatchRequest (DropCard cardToUpdate)
+    private async Task<BoardCardResponse?> SendCardPatchRequest (DropCard cardToUpdate)
     {
         var patchRequest = 
         $@"[
@@ -207,7 +207,7 @@
         if (response.IsSuccessStatusCode)
         {
             var responseBody = await response.Content.ReadAsStringAsync ();
-            var deserializedResponseBody = JsonConvert.DeserializeObject<CardResponse> (responseBody);
+            var deserializedResponseBody = JsonConvert.DeserializeObject<BoardCardResponse> (responseBody);
 
             return deserializedResponseBody;
         }

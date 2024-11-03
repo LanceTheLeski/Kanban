@@ -19,5 +19,7 @@ public class Task : ITableEntity
 
     public int TaskOrder { get; set; }
 
+    public bool IsComplete { get; set; }
+
     public Guid TimelineID { get; set; } //Not sure how to do this yet so I'm abstracting it away
 }

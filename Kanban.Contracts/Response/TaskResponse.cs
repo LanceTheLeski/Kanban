@@ -4,7 +4,9 @@ public class TaskResponse
 {
     public string Title { get; set; }
 
-    public string TaskType {  get; set; }
+    public int TaskTypeID { get; set; }
 
-    //public object Deadline { get; set; }
+    public string TaskTypeTitle { get; set; }
+
+    public bool isCompleted { get; set; }
 }

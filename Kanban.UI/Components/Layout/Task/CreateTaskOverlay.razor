@@ -24,7 +24,7 @@
             <MudGrid>
                 <MudItem>
                     <MudPaper>
-                        @TaskOrder;
+                        @TaskOrder
                     </MudPaper>
                     <MudPaper>
                         <MudExpansionPanels>
@@ -230,10 +230,10 @@
             var responseBody = await response.Content.ReadAsStringAsync ();
             var deserialized = JsonConvert.DeserializeObject<TaskResponse> (responseBody);
 
-                Day.Cards.First ().Tasks.Add (new MonthResponse.BasicTask //-----------------------------------------------This line is fucked up. This needs to be fixed ASAP
+            Day.Cards.First ().Tasks.Add (new TaskResponse //-----------------------------------------------This line is fucked up. This needs to be fixed ASAP
             {
                 Title = deserialized.Title,
-                TaskTypeTitle = deserialized.TaskType,
+                TaskTypeTitle = deserialized.TaskTypeTitle,
                 isCompleted = false//replace later..
             });
 

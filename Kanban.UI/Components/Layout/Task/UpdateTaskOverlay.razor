@@ -34,9 +34,9 @@
     public EventCallback<bool> OpenChanged { get; set; }
 
     [Parameter]
-    public MonthResponse.BasicTask TaskData { get; set; }
+    public TaskResponse TaskData { get; set; }
     [Parameter]
-    public EventCallback<MonthResponse.BasicTask> TaskDataChanged { get; set; }
+    public EventCallback<TaskResponse> TaskDataChanged { get; set; }
 
     [Parameter]
     public EventCallback<bool> Refresh { get; set; }

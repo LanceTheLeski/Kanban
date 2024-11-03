@@ -56,19 +56,30 @@ public class CalendarController : Controller
                                                 .Select (tagGroup => tagGroup.RowKey);
             var cardIDsForDay = tagsForMonth.Where (tag => tagIDsForDay.Contains(tag.PartitionKey))
                                            .Select (tagGroup => tagGroup.RowKey);
-            var cardsForDay = cardsForMonth.Where (task => cardIDsForDay.Contains (task.PartitionKey));
+            var cardsForDay = cardsForMonth.Where (card => cardIDsForDay.Contains (card.PartitionKey));
 
             var cards = new List<MonthResponse.BasicCard> ();
-            foreach (var card in cardsForDay)
+            foreach (var card in cardsForDay) 
+            {
+                var tasks = await _taskRepository.QueryTasksAsync (task => task.RowKey == card.PartitionKey);
+
+                var taskResponseList = new List<TaskResponse> ();
+                foreach (var task in tasks.ToList ())
+                    taskResponseList.Add (new TaskResponse 
+                    {
+                        Title = task.Title,
+                        TaskTypeID = task.TaskTypeID,
+                        TaskTypeTitle = "Placeholder!",
+                        isCompleted = task.IsComplete
+                    });
+
                 cards.Add (new MonthResponse.BasicCard
                 {
                     Title = card.Title,
-                    Tasks = new List<MonthResponse.BasicTask> ()
-                    {
-                        new MonthResponse.BasicTask { isCompleted = new Random ().Next (2) == 0 }
-                    },
+                    Tasks = taskResponseList,
                     BoardID = Guid.Empty
                 });
+            }
             monthResponse.Days.Add (new MonthResponse.BasicDate
             {
                 ID = date.PartitionKey,
@@ -105,7 +116,6 @@ public class CalendarController : Controller
             MonthName = dateCreateRequest.MonthName,
             Year = dateCreateRequest.Year,
 
-            DistinctBoardCount = 0,
             CardTagGroupID = Guid.Empty
         };
 
@@ -123,7 +133,7 @@ public class CalendarController : Controller
             WeekOrder = newDate.WeekOrder,
             DayOfTheWeekOrder = newDate.DayOfTheWeekOrder,
 
-            Tasks = new List<DateResponse.BasicTask> ()
+            Cards = new List<CardResponse> ()
         };
 
         return StatusCode (StatusCodes.Status201Created, dateResponse);
@@ -173,7 +183,7 @@ public class CalendarController : Controller
             DateOrder = dateToUpdate.DateOrder,
             WeekOrder = dateToUpdate.WeekOrder,
             DayOfTheWeekOrder = dateToUpdate.DayOfTheWeekOrder,
-            Tasks = new List<DateResponse.BasicTask> ()
+            Cards = new List<CardResponse> ()
         };
 
         return Ok (dateResponse);

@@ -2,7 +2,7 @@
 
 public class BoardResponse
 {
-    public string ID { get; set; }
+    public Guid ID { get; set; }
 
     public string Title { get; set; }
 

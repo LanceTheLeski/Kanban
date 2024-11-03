@@ -29,17 +29,6 @@ public class MonthResponse
 
         public string BoardTitle { get; set; }
 
-        public List<BasicTask> Tasks { get; set; } = new List<BasicTask> ();
-    }
-
-    public class BasicTask
-    {
-        public string Title { get; set; }
-
-        public int TaskTypeID { get; set; }
-
-        public string TaskTypeTitle { get; set; }
-
-        public bool isCompleted { get; set; }
+        public List<TaskResponse> Tasks { get; set; } = new List<TaskResponse> ();
     }
 }
