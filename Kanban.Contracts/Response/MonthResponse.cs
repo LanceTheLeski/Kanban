@@ -18,6 +18,17 @@ public class MonthResponse
 
         public int DayOfTheWeekOrder { get; set; }
 
+        public List<BasicCard> Cards { get; set; } = new List<BasicCard> ();
+    }
+
+    public class BasicCard
+    {
+        public string Title { get; set; }
+
+        public Guid BoardID { get; set; }
+
+        public string BoardTitle { get; set; }
+
         public List<BasicTask> Tasks { get; set; } = new List<BasicTask> ();
     }
 
@@ -25,7 +36,9 @@ public class MonthResponse
     {
         public string Title { get; set; }
 
-        public string TaskType { get; set; }
+        public int TaskTypeID { get; set; }
+
+        public string TaskTypeTitle { get; set; }
 
         public bool isCompleted { get; set; }
     }

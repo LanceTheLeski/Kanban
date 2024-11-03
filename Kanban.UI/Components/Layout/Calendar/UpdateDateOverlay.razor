@@ -18,9 +18,9 @@
     <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
         <MudStack Class="flex-grow-1" Width="100%" Height="100%">
             <MudList T="string" ReadOnly="false">
-                @if (DayData.Tasks is not null)
+                @if (DayData.Cards is not null)
                 {
-                    @foreach (var task in DayData.Tasks)
+                    @foreach (var task in DayData.Cards)
                     {
                         <MudListItem OnClick="(() => ExpandTaskView(task))">
                             Task Name: @(task.Title)
@@ -45,7 +45,7 @@
 
 <MudOverlay @bind-Visible="_taskViewIsOpen" DarkBackground="true" ZIndex="20">
     <UpdateTaskOverlay @bind-Open="_taskViewIsOpen"
-                       @bind-TaskData="_taskToView"
+                       @bind-TaskData="@(_cardToView.Tasks [0])"
                        Refresh="Refresh" />
 </MudOverlay>
 
@@ -72,8 +72,8 @@
 
     private static bool _taskViewIsOpen = false;
     private static bool _addTaskIsOpen = false;
-    private static MonthResponse.BasicTask _taskToView = null;
-    private static string _taskTypeToFilter = null;
+    private static MonthResponse.BasicCard _cardToView = null;
+    private static Guid _boardIdToFilter = Guid.Empty;
 
     private RenderFragment _taskTypeList;
     private async Task TaskTypeListExpandedChanged (bool showTasks)
@@ -94,8 +94,8 @@
 
     private RenderFragment _taskTypeListRenderFragment ()
     {
-        var taskTypes = DayData.Tasks?.Select(task => task.TaskType)
-                                      .Distinct() ?? new List<string> { };
+        var boardIDs = DayData.Cards?.Select(card => card.BoardID)
+                                      .Distinct() ?? new List<Guid> { };
 
         return __builder =>
         {
@@ -105,10 +105,10 @@
                         <MudListItem>
                             ALL
                         </MudListItem>
-                        @foreach (var taskType in taskTypes)
+                        @foreach (var boardID in boardIDs)
                         {
-                            <MudListItem OnClick="(() => ChooseTaskTypeToFilter(taskType))">
-                                Task Type Name: @(taskType)
+                            <MudListItem OnClick="(() => ChooseTaskTypeToFilter(boardID))">
+                                Task Type Name: @(boardID.ToString ())
                             </MudListItem>
                         }
                     </MudList>
@@ -116,14 +116,14 @@
             </MudPaper>
         };
     }
-    private static void ChooseTaskTypeToFilter (string taskType)
+    private static void ChooseTaskTypeToFilter (Guid boardID)
     {
-        _taskTypeToFilter = taskType;
+        _boardIdToFilter = boardID;
     }
 
-    private static async Task ExpandTaskView (MonthResponse.BasicTask task)
+    private static async Task ExpandTaskView (MonthResponse.BasicCard card)
     {
-        _taskToView = task;
+        _cardToView = card;
         _taskViewIsOpen = true;
     }
 

@@ -38,7 +38,7 @@ public class Date
 
         public bool IsFromDifferentMonth { get; set; } = false;
 
-        public List<MonthResponse.BasicTask> Tasks { get; set; }
+        public List<MonthResponse.BasicCard> Cards { get; set; }
 
         /// <summary>
         /// Task Total

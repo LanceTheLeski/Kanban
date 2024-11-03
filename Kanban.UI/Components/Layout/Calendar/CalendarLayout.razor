@@ -125,9 +125,9 @@
                         month.Weeks [month.Weeks.IndexOf (week)].Sunday = new Day
                         {
                             DayOfTheMonth = day.DateOrder,
-                            DonutChartData = CountTaskTypes (day.Tasks),
-                            LineChartData = GetTaskTypeData (day.Tasks),
-                            Tasks = day.Tasks ?? new List<MonthResponse.BasicTask> () { }
+                            DonutChartData = CountBoardTypes (day.Cards),
+                            LineChartData = GetBoardTypeData (day.Cards),
+                            Cards = day.Cards ?? new List<MonthResponse.BasicCard> () { }
                         };
 
                         break;
@@ -138,9 +138,9 @@
                         month.Weeks [month.Weeks.IndexOf (week)].Monday = new Day
                         {
                             DayOfTheMonth = day.DateOrder,
-                            DonutChartData = CountTaskTypes (day.Tasks),
-                            LineChartData = GetTaskTypeData (day.Tasks),
-                            Tasks = day.Tasks ?? new List<MonthResponse.BasicTask> () { }
+                            DonutChartData = CountBoardTypes (day.Cards),
+                            LineChartData = GetBoardTypeData (day.Cards),
+                            Cards = day.Cards ?? new List<MonthResponse.BasicCard> () { }
                         };
 
                         break;
@@ -151,9 +151,9 @@
                         month.Weeks [month.Weeks.IndexOf (week)].Tuesday = new Day
                         {
                             DayOfTheMonth = day.DateOrder,
-                            DonutChartData = CountTaskTypes (day.Tasks),
-                            LineChartData = GetTaskTypeData (day.Tasks),
-                            Tasks = day.Tasks ?? new List<MonthResponse.BasicTask> () { }
+                            DonutChartData = CountBoardTypes (day.Cards),
+                            LineChartData = GetBoardTypeData (day.Cards),
+                            Cards = day.Cards ?? new List<MonthResponse.BasicCard> () { }
                         };
 
                         break;
@@ -164,9 +164,9 @@
                         month.Weeks [month.Weeks.IndexOf (week)].Wednesday = new Day
                         {
                             DayOfTheMonth = day.DateOrder,
-                            DonutChartData = CountTaskTypes (day.Tasks),
-                            LineChartData = GetTaskTypeData (day.Tasks),
-                            Tasks = day.Tasks ?? new List<MonthResponse.BasicTask> () { }
+                            DonutChartData = CountBoardTypes (day.Cards),
+                            LineChartData = GetBoardTypeData (day.Cards),
+                            Cards = day.Cards ?? new List<MonthResponse.BasicCard> () { }
                         };
 
                         break;
@@ -177,11 +177,11 @@
                         month.Weeks [month.Weeks.IndexOf (week)].Thursday = new Day
                         {
                             DayOfTheMonth = day.DateOrder,
-                            DonutChartData = CountTaskTypes (day.Tasks),
+                            DonutChartData = CountBoardTypes (day.Cards),
                             Labels = new string [] { "1" },//POPULATE THIS IF POSSIBLE - Might not need to
                             LineChartData = new List<ChartSeries>() { new ChartSeries { Data = new double [] { 1, 11, 111 } } },//GetTaskTypeData (day.Tasks),
                             xAxisLabels = new string [] { "1", "11", "111", "12", "122", "13" },//POPULATE THIS IF POSSIBLE
-                            Tasks = day.Tasks ?? new List<MonthResponse.BasicTask> () { }
+                            Cards = day.Cards ?? new List<MonthResponse.BasicCard> () { }
                         };
 
                         break;
@@ -192,9 +192,9 @@
                         month.Weeks [month.Weeks.IndexOf (week)].Friday = new Day
                         {
                             DayOfTheMonth = day.DateOrder,
-                            DonutChartData = CountTaskTypes (day.Tasks),
-                            LineChartData = GetTaskTypeData (day.Tasks),
-                            Tasks = day.Tasks ?? new List<MonthResponse.BasicTask> () { }
+                            DonutChartData = CountBoardTypes (day.Cards),
+                            LineChartData = GetBoardTypeData (day.Cards),
+                            Cards = day.Cards ?? new List<MonthResponse.BasicCard> () { }
                         };
 
                         break;
@@ -205,9 +205,9 @@
                         month.Weeks [month.Weeks.IndexOf (week)].Saturday = new Day
                         {
                             DayOfTheMonth = day.DateOrder,
-                            DonutChartData = CountTaskTypes (day.Tasks),
-                            LineChartData = GetTaskTypeData (day.Tasks),
-                            Tasks = day.Tasks ?? new List<MonthResponse.BasicTask> () { }
+                            DonutChartData = CountBoardTypes (day.Cards),
+                            LineChartData = GetBoardTypeData (day.Cards),
+                            Cards = day.Cards ?? new List<MonthResponse.BasicCard> () { }
                         };
 
                         break;
@@ -260,37 +260,37 @@
         return newMonth;
     }
 
-    private double [] CountTaskTypes (List<MonthResponse.BasicTask> tasks)
+    private double [] CountBoardTypes (List<MonthResponse.BasicCard> cards)
     {
-        var tasksDistinctByType = tasks.Select (task => task.TaskType)
+        var cardsDistinctByType = cards.Select (card => card.BoardID)
                                        .Distinct ();
 
-        var taskCounts = new double [tasksDistinctByType.Count ()];
-        for (var taskCountIndex = 0; taskCountIndex < taskCounts.Length; taskCountIndex ++)
-            taskCounts [taskCountIndex] = tasks.Where (task => task.TaskType == tasksDistinctByType.ElementAt (taskCountIndex))
+        var cardCounts = new double [cardsDistinctByType.Count ()];
+        for (var cardCountIndex = 0; cardCountIndex < cardCounts.Length; cardCountIndex ++)
+            cardCounts [cardCountIndex] = cards.Where (card => card.BoardID == cardsDistinctByType.ElementAt (cardCountIndex))
                                                .Count ();
 
-        return taskCounts;
+        return cardCounts;
     }
 
-    private List<ChartSeries> GetTaskTypeData (List<MonthResponse.BasicTask> tasks)
+    private List<ChartSeries> GetBoardTypeData (List<MonthResponse.BasicCard> cards)
     {
-        var taskTypesList = tasks.Select (task => task.TaskType)
-                                 .Distinct ();
+        var boardTypesList = cards.Select (card => card.BoardID)
+                                  .Distinct ();
 
-        var tasksCompletedList = new List<ChartSeries> ();
-        foreach (var taskType in taskTypesList)
+        var cardsCompletedList = new List<ChartSeries> ();
+        foreach (var boardType in boardTypesList)
         {
-            var tasksCompleted = new double [taskTypesList.Count ()];
+            var tasksCompleted = new double [boardTypesList.Count ()];
             for (var tasksIndex = 0; tasksIndex < tasksCompleted.Length; tasksIndex++)
-                tasksCompleted [tasksIndex] = tasks.Where (task => task.TaskType == taskTypesList.ElementAt (tasksIndex)
-                                                                   && task.isCompleted)
+                tasksCompleted [tasksIndex] = cards.Where (card => card.BoardID == boardTypesList.ElementAt (tasksIndex))
+                                                   .Select (card => card.Tasks.Where (task => task.isCompleted == true))
                                                    .Count ();
 
-            tasksCompletedList.Add (new ChartSeries { Data = tasksCompleted });
+            cardsCompletedList.Add (new ChartSeries { Data = tasksCompleted });
         }
 
-        return tasksCompletedList;
+        return cardsCompletedList;
     }
 
     public MonthResponse monthResponse = new MonthResponse();

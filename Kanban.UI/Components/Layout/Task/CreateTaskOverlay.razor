@@ -13,41 +13,66 @@
 
 @inherits LayoutComponentBase
 
-<MudPaper Width="600px">
-    <MudText>Add a New Task</MudText>
-    <MudTextField @bind-Value="taskTitle" T="string" Label="Title" Variant="Variant.Filled" HelperText="Task Title" />
-    <MudExpansionPanels>
-        <MudExpansionPanel Text="Task Type" MaxHeight="1000" ExpandedChanged="TaskTypeListExpandedChanged">
-            @_taskTypeList
-        </MudExpansionPanel>
-    </MudExpansionPanels>
+<MudPaper>
+    <MudButton OnClick="@(() => tempOpen = true)">
+        @taskTitle
+    </MudButton>
+    <MudPopover Open="tempOpen" OverflowBehavior="OverflowBehavior.FlipAlways" AnchorOrigin="Origin.CenterLeft" TransformOrigin="Origin.CenterRight">
+        <MudPaper Width="600px">
+            <MudTextField @bind-Value="taskTitle" T="string" Label="Title" Variant="Variant.Filled" HelperText="Task Title" />
 
-    <MudDateRangePicker Label="Preferrd" Editable="true" @bind-DateRange="_dateRangePreferred" />
-    <MudTimePicker Label="Preferred Start" Editable="true" AmPm="true" AnchorOrigin="Origin.CenterLeft" TransformOrigin="Origin.CenterRight" @bind-Time="_timePreferredStart" />
-    <MudTimePicker Label="Preferred End" Editable="true" AmPm="true" @bind-Time="_timePreferredEnd" />
+            <MudGrid>
+                <MudItem>
+                    <MudPaper>
+                        @TaskOrder;
+                    </MudPaper>
+                    <MudPaper>
+                        <MudExpansionPanels>
+                            <MudExpansionPanel Text="Task Type" MaxHeight="1000" ExpandedChanged="TaskTypeListExpandedChanged">
+                                @_taskTypeList
+                            </MudExpansionPanel>
+                        </MudExpansionPanels>
+                    </MudPaper>
+                </MudItem>
+                <MudItem>
+                    <MudButton OnClick="@(() => TimelineFragmentChanged (false))">
+                        Deadline
+                    </MudButton>
+                    <MudButton OnClick="@(() => TimelineFragmentChanged (true))">
+                        Timeline
+                    </MudButton>
+                    <MudPaper>
+                        @_timelineFragment
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
 
-    <MudDateRangePicker Label="Deadlines" Editable="true" @bind-DateRange="_dateRangeRequired" />
-    <MudTimePicker Label="Required Start" Editable="true" AmPm="true" @bind-Time="_timeRequiredStart" />
-    <MudTimePicker Label="Required End" Editable="true" AmPm="true" @bind-Time="_timeRequiredEnd" />
-
-    <MudExpansionPanels>
-        <MudExpansionPanel Text="Card" MaxHeight="1000" ExpandedChanged="CardListExpandedChanged">
-            @_cardList
-        </MudExpansionPanel>
-    </MudExpansionPanels>
-
-    <MudButtonGroup>
-        <MudButton OnClick="(() => CreateTaskAsync())">Submit</MudButton>
-        <MudButton OnClick="CloseTaskOverlay">Discard</MudButton>
-    </MudButtonGroup>
+            <MudButtonGroup>
+                <MudButton OnClick="(() => CreateTaskAsync())">Submit</MudButton>
+                <MudButton OnClick="CloseTaskOverlay">Discard</MudButton>
+            </MudButtonGroup>
+        </MudPaper>
+    </MudPopover>
 </MudPaper>
 
 @code
 {
+    private bool tempOpen = false;
+
     [Parameter]
     public bool Open { get; set; }
     [Parameter]
     public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public string TaskTitle { get; set; } = "New Task";
+    [Parameter]
+    public EventCallback<string> TaskTitleChanged { get; set; }
+
+    [Parameter]
+    public int TaskOrder { get; set; } = -1;
+    [Parameter]
+    public EventCallback<int> TaskOrderChanged { get; set; }
 
     [Parameter]
     public Date.Day Day { get; set; }
@@ -81,23 +106,18 @@
     //On page load. Not async.
     protected async override Task OnInitializedAsync ()
     {
-        var taskTypesResponse = await FetchTaskTypesAsync();
+        taskTitle = TaskTitle;
+        _timelineFragment = _deadlineRenderFragment ();
 
-        if (CardID is null)
-        {
-            var cards = await FetchCardsAsync ();
-            _cardTitles = cards.Select (card => card.Title)
-                               .ToList ();
-        }
-        // At some point we'll have to worry about a scenario where a CardID is not null. I think e should rethink the strucutre of this class if that happens.
+        var taskTypesResponse = await FetchTaskTypesAsync ();
 
         _taskTypeTitles = taskTypesResponse.Titles;
     }
 
     private RenderFragment _taskTypeList;
-    private async Task TaskTypeListExpandedChanged (bool showTaskTypes)
+    private async Task TaskTypeListExpandedChanged (bool isTimeline)
     {
-        if (showTaskTypes)
+        if (isTimeline)
         {
             _taskTypeList = _taskTypeListRenderFragment ();
         }
@@ -139,49 +159,43 @@
         columnToAddCard = taskTypeName;
     }
 
-    private RenderFragment _cardList;
-    private async Task CardListExpandedChanged (bool showCards)
+    private RenderFragment _timelineFragment;
+    private void TimelineFragmentChanged (bool isTimeline)
     {
-        if (showCards)
+        if (isTimeline)
         {
-            _cardList = _cardListRenderFragment ();
+            _timelineFragment = _timelineRenderFragment ();
         }
         else
         {
-            // Reset after a while to prevent sudden collapse.
-            Task.Delay (350).ContinueWith (t => _cardList = null);
+            _timelineFragment = _deadlineRenderFragment ();
         }
     }
 
-    private RenderFragment _cardListRenderFragment ()
+    private RenderFragment _timelineRenderFragment ()
     {
         return __builder =>
         {
             <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
-                <MudStack Class="flex-grow-1" Width="100%" Height="100%">
-                    <MudList T="string" ReadOnly="false">
-                        @foreach (var cardTitle in _cardTitles)
-                        {
-                            <MudListItem OnClick="(() => SetCardParentForTask (cardTitle))">
-                                Card Name: @(cardTitle)
-                            </MudListItem>
-                        }
-                    </MudList>
-                </MudStack>
+                <MudDateRangePicker Label="Preferrd" Editable="true" @bind-DateRange="_dateRangePreferred" />
+                <MudTimePicker Label="Preferred Start" Editable="true" AmPm="true" AnchorOrigin="Origin.CenterLeft" TransformOrigin="Origin.CenterRight" @bind-Time="_timePreferredStart" />
+                <MudTimePicker Label="Preferred End" Editable="true" AmPm="true" @bind-Time="_timePreferredEnd" />
+
+                <MudDateRangePicker Label="Deadlines" Editable="true" @bind-DateRange="_dateRangeRequired" />
+                <MudTimePicker Label="Required Start" Editable="true" AmPm="true" @bind-Time="_timeRequiredStart" />
+                <MudTimePicker Label="Required End" Editable="true" AmPm="true" @bind-Time="_timeRequiredEnd" />
             </MudPaper>
         };
     }
-    private static async Task SetCardParentForTask (string cardName)
+    private RenderFragment _deadlineRenderFragment ()
     {
-        var matchingSwimlaneNameCount = _cardTitles.FindAll (card => card == cardName).Count ();
-        if (matchingSwimlaneNameCount is not 1)
+        return __builder =>
         {
-            // Should we throw exceptions? Or have the snackbar display exceptions?
-            // I think that the UI should throw exceptions and the Blazor UI should maybe use something reliable like the snackbar.
-            throw new Exception ($"The swimlane selected does not correspond to a single column in our list of swimlanes. Number of this swimlane found: {matchingSwimlaneNameCount}");
-        }
-
-        parentCardID = cardName;
+            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
+                <MudDatePicker Label="EndDate" Editable="false" @bind-Date="_dateRangeRequired.End"/>
+                <MudTimePicker Label="Required End" Editable="true" AmPm="true" @bind-Time="_timeRequiredEnd" />
+            </MudPaper>
+        };
     }
 
     public async Task<TaskTypesResponse?> FetchTaskTypesAsync ()
@@ -196,24 +210,6 @@
 
         var responseBody = await response.Content.ReadAsStringAsync ();
         return JsonConvert.DeserializeObject<TaskTypesResponse> (responseBody);
-    }
-
-    public async Task<List<BasicCard>> FetchCardsAsync ()
-    {
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, @$"{interfaceOptions.Value.URL}kanban/boards/fetch/20a88077-10d4-4648-92cb-7dc7ba5b8df5");
-        //This seems like a terrible way to fetch cards only.. This should definitely berevised later..
-
-        var response = await http.SendAsync (httpRequestMessage);
-        var responseBody = await response.Content.ReadAsStringAsync ();
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new Exception ("Could not fetch cards.");
-        }
-
-        var deserializedResponseBody = JsonConvert.DeserializeObject<BoardResponse> (responseBody);
-
-        //_cards = ConvertBoardResponseToDropCardList (deserializedResponseBody!);
-        return deserializedResponseBody.Columns.SelectMany (column => column.Swimlanes.SelectMany (swimlane => swimlane.Cards)).ToList ();
     }
 
     public async Task<TaskResponse> CreateTaskAsync ()
@@ -234,10 +230,10 @@
             var responseBody = await response.Content.ReadAsStringAsync ();
             var deserialized = JsonConvert.DeserializeObject<TaskResponse> (responseBody);
 
-            Day.Tasks.Add (new BasicTask
+                Day.Cards.First ().Tasks.Add (new MonthResponse.BasicTask //-----------------------------------------------This line is fucked up. This needs to be fixed ASAP
             {
                 Title = deserialized.Title,
-                TaskType = deserialized.TaskType,
+                TaskTypeTitle = deserialized.TaskType,
                 isCompleted = false//replace later..
             });
 

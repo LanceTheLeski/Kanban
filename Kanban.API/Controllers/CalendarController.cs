@@ -14,14 +14,17 @@ public class CalendarController : Controller
 {
     private readonly IDateRepository _dateRepository;
     private readonly ITagRepository _tagRepository;
+    private readonly ICardRepository _cardRepository;
     private readonly ITaskRepository _taskRepository;
 
     public CalendarController (IDateRepository dateRepository,
                                ITagRepository tagRepository,
+                               ICardRepository cardRepository,
                                ITaskRepository taskRepository)
     {
         _dateRepository = dateRepository;
         _tagRepository = tagRepository;
+        _cardRepository = cardRepository;
         _taskRepository = taskRepository;
     }
 
@@ -41,31 +44,38 @@ public class CalendarController : Controller
         foreach (var tagID in tagIDsForMonth)
             tagsForMonth.AddRange (await _tagRepository.QueryTagsAsync (tag => tag.PartitionKey == tagID));
 
-        var taskIDsForMonth = tagsForMonth.Select (tag => tag.RowKey.ToString ());
-        var tasksForMonth = new List<Models.Task> ();
-        foreach (var taskID in taskIDsForMonth)
-            tasksForMonth.AddRange (await _taskRepository.QueryTasksAsync (task => task.PartitionKey == taskID));
+        var cardIDsForMonth = tagsForMonth.Select (tag => tag.RowKey.ToString ());
+        var cardsForMonth = new List<Card> ();
+        foreach (var cardID in cardIDsForMonth)
+            cardsForMonth.AddRange (await _cardRepository.QueryCardsAsync (card => card.PartitionKey == cardID));
 
         var monthResponse = new MonthResponse ();
         foreach (var date in dates)
         {
             var tagIDsForDay = tagGroupsForMonth.Where (tagGroup => tagGroup.PartitionKey == date.CardTagGroupID.ToString ())
                                                 .Select (tagGroup => tagGroup.RowKey);
-            var taskIDsForDay = tagsForMonth.Where (tag => tagIDsForDay.Contains(tag.PartitionKey))
+            var cardIDsForDay = tagsForMonth.Where (tag => tagIDsForDay.Contains(tag.PartitionKey))
                                            .Select (tagGroup => tagGroup.RowKey);
-            var tasksForDay = tasksForMonth.Where (task => taskIDsForDay.Contains (task.PartitionKey));
+            var cardsForDay = cardsForMonth.Where (task => cardIDsForDay.Contains (task.PartitionKey));
 
-            var tasks = new List<MonthResponse.BasicTask> ();
-            foreach (var task in tasksForDay)
-                tasks.Add (new MonthResponse.BasicTask { Title = task.Title, isCompleted = new Random ().Next(2) == 0, TaskType = "API-defined Placeholder" });
-
+            var cards = new List<MonthResponse.BasicCard> ();
+            foreach (var card in cardsForDay)
+                cards.Add (new MonthResponse.BasicCard
+                {
+                    Title = card.Title,
+                    Tasks = new List<MonthResponse.BasicTask> ()
+                    {
+                        new MonthResponse.BasicTask { isCompleted = new Random ().Next (2) == 0 }
+                    },
+                    BoardID = Guid.Empty
+                });
             monthResponse.Days.Add (new MonthResponse.BasicDate
             {
                 ID = date.PartitionKey,
                 DateOrder = date.DateOrder,
                 WeekOrder = date.WeekOrder,
                 DayOfTheWeekOrder = date.DayOfTheWeekOrder,
-                Tasks = tasks
+                Cards = cards
             });
         }
 
