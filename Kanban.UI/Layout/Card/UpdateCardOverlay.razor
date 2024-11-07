@@ -1,4 +1,5 @@
-﻿@using Kanban.UI.Options
+﻿@using Kanban.UI.Layout.Task
+@using Kanban.UI.Options
 @using Microsoft.Extensions.Options
 @using Newtonsoft.Json
 @using Kanban.Contracts.Request.Create
@@ -80,6 +81,8 @@
     public string cardTitle = "";
     public string cardDescription = "";
 
+    private Guid? CardID = null;
+
     private bool editCardOverlayIsOpen = false;
 
     protected override async Task OnInitializedAsync ()
@@ -101,8 +104,8 @@
                     <MudList T="string" ReadOnly="false">
                         @foreach (var task in ActiveCard.Tasks)
                         {
-                            <MudListItem OnClick="@(() => editCardOverlayIsOpen = true)">
-                                @task.TaskTypeTitle
+                            <MudListItem>
+                                <CreateTaskOverlay @bind-TaskTitle="cardTitle" @bind-CardID="CardID" />
                             </MudListItem>
                         }
                         <MudListItem>

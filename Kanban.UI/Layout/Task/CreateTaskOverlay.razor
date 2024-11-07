@@ -48,8 +48,8 @@
             </MudGrid>
 
             <MudButtonGroup>
-                <MudButton OnClick="(() => CreateTaskAsync())">Submit</MudButton>
-                <MudButton OnClick="CloseTaskOverlay">Discard</MudButton>
+                <MudButton OnClick="@(() => CreateTaskAsync())">Submit</MudButton>
+                <MudButton OnClick="@(() => tempOpen = false)">Discard</MudButton>
             </MudButtonGroup>
         </MudPaper>
     </MudPopover>
@@ -58,11 +58,6 @@
 @code
 {
     private bool tempOpen = false;
-
-    [Parameter]
-    public bool Open { get; set; }
-    [Parameter]
-    public EventCallback<bool> OpenChanged { get; set; }
 
     [Parameter]
     public string TaskTitle { get; set; } = "New Task";
@@ -82,7 +77,7 @@
     [Parameter]
     public Guid? CardID { get; set; }
     [Parameter]
-    public EventCallback<Guid?> DayIDChanged { get; set; }
+    public EventCallback<Guid?> CardIDChanged { get; set; }
 
     [Parameter]
     public EventCallback<bool> Refresh { get; set; }
@@ -230,12 +225,12 @@
             var responseBody = await response.Content.ReadAsStringAsync ();
             var deserialized = JsonConvert.DeserializeObject<TaskResponse> (responseBody);
 
-            Day.Cards.First ().Tasks.Add (new TaskResponse //-----------------------------------------------This line is fucked up. This needs to be fixed ASAP
+            /*Day.Cards.First ().Tasks.Add (new TaskResponse //-----------------------------------------------This line is fucked up. This needs to be fixed ASAP
             {
                 Title = deserialized.Title,
                 TaskTypeTitle = deserialized.TaskTypeTitle,
                 isCompleted = false//replace later..
-            });
+            });*/
 
             Refresh.InvokeAsync (true);
 
@@ -243,11 +238,5 @@
         }
 
         return null;
-    }
-
-    private void CloseTaskOverlay ()
-    {
-        Open = false;
-        OpenChanged.InvokeAsync (Open);
     }
 }
