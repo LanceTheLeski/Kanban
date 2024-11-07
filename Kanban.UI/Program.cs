@@ -1,4 +1,4 @@
-using Kanban.UI.Components;
+using Kanban.UI;
 using Kanban.UI.Options;
 using MudBlazor.Services;
 

@@ -1,4 +1,4 @@
-﻿namespace Kanban.UI.Components.DTOs;
+﻿namespace Kanban.UI.Models;
 
 public class DropCard : Card
 {

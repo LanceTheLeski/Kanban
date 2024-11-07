@@ -37,5 +37,7 @@ public class BoardResponse
         public string Title { get; set; }
 
         public string Description { get; set; }
+
+        public List<TaskResponse> Tasks { get; set; }
     }
 }

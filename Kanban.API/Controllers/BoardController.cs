@@ -26,9 +26,11 @@ public class BoardController : Controller
     private readonly TableClient _tagTable;
 
     private readonly IBoardRepository _boardRepository;
+    private readonly ITaskRepository _taskRepository;
 
     public BoardController (IOptions<CosmosOptions> cosmosOptions,
-                            IBoardRepository boardRepository)
+                            IBoardRepository boardRepository,
+                            ITaskRepository taskRepository)
     {
         _tableServiceClient = new TableServiceClient (cosmosOptions.Value.HonuBoards);
         _boardTable = _tableServiceClient.GetTableClient (tableName: boards);
@@ -38,6 +40,7 @@ public class BoardController : Controller
         _tagTable = _tableServiceClient.GetTableClient (tableName: tags);
 
         _boardRepository = boardRepository;
+        _taskRepository = taskRepository;
     }
 
     [HttpGet ("fetch/{ID:guid}")]
@@ -77,11 +80,25 @@ public class BoardController : Controller
                 var cards = new List<BoardResponse.BasicCard> ();
                 foreach (var card in cardList)
                 {
+                    var tasks = await _taskRepository.QueryTasksAsync (task => task.RowKey == card.RowKey);
+                    var cardTasks = new List<TaskResponse> ();
+                    foreach (var task in tasks)
+                    {
+                        cardTasks.Add (new TaskResponse
+                        {
+                            Title = task.Title,
+                            TaskTypeID = task.TaskTypeID,
+                            TaskTypeTitle = "Placeholder",
+                            isCompleted = task.IsComplete
+                        });
+                    }
+
                     cards.Add (new BoardResponse.BasicCard
                     {
                         ID = card.RowKey,
                         Title = card.CardTitle,
-                        Description = card.CardDescription
+                        Description = card.CardDescription,
+                        Tasks = cardTasks
                     });
                 }
 

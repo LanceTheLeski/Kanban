@@ -1,0 +1,197 @@
+﻿@using Kanban.UI.Options
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using Kanban.Contracts.Request.Create
+@using Kanban.Contracts.Response
+@using Kanban.UI.Layout
+@using Kanban.UI.Models
+@using System.Net.Http.Headers
+
+@inject HttpClient http
+@inject IOptions<InterfaceOptions> interfaceOptions
+@inject ISnackbar Snackbar
+
+@inherits LayoutComponentBase
+
+<MudOverlay @ref="populator" @bind-Visible="Open" DarkBackground="true" ZIndex="10">
+    <MudPaper Width="900px" Height="500px" Class="mud-background">
+        <MudStack>
+            <MudItem>
+                <MudGrid>
+                    <MudItem>
+                        <MudStack>
+                            <MudItem>
+                                <MudGrid>
+                                    <MudItem>
+                                        <MudTextField @bind-Value="ActiveCard.Title" T="string" Label="Title" Variant="Variant.Filled" HelperText="Card Title" Class="mud-theme-secondary" />
+                                    </MudItem>
+                                    <MudItem>
+                                        Tags...
+                                    </MudItem>
+                                </MudGrid>
+                            </MudItem>
+                            <MudItem></MudItem>
+                            <MudItem>
+                                @_taskList
+                            </MudItem>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem>
+                        <MudTextField @bind-Value="ActiveCard.Description" T="string" Label="Description" Variant="Variant.Filled" AutoGrow Lines="7" HelperText="Description" Class="mud-theme-secondary"/>
+                    </MudItem>
+                </MudGrid>
+            </MudItem>
+            <MudItem>
+                <MudGrid>
+                    <MudItem>Timeline</MudItem>
+                    <MudItem>Notif..</MudItem>
+                </MudGrid>
+            </MudItem>
+            <MudItem>
+                <MudButtonGroup Class="mud-background">
+                    <MudButton OnClick="(() => UpdateCard())">Save</MudButton>
+                    <MudButton OnClick="(() => DeleteCard())">Delete</MudButton>
+                    <MudButton OnClick="CloseCardOverlay">Discard</MudButton>
+                </MudButtonGroup>
+            </MudItem>
+        </MudStack>
+    </MudPaper>
+</MudOverlay>
+
+<!--<UpdateCardOverlay @bind-Open="editCardOverlayIsOpen"
+                   @bind-ActiveCard="ActiveCard"
+                   Refresh="Refresh" />-->
+
+@code 
+{
+    [Parameter]
+    public bool Open { get; set; }
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public DropCard? ActiveCard { get; set; }
+    [Parameter]
+    public EventCallback<DropCard?> ActiveCardChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> Refresh { get; set; }
+
+    public string cardTitle = "";
+    public string cardDescription = "";
+
+    private bool editCardOverlayIsOpen = false;
+
+    protected override async Task OnInitializedAsync ()
+    {
+        _taskList = _taskListRenderFragment ();
+    }
+
+    private RenderFragment _taskList = __builder => 
+    { 
+        <MudPaper>Loading...</MudPaper>
+    };
+
+    private RenderFragment _taskListRenderFragment ()
+    {
+        return __builder =>
+        {
+            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 350px; height: 200px;">
+                <MudStack Class="flex-grow-1" Width="100%" Height="100%">
+                    <MudList T="string" ReadOnly="false">
+                        @foreach (var task in ActiveCard.Tasks)
+                        {
+                            <MudListItem OnClick="@(() => editCardOverlayIsOpen = true)">
+                                @task.TaskTypeTitle
+                            </MudListItem>
+                        }
+                        <MudListItem>
+                            Add New Task
+                        </MudListItem>
+                    </MudList>
+                </MudStack>
+            </MudPaper>
+        };
+    }
+
+    private MudOverlay populator;
+
+    private void Fire (bool changed)
+    {
+        if (ActiveCard is not null)
+        {
+            cardTitle = ActiveCard.Title;
+            cardDescription = ActiveCard.Description;
+        }
+    }
+
+    private async Task UpdateCard ()
+    {
+        var patchRequestForTitle = string.IsNullOrEmpty (cardTitle) ? 
+            "" : 
+            $@"{{ ""op"": ""replace"", ""path"": ""/Title"", ""value"": ""{cardTitle}"" }},";
+        var patchRequestForDescription = string.IsNullOrEmpty (cardDescription) ?
+            "" :
+            $@"{{ ""op"": ""replace"", ""path"": ""/Description"", ""value"": ""{cardDescription}"" }},";
+
+        if (patchRequestForTitle is "" && patchRequestForDescription is "")
+            return;
+
+        var patchRequest =
+        $@"[
+            {patchRequestForTitle}
+            {patchRequestForDescription}
+        ]";
+
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{interfaceOptions.Value.URL}kanban/cards/update/{ActiveCard.Id}");
+        httpRequestMessage.Content = new StringContent (patchRequest, mediaType: new MediaTypeHeaderValue (@"application/json"));
+
+        var response = await http.SendAsync (httpRequestMessage);
+        if (!response.IsSuccessStatusCode)
+        {
+            Snackbar.Add ($"Could not update card. Error code: {response.StatusCode}");
+        }
+
+        Refresh.InvokeAsync (true);
+
+        CloseCardOverlay();
+    }
+
+    /*private async Task<List<TaskResponse>> FetchTasksForCard ()
+    {
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, @$"{interfaceOptions.Value.URL}kanban/tasks/fetch?cardID={ActiveCard.Id}");
+
+        var response = await http.SendAsync (httpRequestMessage);
+        if (!response.IsSuccessStatusCode)
+        {
+            Snackbar.Add ($"Could not fetch the tasks. Error code: {response.StatusCode}");
+        }
+
+        var responseBody = await response.Content.ReadAsStringAsync ();
+        var deserialized = JsonConvert.DeserializeObject<List<TaskResponse>> (responseBody);
+
+        return deserialized;
+    }*/
+
+    private async Task DeleteCard ()
+    {
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Delete, @$"{interfaceOptions.Value.URL}kanban/boards/delete/{ActiveCard.Id}");//Not sure if this should be
+                                                                                                                                                  //boards or cards
+
+        var response = await http.SendAsync (httpRequestMessage);
+        if (!response.IsSuccessStatusCode)
+        {
+            Snackbar.Add ($"Could not update Column. Error code: {response.StatusCode}");
+        }
+
+        Refresh.InvokeAsync (true);
+
+        CloseCardOverlay ();
+    }
+
+    private void CloseCardOverlay ()
+    {
+        Open = false;
+        OpenChanged.InvokeAsync (Open);
+    }
+}

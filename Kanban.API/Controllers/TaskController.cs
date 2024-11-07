@@ -16,6 +16,24 @@ public class TaskController : Controller
         _taskRepository = taskRepository;
     }
 
+    [HttpGet ("fetch")]
+    public async Task<ActionResult> FetchTasks ([FromQuery] Guid? cardID)
+    {
+        var tasks = await _taskRepository.QueryTasksAsync (task => task.RowKey == cardID.ToString ());
+        
+        var taskListReponse = new List<TaskResponse> ();
+        foreach (var task in tasks)
+            taskListReponse.Add (new TaskResponse 
+            { 
+                Title = task.Title,
+                TaskTypeID = task.TaskTypeID,
+                TaskTypeTitle = "Placeholder",
+                isCompleted = task.IsComplete
+            });
+
+        return StatusCode (StatusCodes.Status200OK, taskListReponse);
+    }
+
     [HttpPost ("create")]
     public async Task<ActionResult> CreateTask ([FromBody] TaskCreateRequest taskCreateRequest)
     {

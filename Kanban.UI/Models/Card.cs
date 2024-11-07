@@ -1,4 +1,6 @@
-﻿namespace Kanban.UI.Components.DTOs;
+﻿using Kanban.Contracts.Response;
+
+namespace Kanban.UI.Models;
 
 public class Card
 {
@@ -19,6 +21,8 @@ public class Card
     public Guid SwimlaneID { get; set; }
 
     public string SwimlaneName { get; set; }
+
+    public List<TaskResponse> Tasks { get; set; }
 
     //Add tags and metadata-related stuff later
 }
