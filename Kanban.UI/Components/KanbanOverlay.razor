@@ -1,0 +1,32 @@
+﻿@rendermode RenderMode.InteractiveServer
+
+@inherits LayoutComponentBase
+
+<MudOverlay Visible="Open" DarkBackground="true" ZIndex="10">
+    <MudPaper Width="600px">
+
+        @ChildContent
+
+        <MudButtonGroup>
+            <MudButton OnClick="OnSubmit">Submit</MudButton>
+            <MudButton OnClick="CloseOverlay">Discard</MudButton>
+        </MudButtonGroup>
+    </MudPaper>
+</MudOverlay>
+
+@code 
+{
+    [Parameter]
+    public bool Open { get; set; } = false;
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public string? ButtonText { get; set; } = "---";
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; } = null;
+
+    [Parameter]
+    public EventCallback OnSubmit { get; set; } = new EventCallback ();
+}

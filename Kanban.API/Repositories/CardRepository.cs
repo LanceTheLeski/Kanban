@@ -1,11 +1,11 @@
-﻿namespace Kanban.API.Repositories;
-
-using Azure.Data.Tables;
+﻿using Azure.Data.Tables;
 using Kanban.API.Models;
 using Kanban.API.Options;
 using Microsoft.Extensions.Options;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
+
+namespace Kanban.API.Repositories;
 
 public class CardRepository : ICardRepository
 {

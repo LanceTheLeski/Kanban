@@ -59,10 +59,6 @@
     </MudPaper>
 </MudOverlay>
 
-<!--<UpdateCardOverlay @bind-Open="editCardOverlayIsOpen"
-                   @bind-ActiveCard="ActiveCard"
-                   Refresh="Refresh" />-->
-
 @code 
 {
     [Parameter]
@@ -88,6 +84,9 @@
     protected override async Task OnInitializedAsync ()
     {
         _taskList = _taskListRenderFragment ();
+
+        //populator.Visible = false;
+        //It's possible
     }
 
     private RenderFragment _taskList = __builder => 

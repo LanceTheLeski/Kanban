@@ -1,4 +1,5 @@
-﻿@using Kanban.UI.Layout.Board
+﻿@using Kanban.UI.Components
+@using Kanban.UI.Layout.Board
 @using Kanban.UI.Layout.Card
 @using Kanban.UI.Layout.Column
 @using Kanban.UI.Layout.Swimlane
@@ -17,7 +18,10 @@
         </MudPaper>
         <MudPaper Elevation="0" MaxWidth="150px" MaxHeight="30px" Style="padding-left:40px; padding-right:40px;" Class="mud-theme-primary">
             <MudMenu Label="Cards" TransformOrigin="Origin.TopCenter" AnchorOrigin="Origin.BottomCenter">
-                <MudMenuItem OnClick="OpenAddCardOverlay" Style="@($"background-color:{Theme.PaletteLight.Background};")">Add</MudMenuItem>
+                <!--<MudMenuItem OnClick="OpenAddCardOverlay" Style="@($"background-color:{Theme.PaletteLight.Background};")">Add</MudMenuItem>-->
+                <MudMenuItem OnClick="(() => createCardOverlay.Open())">
+                    Add Card
+                </MudMenuItem>
             </MudMenu>
         </MudPaper>
         <MudPaper Elevation="0" MaxWidth="150px" MaxHeight="30px" Style="padding-left:40px; padding-right:40px;" Class="mud-theme-primary">
@@ -80,15 +84,13 @@
                          Refresh="Refresh" />
 </MudOverlay>
 
-<MudOverlay @bind-Visible="addCardOverlayIsOpen" DarkBackground="true" ZIndex="10">
-    <CreateCardOverlay @bind-Open="addCardOverlayIsOpen"
-                       @bind-Cards="_cards"
-                       @bind-Columns="_columns"
-                       @bind-ColumnTitles="_columnTitles"
-                       @bind-Swimlanes="_swimlanes"
-                       @bind-SwimlaneTitles="_swimlaneTitles" 
-                       Refresh="Refresh" />
-</MudOverlay>
+<CreateCardOverlay @ref="createCardOverlay"
+                   @bind-Cards="Cards"
+                   @bind-Columns="Columns"
+                   @bind-ColumnTitles="ColumnTitles"
+                   @bind-Swimlanes="Swimlanes"
+                   @bind-SwimlaneTitles="SwimlaneTitles"
+                   Refresh="Refresh" />
 
 <MudOverlay @bind-Visible="editBoardOverlayIsOpen" DarkBackground="true" ZIndex="10">
     <AddManageBoardOverlay @bind-Open="editBoardOverlayIsOpen" />
@@ -97,6 +99,8 @@
 @code 
 {
     private MudTheme Theme = new MudTheme ();
+
+    private CreateCardOverlay createCardOverlay = new CreateCardOverlay ();
 
     [Parameter]
     public List<DropCard>? Cards { get; set; }
