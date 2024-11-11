@@ -11,7 +11,7 @@
 @inject HttpClient http
 @inject IOptions<InterfaceOptions> interfaceOptions
 
-<KanbanOverlay ButtonText="Add" @bind-Open="open">
+<KanbanOverlay @bind-Open="Open">
     <MudText>Add a New Card</MudText>
     <MudTextField @bind-Value="cardTitle" T="string" Label="Title" Variant="Variant.Filled" HelperText="Card Title" />
     <MudTextField @bind-Value="cardDescription" T="string" Label="Description" Variant="Variant.Filled" AutoGrow Lines="7" HelperText="Description" />
@@ -32,6 +32,11 @@
 
 @code
 {
+    [Parameter]
+    public bool Open { get; set; }
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
     [Parameter]
     public List<DropCard>? Cards { get; set; }
     [Parameter]

@@ -1,4 +1,5 @@
-﻿@using Kanban.UI.Layout.Task
+﻿@using Kanban.UI.Components
+@using Kanban.UI.Layout.Task
 @using Kanban.UI.Options
 @using Microsoft.Extensions.Options
 @using Newtonsoft.Json
@@ -14,7 +15,7 @@
 
 @inherits LayoutComponentBase
 
-<MudOverlay @ref="populator" @bind-Visible="Open" DarkBackground="true" ZIndex="10">
+<KanbanOverlay @bind-Open="Open">
     <MudPaper Width="900px" Height="500px" Class="mud-background">
         <MudStack>
             <MudItem>
@@ -57,7 +58,7 @@
             </MudItem>
         </MudStack>
     </MudPaper>
-</MudOverlay>
+</KanbanOverlay>
 
 @code 
 {

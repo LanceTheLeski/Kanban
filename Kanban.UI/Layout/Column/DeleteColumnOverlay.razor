@@ -1,4 +1,5 @@
-﻿@using Kanban.UI.Options
+﻿@using Kanban.UI.Components
+@using Kanban.UI.Options
 @using Microsoft.Extensions.Options
 @using Newtonsoft.Json
 @using Kanban.UI.Models
@@ -10,7 +11,7 @@
 
 @rendermode RenderMode.InteractiveServer
 
-<MudPaper>
+<KanbanOverlay @bind-Open="Open">
     <MudText>Edit Column</MudText>
     <MudExpansionPanels>
         <MudExpansionPanel Text="Column" MaxHeight="1000" ExpandedChanged="ColumnListExpandedChanged">
@@ -22,7 +23,7 @@
         <MudButton OnClick="RemoveColumn">Delete</MudButton>
         <MudButton OnClick="CloseColumnOverlay">Cancel</MudButton>
     </MudButtonGroup>
- </MudPaper>
+ </KanbanOverlay>
 
 @code
 {

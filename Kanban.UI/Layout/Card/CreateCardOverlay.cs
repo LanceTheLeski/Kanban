@@ -1,17 +1,16 @@
 ﻿using Kanban.Contracts.Request.Create;
 using Kanban.Contracts.Response;
+using Kanban.UI.Components;
 using Kanban.UI.Models;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
 
 namespace Kanban.UI.Layout.Card;
 
-public partial class CreateCardOverlay
+public partial class CreateCardOverlay : IKanbanOverlay
 {
-    public void Open ()
-    {
-        open = true;
-    }
+    public void OpenOverlay ()
+        => Open = true;
 
     protected void ColumnListExpandedChanged (bool showColumns)
     {

@@ -1,12 +1,14 @@
-﻿<!--Board Menu-->
-<MudPaper>
+﻿@using Kanban.UI.Components
+
+<!--Board Menu-->
+<KanbanOverlay>
     <MudText>Add/Edit Board</MudText>
     <MudTextField T="string" Label="Title" Variant="Variant.Filled" AutoGrow HelperText="Board Title" />
     <MudButtonGroup>
         <MudButton>Submit</MudButton>
         <MudButton OnClick="CloseBoardOverlay">Discard</MudButton>
     </MudButtonGroup>
-</MudPaper>
+</KanbanOverlay>
 
 @code 
 {
