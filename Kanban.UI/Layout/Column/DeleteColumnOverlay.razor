@@ -13,11 +13,9 @@
 
 <KanbanOverlay @bind-Open="Open">
     <MudText>Edit Column</MudText>
-    <MudExpansionPanels>
-        <MudExpansionPanel Text="Column" MaxHeight="1000" ExpandedChanged="ColumnListExpandedChanged">
-            @_columnList
-        </MudExpansionPanel>
-    </MudExpansionPanels>
+    
+    <KanbanExpandingSelector @bind-Options="ColumnTitles" 
+                             OptionSelected="SetColumnNameToDelete" />
 
     <MudButtonGroup>
         <MudButton OnClick="RemoveColumn">Delete</MudButton>
@@ -45,59 +43,10 @@
     [Parameter]
     public EventCallback<bool> Refresh { get; set; }
 
-    private static List<Guid> _columns = new List<Guid> ();
-    private static List<string> _columnTitles = new List<string> ();
-
-    public DeleteColumnOverlay ()
-    {
-        Open = false;
-        _columns = Columns;
-        _columnTitles = ColumnTitles;
-    }
-
-    //private static bool columnListIsExpanded = false;
-
-    private RenderFragment _columnList;
-    private async Task ColumnListExpandedChanged (bool showColumns)
-    {
-        //columnListIsExpanded = showColumns;
-        _columns = Columns;
-        _columnTitles = ColumnTitles;
-
-        if (showColumns)
-        {
-            _columnList = _columnListRenderFragment ();
-        }
-        else
-        {
-            // Reset after a while to prevent sudden collapse.
-            Task.Delay (350).ContinueWith (task => _columnList = null);
-        }
-    }
-
     private static string columnTitleSelected = "";
-    private RenderFragment _columnListRenderFragment ()
+    private void SetColumnNameToDelete (string columnName)
     {
-        return __builder =>
-        {
-            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
-                <MudStack Class="flex-grow-1" Width="100%" Height="100%">
-                    <MudList T="string" ReadOnly="false">
-                        @foreach (var columnTitle in _columnTitles)
-                        {
-                            <MudListItem OnClick="(() => SetColumnNameToDelete (columnTitle))">
-                                Column Name: @(columnTitle)
-                            </MudListItem>
-                        }
-                    </MudList>
-                </MudStack>
-            </MudPaper>
-        };
-    }
-
-    private static async Task SetColumnNameToDelete (string columnName)
-    {
-        var matchingColumnNameCount = _columnTitles.FindAll (column => column == columnName).Count ();
+        var matchingColumnNameCount = ColumnTitles.FindAll (column => column == columnName).Count ();
         if (matchingColumnNameCount is not 1)
         {
             // Should we throw exceptions? Or have the snackbar display exceptions?
@@ -111,8 +60,8 @@
     private async Task RemoveColumn ()
     {
         //Keep in mind that on a given board, column names should be unique.
-        var columnToDeleteListIndex = _columnTitles.IndexOf (columnTitleSelected);
-        var columnToDeleteGuid = _columns [columnToDeleteListIndex];
+        var columnToDeleteListIndex = ColumnTitles.IndexOf (columnTitleSelected);
+        var columnToDeleteGuid = Columns [columnToDeleteListIndex];
 
         var httpRequestMessage = new HttpRequestMessage (HttpMethod.Delete, @$"{interfaceOptions.Value.URL}kanban/columns/delete/{columnToDeleteGuid}");
 
@@ -123,10 +72,10 @@
         }
 
         Columns.RemoveAt (columnToDeleteListIndex);//This needs to be better
-        await ColumnsChanged.InvokeAsync (_columns);
+        await ColumnsChanged.InvokeAsync (Columns);
 
         ColumnTitles.RemoveAt (columnToDeleteListIndex);//This needs to be better
-        await ColumnTitlesChanged.InvokeAsync (_columnTitles);
+        await ColumnTitlesChanged.InvokeAsync (ColumnTitles);
 
         Refresh.InvokeAsync (true);
 

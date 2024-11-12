@@ -1,0 +1,41 @@
+﻿<MudExpansionPanels>
+    <MudExpansionPanel Text="Column" MaxHeight="1000" ExpandedChanged="ColumnListExpandedChanged">
+        @selectionListRenderFragment
+    </MudExpansionPanel>
+</MudExpansionPanels>
+
+@code 
+{
+    [Parameter]
+    public List<string> Options { get; set; }
+    [Parameter]
+    public EventCallback<List<string>> OptionsChanged { get; set; }
+
+    [Parameter]
+    public Action<string> OptionSelected { get; set; }//This might be wrong??
+    // As an alternative, we could make this a string and whenever it's set, update the calling component. Then that component will clear it when the action processes there.
+
+    private RenderFragment? selectionListRenderFragment = null;
+    private void ColumnListExpandedChanged (bool showSelectionList)
+    {
+        if (showSelectionList)
+            selectionListRenderFragment = __builder =>
+            {
+                <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
+                    <MudStack Class="flex-grow-1" Width="100%" Height="100%">
+                        <MudList T="string" ReadOnly="false">
+                            @foreach (var option in Options)
+                            {
+                                <MudListItem OnClick="(() => OptionSelected (option))">
+                                    Column Name: @(option)
+                                </MudListItem>
+                            }
+                        </MudList>
+                    </MudStack>
+                </MudPaper>
+            };
+        else
+            Task.Delay (350)
+                .ContinueWith (task => selectionListRenderFragment = null);
+    }
+}
