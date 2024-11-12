@@ -6,4 +6,10 @@ public partial class DeleteColumnOverlay : IKanbanOverlay
 {
     public void OpenOverlay ()
         => Open = true;
+
+    public void CloseOverlay ()
+    {
+        Open = false;
+        OpenChanged.InvokeAsync (Open);
+    }
 }

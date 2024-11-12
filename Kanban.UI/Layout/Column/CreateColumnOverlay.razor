@@ -13,14 +13,13 @@
 
 @rendermode RenderMode.InteractiveServer
 
-<KanbanOverlay @bind-Open="Open">
+<KanbanOverlay @bind-Open="Open"
+               OnSubmitAsync="CreateColumn">
+
     <MudText>Add a New Column</MudText>
     <MudTextField T="string" @bind-Value="columnTitle" Label="Title" Variant="Variant.Filled" AutoGrow HelperText="Column Title" />
     <MudTextField T="string" @bind-Value="columnOrder" Label="Order" Variant="Variant.Filled" AutoGrow HelperText="Column Order" />
-    <MudButtonGroup>
-        <MudButton OnClick="CreateColumn">Submit</MudButton>
-        <MudButton OnClick="CloseColumnOverlay">Discard</MudButton>
-    </MudButtonGroup>
+
 </KanbanOverlay>
 
 @code 
@@ -93,7 +92,7 @@
 
             Refresh.InvokeAsync (true);
 
-            CloseColumnOverlay ();
+            CloseOverlay ();
 
             return deserialized;
         }
@@ -102,11 +101,5 @@
         Snackbar.Add ($"Error: {responseErrorBody}");
 
         return null;
-    }
-
-    private void CloseColumnOverlay ()
-    {
-        Open = false;
-        OpenChanged.InvokeAsync (Open);
     }
 }

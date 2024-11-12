@@ -11,11 +11,13 @@
 @inject HttpClient http
 @inject IOptions<InterfaceOptions> interfaceOptions
 
-<KanbanOverlay @bind-Open="Open">
+<KanbanOverlay @bind-Open="Open" 
+               OnSubmitAsync="CreateCard">
+
     <MudText>Add a New Card</MudText>
     <MudTextField @bind-Value="cardTitle" T="string" Label="Title" Variant="Variant.Filled" HelperText="Card Title" />
     <MudTextField @bind-Value="cardDescription" T="string" Label="Description" Variant="Variant.Filled" AutoGrow Lines="7" HelperText="Description" />
-    <MudExpansionPanels>
+    <!--<MudExpansionPanels>
         <MudExpansionPanel Text="Column" 
                             MaxHeight="1000" 
                             ExpandedChanged="ColumnListExpandedChanged"
@@ -27,7 +29,13 @@
                             MaxHeight="1000" 
                             ExpandedChanged="SwimlaneListExpandedChanged"
                             ChildContent="@_swimlaneListRenderFragment" />
-    </MudExpansionPanels>
+    </MudExpansionPanels>-->
+    <KanbanExpandingSelector @bind-Options="ColumnTitles"
+                             OptionSelected="SetColumnNameToAddCard" />
+
+    <KanbanExpandingSelector @bind-Options="SwimlaneTitles"
+                             OptionSelected="SetSwimlaneNameToAddCard"/>
+
 </KanbanOverlay>
 
 @code
@@ -67,12 +75,10 @@
 
     private string cardTitle = "";
     private string cardDescription = "";
-    private static string columnToAddCard = "";
-    private static string swimlaneToAddCard = "";
 
-    private bool open = false;
+    //private bool open = false;
 
-    private RenderFragment? _columnListRenderFragment = null;
+    /*private RenderFragment? _columnListRenderFragment = null;
     private RenderFragment createColumnListRenderFragment ()
     {
         return __builder =>
@@ -110,5 +116,5 @@
                 </MudStack >
             </MudPaper >
         };
-    }
+    }*/
 }

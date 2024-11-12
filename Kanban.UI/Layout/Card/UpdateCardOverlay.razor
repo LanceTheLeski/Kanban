@@ -50,10 +50,10 @@
                 </MudGrid>
             </MudItem>
             <MudItem>
-                <MudButtonGroup Class="mud-background">
+                <MudButtonGroup Class="mud-background"><!--Maybe we should add button lists to KanbanOverlays-->
                     <MudButton OnClick="(() => UpdateCard())">Save</MudButton>
                     <MudButton OnClick="(() => DeleteCard())">Delete</MudButton>
-                    <MudButton OnClick="CloseCardOverlay">Discard</MudButton>
+                    <MudButton OnClick="CloseOverlay">Discard</MudButton>
                 </MudButtonGroup>
             </MudItem>
         </MudStack>
@@ -117,8 +117,6 @@
         };
     }
 
-    private MudOverlay populator;
-
     private void Fire (bool changed)
     {
         if (ActiveCard is not null)
@@ -157,7 +155,7 @@
 
         Refresh.InvokeAsync (true);
 
-        CloseCardOverlay();
+        CloseOverlay();
     }
 
     /*private async Task<List<TaskResponse>> FetchTasksForCard ()
@@ -189,12 +187,6 @@
 
         Refresh.InvokeAsync (true);
 
-        CloseCardOverlay ();
-    }
-
-    private void CloseCardOverlay ()
-    {
-        Open = false;
-        OpenChanged.InvokeAsync (Open);
+        CloseOverlay ();
     }
 }

@@ -5,7 +5,7 @@ public partial class KanbanOverlay : IKanbanOverlay
     public void OpenOverlay ()
         => Open = true;
 
-    private void CloseOverlay ()
+    public void CloseOverlay ()
     {
         Open = false;
         OpenChanged.InvokeAsync (Open);

@@ -3,4 +3,6 @@
 public interface IKanbanOverlay
 {
     public void OpenOverlay ();
+
+    public void CloseOverlay ();
 }

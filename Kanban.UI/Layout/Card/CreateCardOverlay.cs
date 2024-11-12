@@ -12,7 +12,13 @@ public partial class CreateCardOverlay : IKanbanOverlay
     public void OpenOverlay ()
         => Open = true;
 
-    protected void ColumnListExpandedChanged (bool showColumns)
+    public void CloseOverlay ()
+    {
+        Open = false;
+        OpenChanged.InvokeAsync (Open);
+    }
+
+    /*protected void ColumnListExpandedChanged (bool showColumns)
     {
         if (showColumns)
             _columnListRenderFragment = createColumnListRenderFragment ();
@@ -26,8 +32,9 @@ public partial class CreateCardOverlay : IKanbanOverlay
             _swimlaneListRenderFragment = createSwimlaneListRenderFragment ();
         else
             System.Threading.Tasks.Task.Delay (350).ContinueWith (task => _swimlaneListRenderFragment = null);
-    }
+    }*/
 
+    private string columnToAddCard = string.Empty;
     private void SetColumnNameToAddCard (string columnName)
     {
         var matchingColumnNameCount = ColumnTitles?.FindAll (column => column == columnName).Count ();
@@ -41,6 +48,7 @@ public partial class CreateCardOverlay : IKanbanOverlay
         columnToAddCard = columnName;
     }
 
+    private string swimlaneToAddCard = string.Empty;
     private void SetSwimlaneNameToAddCard (string swimlaneName)
     {
         var matchingSwimlaneNameCount = SwimlaneTitles?.FindAll (swimlane => swimlane == swimlaneName).Count ();

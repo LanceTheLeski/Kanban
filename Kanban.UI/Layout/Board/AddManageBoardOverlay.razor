@@ -1,26 +1,14 @@
 ﻿@using Kanban.UI.Components
 
-<!--Board Menu-->
 <KanbanOverlay>
     <MudText>Add/Edit Board</MudText>
     <MudTextField T="string" Label="Title" Variant="Variant.Filled" AutoGrow HelperText="Board Title" />
-    <MudButtonGroup>
-        <MudButton>Submit</MudButton>
-        <MudButton OnClick="CloseBoardOverlay">Discard</MudButton>
-    </MudButtonGroup>
 </KanbanOverlay>
 
 @code 
 {
     [Parameter]
     public bool Open { get; set; }
-
     [Parameter]
     public EventCallback<bool> OpenChanged { get; set; }
-
-    public void CloseBoardOverlay ()
-    {
-        Open = false;
-        OpenChanged.InvokeAsync (Open);
-    }
 }

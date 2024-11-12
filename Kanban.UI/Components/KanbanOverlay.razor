@@ -8,7 +8,14 @@
         @ChildContent
 
         <MudButtonGroup>
-            <MudButton OnClick="OnSubmit">Submit</MudButton>
+            @if (OnSubmit is not null)
+            {
+                <MudButton OnClick="OnSubmit.Value">Submit</MudButton>
+            }
+            @if (OnSubmitAsync is not null)
+            {
+                <MudButton OnClick="OnSubmitAsync.Invoke">Submit</MudButton>
+            }
             <MudButton OnClick="CloseOverlay">Discard</MudButton>
         </MudButtonGroup>
     </MudPaper>
@@ -25,5 +32,8 @@
     public RenderFragment? ChildContent { get; set; } = null;
 
     [Parameter]
-    public EventCallback OnSubmit { get; set; } = new EventCallback ();
+    public EventCallback? OnSubmit { get; set; } = null;
+
+    [Parameter]
+    public Func<Task>? OnSubmitAsync { get; set; } = null;
 }

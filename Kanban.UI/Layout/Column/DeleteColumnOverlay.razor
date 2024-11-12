@@ -11,17 +11,15 @@
 
 @rendermode RenderMode.InteractiveServer
 
-<KanbanOverlay @bind-Open="Open">
+<KanbanOverlay @bind-Open="Open" 
+               OnSubmitAsync="RemoveColumn">
+    
     <MudText>Edit Column</MudText>
     
     <KanbanExpandingSelector @bind-Options="ColumnTitles" 
                              OptionSelected="SetColumnNameToDelete" />
 
-    <MudButtonGroup>
-        <MudButton OnClick="RemoveColumn">Delete</MudButton>
-        <MudButton OnClick="CloseColumnOverlay">Cancel</MudButton>
-    </MudButtonGroup>
- </KanbanOverlay>
+</KanbanOverlay>
 
 @code
 {
@@ -53,6 +51,7 @@
             // I think that the API should throw exceptions and the Blazor UI should maybe use something reliable like the snackbar.
             throw new Exception ($"The column selected does not correspond to a single column in our list of columns. Number of this column found: {matchingColumnNameCount}");
         }
+        //Replace with FluentValidation in the cs partial class. If it fails then use the Snackbar to display the error.
 
         columnTitleSelected = columnName;
     }
@@ -63,6 +62,7 @@
         var columnToDeleteListIndex = ColumnTitles.IndexOf (columnTitleSelected);
         var columnToDeleteGuid = Columns [columnToDeleteListIndex];
 
+        //Move to service class in components:
         var httpRequestMessage = new HttpRequestMessage (HttpMethod.Delete, @$"{interfaceOptions.Value.URL}kanban/columns/delete/{columnToDeleteGuid}");
 
         var response = await http.SendAsync (httpRequestMessage);
@@ -70,6 +70,9 @@
         {
             Snackbar.Add ($"Could not delete Column. Error code: {response.StatusCode}");
         }
+        //This should be:
+        //columnService.DeleteColumn(columnToDeleteGuid);
+        // It should still use the Snackbar to display any issues that arise. Clicking the error should then pop up a window with more info.
 
         Columns.RemoveAt (columnToDeleteListIndex);//This needs to be better
         await ColumnsChanged.InvokeAsync (Columns);
@@ -79,12 +82,6 @@
 
         Refresh.InvokeAsync (true);
 
-        CloseColumnOverlay();
-    }
-
-    private void CloseColumnOverlay ()
-    {
-        Open = false;
-        OpenChanged.InvokeAsync (Open);
+        CloseOverlay();
     }
 }
