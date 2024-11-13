@@ -10,7 +10,7 @@
 @using System.Net.Http.Headers
 
 @inject HttpClient http
-@inject IOptions<InterfaceOptions> interfaceOptions
+@inject IOptions<BackendOptions> interfaceOptions
 @inject ISnackbar Snackbar
 
 @inherits LayoutComponentBase
@@ -85,9 +85,6 @@
     protected override async Task OnInitializedAsync ()
     {
         _taskList = _taskListRenderFragment ();
-
-        //populator.Visible = false;
-        //It's possible
     }
 
     private RenderFragment _taskList = __builder => 
@@ -144,7 +141,7 @@
             {patchRequestForDescription}
         ]";
 
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{interfaceOptions.Value.URL}kanban/cards/update/{ActiveCard.Id}");
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{interfaceOptions.Value.URL}kanban/cards/{ActiveCard.Id}");
         httpRequestMessage.Content = new StringContent (patchRequest, mediaType: new MediaTypeHeaderValue (@"application/json"));
 
         var response = await http.SendAsync (httpRequestMessage);
@@ -176,8 +173,8 @@
 
     private async Task DeleteCard ()
     {
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Delete, @$"{interfaceOptions.Value.URL}kanban/boards/delete/{ActiveCard.Id}");//Not sure if this should be
-                                                                                                                                                  //boards or cards
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Delete, @$"{interfaceOptions.Value.URL}kanban/boards/{ActiveCard.Id}");//Not sure if this should be
+                                                                                                                                           //boards or cards
 
         var response = await http.SendAsync (httpRequestMessage);
         if (!response.IsSuccessStatusCode)

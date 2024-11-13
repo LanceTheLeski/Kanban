@@ -1,4 +1,6 @@
 using Kanban.UI;
+using Kanban.UI.Components;
+using Kanban.UI.Components.Services;
 using Kanban.UI.Options;
 using MudBlazor.Services;
 
@@ -11,7 +13,11 @@ builder.Services.AddRazorComponents ()
 builder.Services.AddMudServices ();
 builder.Services.AddHttpClient ();
 
-builder.Services.Configure<InterfaceOptions> (builder.Configuration.GetSection ("InternalAPI"));
+builder.Services.Configure<BackendOptions> (builder.Configuration.GetSection ("InternalAPI"));
+
+builder.Services.AddTransient<IKanbanErrorHandler, KanbanErrorHandler> ();
+builder.Services.AddTransient<ICardService, CardService> ();
+builder.Services.AddTransient<ITaskService, TaskService> ();
 
 var app = builder.Build ();
 

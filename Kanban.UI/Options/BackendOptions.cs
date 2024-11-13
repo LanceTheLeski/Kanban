@@ -1,6 +1,6 @@
 ﻿namespace Kanban.UI.Options;
 
-public class InterfaceOptions
+public class BackendOptions
 {
     public string URL { get; set; }
 }

@@ -16,7 +16,7 @@ public class TaskController : Controller
         _taskRepository = taskRepository;
     }
 
-    [HttpGet ("fetch")]
+    [HttpGet]
     public async Task<ActionResult> FetchTasks ([FromQuery] Guid? cardID)
     {
         var tasks = await _taskRepository.QueryTasksAsync (task => task.RowKey == cardID.ToString ());
@@ -34,7 +34,7 @@ public class TaskController : Controller
         return StatusCode (StatusCodes.Status200OK, taskListReponse);
     }
 
-    [HttpPost ("create")]
+    [HttpPost]
     public async Task<ActionResult> CreateTask ([FromBody] TaskCreateRequest taskCreateRequest)
     {
         // Validation later..
@@ -67,7 +67,7 @@ public class TaskController : Controller
         return StatusCode (StatusCodes.Status201Created, taskResponse);
     }
 
-    [HttpGet ("types/fetch")]
+    [HttpGet ("types")]
     public async Task<ActionResult> FetchTaskTypes ()
     {
         var taskTypes = await _taskRepository.GetTaskTypesAsync (taskType => true);
@@ -79,7 +79,7 @@ public class TaskController : Controller
         return StatusCode (StatusCodes.Status200OK, taskTypeListReponse);
     }
 
-    [HttpGet ("{TaskID:Guid}/timelines/fetch/{ID:Guid}")]
+    [HttpGet ("{TaskID:Guid}/timelines/{ID:Guid}")]
     public async Task<ActionResult> FetchTimeline ([FromRoute] Guid taskID, [FromRoute] Guid ID)
     {
         var timeline = await _taskRepository.GetTimelineAsync (ID, taskID);
@@ -98,7 +98,7 @@ public class TaskController : Controller
         return StatusCode (StatusCodes.Status200OK, timelineReponse);
     }
 
-    [HttpPost ("{TaskID:Guid}/timeline/create")]
+    [HttpPost ("{TaskID:Guid}/timelines")]
     public async Task<ActionResult> CreateTimeline ([FromRoute] Guid taskID, [FromBody] TimelineCreateRequest timelineCreateRequest)
     {
         var newTimeline = new Models.Timeline

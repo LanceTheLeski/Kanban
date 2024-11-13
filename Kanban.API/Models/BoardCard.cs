@@ -3,7 +3,7 @@ using Azure.Data.Tables;
 
 namespace Kanban.API.Models;
 
-public class Board : ITableEntity
+public class BoardCard : ITableEntity
 {
     public string PartitionKey { get; set; } //Required -- Board ID
 

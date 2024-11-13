@@ -1,6 +1,7 @@
 ﻿@using Kanban.Contracts.Response
+@using Kanban.UI.Components
 
-<MudPaper Width="600px">
+<KanbanOverlay @bind-Open="Open">
     <MudText>@TaskData.Title</MudText>
     <MudText>Completed: @(TaskData.isCompleted)</MudText>
     <!--<MudExpansionPanels>
@@ -14,12 +15,7 @@
             @_swimlaneList
         </MudExpansionPanel>
     </MudExpansionPanels>-->
-
-    <MudButtonGroup>
-        <!--<MudButton OnClick="(() => CreateCard())">Submi</MudButton>-->
-        <MudButton OnClick="CloseTaskOverlay">Discard</MudButton>
-    </MudButtonGroup>
-</MudPaper>
+</KanbanOverlay>
 
 <!--<MudOverlay @bind-Visible="_taskViewIsOpen" DarkBackground="true" ZIndex="20">
     <UpdateTaskOverlay @bind-Open="_taskViewIsOpen"
@@ -44,10 +40,4 @@
 
     private static bool _taskViewIsOpen = false;
     private static MonthResponse.BasicCard _taskToView = null;
-
-    private void CloseTaskOverlay ()
-    {
-        Open = false;
-        OpenChanged.InvokeAsync (Open);
-    }
 }

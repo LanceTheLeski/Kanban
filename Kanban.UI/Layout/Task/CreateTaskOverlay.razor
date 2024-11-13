@@ -9,7 +9,7 @@
 @using static Kanban.Contracts.Response.MonthResponse
 
 @inject HttpClient http
-@inject IOptions<InterfaceOptions> interfaceOptions
+@inject IOptions<BackendOptions> interfaceOptions
 
 @inherits LayoutComponentBase
 
@@ -195,7 +195,7 @@
 
     public async Task<TaskTypesResponse?> FetchTaskTypesAsync ()
     {
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, @$"{interfaceOptions.Value.URL}kanban/tasks/types/fetch");
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, @$"{interfaceOptions.Value.URL}kanban/tasks/types");
 
         var response = await http.SendAsync (httpRequestMessage);
         if (!response.IsSuccessStatusCode)
@@ -216,7 +216,7 @@
             CardID = Guid.Empty//Replace later..
         };
 
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{interfaceOptions.Value.URL}kanban/tasks/create");
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{interfaceOptions.Value.URL}kanban/tasks");
         httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject (createRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
 
         var response = await http.SendAsync (httpRequestMessage);

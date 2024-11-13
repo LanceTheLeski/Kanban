@@ -1,8 +1,9 @@
 ﻿using MudBlazor;
+using System.Net;
 
 namespace Kanban.UI.Components;
 
-public partial class KanbanErrorHandler
+public class KanbanErrorHandler : IKanbanErrorHandler
 {
     private readonly ISnackbar _snackbar;
 
@@ -11,8 +12,15 @@ public partial class KanbanErrorHandler
         _snackbar = snackbar;
     }
 
-    public void AddError (string message, int? errorCode)
+    public void AddError (string message, HttpStatusCode? errorCode)
+        => AddError (message, errorCode.HasValue ? (int) errorCode : null);
+
+    public void AddError (string errorMessage, int? errorCode)
     {
-        _snackbar.Add ($"{errorCode}: {message}"); // At some point I want to make this possible clickable. That will pop up an overlay with more info on the error.
+        var displayMessage = errorCode.HasValue ?
+            $"{errorCode}: {errorMessage}" :
+            $"{errorMessage}";
+
+        _snackbar.Add (displayMessage);
     }
 }

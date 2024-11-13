@@ -39,7 +39,7 @@ public class SwimlaneController : Controller //We should remove the SwimlaneOrde
         _swimlaneRepository = swimlaneRepository;
     }
 
-    [HttpGet ("fetch/{ID:Guid}")]
+    [HttpGet ("{ID:Guid}")]
     public async Task<ActionResult> FetchSwimlane (Guid ID)
     {
         var swimlaneList = new List<Swimlane> ();
@@ -63,7 +63,7 @@ public class SwimlaneController : Controller //We should remove the SwimlaneOrde
         return Ok (swimlaneResponse);
     }
 
-    [HttpPost ("create")]
+    [HttpPost]
     public async Task<ActionResult> CreateSwimlane ([FromBody] SwimlaneCreateRequest swimlaneCreateRequest)
     {
         if (swimlaneCreateRequest is null)
@@ -124,7 +124,7 @@ public class SwimlaneController : Controller //We should remove the SwimlaneOrde
         return StatusCode (StatusCodes.Status201Created, swimlaneResponse);
     }
 
-    [HttpPatch ("update/{ID:Guid}")]
+    [HttpPatch ("{ID:Guid}")]
     public async Task<ActionResult> UpdateSwimlane (Guid ID, [FromBody] JsonPatchDocument<SwimlanePatchRequest> swimlanePatchRequest)
     {
         if (swimlanePatchRequest is null)
@@ -178,7 +178,7 @@ public class SwimlaneController : Controller //We should remove the SwimlaneOrde
         return Ok (swimlaneResponse);
     }
 
-    [HttpDelete ("delete/{ID:Guid}")]
+    [HttpDelete ("{ID:Guid}")]
     public async Task<ActionResult> DeleteSwimlane (Guid ID)
     {
         var swimlaneCollection = await _swimlaneRepository.QuerySwimlanesAsync (swimlane => swimlane.PartitionKey == ID.ToString ());

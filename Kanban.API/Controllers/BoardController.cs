@@ -43,11 +43,11 @@ public class BoardController : Controller
         _taskRepository = taskRepository;
     }
 
-    [HttpGet ("fetch/{ID:guid}")]
+    [HttpGet ("{ID:guid}")]
     public async Task<ActionResult> FetchBoard (Guid ID)
     {
-        var boardList = new List<Board> ();
-        var boardsFromTable = _boardTable.QueryAsync<Board> (board => board.PartitionKey == ID.ToString ());
+        var boardList = new List<BoardCard> ();
+        var boardsFromTable = _boardTable.QueryAsync<BoardCard> (board => board.PartitionKey == ID.ToString ());
         await foreach (var board in boardsFromTable)
             boardList.Add (board);
 
@@ -123,7 +123,7 @@ public class BoardController : Controller
         return Ok (boardResponse);
     }
 
-    [HttpPost ("create")]
+    [HttpPost ("")]
     public ActionResult CreateBoard ()
     {
         //todo
@@ -134,7 +134,7 @@ public class BoardController : Controller
         return StatusCode (StatusCodes.Status418ImATeapot);
     }
 
-    [HttpPatch ("update/{IG:guid}")]
+    [HttpPatch ("{IG:guid}")]
     public ActionResult UpdateBoard ()
     {
         //todo
@@ -142,11 +142,11 @@ public class BoardController : Controller
         return StatusCode (StatusCodes.Status418ImATeapot);
     }
 
-    [HttpDelete ("delete/{ID:guid}")] // Need to delete from board AND card tables. There might also be extensions to remove. For now though, I'm just going to do board.
+    [HttpDelete ("{ID:guid}")] // Need to delete from board AND card tables. There might also be extensions to remove. For now though, I'm just going to do board.
     public async Task<ActionResult> DeleteCard (Guid ID)
     {
-        var boardList = new List<Board> ();
-        var boardsFromTable = _boardTable.QueryAsync<Board> (board => board.RowKey == ID.ToString ());
+        var boardList = new List<BoardCard> ();
+        var boardsFromTable = _boardTable.QueryAsync<BoardCard> (board => board.RowKey == ID.ToString ());
         await foreach (var board in boardsFromTable)
             boardList.Add (board);
 

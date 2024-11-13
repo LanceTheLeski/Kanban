@@ -9,7 +9,7 @@
 @using System.Net.Http.Headers
 
 @inject HttpClient http
-@inject IOptions<InterfaceOptions> interfaceOptions
+@inject IOptions<BackendOptions> interfaceOptions
 
 <KanbanOverlay @bind-Open="Open" 
                OnSubmitAsync="CreateCard">
@@ -17,19 +17,7 @@
     <MudText>Add a New Card</MudText>
     <MudTextField @bind-Value="cardTitle" T="string" Label="Title" Variant="Variant.Filled" HelperText="Card Title" />
     <MudTextField @bind-Value="cardDescription" T="string" Label="Description" Variant="Variant.Filled" AutoGrow Lines="7" HelperText="Description" />
-    <!--<MudExpansionPanels>
-        <MudExpansionPanel Text="Column" 
-                            MaxHeight="1000" 
-                            ExpandedChanged="ColumnListExpandedChanged"
-                            ChildContent="@_columnListRenderFragment" />
-    </MudExpansionPanels>
 
-    <MudExpansionPanels>
-        <MudExpansionPanel Text="Swimlane" 
-                            MaxHeight="1000" 
-                            ExpandedChanged="SwimlaneListExpandedChanged"
-                            ChildContent="@_swimlaneListRenderFragment" />
-    </MudExpansionPanels>-->
     <KanbanExpandingSelector @bind-Options="ColumnTitles"
                              OptionSelected="SetColumnNameToAddCard" />
 
@@ -75,46 +63,4 @@
 
     private string cardTitle = "";
     private string cardDescription = "";
-
-    //private bool open = false;
-
-    /*private RenderFragment? _columnListRenderFragment = null;
-    private RenderFragment createColumnListRenderFragment ()
-    {
-        return __builder =>
-        {
-            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
-                <MudStack Class = "flex-grow-1" Width = "100%" Height = "100%" >
-                    <MudList T = "string" ReadOnly = "false" >
-                        @foreach (var columnTitle in ColumnTitles)
-                        {
-                            <MudListItem OnClick = "(() => SetColumnNameToAddCard(columnTitle))" >
-                                Column Name: @(columnTitle)
-                            </MudListItem >
-                        }
-                    </MudList>
-                </MudStack>
-            </MudPaper>
-        };
-    }
-
-    private RenderFragment? _swimlaneListRenderFragment = null;
-    private RenderFragment createSwimlaneListRenderFragment ()
-    {
-        return __builder =>
-        {
-            <MudPaper Class = "d-inline-flex flex-grow-1 overflow-auto" Style = "width: 300px; height: 200px;" >
-                <MudStack Class = "flex-grow-1" Width = "100%" Height = "100%" >
-                    <MudList T = "string" ReadOnly = "false" >
-                        @foreach (var swimlaneTitle in SwimlaneTitles)
-                        {
-                            <MudListItem OnClick = "(() => SetSwimlaneNameToAddCard (swimlaneTitle))" >
-                                Swimlane Name: @(swimlaneTitle)
-                            </MudListItem >
-                        }
-                    </MudList >
-                </MudStack >
-            </MudPaper >
-        };
-    }*/
 }

@@ -1,6 +1,6 @@
 ﻿namespace Kanban.UI.Components.Services;
 
-public class ITaskService
+public interface ITaskService
 {
 
 }

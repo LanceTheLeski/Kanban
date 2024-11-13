@@ -6,7 +6,7 @@
 @using System.Net.Http.Headers
 
 @inject HttpClient http
-@inject IOptions<InterfaceOptions> interfaceOptions
+@inject IOptions<BackendOptions> interfaceOptions
 @inject ISnackbar Snackbar
 
 @rendermode RenderMode.InteractiveServer
@@ -184,7 +184,7 @@
             {patchRequestForOrder}
         ]";
 
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{interfaceOptions.Value.URL}kanban/columns/update/{columnToUpdateGuid}");
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{interfaceOptions.Value.URL}kanban/columns/{columnToUpdateGuid}");
         httpRequestMessage.Content = new StringContent (patchRequest, mediaType: new MediaTypeHeaderValue (@"application/json"));
 
         var response = await http.SendAsync (httpRequestMessage);

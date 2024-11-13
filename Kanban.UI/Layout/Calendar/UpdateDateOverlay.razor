@@ -1,4 +1,5 @@
 ﻿@using Kanban.Contracts.Response
+@using Kanban.UI.Components
 @using Kanban.UI.Layout.Task
 @using Kanban.UI.Models
 @using Microsoft.Extensions.Options
@@ -7,7 +8,7 @@
 
 @inherits LayoutComponentBase
 
-<MudPaper Width="600px">
+<KanbanOverlay @bind-Open="Open">
     <MudText>@DayData.DayOfTheMonth</MudText>
     <MudExpansionPanels>
         <MudExpansionPanel Text="Column" MaxHeight="1000" ExpandedChanged="TaskTypeListExpandedChanged">
@@ -37,17 +38,11 @@
         </MudButton>
     </MudPaper>
 
-    <MudButtonGroup>
-        <!--<MudButton OnClick="(() => CreateCard())">Submi</MudButton>-->
-        <MudButton OnClick="CloseDateOverlay">Discard</MudButton>
-    </MudButtonGroup>
-</MudPaper>
+</KanbanOverlay>
 
-<MudOverlay @bind-Visible="_taskViewIsOpen" DarkBackground="true" ZIndex="20">
-    <UpdateTaskOverlay @bind-Open="_taskViewIsOpen"
-                       @bind-TaskData="@(_cardToView.Tasks [0])"
-                       Refresh="Refresh" />
-</MudOverlay>
+<UpdateTaskOverlay @bind-Open="_taskViewIsOpen"
+                   @bind-TaskData="@(_cardToView.Tasks [0])"
+                   Refresh="Refresh" />
 
 <MudOverlay @bind-Visible="_addTaskIsOpen" DarkBackground="true" ZIndex="20">
     <CreateTaskOverlay @bind-Open="_addTaskIsOpen"

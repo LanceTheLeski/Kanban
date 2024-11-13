@@ -9,7 +9,7 @@
 @inherits LayoutComponentBase
 
 @inject HttpClient http
-@inject IOptions<InterfaceOptions> interfaceOptions
+@inject IOptions<BackendOptions> interfaceOptions
 @inject ISnackbar Snackbar
 
 @rendermode RenderMode.InteractiveServer
@@ -104,7 +104,7 @@
         //Test call here:
         //var month = GetAllMonthDates (2024, 8);
 
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, @$"{interfaceOptions.Value.URL}kanban/calendars/months/fetch/{"55d6ce15-fb1b-4041-bc21-e76275e1c685"}");
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, @$"{interfaceOptions.Value.URL}kanban/calendars/months/{"55d6ce15-fb1b-4041-bc21-e76275e1c685"}");
 
         var response = await http.SendAsync (httpRequestMessage);
         if (response.IsSuccessStatusCode)

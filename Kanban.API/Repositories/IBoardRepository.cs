@@ -8,11 +8,11 @@ namespace Kanban.API.Repositories;
 
 public interface IBoardRepository
 {
-    public Task<Board?> GetBoardCardAsync (Guid boardID, Guid cardID);
+    public Task<BoardCard?> GetBoardCardAsync (Guid boardID, Guid cardID);
 
-    public Task<Azure.Response> UpdateBoardCardAsync (Board boardToUpdate);
+    public Task<Azure.Response> UpdateBoardCardAsync (BoardCard boardToUpdate);
 
-    public Task<Collection<Board>> QueryBoardsAsync (Expression<Func<Board, bool>> boardQueryExpression);
+    public Task<Collection<BoardCard>> QueryBoardsAsync (Expression<Func<BoardCard, bool>> boardQueryExpression);
 
-    public Task UpdateBoardCardBatchAsync (IEnumerable<Board> boardCardCollection);
+    public Task UpdateBoardCardBatchAsync (IEnumerable<BoardCard> boardCardCollection);
 }

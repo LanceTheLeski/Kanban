@@ -11,7 +11,7 @@
 @using System.Net.Http.Headers
 
 @inject HttpClient http
-@inject IOptions<InterfaceOptions> interfaceOptions
+@inject IOptions<BackendOptions> interfaceOptions
 
 @page "/board"
 
@@ -141,7 +141,7 @@
 
     protected override async Task OnInitializedAsync ()
     {
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, @$"{interfaceOptions.Value.URL}kanban/boards/fetch/20a88077-10d4-4648-92cb-7dc7ba5b8df5");
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, @$"{interfaceOptions.Value.URL}kanban/boards/20a88077-10d4-4648-92cb-7dc7ba5b8df5");
 
         var response = await http.SendAsync (httpRequestMessage);
         var responseBody = await response.Content.ReadAsStringAsync ();
@@ -200,7 +200,7 @@
             {{ ""op"": ""replace"", ""path"": ""/SwimlaneOrder"", ""value"": ""{cardToUpdate.SwimlaneNumber}"" }}
         ]";
 
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{interfaceOptions.Value.URL}kanban/cards/update/{cardToUpdate.Id}");
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{interfaceOptions.Value.URL}kanban/cards/{cardToUpdate.Id}");
         httpRequestMessage.Content = new StringContent (patchRequest, mediaType: new MediaTypeHeaderValue (@"application/json"));
 
         var response = await http.SendAsync (httpRequestMessage);

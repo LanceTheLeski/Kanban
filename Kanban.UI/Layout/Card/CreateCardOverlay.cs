@@ -18,22 +18,6 @@ public partial class CreateCardOverlay : IKanbanOverlay
         OpenChanged.InvokeAsync (Open);
     }
 
-    /*protected void ColumnListExpandedChanged (bool showColumns)
-    {
-        if (showColumns)
-            _columnListRenderFragment = createColumnListRenderFragment ();
-        else
-            System.Threading.Tasks.Task.Delay (350).ContinueWith (task => _columnListRenderFragment = null);
-    }
-
-    private void SwimlaneListExpandedChanged (bool showSwimlanes)
-    {
-        if (showSwimlanes)
-            _swimlaneListRenderFragment = createSwimlaneListRenderFragment ();
-        else
-            System.Threading.Tasks.Task.Delay (350).ContinueWith (task => _swimlaneListRenderFragment = null);
-    }*/
-
     private string columnToAddCard = string.Empty;
     private void SetColumnNameToAddCard (string columnName)
     {
@@ -73,7 +57,7 @@ public partial class CreateCardOverlay : IKanbanOverlay
             SwimlaneID = Swimlanes [SwimlaneTitles.IndexOf (swimlaneToAddCard)]
         };
 
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{interfaceOptions.Value.URL}kanban/cards/create");
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{interfaceOptions.Value.URL}kanban/cards");
         httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject (createRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
 
         var response = await http.SendAsync (httpRequestMessage);

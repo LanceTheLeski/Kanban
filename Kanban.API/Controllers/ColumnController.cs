@@ -36,7 +36,7 @@ public class ColumnController : Controller
         _columnRepository = columnRepository;
     }
 
-    [HttpGet ("fetch/{ID:guid}")]
+    [HttpGet ("{ID:guid}")]
     public async Task<ActionResult> FetchColumn (Guid ID)
     {
         var columnCollection = await _columnRepository.QueryColumnsAsync (column => column.PartitionKey == ID.ToString ());
@@ -56,7 +56,7 @@ public class ColumnController : Controller
         return Ok (columnResponse);
     }
 
-    [HttpPost ("create")] //We need a standardized Column Order here. Zero-based or One-based? - I'm going to do zero-based for now :)
+    [HttpPost] //We need a standardized Column Order here. Zero-based or One-based? - I'm going to do zero-based for now :)
     public async Task<ActionResult> CreateColumn ([FromBody] ColumnCreateRequest columnCreateRequest)
     {
         if (columnCreateRequest is null)
@@ -117,7 +117,7 @@ public class ColumnController : Controller
         return StatusCode (StatusCodes.Status201Created, columnResponse);
     }
 
-    [HttpPatch ("update/{ID:Guid}")]
+    [HttpPatch ("{ID:Guid}")]
     public async Task<ActionResult> UpdateColumn (Guid ID, [FromBody] JsonPatchDocument<ColumnPatchRequest> columnPatchRequest)
     {
         if (columnPatchRequest is null)
@@ -171,7 +171,7 @@ public class ColumnController : Controller
         return Ok (columnResponse);
     }
 
-    [HttpDelete ("delete/{ID:guid}")]
+    [HttpDelete ("{ID:guid}")]
     public async Task<ActionResult> DeleteColumn (Guid ID)
     {
         var columnCollection = await _columnRepository.QueryColumnsAsync (column => column.PartitionKey == ID.ToString ());

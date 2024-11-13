@@ -1,4 +1,5 @@
 ﻿using Kanban.Contracts.Request.Patch;
+using Kanban.API.Helpers;
 using Kanban.API.Models;
 using Kanban.API.Options;
 using Microsoft.AspNetCore.JsonPatch;
@@ -7,7 +8,6 @@ using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
 using Task = System.Threading.Tasks.Task;
-using Kanban.API.Helpers;
 
 namespace Kanban.API.Repositories;
 

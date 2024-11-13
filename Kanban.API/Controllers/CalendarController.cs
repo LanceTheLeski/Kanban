@@ -28,7 +28,7 @@ public class CalendarController : Controller
         _taskRepository = taskRepository;
     }
 
-    [HttpGet ("months/fetch/{ID:guid}")]
+    [HttpGet ("months/{ID:guid}")]
     public async Task<ActionResult> FetchMonth (Guid ID)
     {
         var dates = await _dateRepository.QueryDatesAsync (date => date.RowKey == ID.ToString ());
@@ -93,7 +93,7 @@ public class CalendarController : Controller
         return Ok (monthResponse);
     }
 
-    [HttpPost ("dates/create")]
+    [HttpPost ("dates")]
     public async Task<ActionResult> CreateDate ([FromBody] DateCreateRequest dateCreateRequest)
     {
         if (dateCreateRequest is null)
@@ -139,7 +139,7 @@ public class CalendarController : Controller
         return StatusCode (StatusCodes.Status201Created, dateResponse);
     }
 
-    [HttpPatch ("months/{monthID:guid}/dates/update/{dateID:guid}")]
+    [HttpPatch ("months/{monthID:guid}/dates/{dateID:guid}")]
     public async Task<ActionResult> UpdateDate (Guid dateID, Guid monthID, [FromBody] JsonPatchDocument<DatePatchRequest> datePatchRequest)
     {
         if (datePatchRequest is null)
@@ -189,7 +189,7 @@ public class CalendarController : Controller
         return Ok (dateResponse);
     }
 
-    [HttpDelete ("dates/delete/{ID:guid}")]
+    [HttpDelete ("dates/{ID:guid}")]
     public async Task<ActionResult> DeleteDate (Guid ID)
     {
         //todo

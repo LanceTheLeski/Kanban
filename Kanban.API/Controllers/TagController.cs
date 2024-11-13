@@ -43,7 +43,7 @@ public class TagController : Controller
         _tagRepository = tagRepository;
     }
 
-    [HttpGet ("fetch/{ID:guid}")]
+    [HttpGet ("{ID:guid}")]
     public async Task<ActionResult> FetchTag (Guid ID)
     {
         var cardList = new List<Card> ();
@@ -69,7 +69,7 @@ public class TagController : Controller
         return Ok (cardList.Single ());
     }
 
-    [HttpPost ("create")]
+    [HttpPost]
     public async Task<ActionResult> CreateCard ([FromBody] CardCreateRequest cardCreateRequest)
     {
         if (cardCreateRequest is null)
@@ -87,7 +87,7 @@ public class TagController : Controller
             return StatusCode (StatusCodes.Status500InternalServerError, "Could not find swimlane.");
 
         var newCardID = Guid.NewGuid ();
-        var newCard = new Board
+        var newCard = new BoardCard
         {
             PartitionKey = cardCreateRequest.BoardID.ToString (),
             RowKey = newCardID.ToString (),
@@ -130,7 +130,7 @@ public class TagController : Controller
         return StatusCode (StatusCodes.Status201Created, cardResponse);
     }
 
-    [HttpPatch ("update/{ID:guid}")]
+    [HttpPatch ("{ID:guid}")]
     public async Task<ActionResult> UpdateCard (Guid ID, [FromBody] JsonPatchDocument<CardPatchRequest> cardPatchRequest)
     {
         if (cardPatchRequest is null)
@@ -138,7 +138,7 @@ public class TagController : Controller
             return BadRequest ("There was no Patch Request passed in!");
         }
 
-        var cardFromTable = await _boardTable.GetEntityAsync<Board> (partitionKey: @"20a88077-10d4-4648-92cb-7dc7ba5b8df5", rowKey: ID.ToString ());
+        var cardFromTable = await _boardTable.GetEntityAsync<BoardCard> (partitionKey: @"20a88077-10d4-4648-92cb-7dc7ba5b8df5", rowKey: ID.ToString ());
         var cardToUpdate = cardFromTable.Value;
 
         var convertedCardToUpdate = new CardPatchRequest
@@ -186,7 +186,7 @@ public class TagController : Controller
         return Ok (cardResponse);
     }
 
-    [HttpDelete ("delete/{ID:guid}")] // Need to delete from board AND card tables. There might also be extensions to remove. For now though, I'm just going to do board.
+    [HttpDelete ("{ID:guid}")] // Need to delete from board AND card tables. There might also be extensions to remove. For now though, I'm just going to do board.
     public async Task<ActionResult> DeleteCard (Guid ID)
     {
         var cardList = new List<Card> ();
@@ -209,19 +209,19 @@ public class TagController : Controller
             return StatusCode (StatusCodes.Status500InternalServerError, "Could not delete card.");
     }
 
-    [HttpGet ("types/fetch/{ID:guid}")]
+    [HttpGet ("types/{ID:guid}")]
     public async Task<ActionResult> FetchTagTypeAsync (Guid ID)
     {
         return Ok ();
     }
 
-    [HttpGet ("groups/fetch/{ID:guid}")]
+    [HttpGet ("groups/{ID:guid}")]
     public async Task<ActionResult> FetchTagGroupAsync (Guid ID)
     {
         return Ok ();
     }
 
-    [HttpGet ("groups/types/fetch/{ID:guid}")]
+    [HttpGet ("groups/types/{ID:guid}")]
     public async Task<ActionResult> FetchTagGroupTypeAsync (Guid ID)
     {
         return Ok ();

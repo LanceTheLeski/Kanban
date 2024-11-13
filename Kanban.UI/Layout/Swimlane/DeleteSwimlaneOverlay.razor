@@ -6,7 +6,7 @@
 @using System.Net.Http.Headers
 
 @inject HttpClient http
-@inject IOptions<InterfaceOptions> interfaceOptions
+@inject IOptions<BackendOptions> interfaceOptions
 @inject ISnackbar Snackbar
 
 @rendermode RenderMode.InteractiveServer
@@ -111,7 +111,7 @@
         var swimlaneToDeleteListIndex = _swimlaneTitles.IndexOf (swimlaneTitleSelected);
         var swimlaneToDeleteGuid = _swimlanes [swimlaneToDeleteListIndex];
 
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Delete, @$"{interfaceOptions.Value.URL}kanban/swimlanes/delete/{swimlaneToDeleteGuid}");
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Delete, @$"{interfaceOptions.Value.URL}kanban/swimlanes/{swimlaneToDeleteGuid}");
 
         var response = await http.SendAsync (httpRequestMessage);
         if (!response.IsSuccessStatusCode)
