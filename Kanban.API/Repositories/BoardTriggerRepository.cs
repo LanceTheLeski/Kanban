@@ -1,7 +1,6 @@
-﻿namespace Kanban.API.Repositories
-{
-    public class BoardTriggerRepository
-    {
+﻿namespace Kanban.API.Repositories;
 
-    }
+public class BoardTriggerRepository
+{
+
 }

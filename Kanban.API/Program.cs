@@ -1,7 +1,15 @@
+using FluentValidation;
+using Kanban.API.Mappers;
 using Kanban.API.Options;
 using Kanban.API.Repositories;
+using Kanban.API.Validators;
+using Kanban.Contracts.Request.Create;
 
 var builder = WebApplication.CreateBuilder (args);
+
+builder.Services.AddScoped<IValidator<ColumnCreateRequest>, ColumnCreateRequestValidator> ();
+
+builder.Services.AddTransient<IColumnMapper, ColumnMapper> ();
 
 builder.Services.AddTransient<IBoardRepository, BoardRepository>();
 builder.Services.AddTransient<IColumnRepository, ColumnRepository> ();

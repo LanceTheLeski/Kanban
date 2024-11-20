@@ -24,7 +24,7 @@ public class BoardRepository : EntityRepository<BoardCard>, IBoardRepository
     public async Task<Azure.Response> UpdateBoardCardAsync (BoardCard boardToUpdate)
         => await UpdateEntityAsync (boardToUpdate);
 
-    public async Task<Collection<BoardCard>> QueryBoardsAsync (Expression<Func<BoardCard, bool>> boardQueryExpression)
+    public async Task<Collection<BoardCard>> QueryBoardCardsAsync (Expression<Func<BoardCard, bool>> boardQueryExpression)
         => await QueryEntitiesAsync (boardQueryExpression);
 
     public async Task UpdateBoardCardBatchAsync (IEnumerable<BoardCard> boardCardCollection)

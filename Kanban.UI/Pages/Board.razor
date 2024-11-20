@@ -20,7 +20,27 @@
 <PageTitle>Board</PageTitle>
 <MudThemeProvider Theme="@MyMudThemeProvider._kanbanBoardDefaultTheme"/>
 
-<MudPaper Class="mud-theme-backgroundgray">
+<MudPaper Style="padding: 35px; 
+                 background-color: rgba(98, 147, 185, .45); 
+                 background: linear-gradient
+                 (
+                    120deg,
+                    rgba(98, 147, 185, .25),
+                    rgba(98, 147, 185, .75), 
+                    70%,
+                    rgba(98, 147, 185, .25)
+                 );
+                 border-radius: 10px; 
+                 border: 1px solid rgba(98, 149, 185, .25); 
+                 backdrop-filter: 
+                    blur(10px)
+                    saturate(200%)
+                    opacity(50%);
+                 box-shadow: 
+                    inset 4px 4px 5px 0 rgba(98, 147, 185, .25), 
+                    inset -4px -4px 5px 0 rgba(0, 0, 0, 0.125),
+                    0 0 10px 1px rgba(0, 0, 0, 0.25);
+                 "> <!--Class="mud-theme-backgroundgray"--->
     <MudPaper Height="50px" Width="100%" Class="d-inline mud-theme-primary">
         <BoardManagementNavigationBar @bind-Cards="@_cards"
                                       @bind-Swimlanes="_swimlanes"

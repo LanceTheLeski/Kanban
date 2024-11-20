@@ -1,4 +1,5 @@
 ﻿using Azure.Data.Tables;
+using Kanban.API.Helpers;
 using Kanban.API.Models;
 using Kanban.API.Options;
 using Microsoft.Extensions.Options;
@@ -7,7 +8,7 @@ using System.Linq.Expressions;
 
 namespace Kanban.API.Repositories;
 
-public class TagRepository : ITagRepository
+public class TagRepository : EntityRepository<Tag>, ITagRepository
 {
     private const string tags = "Tags";
     private const string tagTypes = "TagTypes";
@@ -21,6 +22,7 @@ public class TagRepository : ITagRepository
     private readonly TableClient _tagGroupTypeTable;
 
     public TagRepository (IOptions<CosmosOptions> cosmosOptions)
+                            : base (tags, cosmosOptions)
     {
         _tableServiceClient = new TableServiceClient (cosmosOptions.Value.HonuBoards);
         _tagTable = _tableServiceClient.GetTableClient (tableName: tags);

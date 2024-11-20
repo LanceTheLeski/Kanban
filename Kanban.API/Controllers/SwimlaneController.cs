@@ -71,7 +71,7 @@ public class SwimlaneController : Controller //We should remove the SwimlaneOrde
             return BadRequest ("There was no Swimlane Request passed in!");
         }
 
-        var boardsFromTable = await _boardRepository.QueryBoardsAsync (board => board.PartitionKey == swimlaneCreateRequest.BoardID.ToString ());
+        var boardsFromTable = await _boardRepository.QueryBoardCardsAsync (board => board.PartitionKey == swimlaneCreateRequest.BoardID.ToString ());
         if (boardsFromTable.Count () is 0)
             return BadRequest ("The board ID passed in does not exist.");
 

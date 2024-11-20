@@ -1,5 +1,4 @@
-﻿using Kanban.API.Models;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
 namespace Kanban.API.Repositories;
@@ -12,15 +11,5 @@ public interface ITaskRepository
 
     public Task<Collection<Models.Task>> QueryTasksAsync (Expression<Func<Models.Task, bool>> taskQueryExpression);
 
-    public Task<Azure.Response> CreateTaskAsync (Models.Task taskToCreate);
-
-    public Task<Collection<TaskType>> GetTaskTypesAsync (Expression<Func<TaskType, bool>> taskTypeQueryExpression);
-
-    public Task<TaskType?> GetTaskTypeAsync (Guid taskTypeID, Guid tagGroupID);
-
-    public Task<Timeline?> GetTimelineAsync (Guid timelineID, Guid taskID);
-
-    public Task<Collection<Timeline>> QueryTimelinesAsync (Expression<Func<Timeline, bool>> timelineQueryExpression);
-
-    public Task<Azure.Response> CreateTimelineAsync (Timeline timelineToCreate);
+    public Task<Azure.Response> AddTaskAsync (Models.Task taskToCreate);
 }

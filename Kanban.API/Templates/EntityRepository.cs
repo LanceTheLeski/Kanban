@@ -29,14 +29,20 @@ public class EntityRepository<T> where T : class, ITableEntity, new()
             null;
     }
 
-    public async Task<Azure.Response> UpdateEntityAsync(T entityToUpdate)
-        => await _table.UpdateEntityAsync(entityToUpdate, Azure.ETag.All);
+    public async Task<Azure.Response> AddEntityAsync (T entityToCreate)
+        => await _table.AddEntityAsync (entityToCreate);
 
-    public async Task<Collection<T>> QueryEntitiesAsync(Expression<Func<T, bool>> boardQueryExpression)
+    public async Task<Azure.Response> UpdateEntityAsync (T entityToUpdate)
+        => await _table.UpdateEntityAsync (entityToUpdate, Azure.ETag.All);
+
+    public async Task<Azure.Response> DeleteEntityAsync (T entityToDelete)
+        => await _table.DeleteEntityAsync (entityToDelete, Azure.ETag.All);
+
+    public async Task<Collection<T>> QueryEntitiesAsync(Expression<Func<T, bool>> entityQueryExpression)
     {
         var boardCollection = new Collection<T>();
 
-        var boardsFromTable = _table.QueryAsync(boardQueryExpression); //This seems to fail with certain expressions
+        var boardsFromTable = _table.QueryAsync(entityQueryExpression); //This seems to fail with certain expressions
         await foreach (var entity in boardsFromTable)
             boardCollection.Add(entity);
 

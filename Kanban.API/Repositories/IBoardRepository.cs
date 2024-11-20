@@ -10,9 +10,9 @@ public interface IBoardRepository
 {
     public Task<BoardCard?> GetBoardCardAsync (Guid boardID, Guid cardID);
 
-    public Task<Azure.Response> UpdateBoardCardAsync (BoardCard boardToUpdate);
+    public Task<Azure.Response> UpdateBoardCardAsync (BoardCard boardCardToUpdate);
 
-    public Task<Collection<BoardCard>> QueryBoardsAsync (Expression<Func<BoardCard, bool>> boardQueryExpression);
+    public Task<Collection<BoardCard>> QueryBoardCardsAsync (Expression<Func<BoardCard, bool>> boardCardQueryExpression);
 
     public Task UpdateBoardCardBatchAsync (IEnumerable<BoardCard> boardCardCollection);
 }

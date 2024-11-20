@@ -10,10 +10,16 @@ namespace Kanban.API.Controllers;
 public class TaskController : Controller
 {
     private readonly ITaskRepository _taskRepository;
+    private readonly ITaskTypeRepository _taskTypeRepository;
+    private readonly ITimelineRepository _timelineRepository;
 
-    public TaskController (ITaskRepository taskRepository)
+    public TaskController (ITaskRepository taskRepository,
+                           ITaskTypeRepository taskTypeRepository, 
+                           ITimelineRepository timelineRepository)
     {
         _taskRepository = taskRepository;
+        _taskTypeRepository = taskTypeRepository;
+        _timelineRepository = timelineRepository;
     }
 
     [HttpGet]
@@ -48,7 +54,7 @@ public class TaskController : Controller
             TimelineID = Guid.Empty,//Replace soon!!!
         };
 
-        var addTaskResponse = await _taskRepository.CreateTaskAsync (newTask);
+        var addTaskResponse = await _taskRepository.AddTaskAsync (newTask);
         if (addTaskResponse.IsError)
         {
             //We might want to have better verification later for failures. I'm thinking we actually query the table and grab the card so we can map it to a response object
@@ -70,7 +76,7 @@ public class TaskController : Controller
     [HttpGet ("types")]
     public async Task<ActionResult> FetchTaskTypes ()
     {
-        var taskTypes = await _taskRepository.GetTaskTypesAsync (taskType => true);
+        var taskTypes = await _taskTypeRepository.QueryTaskTypesAsync (taskType => true);
 
         var taskTypeListReponse = new TaskTypesResponse { Titles = new List<string> () };
         foreach (var taskType in taskTypes)
@@ -82,7 +88,7 @@ public class TaskController : Controller
     [HttpGet ("{TaskID:Guid}/timelines/{ID:Guid}")]
     public async Task<ActionResult> FetchTimeline ([FromRoute] Guid taskID, [FromRoute] Guid ID)
     {
-        var timeline = await _taskRepository.GetTimelineAsync (ID, taskID);
+        var timeline = await _timelineRepository.GetTimelineAsync (ID, taskID);
 
         var timelineReponse = new TimelineResponse
         {
@@ -113,7 +119,7 @@ public class TaskController : Controller
             EndDeadlineUTC = timelineCreateRequest.EndDeadlineUTC
         };
 
-        var addTimelineResponse = await _taskRepository.CreateTimelineAsync (newTimeline);
+        var addTimelineResponse = await _timelineRepository.AddTimelineAsync (newTimeline);
         if (addTimelineResponse.IsError)
         {
             //We might want to have better verification later for failures. I'm thinking we actually query the table and grab the card so we can map it to a response object

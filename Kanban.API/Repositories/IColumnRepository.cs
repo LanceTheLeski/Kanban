@@ -14,11 +14,19 @@ public interface IColumnRepository
 
     public Task<Column?> GetColumnAsync (Guid columnID, Guid boardID);
 
+    public Task<Azure.Response> AddColumnAsync (Column columnToAdd);
+
+    public Task<Azure.Response> DeleteColumnAsync (Column columnToDelete);
+
     public Task<Collection<Column>> QueryColumnsAsync (Expression<Func<Column, bool>> columnQueryExpression);
 
     public ColumnPatchRequest ApplyJsonPatchDocumentToColumn (JsonPatchDocument<ColumnPatchRequest> columnPatchRequest, Column columnToUpdate);
 
     public Collection<Column> ApplyAllOtherColumnOrdersAsync (Collection<Column> columnCollection, int oldColumnOrder, int newColumnOrder);
+
+    public Collection<Column> IncrementExistingColumnsWithNewOrder (Collection<Column> columnCollection, Column newColumn);
+
+    public Collection<Column> DecrementExistingColumnsWithNewOrder (Collection<Column> columnCollection, Column newColumn);
 
     public Task UpdateColumnBatchAndTheirBoardCardsAsync (Collection<Column> columnCollection);
 

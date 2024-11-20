@@ -2,6 +2,7 @@
 using Kanban.API.Helpers;
 using Kanban.API.Models;
 using Kanban.API.Options;
+using Kanban.API.Templates;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.Extensions.Options;
 using System.Collections.ObjectModel;
@@ -18,7 +19,7 @@ public class ColumnRepository : EntityRepository<Column>, IColumnRepository
     private readonly IBoardRepository _boardRepository;
 
     public ColumnRepository (IOptions<CosmosOptions> cosmosOptions,
-                             IBoardRepository boardRepository) 
+                             IBoardRepository boardRepository)
                                 : base (columns, cosmosOptions)
     {
         _boardRepository = boardRepository;
@@ -35,8 +36,14 @@ public class ColumnRepository : EntityRepository<Column>, IColumnRepository
         return columnCollection;
     }
 
-    public async Task<Column?> GetColumnAsync (Guid columnID, Guid boardID) 
+    public async Task<Column?> GetColumnAsync (Guid columnID, Guid boardID)
         => await GetEntityAsync (columnID, boardID);
+
+    public async Task<Azure.Response> AddColumnAsync (Column columnToAdd)
+        => await AddEntityAsync (columnToAdd);
+
+    public async Task<Azure.Response> DeleteColumnAsync (Column columnToDelete)
+        => await DeleteEntityAsync (columnToDelete);
 
     public async Task<Collection<Column>> QueryColumnsAsync (Expression<Func<Column, bool>> columnQueryExpression)
         => await QueryEntitiesAsync (columnQueryExpression);
@@ -48,9 +55,9 @@ public class ColumnRepository : EntityRepository<Column>, IColumnRepository
             Title = columnToUpdate.Title,
             Order = columnToUpdate.ColumnOrder
         };
-            
+
         columnPatchRequest.ApplyTo (convertedColumnToUpdate);
-        
+
         return convertedColumnToUpdate;
     }
 
@@ -61,14 +68,14 @@ public class ColumnRepository : EntityRepository<Column>, IColumnRepository
 
         var columnsToUpdate = new Collection<Column> ();
         if (oldColumnOrder < newColumnOrder)
-            for (int index = oldColumnOrder + 1; index <= newColumnOrder; index ++)
+            for (int index = oldColumnOrder + 1; index <= newColumnOrder; index++)
             {
                 var columnToUpdate = columnCollection.Single (column => column.ColumnOrder == index).DeepCopy ();
                 columnToUpdate.ColumnOrder = index - 1;
                 columnsToUpdate.Add (columnToUpdate);
             }
         if (oldColumnOrder > newColumnOrder)
-            for (int index = newColumnOrder; index < oldColumnOrder; index ++)
+            for (int index = newColumnOrder; index < oldColumnOrder; index++)
             {
                 var columnToUpdate = columnCollection.Single (column => column.ColumnOrder == index).DeepCopy ();
                 columnToUpdate.ColumnOrder = index + 1;
@@ -78,12 +85,46 @@ public class ColumnRepository : EntityRepository<Column>, IColumnRepository
         return columnsToUpdate;
     }
 
+    public Collection<Column> IncrementExistingColumnsWithNewOrder (Collection<Column> columnCollection, Column newColumn)
+    {
+        var columnJustAdded = columnCollection.FirstOrDefault (column => column.PartitionKey == newColumn.PartitionKey);
+        if (columnJustAdded is null)
+            throw new Exception (ErrorResponseMessages.AddToDatabaseErrorResponse(nameof (Column)));
+
+        var columnJustAddedIndex = columnCollection.IndexOf (columnJustAdded);
+        if (columnJustAddedIndex is -1)
+            throw new Exception ("Newly added Column does not have a defined Order.");
+        columnCollection.RemoveAt (columnJustAddedIndex);
+
+        foreach (var column in columnCollection!)
+            column.ColumnOrder ++;
+
+        return columnCollection;
+    }
+
+    public Collection<Column> DecrementExistingColumnsWithNewOrder (Collection<Column> columnCollection, Column newColumn)
+    {
+        var columnJustAdded = columnCollection.FirstOrDefault (column => column.PartitionKey == newColumn.PartitionKey);
+        if (columnJustAdded is null)
+            throw new Exception (ErrorResponseMessages.RemoveFromDatabaseErrorResponse (nameof (Column)));
+
+        var columnJustAddedIndex = columnCollection.IndexOf (columnJustAdded);
+        if (columnJustAddedIndex is -1)
+            throw new Exception ("Newly removed Column does not have a defined Order.");
+        columnCollection.RemoveAt (columnJustAddedIndex);
+
+        foreach (var column in columnCollection!)
+            column.ColumnOrder --;
+
+        return columnCollection;
+    }
+
     public async Task UpdateColumnBatchAndTheirBoardCardsAsync (Collection<Column> columnCollection)
     {
         if (columnCollection.Count is 0)
             return;
 
-        var boardCardsFromTable = await _boardRepository.QueryBoardsAsync (board => board.PartitionKey == @"20a88077-10d4-4648-92cb-7dc7ba5b8df5");
+        var boardCardsFromTable = await _boardRepository.QueryBoardCardsAsync (board => board.PartitionKey == @"20a88077-10d4-4648-92cb-7dc7ba5b8df5");
         var filteredBoardCardsFromTable = boardCardsFromTable.Where (boardCard => columnCollection.Any (column => column.Title == boardCard.ColumnTitle));
         if (filteredBoardCardsFromTable is not null && filteredBoardCardsFromTable!.Count () is not 0)
         {
@@ -97,7 +138,7 @@ public class ColumnRepository : EntityRepository<Column>, IColumnRepository
 
     public async Task UpdateColumnToDeleteBordCardBatchAsync (Column columnToDelete, Column columnForTransfer)
     {
-        var boardCardsFromTable = await _boardRepository.QueryBoardsAsync (board => board.PartitionKey == @"20a88077-10d4-4648-92cb-7dc7ba5b8df5" 
+        var boardCardsFromTable = await _boardRepository.QueryBoardCardsAsync (board => board.PartitionKey == @"20a88077-10d4-4648-92cb-7dc7ba5b8df5" 
                                                                                     && board.ColumnTitle == columnToDelete.Title);
 
         if (boardCardsFromTable is null || boardCardsFromTable!.Count () is 0)

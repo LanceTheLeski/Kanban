@@ -1,15 +1,15 @@
-﻿using Azure.Data.Tables;
-using Kanban.Contracts.Request.Create;
+﻿using Kanban.Contracts.Request.Create;
 using Kanban.Contracts.Request.Patch;
 using Kanban.Contracts.Response;
+using Kanban.API.Mappers;
 using Kanban.API.Models;
-using Kanban.API.Options;
 using Kanban.API.Repositories;
+using Kanban.API.Templates;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using System.Collections.ObjectModel;
+using FluentValidation;
 
 namespace Kanban.API.Controllers;
 
@@ -17,23 +17,25 @@ namespace Kanban.API.Controllers;
 [Route ("kanban/columns")]
 public class ColumnController : Controller
 {
-    private const string columns = "Columns";
-
-    private readonly TableServiceClient _tableServiceClient;
-    private readonly TableClient _columnTable;
-
-    private readonly IBoardRepository _boardRepository;
     private readonly IColumnRepository _columnRepository;
+    private readonly IBoardRepository _boardRepository;
 
-    public ColumnController (IOptions<CosmosOptions> cosmosOptions, 
-                             IColumnRepository columnRepository, 
-                             IBoardRepository boardRepository)
+    private readonly IValidator<ColumnCreateRequest> _columnCreateRequestValidator;
+    private readonly IValidator<JsonPatchDocument<ColumnPatchRequest>> _columnPatchRequestDocumentValidator;
+    private readonly IColumnMapper _columnMapper;//If this fails it's because I removed the initialization of '= new ColumnMapper ()'
+
+    public ColumnController (IColumnRepository columnRepository,
+                             IBoardRepository boardRepository,
+                             IValidator<ColumnCreateRequest> columnCreateRequestValidator,
+                             IValidator<JsonPatchDocument<ColumnPatchRequest>> columnPatchRequestDocumentValidator,
+                             IColumnMapper columnMapper)
     {
-        _tableServiceClient = new TableServiceClient (cosmosOptions.Value.HonuBoards);
-        _columnTable = _tableServiceClient.GetTableClient (tableName: columns);
-
-        _boardRepository = boardRepository;
         _columnRepository = columnRepository;
+        _boardRepository = boardRepository;
+
+        _columnCreateRequestValidator = columnCreateRequestValidator;
+        _columnPatchRequestDocumentValidator = columnPatchRequestDocumentValidator;
+        _columnMapper = columnMapper;
     }
 
     [HttpGet ("{ID:guid}")]
@@ -45,6 +47,7 @@ public class ColumnController : Controller
         if (columnCollection.Count () is 0)
             return NotFound ("The column you are searching for was not found.");
 
+        //MAP
         var columnToReturn = columnCollection.First ();
         var columnResponse = new ColumnResponse
         {
@@ -56,118 +59,85 @@ public class ColumnController : Controller
         return Ok (columnResponse);
     }
 
-    [HttpPost] //We need a standardized Column Order here. Zero-based or One-based? - I'm going to do zero-based for now :)
+    [HttpPost]
     public async Task<ActionResult> CreateColumn ([FromBody] ColumnCreateRequest columnCreateRequest)
     {
-        if (columnCreateRequest is null)
-        {
-            return BadRequest ("There was no Column Request passed in!");
-        }
+        var validationResult = _columnCreateRequestValidator.Validate (columnCreateRequest);
+        if (validationResult.IsValid is false)
+            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse(nameof (ColumnCreateRequest)) 
+                               + "\n" + validationResult.ToString ());
 
-        var boardsFromTable = await _boardRepository.QueryBoardsAsync (board => board.PartitionKey == columnCreateRequest.BoardID.ToString ());
+        var boardsFromTable = await _boardRepository.QueryBoardCardsAsync (board => board.PartitionKey == columnCreateRequest.BoardID.ToString ());
         if (boardsFromTable.Count () is 0)
-            return BadRequest ("The board ID passed in does not exist.");
+            return BadRequest (ErrorResponseMessages.FieldDoesNotExistInDatabaseErrorResponse (nameof (ColumnCreateRequest.BoardID)));
 
-        //if (columnCreateRequest.Order > boardsFromTable.Count ())  //If equal then we're just going to add it to the end
-        //    return BadRequest ("The order passed in is too high.");
+        var newColumn = _columnMapper.MapColumnCreateRequestToColumn (columnCreateRequest);
+        newColumn.PartitionKey = Guid.NewGuid ().ToString ();
+        newColumn.BoardTitle = boardsFromTable.First ().Title;
 
-        var newColumnID = Guid.NewGuid ();
-        var newColumn = new Column
-        {
-            PartitionKey = newColumnID.ToString (),
-            RowKey = columnCreateRequest.BoardID.ToString (),
-
-            Title = columnCreateRequest.Title,
-            ColumnOrder = columnCreateRequest.Order,
-
-            BoardTitle = boardsFromTable.First ().Title
-        };
-
-        var addEntityResponse = await _columnTable.AddEntityAsync (newColumn);
+        var addEntityResponse = await _columnRepository.AddColumnAsync (newColumn);
         if (addEntityResponse.IsError)
-        {
-            //We might want to have better verification later for failures. I'm thinking we actually query the table and grab the column so we can map it to a response object
-            return StatusCode (StatusCodes.Status500InternalServerError, $"Could not insert a new column into database. Internal status: {addEntityResponse.Status}");
-        }
+            return Problem (ErrorResponseMessages.AddToDatabaseErrorResponse (nameof (Column)) + $"\nInternal status: {addEntityResponse.Status}");
 
         var columnsToUpdateOrder = await _columnRepository.QueryColumnsAsync (column => column.ColumnOrder >= newColumn.ColumnOrder
-                                                                                        && column.RowKey == "20a88077-10d4-4648-92cb-7dc7ba5b8df5");
-        var columnJustAdded = columnsToUpdateOrder.FirstOrDefault (column => column.PartitionKey == newColumn.PartitionKey);
-        if (columnJustAdded is not null)
-        {
-            var columnJustAddedIndex = columnsToUpdateOrder.IndexOf (columnJustAdded);
-            if (columnJustAddedIndex is -1)
-                return BadRequest ("Cannot find newly added column");
-            columnsToUpdateOrder.RemoveAt (columnJustAddedIndex);
-        }
-        else
-            return BadRequest ("The new column was not added into the database.");
+                                                                                        && column.RowKey == newColumn.RowKey);
 
-        foreach (var column in columnsToUpdateOrder!)
-            column.ColumnOrder ++;
+        try
+        { _columnRepository.IncrementExistingColumnsWithNewOrder (columnsToUpdateOrder, newColumn); }
+        catch (Exception ex)
+        { return Problem (ex.Message); }
         await _columnRepository.UpdateColumnBatchAndTheirBoardCardsAsync (columnsToUpdateOrder);
 
-        var columnResponse = new ColumnResponse
+        //MAP
+        /*var columnResponse = new ColumnResponse
         {
             ID = Guid.Parse (newColumn.PartitionKey),
             Title = newColumn.Title,
             BoardID = Guid.Parse (newColumn.RowKey),
             Order = newColumn.ColumnOrder
-        };
+        };*/
+        var columnResponse = _columnMapper.MapColumnToColumnResponse (newColumn);
         return StatusCode (StatusCodes.Status201Created, columnResponse);
     }
 
     [HttpPatch ("{ID:Guid}")]
     public async Task<ActionResult> UpdateColumn (Guid ID, [FromBody] JsonPatchDocument<ColumnPatchRequest> columnPatchRequest)
     {
-        if (columnPatchRequest is null)
-            return BadRequest ("There was no Patch Request passed in!");
+        var validationResult = _columnPatchRequestDocumentValidator.Validate (columnPatchRequest);
+        if (validationResult.IsValid is false)
+            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (ColumnPatchRequest))
+                               + "\n" + validationResult.ToString ());
 
         Column? columnToUpdate = await _columnRepository.GetColumnAsync (columnID: ID, boardID: new Guid (@"20a88077-10d4-4648-92cb-7dc7ba5b8df5"));
         if (columnToUpdate is null)
-            return NotFound ("Could not find the desired column for update.");
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Column)));
 
         ColumnPatchRequest? convertedColumnToUpdate = null;
-        try
-        {
-            convertedColumnToUpdate = _columnRepository.ApplyJsonPatchDocumentToColumn (columnPatchRequest, columnToUpdate);
-        }
-        catch (JsonPatchException jsonPatchEx)
-        {
-            return BadRequest ($"The patch request is invalid. Problem(s): {jsonPatchEx.Message}");//This should get a unit and/or integration test
-        }
+        try { convertedColumnToUpdate = _columnRepository.ApplyJsonPatchDocumentToColumn (columnPatchRequest, columnToUpdate); }
+        catch (JsonPatchException jsonPatchEx) 
+            { return BadRequest (ErrorResponseMessages.PatchRequestIsInvalidErrorResponse(nameof (Column)) + "\nDetails:\n" + jsonPatchEx.Message); }
             
         var columnOrderChange = _columnRepository.GetColumnOrderChange (columnToUpdate, convertedColumnToUpdate!);
 
+        // MOVE to ColumnRepository
+        // Name: 
         Collection<Column>? otherColumnsWithUpdatedOrder = null;
         if (columnPatchRequest.Operations.Any (operation => string.Equals (operation.path, $"/{nameof (ColumnPatchRequest.Order)}", StringComparison.OrdinalIgnoreCase)))
         {
             var columnCollection = await _columnRepository.GetAllColumnsForBoard (boardID: Guid.Parse ("20a88077-10d4-4648-92cb-7dc7ba5b8df5"));
-            try
-            {
-                otherColumnsWithUpdatedOrder = _columnRepository.ApplyAllOtherColumnOrdersAsync (columnCollection, columnOrderChange.oldOrder, columnOrderChange.newOrder);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest (ex);
-            }
+            try { otherColumnsWithUpdatedOrder = _columnRepository.ApplyAllOtherColumnOrdersAsync (columnCollection, columnOrderChange.oldOrder, columnOrderChange.newOrder); }
+            catch (Exception ex) 
+                { return BadRequest (ex); }
         }
 
-        columnToUpdate.Title = convertedColumnToUpdate.Title;
-        columnToUpdate.ColumnOrder = convertedColumnToUpdate.Order;
+        columnToUpdate = _columnMapper.MapColumnPatchRequestToColumn (convertedColumnToUpdate); // Make sure that the response object is preserved if not mapped to.
 
         if (otherColumnsWithUpdatedOrder is not null)
             otherColumnsWithUpdatedOrder.Add (columnToUpdate);
         var allUpdatedColumns = otherColumnsWithUpdatedOrder ?? new Collection<Column> { columnToUpdate };
         await _columnRepository.UpdateColumnBatchAndTheirBoardCardsAsync (allUpdatedColumns);
 
-        var columnResponse = new ColumnResponse
-        {
-            ID = Guid.Parse (columnToUpdate.PartitionKey),
-            Title = columnToUpdate.Title,
-            BoardID = Guid.Parse (columnToUpdate.RowKey),
-            Order = columnToUpdate.ColumnOrder
-        };
+        var columnResponse = _columnMapper.MapColumnToColumnResponse (columnToUpdate);
         return Ok (columnResponse);
     }
 
@@ -175,22 +145,24 @@ public class ColumnController : Controller
     public async Task<ActionResult> DeleteColumn (Guid ID)
     {
         var columnCollection = await _columnRepository.QueryColumnsAsync (column => column.PartitionKey == ID.ToString ());
-
         if (columnCollection.Count () is 0)
-            return NotFound ("The column you are searching for was not found.");
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Column)));
         if (columnCollection.Count () > 1)
-            return StatusCode (StatusCodes.Status500InternalServerError, "Multiple columns were found with the same ID.");
+            return Problem (ErrorResponseMessages.TooManyEntitiesErrorResponse (nameof (Column)));
 
         var columnFromDatabase = columnCollection.Single ();
-        var columnToDeleteResponse = await _columnTable.DeleteEntityAsync (columnFromDatabase.PartitionKey, columnFromDatabase.RowKey);//Something seems to go wrong around here?
+        var columnToDeleteResponse = await _columnRepository.DeleteColumnAsync (columnFromDatabase);
+        if (columnToDeleteResponse.IsError)
+            return Problem (ErrorResponseMessages.CouldNotDeleteErrorResponse (nameof (Column)));
 
         var columnsToUpdateOrder = await _columnRepository.QueryColumnsAsync (column => column.ColumnOrder > columnFromDatabase.ColumnOrder
-                                                                                        && column.RowKey == "20a88077-10d4-4648-92cb-7dc7ba5b8df5");
-        foreach (var column in columnsToUpdateOrder!)
-            column.ColumnOrder --;
+                                                                                        && column.RowKey == columnFromDatabase.RowKey);
+        try { _columnRepository.DecrementExistingColumnsWithNewOrder (columnsToUpdateOrder, columnFromDatabase); }
+        catch (Exception ex) 
+            { return Problem (ex.Message); }
         await _columnRepository.UpdateColumnBatchAndTheirBoardCardsAsync (columnsToUpdateOrder);
 
-        var columnToTransferCandidates = await _columnRepository.QueryColumnsAsync (column => column.RowKey == "20a88077-10d4-4648-92cb-7dc7ba5b8df5"
+        var columnToTransferCandidates = await _columnRepository.QueryColumnsAsync (column => column.RowKey == columnFromDatabase.RowKey
                                                                                     && (column.ColumnOrder == columnFromDatabase.ColumnOrder
                                                                                         || column.ColumnOrder == columnFromDatabase.ColumnOrder - 1));
         var columnToTransfer = columnToTransferCandidates.Count is 2 ?
@@ -198,9 +170,6 @@ public class ColumnController : Controller
             columnToTransferCandidates.Single ();
         await _columnRepository.UpdateColumnToDeleteBordCardBatchAsync (columnFromDatabase, columnToTransfer!);
 
-        if (!columnToDeleteResponse.IsError)
-            return Ok (); //Is there a better Status to return? NoContent perhaps?
-        else
-            return StatusCode (StatusCodes.Status500InternalServerError, "Could not delete column.");
+        return Ok ();
     }
 }

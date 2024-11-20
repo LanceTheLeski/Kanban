@@ -1,5 +1,5 @@
-﻿using Azure.Data.Tables;
-using Kanban.Contracts.Request.Patch;
+﻿using Kanban.Contracts.Request.Patch;
+using Kanban.API.Helpers;
 using Kanban.API.Models;
 using Kanban.API.Options;
 using Microsoft.AspNetCore.JsonPatch;
@@ -11,21 +11,16 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Kanban.API.Repositories;
 
-public class SwimlaneRepository : ISwimlaneRepository
+public class SwimlaneRepository : EntityRepository<Swimlane>, ISwimlaneRepository
 {
     private const string swimlanes = "Swimlanes";
-
-    private readonly TableServiceClient _tableServiceClient;
-    private readonly TableClient _swimlaneTable;
 
     private readonly IBoardRepository _boardRepository;
 
     public SwimlaneRepository (IOptions<CosmosOptions> cosmosOptions,
                                IBoardRepository boardRepository)
+                                : base (swimlanes, cosmosOptions)
     {
-        _tableServiceClient = new TableServiceClient (cosmosOptions.Value.HonuBoards);
-        _swimlaneTable = _tableServiceClient.GetTableClient (tableName: swimlanes);
-
         _boardRepository = boardRepository;
     }
 
@@ -33,7 +28,7 @@ public class SwimlaneRepository : ISwimlaneRepository
     {
         var swimlaneCollection = new Collection<Swimlane> ();
 
-        var swimlanesFromTable = _swimlaneTable.QueryAsync<Swimlane> (swimlane => swimlane.RowKey == boardID.ToString ());
+        var swimlanesFromTable = _table.QueryAsync<Swimlane> (swimlane => swimlane.RowKey == boardID.ToString ());
         await foreach (var swimlane in swimlanesFromTable)
             swimlaneCollection.Add (swimlane);
 
@@ -41,23 +36,10 @@ public class SwimlaneRepository : ISwimlaneRepository
     }
 
     public async Task<Swimlane?> GetSwimlaneAsync (Guid swimlaneID, Guid boardID)
-    {
-        var response = await _swimlaneTable.GetEntityAsync<Swimlane> (partitionKey: swimlaneID.ToString (), rowKey: boardID.ToString ());
-        return response?.Value.GetType () == typeof (Swimlane) ?
-            response.Value :
-            null;
-    }
+        => await GetEntityAsync (swimlaneID, boardID);
 
     public async Task<Collection<Swimlane>> QuerySwimlanesAsync (Expression<Func<Swimlane, bool>> swimlaneQueryExpression)
-    {
-        var swimlaneCollection = new Collection<Swimlane> ();
-
-        var swimlanesFromTable = _swimlaneTable.QueryAsync (swimlaneQueryExpression);
-        await foreach (var swimlane in swimlanesFromTable)
-            swimlaneCollection.Add (swimlane);
-
-        return swimlaneCollection;
-    }
+        => await QueryEntitiesAsync (swimlaneQueryExpression);
 
     public SwimlanePatchRequest ApplyJsonPatchDocumentToSwimlane (JsonPatchDocument<SwimlanePatchRequest> swimlanePatchRequest, Swimlane swimlaneToUpdate)
     {
@@ -101,7 +83,7 @@ public class SwimlaneRepository : ISwimlaneRepository
         if (swimlaneCollection.Count is 0)
             return;
 
-        var boardCardsFromTable = await _boardRepository.QueryBoardsAsync (board => board.PartitionKey == @"20a88077-10d4-4648-92cb-7dc7ba5b8df5");
+        var boardCardsFromTable = await _boardRepository.QueryBoardCardsAsync (board => board.PartitionKey == @"20a88077-10d4-4648-92cb-7dc7ba5b8df5");
         var filteredBoardCardsFromTable = boardCardsFromTable.Where (boardCard => swimlaneCollection.Any (swimlane => swimlane.Title == boardCard.SwimlaneTitle));
         if (filteredBoardCardsFromTable is not null || filteredBoardCardsFromTable!.Count () is not 0)
         {
@@ -115,7 +97,7 @@ public class SwimlaneRepository : ISwimlaneRepository
 
     public async Task UpdateSwimlaneToDeleteBordCardBatchAsync (Swimlane swimlaneToDelete, Swimlane swimlaneForTransfer)
     {
-        var boardCardsFromTable = await _boardRepository.QueryBoardsAsync (board => board.PartitionKey == @"20a88077-10d4-4648-92cb-7dc7ba5b8df5"
+        var boardCardsFromTable = await _boardRepository.QueryBoardCardsAsync (board => board.PartitionKey == @"20a88077-10d4-4648-92cb-7dc7ba5b8df5"
                                                                                     && board.SwimlaneTitle == swimlaneToDelete.Title);
         if (boardCardsFromTable is null || boardCardsFromTable!.Count () is 0)
             return;
@@ -133,7 +115,7 @@ public class SwimlaneRepository : ISwimlaneRepository
     {
         foreach (var swimlane in swimlaneCollection)
         {
-            var response = await _swimlaneTable.UpdateEntityAsync (swimlane, Azure.ETag.All);
+            var response = await _table.UpdateEntityAsync (swimlane, Azure.ETag.All);
             if (response.IsError)
                 throw new Exception ($"Update error: {response.ReasonPhrase}");
         }

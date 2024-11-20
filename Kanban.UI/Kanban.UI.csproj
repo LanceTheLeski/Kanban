@@ -22,5 +22,14 @@
   <ItemGroup>
     <ProjectReference Include="..\Kanban.Contracts\Kanban.Contracts.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="Mappers\" />
+    <Folder Include="Validators\" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="wwwroot\DefaultBackground.jpg" />
+  </ItemGroup>
 
 </Project>

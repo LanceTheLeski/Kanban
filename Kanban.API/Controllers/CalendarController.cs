@@ -14,16 +14,25 @@ public class CalendarController : Controller
 {
     private readonly IDateRepository _dateRepository;
     private readonly ITagRepository _tagRepository;
+    private readonly ITagTypeRepository _tagTypeRepository;
+    private readonly ITagGroupRepository _tagGroupRepository;
+    private readonly ITagGroupTypeRepository _tagGroupTypeRepository;
     private readonly ICardRepository _cardRepository;
     private readonly ITaskRepository _taskRepository;
 
     public CalendarController (IDateRepository dateRepository,
                                ITagRepository tagRepository,
+                               ITagTypeRepository tagTypeRepository,
+                               ITagGroupRepository tagGroupRepository,
+                               ITagGroupTypeRepository tagGroupTypeRepository,
                                ICardRepository cardRepository,
                                ITaskRepository taskRepository)
     {
         _dateRepository = dateRepository;
         _tagRepository = tagRepository;
+        _tagTypeRepository = tagTypeRepository;
+        _tagGroupRepository = tagGroupRepository;
+        _tagGroupTypeRepository = tagGroupTypeRepository;
         _cardRepository = cardRepository;
         _taskRepository = taskRepository;
     }
@@ -37,7 +46,7 @@ public class CalendarController : Controller
         var tagGroupIDsForMonth = dates.Select (date => date.CardTagGroupID.ToString ());
         var tagGroupsForMonth = new List<TagGroup> ();
         foreach (var tagGroupID in tagGroupIDsForMonth)
-            tagGroupsForMonth.AddRange (await _tagRepository.QueryTagGroupsAsync (tagGroup => tagGroup.PartitionKey == tagGroupID));//This could very well break
+            tagGroupsForMonth.AddRange (await _tagGroupRepository.QueryTagGroupsAsync (tagGroup => tagGroup.PartitionKey == tagGroupID));//This could very well break
 
         var tagIDsForMonth = tagGroupsForMonth.Select (tagGroup => tagGroup.RowKey.ToString ());
         var tagsForMonth = new List<Tag> ();
