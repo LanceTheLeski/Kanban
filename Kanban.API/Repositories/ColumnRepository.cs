@@ -102,17 +102,8 @@ public class ColumnRepository : EntityRepository<Column>, IColumnRepository
         return columnCollection;
     }
 
-    public Collection<Column> DecrementExistingColumnsWithNewOrder (Collection<Column> columnCollection, Column newColumn)
+    public Collection<Column> DecrementExistingColumnsWithNewOrder (Collection<Column> columnCollection)
     {
-        var columnJustAdded = columnCollection.FirstOrDefault (column => column.PartitionKey == newColumn.PartitionKey);
-        if (columnJustAdded is null)
-            throw new Exception (ErrorResponseMessages.RemoveFromDatabaseErrorResponse (nameof (Column)));
-
-        var columnJustAddedIndex = columnCollection.IndexOf (columnJustAdded);
-        if (columnJustAddedIndex is -1)
-            throw new Exception ("Newly removed Column does not have a defined Order.");
-        columnCollection.RemoveAt (columnJustAddedIndex);
-
         foreach (var column in columnCollection!)
             column.ColumnOrder --;
 

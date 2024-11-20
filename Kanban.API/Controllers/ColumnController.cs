@@ -157,7 +157,7 @@ public class ColumnController : Controller
 
         var columnsToUpdateOrder = await _columnRepository.QueryColumnsAsync (column => column.ColumnOrder > columnFromDatabase.ColumnOrder
                                                                                         && column.RowKey == columnFromDatabase.RowKey);
-        try { _columnRepository.DecrementExistingColumnsWithNewOrder (columnsToUpdateOrder, columnFromDatabase); }
+        try { columnsToUpdateOrder = _columnRepository.DecrementExistingColumnsWithNewOrder (columnsToUpdateOrder); }
         catch (Exception ex) 
             { return Problem (ex.Message); }
         await _columnRepository.UpdateColumnBatchAndTheirBoardCardsAsync (columnsToUpdateOrder);

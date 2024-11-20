@@ -26,7 +26,7 @@ public interface IColumnRepository
 
     public Collection<Column> IncrementExistingColumnsWithNewOrder (Collection<Column> columnCollection, Column newColumn);
 
-    public Collection<Column> DecrementExistingColumnsWithNewOrder (Collection<Column> columnCollection, Column newColumn);
+    public Collection<Column> DecrementExistingColumnsWithNewOrder (Collection<Column> columnCollection);
 
     public Task UpdateColumnBatchAndTheirBoardCardsAsync (Collection<Column> columnCollection);
 

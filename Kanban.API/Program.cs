@@ -4,10 +4,13 @@ using Kanban.API.Options;
 using Kanban.API.Repositories;
 using Kanban.API.Validators;
 using Kanban.Contracts.Request.Create;
+using Kanban.Contracts.Request.Patch;
+using Microsoft.AspNetCore.JsonPatch;
 
 var builder = WebApplication.CreateBuilder (args);
 
 builder.Services.AddScoped<IValidator<ColumnCreateRequest>, ColumnCreateRequestValidator> ();
+builder.Services.AddScoped<IValidator<JsonPatchDocument<ColumnPatchRequest>>, ColumnPatchRequestDocumentValidator> ();
 
 builder.Services.AddTransient<IColumnMapper, ColumnMapper> ();
 

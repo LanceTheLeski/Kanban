@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.JsonPatch;
 
 namespace Kanban.API.Validators;
 
-public class ColumnPatchRequestDocument : AbstractValidator<JsonPatchDocument<ColumnPatchRequest>>
+public class ColumnPatchRequestDocumentValidator : AbstractValidator<JsonPatchDocument<ColumnPatchRequest>>
 {
-    public ColumnPatchRequestDocument ()
+    public ColumnPatchRequestDocumentValidator ()
     {
         RuleFor (columnUpdateRequestDocument => columnUpdateRequestDocument)
             .NotEmpty ();
