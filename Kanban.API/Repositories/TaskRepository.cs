@@ -1,5 +1,5 @@
 ﻿using Azure.Data.Tables;
-using Kanban.API.Helpers;
+using Kanban.API.Components;
 using Kanban.API.Models;
 using Kanban.API.Options;
 using Microsoft.Extensions.Options;

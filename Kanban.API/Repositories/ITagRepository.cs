@@ -6,9 +6,15 @@ namespace Kanban.API.Repositories;
 
 public interface ITagRepository
 {
-    public Task<Tag?> GetTagAsync (Guid tagID, Guid parentID);
+    Task<Tag?> GetTagAsync (Guid tagID, Guid parentID);
 
-    public Task<Azure.Response> UpdateTagAsync (Tag tagToUpdate);
+    Task<Azure.Response> AddTagAsync (Tag tagToCreate);
 
-    public Task<Collection<Tag>> QueryTagsAsync (Expression<Func<Tag, bool>> tagQueryExpression);
+    Task<Azure.Response> UpdateTagAsync (Tag tagToUpdate);
+
+    Task<Azure.Response> DeleteTagAsync (Tag tagToDelete);
+
+    Task<Collection<Tag>> QueryTagsAsync (Expression<Func<Tag, bool>> tagQueryExpression);
+
+    Task<bool> ParentExistsAsync (Guid parentID, int taskTypeID);
 }

@@ -1,5 +1,5 @@
 ﻿using Azure.Data.Tables;
-using Kanban.API.Helpers;
+using Kanban.API.Components;
 using Kanban.API.Models;
 using Kanban.API.Options;
 using Microsoft.Extensions.Options;
@@ -21,7 +21,20 @@ public class TagRepository : EntityRepository<Tag>, ITagRepository
     private readonly TableClient _tagGroupTable;
     private readonly TableClient _tagGroupTypeTable;
 
-    public TagRepository (IOptions<CosmosOptions> cosmosOptions)
+    private readonly IBoardRepository _boardCardRepository;
+    private readonly IColumnRepository _columnRepository;
+    private readonly ISwimlaneRepository _swimlaneRepository;
+    private readonly ICardRepository _cardRepository;
+    private readonly ITaskRepository _taskRepository;
+    private readonly IDateRepository _dateRepository;
+
+    public TagRepository (IOptions<CosmosOptions> cosmosOptions,
+                          IBoardRepository boardRepository,
+                          IColumnRepository columnRepository,
+                          ISwimlaneRepository swimlaneRepository,
+                          ICardRepository cardRepository,
+                          ITaskRepository taskRepository,
+                          IDateRepository dateRepository)
                             : base (tags, cosmosOptions)
     {
         _tableServiceClient = new TableServiceClient (cosmosOptions.Value.HonuBoards);
@@ -29,29 +42,29 @@ public class TagRepository : EntityRepository<Tag>, ITagRepository
         _tagTypeTable = _tableServiceClient.GetTableClient(tableName: tagTypes);
         _tagGroupTable = _tableServiceClient.GetTableClient (tableName: tagGroups);
         _tagGroupTypeTable = _tableServiceClient.GetTableClient (tableName: tagGroupTypes);
+
+        _boardCardRepository = boardRepository;
+        _columnRepository = columnRepository;
+        _swimlaneRepository = swimlaneRepository;
+        _cardRepository = cardRepository;
+        _taskRepository = taskRepository;
+        _dateRepository = dateRepository;
     }
 
     public async Task<Tag?> GetTagAsync (Guid tagID, Guid parentID)
-    {
-        var response = await _tagTable.GetEntityAsync<Tag> (partitionKey: tagID.ToString (), rowKey: parentID.ToString ());
-        return response?.Value.GetType () == typeof (Tag) ?
-            response.Value :
-            null;
-    }
+        => await GetEntityAsync (tagID, parentID);
+
+    public async Task<Azure.Response> AddTagAsync (Tag tagToCreate)
+        => await AddEntityAsync (tagToCreate);
 
     public async Task<Azure.Response> UpdateTagAsync (Tag tagToUpdate)
-        => await _tagTable.UpdateEntityAsync (tagToUpdate, Azure.ETag.All);
+        => await UpdateEntityAsync (tagToUpdate);
+
+    public async Task<Azure.Response> DeleteTagAsync (Tag tagToDelete)
+        => await DeleteEntityAsync (tagToDelete);
 
     public async Task<Collection<Tag>> QueryTagsAsync (Expression<Func<Tag, bool>> tagQueryExpression)
-    {
-        var tagCollection = new Collection<Tag> ();
-
-        var tagsFromTable = _tagTable.QueryAsync (tagQueryExpression); //This seems to fail with certain expressions
-        await foreach (var tag in tagsFromTable)
-            tagCollection.Add (tag);
-
-        return tagCollection;
-    }
+        => await QueryEntitiesAsync (tagQueryExpression);
 
     #region Tag Type
 
@@ -131,4 +144,41 @@ public class TagRepository : EntityRepository<Tag>, ITagRepository
     }
 
     #endregion Tag Group Type
+
+    public async Task<bool> ParentExistsAsync (Guid parentID, int taskTypeID)
+    {
+        switch (taskTypeID)
+        {
+            case 0:// BoardCard
+                var boardCardCollection = await _boardCardRepository.QueryBoardCardsAsync (boardCard => boardCard.PartitionKey == parentID.ToString ());
+                return boardCardCollection?.Count () is 0;
+            
+            case 1:// Column
+                var columnCollection = await _columnRepository.QueryColumnsAsync (column => column.PartitionKey == parentID.ToString ());
+                return columnCollection?.Count () is 0;
+            
+            case 2:// Swimlane
+                var swimlaneCollection = await _swimlaneRepository.QuerySwimlanesAsync (swimlane => swimlane.PartitionKey == parentID.ToString ());
+                return swimlaneCollection?.Count () is 0;
+            
+            case 3:// Card
+                var cardCollection = await _cardRepository.QueryCardsAsync (card => card.PartitionKey == parentID.ToString ());
+                return cardCollection?.Count () is 0;
+            
+            case 4:// Task
+                var taskCollection = await _taskRepository.QueryTasksAsync (task => task.PartitionKey == parentID.ToString ());
+                return taskCollection?.Count () is 0;
+            
+            case 5:// Tag
+                var tagCollection = await this.QueryTagsAsync (tag => tag.PartitionKey == parentID.ToString ());
+                return tagCollection?.Count () is 0;
+            
+            case 6:// Date
+                var dateCollection = await _dateRepository.QueryDatesAsync (date => date.PartitionKey == parentID.ToString ());
+                return dateCollection?.Count () is 0;
+            
+            default: 
+                return false;
+        }
+    }
 }

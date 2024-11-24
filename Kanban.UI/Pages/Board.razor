@@ -20,27 +20,7 @@
 <PageTitle>Board</PageTitle>
 <MudThemeProvider Theme="@MyMudThemeProvider._kanbanBoardDefaultTheme"/>
 
-<MudPaper Style="padding: 35px; 
-                 background-color: rgba(98, 147, 185, .45); 
-                 background: linear-gradient
-                 (
-                    120deg,
-                    rgba(98, 147, 185, .25),
-                    rgba(98, 147, 185, .75), 
-                    70%,
-                    rgba(98, 147, 185, .25)
-                 );
-                 border-radius: 10px; 
-                 border: 1px solid rgba(98, 149, 185, .25); 
-                 backdrop-filter: 
-                    blur(10px)
-                    saturate(200%)
-                    opacity(50%);
-                 box-shadow: 
-                    inset 4px 4px 5px 0 rgba(98, 147, 185, .25), 
-                    inset -4px -4px 5px 0 rgba(0, 0, 0, 0.125),
-                    0 0 10px 1px rgba(0, 0, 0, 0.25);
-                 "> <!--Class="mud-theme-backgroundgray"--->
+<MudPaper Class="glass"> <!--Class="mud-theme-backgroundgray"--->
     <MudPaper Height="50px" Width="100%" Class="d-inline mud-theme-primary">
         <BoardManagementNavigationBar @bind-Cards="@_cards"
                                       @bind-Swimlanes="_swimlanes"
@@ -66,7 +46,7 @@
                     @foreach (var columnIndex in Enumerable.Range (0, _columnTitles.Count ()))
                     {
                         <MudItem>
-                            <MudPaper Width="300px" Height="55px;" Class="mud-theme-tertiary align-content-center">
+                            <MudPaper Width="300px" Height="55px;" Class="align-content-center">
                                 <MudText Align="Align.Center" Style="font-family: 'calibri condensed', 'bodoni MT condensed', 'bahnschrift light condensed';
                                                                      font-size: small;
                                                                      font-weight: bold;
@@ -271,19 +251,19 @@
                 foreach (var card in cardList)
                 {
                     dropCardList.Add (new DropCard
-                        {
-                            Id = card.ID,
-                            Title = card.Title,
-                            Description = card.Description,
-                            ColumnNumber = columnIndex,
-                            ColumnID = Guid.Parse (columnList [columnIndex].ID),
-                            ColumnName = columnList [columnIndex].Title,
-                            SwimlaneNumber = swimlaneIndex,
-                            SwimlaneID = Guid.Parse (swimlaneList [swimlaneIndex].ID),
-                            SwimlaneName = swimlaneList [swimlaneIndex].Title,
-                            Tasks = card.Tasks,
-                            CardArea = cardArea
-                        });
+                    {
+                        Id = card.ID,
+                        Title = card.Title,
+                        Description = card.Description,
+                        ColumnNumber = columnIndex,
+                        ColumnID = Guid.Parse (columnList [columnIndex].ID),
+                        ColumnName = columnList [columnIndex].Title,
+                        SwimlaneNumber = swimlaneIndex,
+                        SwimlaneID = Guid.Parse (swimlaneList [swimlaneIndex].ID),
+                        SwimlaneName = swimlaneList [swimlaneIndex].Title,
+                        Tasks = card.Tasks,
+                        CardArea = cardArea
+                    });
                 }
             }
 

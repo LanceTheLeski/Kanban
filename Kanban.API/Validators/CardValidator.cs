@@ -3,6 +3,8 @@ using Kanban.Contracts.Request.Create;
 
 namespace Kanban.API.Validators;
 
+// This is more of a demo object
+
 // On principle, I think validation can take as many queries as needed. We shouldn't worry about having a single transaction for these.
 public class CardValidator : AbstractValidator<CardCreateRequest>
 {

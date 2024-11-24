@@ -1,10 +1,9 @@
 ﻿using Kanban.Contracts.Request.Create;
 using Kanban.Contracts.Request.Patch;
-using Kanban.Contracts.Response;
+using Kanban.API.Components;
 using Kanban.API.Mappers;
 using Kanban.API.Models;
 using Kanban.API.Repositories;
-using Kanban.API.Templates;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Exceptions;
 using Microsoft.AspNetCore.Mvc;
@@ -17,24 +16,26 @@ namespace Kanban.API.Controllers;
 [Route ("kanban/columns")]
 public class ColumnController : Controller
 {
+    private readonly IValidator<ColumnCreateRequest> _columnCreateRequestValidator;
+    private readonly IValidator<JsonPatchDocument<ColumnPatchRequest>> _columnPatchRequestDocumentValidator;
+
     private readonly IColumnRepository _columnRepository;
     private readonly IBoardRepository _boardRepository;
 
-    private readonly IValidator<ColumnCreateRequest> _columnCreateRequestValidator;
-    private readonly IValidator<JsonPatchDocument<ColumnPatchRequest>> _columnPatchRequestDocumentValidator;
-    private readonly IColumnMapper _columnMapper;//If this fails it's because I removed the initialization of '= new ColumnMapper ()'
+    private readonly IColumnMapper _columnMapper;
 
-    public ColumnController (IColumnRepository columnRepository,
+    public ColumnController (IValidator<ColumnCreateRequest> columnCreateRequestValidator,
+                             IValidator<JsonPatchDocument<ColumnPatchRequest>> columnPatchRequestDocumentValidator, 
+                             IColumnRepository columnRepository,
                              IBoardRepository boardRepository,
-                             IValidator<ColumnCreateRequest> columnCreateRequestValidator,
-                             IValidator<JsonPatchDocument<ColumnPatchRequest>> columnPatchRequestDocumentValidator,
                              IColumnMapper columnMapper)
     {
+        _columnCreateRequestValidator = columnCreateRequestValidator;
+        _columnPatchRequestDocumentValidator = columnPatchRequestDocumentValidator;
+
         _columnRepository = columnRepository;
         _boardRepository = boardRepository;
 
-        _columnCreateRequestValidator = columnCreateRequestValidator;
-        _columnPatchRequestDocumentValidator = columnPatchRequestDocumentValidator;
         _columnMapper = columnMapper;
     }
 
@@ -42,20 +43,13 @@ public class ColumnController : Controller
     public async Task<ActionResult> FetchColumn (Guid ID)
     {
         var columnCollection = await _columnRepository.QueryColumnsAsync (column => column.PartitionKey == ID.ToString ());
-
-        //If multiple boards have the same column then there will be multiple results here. I think we only need to grab the first for now
         if (columnCollection.Count () is 0)
-            return NotFound ("The column you are searching for was not found.");
-
-        //MAP
-        var columnToReturn = columnCollection.First ();
-        var columnResponse = new ColumnResponse
-        {
-            ID = Guid.Parse (columnToReturn.PartitionKey),
-            Title = columnToReturn.Title,
-            BoardID = Guid.Parse (columnToReturn.RowKey), //Might be an issue later if we need another board's column
-            Order = columnToReturn.ColumnOrder
-        };
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Column)));
+        if (columnCollection.Count () is not 1)
+            return Problem (ErrorResponseMessages.TooManyEntitiesErrorResponse (nameof (Column)));
+        
+        var columnToReturn = columnCollection.Single ();
+        var columnResponse = _columnMapper.MapColumnToColumnResponse (columnToReturn);
         return Ok (columnResponse);
     }
 
@@ -75,29 +69,20 @@ public class ColumnController : Controller
         newColumn.PartitionKey = Guid.NewGuid ().ToString ();
         newColumn.BoardTitle = boardsFromTable.First ().Title;
 
-        var addEntityResponse = await _columnRepository.AddColumnAsync (newColumn);
-        if (addEntityResponse.IsError)
-            return Problem (ErrorResponseMessages.AddToDatabaseErrorResponse (nameof (Column)) + $"\nInternal status: {addEntityResponse.Status}");
+        var databaseResponse = await _columnRepository.AddColumnAsync (newColumn);
+        if (databaseResponse.IsError)
+            return Problem (ErrorResponseMessages.AddToDatabaseErrorResponse (nameof (Column)) + $"\nInternal status: {databaseResponse.Status}");
 
         var columnsToUpdateOrder = await _columnRepository.QueryColumnsAsync (column => column.ColumnOrder >= newColumn.ColumnOrder
                                                                                         && column.RowKey == newColumn.RowKey);
 
-        try
-        { _columnRepository.IncrementExistingColumnsWithNewOrder (columnsToUpdateOrder, newColumn); }
+        try { _columnRepository.IncrementExistingColumnsWithNewOrder (columnsToUpdateOrder, newColumn); }
         catch (Exception ex)
-        { return Problem (ex.Message); }
+            { return Problem (ex.Message); }
         await _columnRepository.UpdateColumnBatchAndTheirBoardCardsAsync (columnsToUpdateOrder);
 
-        //MAP
-        /*var columnResponse = new ColumnResponse
-        {
-            ID = Guid.Parse (newColumn.PartitionKey),
-            Title = newColumn.Title,
-            BoardID = Guid.Parse (newColumn.RowKey),
-            Order = newColumn.ColumnOrder
-        };*/
         var columnResponse = _columnMapper.MapColumnToColumnResponse (newColumn);
-        return StatusCode (StatusCodes.Status201Created, columnResponse);
+        return Created (default(Uri)/*Generate this later*/, columnResponse);
     }
 
     [HttpPatch ("{ID:Guid}")]
@@ -108,7 +93,7 @@ public class ColumnController : Controller
             return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (ColumnPatchRequest))
                                + "\n" + validationResult.ToString ());
 
-        Column? columnToUpdate = await _columnRepository.GetColumnAsync (columnID: ID, boardID: new Guid (@"20a88077-10d4-4648-92cb-7dc7ba5b8df5"));
+        var columnToUpdate = await _columnRepository.GetColumnAsync (columnID: ID, boardID: new Guid (@"20a88077-10d4-4648-92cb-7dc7ba5b8df5"));
         if (columnToUpdate is null)
             return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Column)));
 
@@ -120,7 +105,7 @@ public class ColumnController : Controller
         var columnOrderChange = _columnRepository.GetColumnOrderChange (columnToUpdate, convertedColumnToUpdate!);
 
         // MOVE to ColumnRepository
-        // Name: 
+        // Method Name: 
         Collection<Column>? otherColumnsWithUpdatedOrder = null;
         if (columnPatchRequest.Operations.Any (operation => string.Equals (operation.path, $"/{nameof (ColumnPatchRequest.Order)}", StringComparison.OrdinalIgnoreCase)))
         {
@@ -147,13 +132,13 @@ public class ColumnController : Controller
         var columnCollection = await _columnRepository.QueryColumnsAsync (column => column.PartitionKey == ID.ToString ());
         if (columnCollection.Count () is 0)
             return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Column)));
-        if (columnCollection.Count () > 1)
+        if (columnCollection.Count () is not 1)
             return Problem (ErrorResponseMessages.TooManyEntitiesErrorResponse (nameof (Column)));
-
+        
         var columnFromDatabase = columnCollection.Single ();
         var columnToDeleteResponse = await _columnRepository.DeleteColumnAsync (columnFromDatabase);
         if (columnToDeleteResponse.IsError)
-            return Problem (ErrorResponseMessages.CouldNotDeleteErrorResponse (nameof (Column)));
+            return Problem (ErrorResponseMessages.RemoveFromDatabaseErrorResponse (nameof (Column)));
 
         var columnsToUpdateOrder = await _columnRepository.QueryColumnsAsync (column => column.ColumnOrder > columnFromDatabase.ColumnOrder
                                                                                         && column.RowKey == columnFromDatabase.RowKey);

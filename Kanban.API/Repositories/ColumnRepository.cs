@@ -1,8 +1,7 @@
 ﻿using Kanban.Contracts.Request.Patch;
-using Kanban.API.Helpers;
+using Kanban.API.Components;
 using Kanban.API.Models;
 using Kanban.API.Options;
-using Kanban.API.Templates;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.Extensions.Options;
 using System.Collections.ObjectModel;

@@ -1,9 +1,7 @@
-﻿namespace Kanban.Contracts.Request.Create;
+﻿namespace Kanban.Contracts.Request.Patch;
 
-public class TimelineCreateRequest
+public class TimelinePatchRequest
 {
-    public Guid ParentID { get; set; }
-
     public Guid? StartDependencyTagGroupID { get; set; }
 
     public DateTime? StartPreferenceUTC { get; set; }

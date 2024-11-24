@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
-namespace Kanban.API.Helpers;
+namespace Kanban.API.Components;
 
 public class EntityRepository<T> where T : class, ITableEntity, new()
 {

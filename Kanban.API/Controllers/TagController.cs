@@ -1,13 +1,13 @@
-﻿using Azure.Data.Tables;
+﻿using FluentValidation;
+using Kanban.API.Components;
+using Kanban.API.Mappers;
 using Kanban.API.Models;
-using Kanban.API.Options;
 using Kanban.API.Repositories;
 using Kanban.Contracts.Request.Create;
 using Kanban.Contracts.Request.Patch;
-using Kanban.Contracts.Response;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 namespace Kanban.API.Controllers;
 
@@ -15,215 +15,152 @@ namespace Kanban.API.Controllers;
 [Route ("kanban/tags")]
 public class TagController : Controller
 {
-    private const string tags = "Tags";
-    private const string columns = "Columns";
-    private const string swimlanes = "Swimlanes";
-    private const string cards = "Cards";
+    private readonly IValidator<TagCreateRequest> _tagCreateRequestValidator;
+    private readonly IValidator<JsonPatchDocument<TagPatchRequest>> _tagPatchRequestDocumentValidator;
 
-    private readonly TableServiceClient _tableServiceClient;
-    private readonly TableClient _boardTable;
-    private readonly TableClient _columnTable;
-    private readonly TableClient _swimlaneTable;
-    private readonly TableClient _cardTable;
-
-    private readonly IBoardRepository _boardRepository;
     private readonly ITagRepository _tagRepository;
+    private readonly ITagTypeRepository _tagTypeRepository;
+    private readonly ITagGroupRepository _tagGroupRepository;
+    private readonly ITagGroupTypeRepository _tagGroupTypeRepository;
 
-    public TagController (IOptions<CosmosOptions> cosmosOptions,
-                          IBoardRepository boardRepository,
-                          ITagRepository tagRepository)
+    private readonly ITagMapper _tagMapper;
+
+    public TagController (IValidator<TagCreateRequest> tagCreateRequestValidator,
+                          IValidator<JsonPatchDocument<TagPatchRequest>> tagPatchRequestDocumentValidator,
+                          ITagRepository tagRepository,
+                          ITagTypeRepository tagTypeRepository,
+                          ITagMapper tagMapper)
     {
-        _tableServiceClient = new TableServiceClient (cosmosOptions.Value.HonuBoards);
-        _boardTable = _tableServiceClient.GetTableClient (tableName: tags);
-        _columnTable = _tableServiceClient.GetTableClient (tableName: columns);
-        _swimlaneTable = _tableServiceClient.GetTableClient (tableName: swimlanes);
-        _cardTable = _tableServiceClient.GetTableClient (tableName: cards);
+        _tagCreateRequestValidator = tagCreateRequestValidator;
+        _tagPatchRequestDocumentValidator = tagPatchRequestDocumentValidator;
 
-        _boardRepository = boardRepository;
         _tagRepository = tagRepository;
+
+        _tagMapper = tagMapper;
     }
 
     [HttpGet ("{ID:guid}")]
     public async Task<ActionResult> FetchTag (Guid ID)
     {
-        var cardList = new List<Card> ();
-        var cardsFromTable = _boardTable.QueryAsync<Card> (card => card.PartitionKey == ID.ToString ());
-        await foreach (var card in cardsFromTable)
-            cardList.Add (card);
-
-        if (cardList.Count () is 0)
-            return NotFound ("The card you are searching for was not found.");
-        if (cardList.Count () > 1)
-            return StatusCode (StatusCodes.Status500InternalServerError, "Multiple cards were found with the same ID.");
-
-        var cardFromDatabase = cardList.Single ();
-        var cardToReturn = new CardDetailsResponse
-        {
-            ID = cardFromDatabase.PartitionKey,
-            Title = cardFromDatabase.Title,
-            Description = cardFromDatabase.Description
-        };
-
-        // Fetch other card details like Deadlines and Checklists later.
-
-        return Ok (cardList.Single ());
+        var tagCollection = await _tagRepository.QueryTagsAsync (tag => tag.PartitionKey == ID.ToString ());
+        if (tagCollection.Count () is 0)
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Tag)));
+        if (tagCollection.Count () is not 1)
+            return Problem (ErrorResponseMessages.TooManyEntitiesErrorResponse (nameof (Tag)));
+        
+        var tagToReturn = tagCollection.Single ();
+        var tagResponse = _tagMapper.MapTagToTagResponse (tagToReturn);
+        return Ok (tagResponse);
     }
 
     [HttpPost]
-    public async Task<ActionResult> CreateCard ([FromBody] CardCreateRequest cardCreateRequest)
+    public async Task<ActionResult> CreateTag ([FromBody] TagCreateRequest tagCreateRequest)
     {
-        if (cardCreateRequest is null)
-        {
-            return BadRequest ("There was no Card Request passed in!");
-        }
+        var validationResult = _tagCreateRequestValidator.Validate (tagCreateRequest);
+        if (validationResult.IsValid is false)
+            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TagCreateRequest))
+                               + "\n" + validationResult.ToString ());
 
-        //An error should get thrown before this point if any of the ID's below are null. Will have a concrete validation later using ModelState or FluentValidation
-        var columnFromTable = await _columnTable.GetEntityAsync<Column> (partitionKey: cardCreateRequest.ColumnID.ToString (), rowKey: cardCreateRequest.BoardID.ToString ());
-        if (columnFromTable.Value is null)
-            return StatusCode (StatusCodes.Status500InternalServerError, "Could not find column.");
+        var parentExists = await _tagRepository.ParentExistsAsync (tagCreateRequest.ParentID, tagCreateRequest.TypeID);
+        if (parentExists is false)
+            return BadRequest (ErrorResponseMessages.NotFoundErrorResponse ("Parent"));
 
-        var swimlaneFromTable = await _swimlaneTable.GetEntityAsync<Swimlane> (partitionKey: cardCreateRequest.SwimlaneID.ToString (), rowKey: cardCreateRequest.BoardID.ToString ());
-        if (swimlaneFromTable.Value is null)
-            return StatusCode (StatusCodes.Status500InternalServerError, "Could not find swimlane.");
+        var newTag = _tagMapper.MapTagCreateRequestToTag (tagCreateRequest);
+        newTag.PartitionKey = Guid.NewGuid ().ToString ();
 
-        var newCardID = Guid.NewGuid ();
-        var newCard = new BoardCard
-        {
-            PartitionKey = cardCreateRequest.BoardID.ToString (),
-            RowKey = newCardID.ToString (),
+        var databaseResponse = await _tagRepository.AddTagAsync (newTag);
+        if (databaseResponse.IsError)
+            return Problem (ErrorResponseMessages.AddToDatabaseErrorResponse (nameof (Tag)) + $"\nInternal status: {databaseResponse.Status}");
 
-            Title = columnFromTable.Value.BoardTitle, //Should match swimlane's BoardTitle
-
-            SwimlaneID = cardCreateRequest.SwimlaneID,
-            SwimlaneTitle = swimlaneFromTable.Value.Title,
-            SwimlaneOrder = swimlaneFromTable.Value.SwimlaneOrder,
-
-            ColumnID = cardCreateRequest.ColumnID,
-            ColumnTitle = columnFromTable.Value.Title,
-            ColumnOrder = columnFromTable.Value.ColumnOrder,
-
-            CardTitle = cardCreateRequest.Title,
-            CardDescription = cardCreateRequest.Description,
-
-        };
-        //One day we will create new Card objects too with a lot of niche info. For now I just want shallow cards that we can store in the Board table
-
-        var addEntityResponse = await _boardTable.AddEntityAsync (newCard);
-        if (addEntityResponse.IsError)
-        {
-            //We might want to have better verification later for failures. I'm thinking we actually query the table and grab the card so we can map it to a response object
-            return StatusCode (StatusCodes.Status500InternalServerError, $"Could not insert a new card into database. Internal status: {addEntityResponse.Status}");
-        }
-        var cardResponse = new BoardCardResponse
-        {
-            ID = newCard.RowKey.ToString (),
-            Title = newCard.CardTitle,
-            Description = newCard.CardDescription,
-            ColumnID = newCard.ColumnID.ToString (),
-            ColumnTitle = newCard.ColumnTitle,
-            ColumnOrder = newCard.ColumnOrder,
-            SwimlaneID = newCard.SwimlaneID.ToString (),
-            SwimlaneTitle = newCard.SwimlaneTitle,
-            SwimlaneOrder = newCard.SwimlaneOrder
-        };
-
-        return StatusCode (StatusCodes.Status201Created, cardResponse);
+        var tagResponse = _tagMapper.MapTagToTagResponse (newTag);
+        return Created (default (Uri), tagResponse);
     }
 
     [HttpPatch ("{ID:guid}")]
-    public async Task<ActionResult> UpdateCard (Guid ID, [FromBody] JsonPatchDocument<CardPatchRequest> cardPatchRequest)
+    public async Task<ActionResult> UpdateTag (Guid ID, [FromBody] JsonPatchDocument<TagPatchRequest> tagPatchRequest)
     {
-        if (cardPatchRequest is null)
-        {
-            return BadRequest ("There was no Patch Request passed in!");
-        }
+        var validationResult = _tagPatchRequestDocumentValidator.Validate (tagPatchRequest);
+        if (validationResult.IsValid is false)
+            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TagPatchRequest))
+                               + "\n" + validationResult.ToString ());
 
-        var cardFromTable = await _boardTable.GetEntityAsync<BoardCard> (partitionKey: @"20a88077-10d4-4648-92cb-7dc7ba5b8df5", rowKey: ID.ToString ());
-        var cardToUpdate = cardFromTable.Value;
+        var tagToUpdateCollection = await _tagRepository.QueryTagsAsync (tag => tag.PartitionKey == ID.ToString ());
+        if (tagToUpdateCollection is null || tagToUpdateCollection.Count is 0)
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Tag)));
+        if (tagToUpdateCollection.Count is not 1)
+            return Problem (ErrorResponseMessages.TooManyEntitiesErrorResponse (nameof (Tag)));
+        
+        var tagToUpdate = tagToUpdateCollection.Single ();
+        var convertedTagToUpdate = _tagMapper.MapTagToTagPatchRequest (tagToUpdate);
+        try { tagPatchRequest.ApplyTo (convertedTagToUpdate); }
+        catch (JsonPatchException jsonPatchEx)
+            { return BadRequest (ErrorResponseMessages.PatchRequestIsInvalidErrorResponse (nameof (Tag)) + "\nDetails:\n" + jsonPatchEx.Message); }
 
-        var convertedCardToUpdate = new CardPatchRequest
-        {
-            Title = cardToUpdate.CardTitle,
-            Description = cardToUpdate.CardDescription,
-            ColumnID = cardToUpdate.ColumnID.ToString (),
-            ColumnTitle = cardToUpdate.ColumnTitle,
-            ColumnOrder = cardToUpdate.ColumnOrder,
-            SwimlaneID = cardToUpdate.SwimlaneID.ToString (),
-            SwimlaneTitle = cardToUpdate.SwimlaneTitle,
-            SwimlaneOrder = cardToUpdate.SwimlaneOrder
-        };
+        tagToUpdate = _tagMapper.MapTagPatchRequestToTag (convertedTagToUpdate); // Make sure that the response object is preserved if not mapped to
+        var databaseResponse = await _tagRepository.UpdateTagAsync (tagToUpdate);
+        if (databaseResponse.IsError)
+            return Problem (ErrorResponseMessages.UpdateInDatabaseErrorResponse(nameof (Tag)) + $"\nInternal status: {databaseResponse.Status}");
 
-        cardPatchRequest.ApplyTo (convertedCardToUpdate); //Could add a ModelState validation somewhere here as well..
-
-        cardToUpdate.CardTitle = convertedCardToUpdate.Title;
-        cardToUpdate.CardDescription = convertedCardToUpdate.Description;
-        cardToUpdate.ColumnID = Guid.Parse (convertedCardToUpdate.ColumnID);
-        cardToUpdate.ColumnTitle = convertedCardToUpdate.ColumnTitle;
-        cardToUpdate.ColumnOrder = convertedCardToUpdate.ColumnOrder;
-        cardToUpdate.SwimlaneID = Guid.Parse (convertedCardToUpdate.SwimlaneID);
-        cardToUpdate.SwimlaneTitle = convertedCardToUpdate.SwimlaneTitle;
-        cardToUpdate.SwimlaneOrder = convertedCardToUpdate.SwimlaneOrder;
-
-        var response = await _boardTable.UpdateEntityAsync (cardToUpdate, Azure.ETag.All);
-        if (response.IsError)
-        {
-            return BadRequest ($"Could not update card. Internal status: {response.Status}");
-        }
-
-        var cardResponse = new BoardCardResponse
-        {
-            ID = cardToUpdate.RowKey,
-            Title = cardToUpdate.CardTitle,
-            Description = cardToUpdate.CardDescription,
-            ColumnID = cardToUpdate.ColumnID.ToString (),
-            ColumnTitle = cardToUpdate.ColumnTitle,
-            ColumnOrder = cardToUpdate.ColumnOrder,
-            SwimlaneID = cardToUpdate.SwimlaneID.ToString (),
-            SwimlaneTitle = cardToUpdate.SwimlaneTitle,
-            SwimlaneOrder = cardToUpdate.SwimlaneOrder
-        };
-
-        return Ok (cardResponse);
+        var tagResponse = _tagMapper.MapTagToTagResponse (tagToUpdate);
+        return Ok (tagResponse);
     }
 
-    [HttpDelete ("{ID:guid}")] // Need to delete from board AND card tables. There might also be extensions to remove. For now though, I'm just going to do board.
-    public async Task<ActionResult> DeleteCard (Guid ID)
+    [HttpDelete ("{ID:guid}")]
+    public async Task<ActionResult> DeleteTag (Guid ID)
     {
-        var cardList = new List<Card> ();
-        var cardsFromTable = _boardTable.QueryAsync<Card> (card => card.PartitionKey == ID.ToString ());
-        await foreach (var card in cardsFromTable)
-            cardList.Add (card);
+        var tagCollection = await _tagRepository.QueryTagsAsync (tag => tag.PartitionKey == ID.ToString ());
+        if (tagCollection.Count is 0)
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Tag)));
+        if (tagCollection.Count is not 1)
+            return Problem (ErrorResponseMessages.TooManyEntitiesErrorResponse (nameof (Tag)));
+        
+        var tagFromDatabase = tagCollection.Single ();
+        var databaseResponse = await _tagRepository.DeleteTagAsync (tagFromDatabase);
+        if (databaseResponse.IsError)
+            return Problem (ErrorResponseMessages.RemoveFromDatabaseErrorResponse (nameof (Tag)));
 
-        if (cardList.Count () is 0)
-            return NotFound ("The card you are searching for was not found.");
-
-        if (cardList.Count () > 1)
-            return StatusCode (StatusCodes.Status500InternalServerError, "Multiple cards were found with the same ID.");
-
-        var cardFromDatabase = cardList.Single ();
-        var cardToDelete = _boardTable.DeleteEntityAsync (cardFromDatabase.PartitionKey, cardFromDatabase.RowKey);
-
-        if (cardToDelete.IsCompletedSuccessfully)
-            return Ok (); //Is there a better Status to return? NoContent perhaps?
-        else
-            return StatusCode (StatusCodes.Status500InternalServerError, "Could not delete card.");
+        return Ok();
     }
 
     [HttpGet ("types/{ID:guid}")]
     public async Task<ActionResult> FetchTagTypeAsync (Guid ID)
     {
-        return Ok ();
+        var tagTypeCollection = await _tagTypeRepository.QueryTagTypesAsync (tagType => tagType.PartitionKey == ID.ToString ());
+        if (tagTypeCollection.Count is 0)
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (TagType)));
+        if (tagTypeCollection.Count is not 1)
+            return Problem (ErrorResponseMessages.TooManyEntitiesErrorResponse (nameof (TagType)));
+
+        var tagTypeToReturn = tagTypeCollection.Single ();
+        var tagTypeResponse = _tagMapper.MapTagTypeToTagTypeResponse (tagTypeToReturn);
+        return Ok (tagTypeResponse);
     }
 
     [HttpGet ("groups/{ID:guid}")]
     public async Task<ActionResult> FetchTagGroupAsync (Guid ID)
     {
-        return Ok ();
+        var tagGroupCollection = await _tagGroupRepository.QueryTagGroupsAsync (tagGroup => tagGroup.PartitionKey == ID.ToString ());
+        if (tagGroupCollection.Count is 0)
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (TagGroup)));
+        if (tagGroupCollection.Count is not 1)
+            return Problem (ErrorResponseMessages.TooManyEntitiesErrorResponse (nameof (TagGroup)));
+
+        var tagGroupToReturn = tagGroupCollection.Single ();
+        var tagGroupResponse = _tagMapper.MapTagGroupToTagGroupResponse (tagGroupToReturn);
+        return Ok (tagGroupResponse);
     }
 
     [HttpGet ("groups/types/{ID:guid}")]
     public async Task<ActionResult> FetchTagGroupTypeAsync (Guid ID)
     {
-        return Ok ();
+        var tagGroupTypeCollection = await _tagGroupTypeRepository.QueryTagGroupTypesAsync (tagGroupType => tagGroupType.PartitionKey == ID.ToString ());
+        if (tagGroupTypeCollection.Count is 0)
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (TagGroupType)));
+        if (tagGroupTypeCollection.Count is not 1)
+            return Problem (ErrorResponseMessages.TooManyEntitiesErrorResponse (nameof (TagGroupType)));
+
+        var tagGroupTypeToReturn = tagGroupTypeCollection.Single ();
+        var tagTypeResponse = _tagMapper.MapTagGroupTypeToTagGroupTypeResponse (tagGroupTypeToReturn);
+        return Ok (tagTypeResponse);
     }
 }

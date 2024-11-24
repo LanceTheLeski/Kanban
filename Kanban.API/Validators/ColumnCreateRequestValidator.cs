@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using Kanban.API.Templates;
+using Kanban.API.Components;
 using Kanban.Contracts.Request.Create;
 
 namespace Kanban.API.Validators;
@@ -11,7 +11,7 @@ public class ColumnCreateRequestValidator : AbstractValidator<ColumnCreateReques
     {
         RuleFor (columnCreateRequest => columnCreateRequest.Title)
             .NotEmpty ()
-            .WithMessage (ValidatorMessages.EmptyStringValidatorMessage (nameof (ColumnCreateRequest.Title)));
+            .WithMessage (ValidatorMessages.EmptyFieldValidatorMessage (nameof (ColumnCreateRequest.Title)));
 
         RuleFor (columnCreateRequest => columnCreateRequest.Order)
             .NotNull ();
