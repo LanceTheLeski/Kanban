@@ -4,6 +4,8 @@ public class TimelineCreateRequest
 {
     public Guid ParentID { get; set; }
 
+    public int TimelineTypeID { get; set; }
+
     public Guid? StartDependencyTagGroupID { get; set; }
 
     public DateTime? StartPreferenceUTC { get; set; }

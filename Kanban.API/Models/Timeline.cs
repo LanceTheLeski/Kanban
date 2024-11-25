@@ -13,7 +13,8 @@ public class Timeline : ITableEntity
 
     public ETag ETag { get; set; } //Required ??
 
-    // From here on out, object will be a placeholder for a DateTime, but something that probably relates to the recurrence calendar?
+    //Ideally this only refers to what type of parent the Timeline has: Card or Task? Could also be used to identify what type of deadlines and all are set.
+    public int TimelineTypeID { get; set; }
 
     // Everything that needs to be done prior to start. Should probably link to a TAG GROUP GUID with children being Tasks. This deadline would obviously be the parent of the group.
     public Guid? StartDependencyTagGroupID { get; set; }

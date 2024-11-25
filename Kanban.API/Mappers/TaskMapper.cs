@@ -20,6 +20,13 @@ public partial class TaskMapper : ITaskMapper
     [MapProperty (nameof (TaskPatchRequest.TimelineID), nameof (Models.Task.TimelineID))]
     public partial Models.Task MapTaskPatchRequestToPatch (TaskPatchRequest taskPatchRequest);
 
+    [MapProperty (nameof (Models.Task.Title), nameof (TaskPatchRequest.Title))]
+    [MapProperty (nameof (Models.Task.TaskTypeID), nameof (TaskPatchRequest.TypeID))]
+    [MapProperty (nameof (Models.Task.TaskOrder), nameof (TaskPatchRequest.TaskOrder))]
+    [MapProperty (nameof (Models.Task.IsComplete), nameof (TaskPatchRequest.IsComplete))]
+    [MapProperty (nameof (Models.Task.TimelineID), nameof (TaskPatchRequest.TimelineID))]
+    public partial TaskPatchRequest MapTaskToTaskPatchRequest (Models.Task task);
+
     [MapProperty (nameof (Models.Task.Title), nameof (TaskResponse.Title))]
     [MapProperty (nameof (Models.Task.TaskTypeID), nameof (TaskResponse.TaskTypeID))]
     //[MapProperty (nameof (Models.Task.TaskTypeTitle), nameof (TaskResponse.TaskTypeTitle))]

@@ -10,5 +10,7 @@ public interface ITaskMapper
 
     Models.Task MapTaskPatchRequestToPatch (TaskPatchRequest taskPatchRequest);
 
+    TaskPatchRequest MapTaskToTaskPatchRequest (Models.Task task);
+
     TaskResponse MapTaskToTaskResponse (Models.Task task);
 }

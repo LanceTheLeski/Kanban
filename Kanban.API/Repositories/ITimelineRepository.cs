@@ -6,9 +6,16 @@ namespace Kanban.API.Repositories;
 
 public interface ITimelineRepository
 {
-    public Task<Timeline?> GetTimelineAsync (Guid timelineID, Guid taskID);
+    Task<Timeline?> GetTimelineAsync (Guid timelineID, Guid taskID);
 
-    public Task<Collection<Timeline>> QueryTimelinesAsync (Expression<Func<Timeline, bool>> timelineQueryExpression);
+    Task<Collection<Timeline>> QueryTimelinesAsync (Expression<Func<Timeline, bool>> timelineQueryExpression);
 
-    public Task<Azure.Response> AddTimelineAsync (Timeline timelineToCreate);
+    Task<Azure.Response> AddTimelineAsync (Timeline timelineToCreate);
+
+    Task<Azure.Response> UpdateTimelineAsync (Timeline timelineToUpdate);
+
+    Task<Azure.Response> DeleteTimelineAsync (Timeline timelineToDelete);
+
+    Task<bool> ParentExistsAsync (Guid parentID, int timelineTypeID);
+
 }

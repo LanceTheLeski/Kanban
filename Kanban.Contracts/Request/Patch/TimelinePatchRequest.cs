@@ -2,6 +2,8 @@
 
 public class TimelinePatchRequest
 {
+    public int TimelineTypeID { get; set; }
+
     public Guid? StartDependencyTagGroupID { get; set; }
 
     public DateTime? StartPreferenceUTC { get; set; }

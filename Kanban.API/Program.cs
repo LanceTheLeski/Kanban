@@ -11,10 +11,14 @@ var builder = WebApplication.CreateBuilder (args);
 
 builder.Services.AddScoped<IValidator<ColumnCreateRequest>, ColumnCreateRequestValidator> ();
 builder.Services.AddScoped<IValidator<JsonPatchDocument<ColumnPatchRequest>>, ColumnPatchRequestDocumentValidator> ();
+builder.Services.AddScoped<IValidator<TimelineCreateRequest>, TimelineCreateRequestValidator> ();
+builder.Services.AddScoped<IValidator<JsonPatchDocument<TimelinePatchRequest>>, TimelinePatchRequestDocumentValidator> ();
+builder.Services.AddScoped<IValidator<TimelinePatchRequest>, TimelinePatchRequestValidator> ();
 builder.Services.AddScoped<IValidator<TagCreateRequest>, TagCreateRequestValidator> ();
 
 builder.Services.AddTransient<IColumnMapper, ColumnMapper> ();
 builder.Services.AddTransient<ITaskMapper, TaskMapper> ();
+builder.Services.AddTransient<ITimelineMapper, TimelineMapper> ();
 builder.Services.AddTransient<ITagMapper, TagMapper> ();
 
 builder.Services.AddTransient<IBoardRepository, BoardRepository>();

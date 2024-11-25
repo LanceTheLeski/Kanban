@@ -1,6 +1,12 @@
-﻿using Kanban.API.Repositories;
+﻿using FluentValidation;
+using Kanban.API.Components;
+using Kanban.API.Mappers;
+using Kanban.API.Models;
+using Kanban.API.Repositories;
 using Kanban.Contracts.Request.Create;
-using Kanban.Contracts.Response;
+using Kanban.Contracts.Request.Patch;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kanban.API.Controllers;
@@ -9,65 +15,114 @@ namespace Kanban.API.Controllers;
 [Route ("kanban/timelines")]
 public class TimelineController : Controller
 {
+    private readonly IValidator<TimelineCreateRequest> _timelineCreateRequestValidator;
+    private readonly IValidator<JsonPatchDocument<TimelinePatchRequest>> _timelinePatchRequestDocumentValidator;
+    private readonly IValidator<TimelinePatchRequest> _timelinePatchRequestValidator;
+
     private readonly ITimelineRepository _timelineRepository;
 
-    public TimelineController (ITimelineRepository timelineRepository)
+    private readonly ITimelineMapper _timelineMapper;
+
+    public TimelineController (IValidator<TimelineCreateRequest> timelineCreateRequestValidator,
+                               IValidator<JsonPatchDocument<TimelinePatchRequest>> timelinePatchRequestDocumentValidator,
+                               IValidator<TimelinePatchRequest> timelinePatchRequestValidator,
+                               ITimelineRepository timelineRepository,
+                               ITimelineMapper timelineMapper)
     {
+        _timelineCreateRequestValidator = timelineCreateRequestValidator;
+        _timelinePatchRequestDocumentValidator = timelinePatchRequestDocumentValidator;
+        _timelinePatchRequestValidator = timelinePatchRequestValidator;
+
         _timelineRepository = timelineRepository;
+
+        _timelineMapper = timelineMapper;
     }
 
     [HttpGet ("{ID:Guid}")]
-    public async Task<ActionResult> FetchTimeline ([FromRoute] Guid taskID, [FromRoute] Guid ID)
+    public async Task<ActionResult> FetchTimeline ([FromRoute] Guid ID)
     {
-        var timeline = await _timelineRepository.GetTimelineAsync (ID, taskID);
+        var timelineCollection = await _timelineRepository.QueryTimelinesAsync (timeline => timeline.PartitionKey == ID.ToString ());
+        if (timelineCollection.Count () is 0)
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Timeline)));
+        if (timelineCollection.Count () is not 1)
+            return Problem (ErrorResponseMessages.TooManyEntitiesErrorResponse (nameof (Timeline)));
 
-        var timelineReponse = new TimelineResponse
-        {
-            ID = Guid.Parse (timeline.PartitionKey),
-            StartDependencyTagGroupID = timeline.StartDependencyTagGroupID,
-            StartPreferenceUTC = timeline.StartPreferenceUTC,
-            StartDeadlineUTC = timeline.StartDeadlineUTC,
-            EndDependencyTagGroupID = timeline.EndDependencyTagGroupID,
-            EndPreferenceUTC = timeline.EndPreferenceUTC,
-            EndDeadlineUTC = timeline.EndDeadlineUTC
-        };
-
-        return StatusCode (StatusCodes.Status200OK, timelineReponse);
+        var timelineToReturn = timelineCollection.Single ();
+        var timelineResponse = _timelineMapper.MapTimelineToTimelineResponse (timelineToReturn);
+        return Ok (timelineResponse);
     }
 
     [HttpPost]
-    public async Task<ActionResult> CreateTimeline ([FromRoute] Guid taskID, [FromBody] TimelineCreateRequest timelineCreateRequest)
+    public async Task<ActionResult> CreateTimeline ([FromBody] TimelineCreateRequest timelineCreateRequest)
     {
-        var newTimeline = new Models.Timeline
-        {
-            PartitionKey = Guid.NewGuid ().ToString (),
-            RowKey = taskID.ToString (),
-            StartDependencyTagGroupID = timelineCreateRequest.StartDependencyTagGroupID,
-            StartPreferenceUTC = timelineCreateRequest.StartPreferenceUTC,
-            StartDeadlineUTC = timelineCreateRequest.StartDeadlineUTC,
-            EndDependencyTagGroupID = timelineCreateRequest.EndDependencyTagGroupID,
-            EndPreferenceUTC = timelineCreateRequest.EndPreferenceUTC,
-            EndDeadlineUTC = timelineCreateRequest.EndDeadlineUTC
-        };
+        var validationResult = _timelineCreateRequestValidator.Validate (timelineCreateRequest);
+        if (validationResult.IsValid is false)
+            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TimelineCreateRequest))
+                               + "\n" + validationResult.ToString ());
 
-        var addTimelineResponse = await _timelineRepository.AddTimelineAsync (newTimeline);
-        if (addTimelineResponse.IsError)
-        {
-            //We might want to have better verification later for failures. I'm thinking we actually query the table and grab the card so we can map it to a response object
-            return StatusCode (StatusCodes.Status500InternalServerError, $"Could not insert a new timeline into database. Internal status: {addTimelineResponse.Status}");
-        }
+        var parentExists = await _timelineRepository.ParentExistsAsync (timelineCreateRequest.ParentID, timelineCreateRequest.TimelineTypeID);
+        if (parentExists is false)
+            return BadRequest (ErrorResponseMessages.NotFoundErrorResponse ("Parent"));
 
-        var timelineResponse = new TimelineResponse
-        {
-            ID = Guid.Parse (newTimeline.PartitionKey),
-            StartDependencyTagGroupID = newTimeline.StartDependencyTagGroupID,
-            StartPreferenceUTC = newTimeline.StartPreferenceUTC,
-            StartDeadlineUTC = newTimeline.StartDeadlineUTC,
-            EndDependencyTagGroupID = newTimeline.EndDependencyTagGroupID,
-            EndPreferenceUTC = newTimeline.EndPreferenceUTC,
-            EndDeadlineUTC = newTimeline.EndDeadlineUTC
-        };
+        var newTimeline = _timelineMapper.MapTimelineCreateRequestToTimeline (timelineCreateRequest);
+        newTimeline.PartitionKey = Guid.NewGuid ().ToString ();
 
-        return StatusCode (StatusCodes.Status201Created, timelineResponse);
+        var databaseResponse = await _timelineRepository.AddTimelineAsync (newTimeline);
+        if (databaseResponse.IsError)
+            return Problem (ErrorResponseMessages.AddToDatabaseErrorResponse (nameof (Timeline)) + $"\nInternal status: {databaseResponse.Status}");
+
+        var timelineResponse = _timelineMapper.MapTimelineToTimelineResponse (newTimeline);
+        return Created (default (Uri), timelineResponse);
+    }
+
+    [HttpPatch ("{ID:Guid}")]
+    public async Task<ActionResult> UpdateTimeline ([FromRoute] Guid ID, [FromBody] JsonPatchDocument<TimelinePatchRequest> timelinePatchRequest)
+    {
+        var validationResult = _timelinePatchRequestDocumentValidator.Validate (timelinePatchRequest);
+        if (validationResult.IsValid is false)
+            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TagPatchRequest))
+                               + "\n" + validationResult.ToString ());
+
+        var timelineToUpdateCollection = await _timelineRepository.QueryTimelinesAsync (timeline => timeline.PartitionKey == ID.ToString ());
+        if (timelineToUpdateCollection is null || timelineToUpdateCollection.Count is 0)
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Timeline)));
+        if (timelineToUpdateCollection.Count is not 1)
+            return Problem (ErrorResponseMessages.TooManyEntitiesErrorResponse (nameof (Timeline)));
+
+        var timelineToUpdate = timelineToUpdateCollection.Single ();
+        var convertedTimelineToUpdate = _timelineMapper.MapTimelineToTimelinePatchRequest (timelineToUpdate);
+        try { timelinePatchRequest.ApplyTo (convertedTimelineToUpdate); }
+        catch (JsonPatchException jsonPatchEx)
+        { return BadRequest (ErrorResponseMessages.PatchRequestIsInvalidErrorResponse (nameof (Timeline)) + "\nDetails:\n" + jsonPatchEx.Message); }
+
+        validationResult = _timelinePatchRequestValidator.Validate (convertedTimelineToUpdate);
+        if (validationResult.IsValid is false)
+            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TagPatchRequest))
+                               + "\n" + validationResult.ToString ());
+
+        timelineToUpdate = _timelineMapper.MapTimelinePatchRequestToTimeline (convertedTimelineToUpdate); // Make sure that the response object is preserved if not mapped to
+        var databaseResponse = await _timelineRepository.UpdateTimelineAsync (timelineToUpdate);
+        if (databaseResponse.IsError)
+            return Problem (ErrorResponseMessages.UpdateInDatabaseErrorResponse (nameof (Timeline)) + $"\nInternal status: {databaseResponse.Status}");
+
+        var timelineResponse = _timelineMapper.MapTimelineToTimelineResponse (timelineToUpdate);
+        return Ok (timelineResponse);
+    }
+
+    [HttpDelete ("{ID:guid}")]
+    public async Task<ActionResult> DeleteTimwlinw (Guid ID)
+    {
+        var timelineCollection = await _timelineRepository.QueryTimelinesAsync (timeline => timeline.PartitionKey == ID.ToString ());
+        if (timelineCollection.Count is 0)
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Timeline)));
+        if (timelineCollection.Count is not 1)
+            return Problem (ErrorResponseMessages.TooManyEntitiesErrorResponse (nameof (Timeline)));
+
+        var timelineFromDatabase = timelineCollection.Single ();
+        var databaseResponse = await _timelineRepository.DeleteTimelineAsync (timelineFromDatabase);
+        if (databaseResponse.IsError)
+            return Problem (ErrorResponseMessages.RemoveFromDatabaseErrorResponse (nameof (Timeline)));
+
+        return Ok ();
     }
 }
