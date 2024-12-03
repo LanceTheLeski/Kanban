@@ -5,11 +5,13 @@ namespace Kanban.API.Repositories;
 
 public interface ITaskRepository
 {
-    public Task<Models.Task?> GetTaskAsync (Guid taskID, Guid tagGroupID);
+    Task<Models.Task?> GetTaskAsync (Guid taskID, Guid tagGroupID);
 
-    public Task<Azure.Response> UpdateTaskAsync (Models.Task taskToUpdate);
+    Task<Azure.Response> AddTaskAsync (Models.Task taskToCreate);
 
-    public Task<Collection<Models.Task>> QueryTasksAsync (Expression<Func<Models.Task, bool>> taskQueryExpression);
+    Task<Azure.Response> UpdateTaskAsync (Models.Task taskToUpdate);
 
-    public Task<Azure.Response> AddTaskAsync (Models.Task taskToCreate);
+    Func<Models.Task, bool> BuildTaskQuery (IEnumerable<Guid> cardIDCollection);
+
+    Task<Collection<Models.Task>> QueryTasksAsync (Expression<Func<Models.Task, bool>> taskQueryExpression);
 }

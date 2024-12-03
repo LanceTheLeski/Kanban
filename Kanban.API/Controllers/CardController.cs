@@ -33,6 +33,8 @@ public class CardController : ControllerBase
                            ICardRepository cardRepository, 
                            IBoardRepository boardRepository)
     {
+
+
         _tableServiceClient = new TableServiceClient (cosmosOptions.Value.HonuBoards);
         _boardTable = _tableServiceClient.GetTableClient (tableName: boards);
         _columnTable = _tableServiceClient.GetTableClient (tableName: columns);

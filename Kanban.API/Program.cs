@@ -5,12 +5,15 @@ using Kanban.API.Repositories;
 using Kanban.API.Validators;
 using Kanban.Contracts.Request.Create;
 using Kanban.Contracts.Request.Patch;
+using Kanban.Contracts.Request.Query;
 using Microsoft.AspNetCore.JsonPatch;
 
 var builder = WebApplication.CreateBuilder (args);
 
 builder.Services.AddScoped<IValidator<ColumnCreateRequest>, ColumnCreateRequestValidator> ();
 builder.Services.AddScoped<IValidator<JsonPatchDocument<ColumnPatchRequest>>, ColumnPatchRequestDocumentValidator> ();
+builder.Services.AddScoped<IValidator<TaskQueryParameters>, TaskQueryParametersValidator> ();
+builder.Services.AddScoped<IValidator<TaskCreateRequest>, TaskCreateRequestValidator> ();
 builder.Services.AddScoped<IValidator<TimelineCreateRequest>, TimelineCreateRequestValidator> ();
 builder.Services.AddScoped<IValidator<JsonPatchDocument<TimelinePatchRequest>>, TimelinePatchRequestDocumentValidator> ();
 builder.Services.AddScoped<IValidator<TimelinePatchRequest>, TimelinePatchRequestValidator> ();

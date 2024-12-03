@@ -39,6 +39,20 @@ public class TaskRepository : EntityRepository<Models.Task>, ITaskRepository
     public async Task<Azure.Response> UpdateTaskAsync (Models.Task taskToUpdate)
         => await UpdateEntityAsync (taskToUpdate);
 
+    public Func<Models.Task, bool> BuildTaskQuery (IEnumerable<Guid> cardIDCollection)
+    {
+        //This all seems odd. I feel like it'll fail but we'll see.
+        Func<Models.Task, bool> taskQuery = task => false;
+
+        foreach (var cardID in cardIDCollection)
+        {
+            Func<Models.Task, bool> expr = task => task.RowKey == cardID.ToString ();
+            taskQuery = task => taskQuery (task) || expr (task);
+        }
+
+        return taskQuery;
+    }
+
     public async Task<Collection<Models.Task>> QueryTasksAsync (Expression<Func<Models.Task, bool>> taskQueryExpression)
         => await QueryEntitiesAsync (taskQueryExpression);
 
@@ -46,7 +60,7 @@ public class TaskRepository : EntityRepository<Models.Task>, ITaskRepository
 
     #region Task Type
 
-    public async Task<Collection<TaskType>> GetTaskTypesAsync (Expression<Func<TaskType, bool>> taskTypeQueryExpression)
+    public async Task<Collection<TaskType>> QueryTaskTypesAsync (Expression<Func<TaskType, bool>> taskTypeQueryExpression)
     {
         var taskTypeCollection = new Collection<TaskType> ();
 
