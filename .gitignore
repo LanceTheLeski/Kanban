@@ -364,3 +364,7 @@ FodyWeavers.xsd
 /appsettings.json
 /Kanban.API/appsettings.json
 /Kanban.UI/appsettings.json
+/ArcStrides.API.Boards/Properties
+/ArcStrides.API.Boards/ArcStrides.API.Boards.csproj
+/ArcStrides.API.Calendars/Properties
+/ArcStrides.API.Calendars/appsettings.json
