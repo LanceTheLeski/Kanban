@@ -1,0 +1,262 @@
+﻿@using ArcStrides.Contracts.Response;
+@using ArcStrides.UI
+@using ArcStrides.UI.Layout.Board
+@using ArcStrides.UI.Layout.Card
+@using ArcStrides.UI.Layout.Column
+@using ArcStrides.UI.Layout.Swimlane
+@using ArcStrides.UI.Models
+@using ArcStrides.UI.Options
+@using ArcStrides.UI.Services
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using System.Net.Http.Headers
+
+@inject ICardService _cardService
+
+@page "/board"
+
+@rendermode RenderMode.InteractiveServer
+
+<PageTitle>Board</PageTitle>
+<MudThemeProvider Theme="@MyMudThemeProvider._ArcBoardDefaultTheme"/>
+
+<MudPaper Class="glass"> <!--Class="mud-theme-backgroundgray"--->
+    <MudPaper Height="50px" Width="100%" Class="d-inline mud-theme-primary">
+        <BoardManagementNavigationBar @bind-Cards="@_cards"
+        @bind-Swimlanes="_swimlanes"
+        @bind-SwimlaneTitles="_swimlaneTitles"
+        @bind-Columns="_columns"
+        @bind-ColumnTitles="_columnTitles"
+        Refresh="Refresh"/>
+    </MudPaper>
+    <MudGrid Spacing="0" 
+    Class="d-flex flex-column">
+        <MudItem>
+            <MudPaper Height="70px"
+            Class="mud-theme-primary">
+                <MudGrid Class="d-flex flex-nowrap">
+                    <MudItem>
+                        <MudPaper Width="120px" Height="40px" Elevation="0" Style="background-color:transparent; padding-left: 12px;">
+                            <MudText Align="Align.Center" Style="font-family:'Freestyle Script';
+                                                                 font-weight:bold;
+                                                                 font-size:xx-large;
+                                                                 color:aquamarine;">Honu Boards</MudText>
+                        </MudPaper>
+                    </MudItem>
+                    @foreach (var columnIndex in Enumerable.Range (0, _columnTitles.Count ()))
+                    {
+                        <MudItem>
+                            <MudPaper Width="300px" Height="55px;" Class="align-content-center">
+                                <MudText Align="Align.Center" Style="font-family: 'calibri condensed', 'bodoni MT condensed', 'bahnschrift light condensed';
+                                                                     font-size: small;
+                                                                     font-weight: bold;
+                                                                     color: black;">
+                                    @(_columnTitles [columnIndex])
+                                </MudText>
+                            </MudPaper>
+                        </MudItem>
+                    }
+                </MudGrid>
+            </MudPaper>
+        </MudItem>
+        <MudDropContainer @ref="_dropContainer"
+        T="DropCard" 
+        Items="_cards" 
+        ItemDropped="UpdateCard"
+        ItemsSelector="@((card, dropzone) => card.CardArea == dropzone)">
+            <ChildContent>
+                @foreach (var rowIndex in Enumerable.Range(0, _swimlaneTitles.Count()))
+                {
+                    <MudItem>
+                        <MudPaper Height="250px" 
+                        Style="background-color: wheat">
+                            <MudPaper Style="background-color: #C7EEE6; border: 25px, solid, wheat; border-left-width: 5px; border-right:width: 5px;" Elevation="0">
+                                <MudGrid Class="d-flex flex-nowrap">
+                                    <MudItem Class="align-content-center">
+                                        <MudPaper Width="110px"
+                                        Style="background-color: lightcoral; margin-left: 10px;">
+                                            <MudText Align="Align.Center" Style="font-family: 'calibri condensed', 'bodoni MT condensed', 'bahnschrift light condensed';
+                                                                                 font-size: small;
+                                                                                 font-weight: bold;
+                                                                                 color: black;">
+                                                @(_swimlaneTitles [rowIndex])
+                                            </MudText>
+                                        </MudPaper>
+                                    </MudItem>
+
+                                    @foreach (var columnIndex in Enumerable.Range (0, _columnTitles.Count ()))
+                                    {
+                                        var identifier = rowIndex + "_" + columnIndex;
+                                        <MudItem Style="height: 250px;">
+                                            <!--We want columns to have a set width-->
+                                            <MudList T="MudDropZone<DropCard>"
+                                            ReadOnly="false"
+                                            Class="d-flex flex-column mud-height-full" 
+                                            Style="height: 250px;">
+                                                <MudDropZone T="DropCard" 
+                                                Identifier="@identifier" 
+                                                CanDropClass="mud-border-success"
+                                                Class="d-flex flex-wrap flex-grow-1 justify-space-around gap-4 pa-2 overflow-auto"
+                                                Style="background-color: #ECED7b; width: 300px; height: 200px;"/>
+                                            </MudList>
+                                        </MudItem>
+                                    }
+                                </MudGrid>
+                            </MudPaper>
+                        </MudPaper>
+                    </MudItem>
+                }
+            </ChildContent>
+
+            <!--The ItemRenderer is a component of the MudDropZone and is in charge of rendering individual DropCards within it-->
+            <ItemRenderer>
+                <BoardCard @bind-Card="context" 
+                @bind-OpenCardOverlay="editCardOverlayIsOpen" 
+                @bind-UpdateOrDeleteCard="_activeCard" />
+            </ItemRenderer>
+        </MudDropContainer>
+    </MudGrid>
+</MudPaper>
+
+<!--Should move this to a different layout component which manages cards-->
+<UpdateCardOverlay @bind-Open="editCardOverlayIsOpen"
+@bind-ActiveCard="_activeCard"
+Refresh="Refresh" />
+
+@code 
+{
+    public List<DropCard> _cards = new List<DropCard> ();
+
+    public List<Guid> _swimlanes = new List<Guid> ();
+    public List<string> _swimlaneTitles = new ();
+
+    public List<Guid> _columns = new List<Guid> ();
+    public List<string> _columnTitles = new ();
+
+    private MudDropContainer<DropCard> _dropContainer;
+
+    public static DropCard? _activeCard = null;
+
+    public bool editCardOverlayIsOpen = false;
+
+    protected override async Task OnInitializedAsync ()
+    {
+        var boardResponse = await _cardService.FetchBoard(Guid.Parse("20a88077-10d4-4648-92cb-7dc7ba5b8df5"));//Change later to be dynamic..
+        _cards = ConvertBoardResponseToDropCardList (boardResponse);
+    }
+
+    public void OpenEditCardOverlay ()
+    {
+        editCardOverlayIsOpen = true;
+    }
+    public void UpdateEditCardOverlay (bool setEditCardOverlayIsOpen)
+    {
+        editCardOverlayIsOpen = setEditCardOverlayIsOpen;
+    }
+
+    public async Task Refresh (bool stateHasChanged)
+    {
+        if (stateHasChanged)
+        {
+            await OnInitializedAsync ();
+            _dropContainer.Items = _cards;
+            _dropContainer.Refresh ();
+        }
+    }
+
+    public void UpdateCard (MudItemDropInfo<DropCard> cardToUpdate)
+    {
+        cardToUpdate.Item.CardArea = cardToUpdate.DropzoneIdentifier;
+
+        var newCardArea = ConvertCardAreaToColumnAndSwimlane (cardToUpdate.Item.CardArea);
+        cardToUpdate.Item.ColumnID = _columns [newCardArea.columnPos];
+        cardToUpdate.Item.ColumnName = _columnTitles [newCardArea.columnPos];
+        cardToUpdate.Item.ColumnNumber = newCardArea.columnPos;
+        cardToUpdate.Item.SwimlaneID = _swimlanes [newCardArea.swimlanePos];
+        cardToUpdate.Item.SwimlaneName = _swimlaneTitles [newCardArea.swimlanePos];
+        cardToUpdate.Item.SwimlaneNumber = newCardArea.swimlanePos;
+
+        var cardResponse = Task.Run (() =>
+            SendCardPatchRequest (cardToUpdate.Item)).Result;
+    }
+
+    private async Task<BoardCardResponse?> SendCardPatchRequest (DropCard cardToUpdate)
+    {
+        var patchRequest =
+        $@"[
+            {{ ""op"": ""replace"", ""path"": ""/ColumnID"", ""value"": ""{cardToUpdate.ColumnID}"" }},
+            {{ ""op"": ""replace"", ""path"": ""/ColumnTitle"", ""value"": ""{cardToUpdate.ColumnName}"" }},
+            {{ ""op"": ""replace"", ""path"": ""/ColumnOrder"", ""value"": ""{cardToUpdate.ColumnNumber}"" }},
+            {{ ""op"": ""replace"", ""path"": ""/SwimlaneID"", ""value"": ""{cardToUpdate.SwimlaneID}"" }},
+            {{ ""op"": ""replace"", ""path"": ""/SwimlaneTitle"", ""value"": ""{cardToUpdate.SwimlaneName}"" }},
+            {{ ""op"": ""replace"", ""path"": ""/SwimlaneOrder"", ""value"": ""{cardToUpdate.SwimlaneNumber}"" }}
+        ]";
+
+        return await _cardService.UpdateCard (Guid.Parse (cardToUpdate.Id), patchRequest);
+    }
+
+    private (int swimlanePos, int columnPos) ConvertCardAreaToColumnAndSwimlane (string cardAreaValue)
+    {
+        var swimlanePos_columnPos = cardAreaValue.Split ("_");
+        var swimlanePos = int.Parse (swimlanePos_columnPos.First ());
+        var columnPos = int.Parse (swimlanePos_columnPos.Last ());
+
+        return (swimlanePos, columnPos);
+    }
+
+    private string ConvertColumnAndSwimlaneToCardArea (int swimlanePos, int columnPos)
+    {
+        return (swimlanePos + "_" + columnPos);
+    }
+
+    private List<DropCard> ConvertBoardResponseToDropCardList (BoardResponse boardResponse)
+    {
+        var dropCardList = new List<DropCard> ();
+
+        _columnTitles = new List<string> ();
+        _columns = new List<Guid> ();
+        _swimlaneTitles = new List<string> ();
+        _swimlanes = new List<Guid> ();
+
+        var columnList = boardResponse.Columns;
+        for (int columnIndex = 0; columnIndex < columnList.Count; columnIndex++)
+        {
+            var swimlaneList = columnList [columnIndex].Swimlanes;
+
+            for (int swimlaneIndex = 0; swimlaneIndex < swimlaneList.Count; swimlaneIndex++)
+            {
+                var cardList = swimlaneList [swimlaneIndex].Cards;
+
+                var cardArea = ConvertColumnAndSwimlaneToCardArea (swimlaneList [swimlaneIndex].Order, columnList [columnIndex].Order);
+                foreach (var card in cardList)
+                {
+                    dropCardList.Add (new DropCard
+                    {
+                        Id = card.ID,
+                        Title = card.Title,
+                        Description = card.Description,
+                        ColumnNumber = columnIndex,
+                        ColumnID = Guid.Parse (columnList [columnIndex].ID),
+                        ColumnName = columnList [columnIndex].Title,
+                        SwimlaneNumber = swimlaneIndex,
+                        SwimlaneID = Guid.Parse (swimlaneList [swimlaneIndex].ID),
+                        SwimlaneName = swimlaneList [swimlaneIndex].Title,
+                        //Tasks = card.Tasks,
+                        CardArea = cardArea
+                    });
+                }
+            }
+
+            _columnTitles.Add (columnList [columnIndex].Title);
+            _columns.Add (Guid.Parse (columnList [columnIndex].ID));
+        }
+
+        for (int swimlaneIndex = 0; swimlaneIndex < columnList [0].Swimlanes.Count; swimlaneIndex++)
+        {
+            _swimlaneTitles.Add (columnList [0].Swimlanes [swimlaneIndex].Title);
+            _swimlanes.Add (Guid.Parse (columnList [0].Swimlanes [swimlaneIndex].ID));
+        }
+
+        return dropCardList;
+    }
+}

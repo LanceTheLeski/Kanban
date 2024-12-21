@@ -1,0 +1,69 @@
+﻿@using ArcStrides.UI.Components.ArcErrorHandler
+@using ArcStrides.UI.Components.ArcExpandingSelector
+@using ArcStrides.UI.Components.ArcOverlay
+@using ArcStrides.UI.Options
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using ArcStrides.Contracts.Request.Create
+@using ArcStrides.Contracts.Response
+@using ArcStrides.UI.Components
+@using ArcStrides.UI.Layout
+@using ArcStrides.UI.Models
+@using System.Net.Http.Headers
+
+@inject HttpClient http
+@inject IOptions<BackendOptions> interfaceOptions
+
+<ArcOverlay @bind-Open="Open" 
+            OnSubmitAsync="CreateCard">
+
+    <MudText>Add a New Card</MudText>
+    <MudTextField @bind-Value="cardTitle" T="string" Label="Title" Variant="Variant.Filled" HelperText="Card Title" />
+    <MudTextField @bind-Value="cardDescription" T="string" Label="Description" Variant="Variant.Filled" AutoGrow Lines="7" HelperText="Description" />
+
+    <ArcExpandingSelector @bind-Options="ColumnTitles"
+                             OptionSelected="SetColumnNameToAddCard" />
+
+    <ArcExpandingSelector @bind-Options="SwimlaneTitles"
+                             OptionSelected="SetSwimlaneNameToAddCard"/>
+
+</ArcOverlay>
+
+@code
+{
+    [Parameter]
+    public bool Open { get; set; }
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public List<DropCard>? Cards { get; set; }
+    [Parameter]
+    public EventCallback<List<DropCard>> CardsChanged { get; set; }
+
+    [Parameter]
+    public List<Guid>? Columns { get; set; }
+    [Parameter]
+    public EventCallback<List<Guid>> ColumnsChanged { get; set; }
+
+    [Parameter]
+    public List<string>? ColumnTitles { get; set; }
+    [Parameter]
+    public EventCallback<List<string>> ColumnTitlesChanged { get; set; }
+
+    [Parameter]
+    public List<Guid>? Swimlanes { get; set; }
+    [Parameter]
+    public EventCallback<List<Guid>> SwimlanesChanged { get; set; }
+
+    [Parameter]
+    public List<string>? SwimlaneTitles { get; set; }
+    [Parameter]
+    public EventCallback<List<string>> SwimlaneTitlesChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> Refresh { get; set; }
+
+    private string cardTitle = "";
+    private string cardDescription = "";
+}

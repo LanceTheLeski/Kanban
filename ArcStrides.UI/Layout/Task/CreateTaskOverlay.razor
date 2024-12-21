@@ -1,0 +1,242 @@
+﻿@using ArcStrides.Contracts.Request.Create
+@using ArcStrides.Contracts.Response
+@using ArcStrides.UI.Models
+@using ArcStrides.UI.Options
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using System.Net.Http.Headers
+@using static ArcStrides.Contracts.Response.BoardResponse
+@using static ArcStrides.Contracts.Response.MonthResponse
+
+@inject HttpClient http
+@inject IOptions<BackendOptions> interfaceOptions
+
+@inherits LayoutComponentBase
+
+<MudPaper>
+    <MudButton OnClick="@(() => tempOpen = true)">
+        @taskTitle
+    </MudButton>
+    <MudPopover Open="tempOpen" OverflowBehavior="OverflowBehavior.FlipAlways" AnchorOrigin="Origin.CenterLeft" TransformOrigin="Origin.CenterRight">
+        <MudPaper Width="600px">
+            <MudTextField @bind-Value="taskTitle" T="string" Label="Title" Variant="Variant.Filled" HelperText="Task Title" />
+
+            <MudGrid>
+                <MudItem>
+                    <MudPaper>
+                        @TaskOrder
+                    </MudPaper>
+                    <MudPaper>
+                        <MudExpansionPanels>
+                            <MudExpansionPanel Text="Task Type" MaxHeight="1000" ExpandedChanged="TaskTypeListExpandedChanged">
+                                @_taskTypeList
+                            </MudExpansionPanel>
+                        </MudExpansionPanels>
+                    </MudPaper>
+                </MudItem>
+                <MudItem>
+                    <MudButton OnClick="@(() => TimelineFragmentChanged (false))">
+                        Deadline
+                    </MudButton>
+                    <MudButton OnClick="@(() => TimelineFragmentChanged (true))">
+                        Timeline
+                    </MudButton>
+                    <MudPaper>
+                        @_timelineFragment
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+
+            <MudButtonGroup>
+                <MudButton OnClick="@(() => CreateTaskAsync())">Submit</MudButton>
+                <MudButton OnClick="@(() => tempOpen = false)">Discard</MudButton>
+            </MudButtonGroup>
+        </MudPaper>
+    </MudPopover>
+</MudPaper>
+
+@code
+{
+    private bool tempOpen = false;
+
+    [Parameter]
+    public string TaskTitle { get; set; } = "New Task";
+    [Parameter]
+    public EventCallback<string> TaskTitleChanged { get; set; }
+
+    [Parameter]
+    public int TaskOrder { get; set; } = -1;
+    [Parameter]
+    public EventCallback<int> TaskOrderChanged { get; set; }
+
+    [Parameter]
+    public Date.Day Day { get; set; }
+    [Parameter]
+    public EventCallback<Date.Day> DayChanged { get; set; }
+
+    [Parameter]
+    public Guid? CardID { get; set; }
+    [Parameter]
+    public EventCallback<Guid?> CardIDChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> Refresh { get; set; }
+
+    private static List<string> _taskTypeTitles = new List<string> ();
+    private static List<string> _cardTitles = new List<string> ();
+
+    public string taskTitle = "";
+    public static string columnToAddCard = "";
+    public static string parentCardID = "";
+
+    public DateRange _dateRangePreferred = new DateRange ();
+    public TimeSpan? _timePreferredStart = new TimeSpan ();
+    public TimeSpan? _timePreferredEnd = new TimeSpan ();
+
+    public DateRange _dateRangeRequired = new DateRange ();
+    public TimeSpan? _timeRequiredStart = new TimeSpan ();
+    public TimeSpan? _timeRequiredEnd = new TimeSpan ();
+
+
+    //On page load. Not async.
+    protected async override Task OnInitializedAsync ()
+    {
+        taskTitle = TaskTitle;
+        _timelineFragment = _deadlineRenderFragment ();
+
+        var taskTypesResponse = await FetchTaskTypesAsync ();
+
+        _taskTypeTitles = taskTypesResponse.Titles;
+    }
+
+    private RenderFragment _taskTypeList;
+    private async Task TaskTypeListExpandedChanged (bool isTimeline)
+    {
+        if (isTimeline)
+        {
+            _taskTypeList = _taskTypeListRenderFragment ();
+        }
+        else
+        {
+            // Reset after a while to prevent sudden collapse.
+            Task.Delay (350).ContinueWith (t => _taskTypeList = null);
+        }
+    }
+
+    private RenderFragment _taskTypeListRenderFragment ()
+    {
+        return __builder =>
+        {
+            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
+                <MudStack Class="flex-grow-1" Width="100%" Height="100%">
+                    <MudList T="string" ReadOnly="false">
+                        @foreach (var taskTypeTitle in _taskTypeTitles)
+                        {
+                            <MudListItem OnClick="(() => SetTaskTypeOnTask(taskTypeTitle))">
+                                List Type Name: @(taskTypeTitle)
+                            </MudListItem>
+                        }
+                    </MudList>
+                </MudStack>
+            </MudPaper>
+        };
+    }
+    private static async Task SetTaskTypeOnTask (string taskTypeName)
+    {
+        var matchingColumnNameCount = _taskTypeTitles.FindAll (taskType => taskType == taskTypeName).Count ();
+        if (matchingColumnNameCount is not 1)
+        {
+            // Should we throw exceptions? Or have the snackbar display exceptions?
+            // I think that the UI should throw exceptions and the Blazor UI should maybe use something reliable like the snackbar.
+            throw new Exception ($"The column selected does not correspond to a single column in our list of columns. Number of this column found: {matchingColumnNameCount}");
+        }
+
+        columnToAddCard = taskTypeName;
+    }
+
+    private RenderFragment _timelineFragment;
+    private void TimelineFragmentChanged (bool isTimeline)
+    {
+        if (isTimeline)
+        {
+            _timelineFragment = _timelineRenderFragment ();
+        }
+        else
+        {
+            _timelineFragment = _deadlineRenderFragment ();
+        }
+    }
+
+    private RenderFragment _timelineRenderFragment ()
+    {
+        return __builder =>
+        {
+            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
+                <MudDateRangePicker Label="Preferrd" Editable="true" @bind-DateRange="_dateRangePreferred" />
+                <MudTimePicker Label="Preferred Start" Editable="true" AmPm="true" AnchorOrigin="Origin.CenterLeft" TransformOrigin="Origin.CenterRight" @bind-Time="_timePreferredStart" />
+                <MudTimePicker Label="Preferred End" Editable="true" AmPm="true" @bind-Time="_timePreferredEnd" />
+
+                <MudDateRangePicker Label="Deadlines" Editable="true" @bind-DateRange="_dateRangeRequired" />
+                <MudTimePicker Label="Required Start" Editable="true" AmPm="true" @bind-Time="_timeRequiredStart" />
+                <MudTimePicker Label="Required End" Editable="true" AmPm="true" @bind-Time="_timeRequiredEnd" />
+            </MudPaper>
+        };
+    }
+    private RenderFragment _deadlineRenderFragment ()
+    {
+        return __builder =>
+        {
+            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
+                <MudDatePicker Label="EndDate" Editable="false" @bind-Date="_dateRangeRequired.End"/>
+                <MudTimePicker Label="Required End" Editable="true" AmPm="true" @bind-Time="_timeRequiredEnd" />
+            </MudPaper>
+        };
+    }
+
+    public async Task<TaskTypesResponse?> FetchTaskTypesAsync ()
+    {
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, @$"{interfaceOptions.Value.URL}ArcStrides/tasks/types");
+
+        var response = await http.SendAsync (httpRequestMessage);
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception ("Could not fetch TaskTypes");
+        }
+
+        var responseBody = await response.Content.ReadAsStringAsync ();
+        return JsonConvert.DeserializeObject<TaskTypesResponse> (responseBody);
+    }
+
+    public async Task<TaskResponse> CreateTaskAsync ()
+    {
+        var createRequest = new TaskCreateRequest
+        {
+            Title = taskTitle,
+            TaskTypeID = 0,//Replace later..
+            CardID = Guid.Empty//Replace later..
+        };
+
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{interfaceOptions.Value.URL}ArcStrides/tasks");
+        httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject (createRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
+
+        var response = await http.SendAsync (httpRequestMessage);
+        if (response.IsSuccessStatusCode)
+        {
+            var responseBody = await response.Content.ReadAsStringAsync ();
+            var deserialized = JsonConvert.DeserializeObject<TaskResponse> (responseBody);
+
+            /*Day.Cards.First ().Tasks.Add (new TaskResponse //-----------------------------------------------This line is fucked up. This needs to be fixed ASAP
+            {
+                Title = deserialized.Title,
+                TaskTypeTitle = deserialized.TaskTypeTitle,
+                isCompleted = false//replace later..
+            });*/
+
+            Refresh.InvokeAsync (true);
+
+            return deserialized;
+        }
+
+        return null;
+    }
+}

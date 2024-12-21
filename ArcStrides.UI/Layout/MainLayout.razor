@@ -1,0 +1,23 @@
+﻿@using ArcStrides.UI
+
+@inherits LayoutComponentBase
+
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<div class="page mud-layout"
+     style="background-image: url('DefaultBackground5.jpg')"><!--So far 3 is best-->
+     <main>
+        <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="my-2 pt-2">
+            @Body
+        </MudContainer>
+    </main>
+</div>
+
+<div id="blazor-error-ui">
+    An unhandled error has occurred.
+    <a href="" class="reload">Reload</a>
+    <a class="dismiss">🗙</a>
+</div>

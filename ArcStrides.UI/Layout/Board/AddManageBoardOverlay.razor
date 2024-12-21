@@ -1,0 +1,15 @@
+﻿@using ArcStrides.UI.Components
+@using ArcStrides.UI.Components.ArcOverlay
+
+<ArcOverlay>
+    <MudText>Add/Edit Board</MudText>
+    <MudTextField T="string" Label="Title" Variant="Variant.Filled" AutoGrow HelperText="Board Title" />
+</ArcOverlay>
+
+@code 
+{
+    [Parameter]
+    public bool Open { get; set; }
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+}
