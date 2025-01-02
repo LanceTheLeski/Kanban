@@ -1,8 +1,8 @@
 ﻿using ArcStrides.UI.Components.ArcOverlay;
 
-namespace ArcStrides.UI.Layout.Card;
+namespace ArcStrides.UI.Layouts.Task;
 
-public partial class UpdateCardOverlay : IArcOverlay
+public partial class UpdateTaskOverlay : IArcOverlay
 {
     public void OpenOverlay ()
         => Open = true;

@@ -18,9 +18,6 @@ public class SwimlaneValidators
 
             RuleFor (swimlaneCreateRequest => swimlaneCreateRequest.Order)
                 .NotNull ();
-
-            RuleFor (swimlaneCreateRequest => swimlaneCreateRequest.BoardID)
-                .NotEmpty ();
         }
     }
 

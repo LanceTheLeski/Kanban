@@ -14,5 +14,5 @@ public class DateCreateRequest
 
     public int Year { get; set; }
 
-    public Guid MonthID { get; set; }
+    //public Guid MonthID { get; set; }
 }

@@ -37,9 +37,6 @@ public class TaskValidators
     {
         public TaskCreateRequestValidator ()
         {
-            RuleFor (taskCreateRequest => taskCreateRequest.CardID)
-                .NotEmpty ();
-
             RuleFor (taskCreateRequest => taskCreateRequest.TaskTypeID)
                 .NotEmpty ();
 

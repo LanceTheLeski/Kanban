@@ -5,6 +5,7 @@
 @using Microsoft.Extensions.Options
 @using Newtonsoft.Json
 @using System.Net.Http.Headers
+
 @using static ArcStrides.Contracts.Response.BoardResponse
 @using static ArcStrides.Contracts.Response.MonthResponse
 
@@ -213,7 +214,7 @@
         {
             Title = taskTitle,
             TaskTypeID = 0,//Replace later..
-            CardID = Guid.Empty//Replace later..
+            //CardID = Guid.Empty//Replace later..
         };
 
         var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{interfaceOptions.Value.URL}ArcStrides/tasks");

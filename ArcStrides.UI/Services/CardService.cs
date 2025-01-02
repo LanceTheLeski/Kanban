@@ -11,7 +11,9 @@ namespace ArcStrides.UI.Services;
 public class CardService : ICardService
 {
     private readonly HttpClient _httpClient;
+
     private readonly BackendOptions _backendOptions;
+
     private readonly IArcErrorHandler _arcErrorHandler;
 
     public CardService(IHttpClientFactory httpClientFactory,
@@ -19,7 +21,9 @@ public class CardService : ICardService
                        IArcErrorHandler arcErrorHandler)
     {
         _httpClient = httpClientFactory.CreateClient();
+
         _backendOptions = backendOptions.Value;
+
         _arcErrorHandler = arcErrorHandler;
     }
 
@@ -31,7 +35,7 @@ public class CardService : ICardService
         var response = await _httpClient.SendAsync (httpRequestMessage);
         if (response.IsSuccessStatusCode is false)
         {
-            _arcErrorHandler.AddError (response.ReasonPhrase, response.StatusCode);
+            _arcErrorHandler.AddError (response.ReasonPhrase ?? string.Empty, response.StatusCode);
             return null;
         }
 

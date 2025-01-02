@@ -16,6 +16,8 @@ builder.Services.AddHttpClient ();
 builder.Services.Configure<BackendOptions> (builder.Configuration.GetSection ("InternalAPI"));
 
 builder.Services.AddTransient<IArcErrorHandler, ArcErrorHandler> ();
+
+builder.Services.AddTransient<IBoardService, BoardService> ();
 builder.Services.AddTransient<ICardService, CardService> ();
 builder.Services.AddTransient<ITaskService, TaskService> ();
 

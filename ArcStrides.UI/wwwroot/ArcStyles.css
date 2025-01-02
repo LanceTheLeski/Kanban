@@ -1,0 +1,60 @@
+﻿/*.glass 
+{
+    padding: 35px;
+    background-color: rgba(98, 147, 185, .45);
+    /*background: linear-gradient (
+                    120deg,
+                    rgba(98, 147, 185, .25),
+                    rgba(98, 147, 185, .75) 70%,
+                    rgba(98, 147, 185, .25) 0%
+                 );* /
+    border-radius: 2px;
+    border: 1px solid rgba(202, 217, 229, .75);
+    backdrop-filter: blur(18px) saturate(200%) opacity(75%);
+    box-shadow: inset 4px 4px 5px 0 rgba(98, 147, 185, .25), 
+                inset -2px -2px 5px 0 rgba(202, 217, 229, 0.125), /*Our white color?* /
+                0 0 10px 5px rgba(0, 0, 0, 0.25);
+}*/
+
+.glass
+{
+    /*display: inline-block;*/
+    border-radius: 2px;
+
+    padding: 10px;
+
+    background: linear-gradient(
+            140deg,
+            rgba(202, 217, 229, .40),
+            rgba(98, 147, 185, .40), 50%,
+            rgba(98, 147, 185, .50), 100%
+        ) padding-box,
+        linear-gradient(
+            140deg,
+            rgba(255, 255, 255, .20),
+            rgba(58, 76, 111, .20), 50%
+        ) border-box;
+    /*rgba(58, 76, 111, .60);*/
+    box-shadow: 
+        inset .3px .3px .2px 0 rgba(255, 255, 255, .30),
+        inset .4px .4px .4px 0 rgba(0, 0, 0, .15),
+        inset -.3px -.3px .2px 0 rgba(255, 255, 255, .30),
+        inset -.4px -.4px .4px 0 rgba(0, 0, 0, .15),
+        0px 0px 1.5px 1px rgba(0, 0, 0, .50),
+        0px 0px 0px .2px rgba(58, 76, 111, .60); 
+ }
+
+.glass-inner-engraved
+{
+    display: inline-block;
+    border-radius: 4px;
+
+    background: rgba(58, 76, 111, .25);
+    box-shadow: rgba(0, 0, 0, .50) 0px 2px 5px 0px inset;
+    backdrop-filter: saturate(250%) blur(1px);
+}
+
+.glass-frosted
+{
+
+}

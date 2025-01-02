@@ -1,8 +1,8 @@
 ﻿using ArcStrides.UI.Components.ArcOverlay;
 
-namespace ArcStrides.UI.Layout.Column;
+namespace ArcStrides.UI.Layouts.Card;
 
-public partial class UpdateColumnOverlay: IArcOverlay
+public partial class UpdateCardOverlay : IArcOverlay
 {
     public void OpenOverlay ()
         => Open = true;

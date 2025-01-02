@@ -58,7 +58,7 @@ public class ColumnController : ArcController
     }
 
     [HttpPost ("/arcstrides/boards/{boardID:guid}/columns")]
-    public async Task<ActionResult> CreateColumn ([FromRoute] Guid boardID, [FromBody] ColumnCreateRequest columnCreateRequest)
+    public async Task<ActionResult> CreateBoardColumn ([FromRoute] Guid boardID, [FromBody] ColumnCreateRequest columnCreateRequest)
     {
         var validationResult = _columnCreateRequestValidator.Validate (columnCreateRequest);
         if (validationResult.IsValid is false)
@@ -83,7 +83,7 @@ public class ColumnController : ArcController
     }
 
     [HttpPatch ("/arcstrides/boards/{boardID:Guid}/columns/{columnID:Guid}")]
-    public async Task<ActionResult> UpdateColumn (Guid boardID, Guid columnID, [FromBody] JsonPatchDocument<ColumnPatchRequest> columnPatchRequest)
+    public async Task<ActionResult> UpdateBoardColumn (Guid boardID, Guid columnID, [FromBody] JsonPatchDocument<ColumnPatchRequest> columnPatchRequest)
     {
         var validationResult = _columnPatchRequestDocumentValidator.Validate (columnPatchRequest);
         if (validationResult.IsValid is false)
@@ -113,7 +113,7 @@ public class ColumnController : ArcController
     }
 
     [HttpDelete ("/arcstrides/boards/{boardID:guid}/columns/{columnID:guid}")]
-    public async Task<ActionResult> DeleteColumn (Guid boardID, Guid columnID)
+    public async Task<ActionResult> DeleteBoardColumn (Guid boardID, Guid columnID)
     {
         try
         {

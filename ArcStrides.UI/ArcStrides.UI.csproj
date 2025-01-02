@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Layout\Card\UpdateCardOverlay.razor.cs" />
+    <Compile Remove="Layouts\Card\UpdateCardOverlay.razor.cs" />
   </ItemGroup>
   
   <ItemGroup>

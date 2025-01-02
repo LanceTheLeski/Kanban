@@ -58,7 +58,7 @@ public class SwimlaneController : ArcController
     }
 
     [HttpPost ("/arcstrides/boards/{boardID:guid}/swimlanes")]
-    public async Task<ActionResult> CreateSwimlane ([FromRoute] Guid boardID, [FromBody] SwimlaneCreateRequest swimlaneCreateRequest)
+    public async Task<ActionResult> CreateBoardSwimlane ([FromRoute] Guid boardID, [FromBody] SwimlaneCreateRequest swimlaneCreateRequest)
     {
         var validationResult = _swimlaneCreateRequestValidator.Validate (swimlaneCreateRequest);
         if (validationResult.IsValid is false)
@@ -83,7 +83,7 @@ public class SwimlaneController : ArcController
     }
 
     [HttpPatch ("/arcstrides/boards/{boardID:Guid}/swimlanes/{swimlaneID:Guid}")]
-    public async Task<ActionResult> UpdateSwimlane (Guid boardID, Guid swimlaneID, [FromBody] JsonPatchDocument<SwimlanePatchRequest> swimlanePatchRequest)
+    public async Task<ActionResult> UpdateBoardSwimlane (Guid boardID, Guid swimlaneID, [FromBody] JsonPatchDocument<SwimlanePatchRequest> swimlanePatchRequest)
     {
         var validationResult = _swimlanePatchRequestDocumentValidator.Validate (swimlanePatchRequest);
         if (validationResult.IsValid is false)
@@ -113,7 +113,7 @@ public class SwimlaneController : ArcController
     }
 
     [HttpDelete ("/arcstrides/boards/{boardID:guid}/swimlanes/{swimlaneID:guid}")]
-    public async Task<ActionResult> DeleteSwimlane (Guid boardID, Guid swimlaneID)
+    public async Task<ActionResult> DeleteBoardSwimlane (Guid boardID, Guid swimlaneID)
     {
         try
         {

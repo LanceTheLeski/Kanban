@@ -1,8 +1,8 @@
 ﻿using ArcStrides.UI.Components.ArcOverlay;
 
-namespace ArcStrides.UI.Layout.Swimlane;
+namespace ArcStrides.UI.Layouts.Board;
 
-public partial class CreateSwimlaneOverlay : IArcOverlay
+public partial class AddManageBoardOverlay : IArcOverlay
 {
     public void OpenOverlay ()
         => Open = true;

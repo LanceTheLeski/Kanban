@@ -9,7 +9,6 @@ namespace ArcStrides.API.Calendars.Mappers;
 [Mapper]
 public partial class DateMapper : IDateMapper
 {
-    [MapProperty (nameof (DateCreateRequest.MonthID), nameof (Date.RowKey))]
     [MapProperty (nameof (DateCreateRequest.DateOrder), nameof (Date.DateOrder))]
     [MapProperty (nameof (DateCreateRequest.WeekOrder), nameof (Date.WeekOrder))]
     [MapProperty (nameof (DateCreateRequest.DayOfTheWeekOrder), nameof (Date.DayOfTheWeekOrder))]

@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 
 namespace ArcStrides.UI.Services;
 
-public class BoardService
+public class BoardService : IBoardService
 {
     private readonly HttpClient _httpClient;
     private readonly BackendOptions _backendOptions;

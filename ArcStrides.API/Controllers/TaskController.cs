@@ -63,8 +63,8 @@ public class TaskController : Controller
         return Ok (taskListReponse);
     }
 
-    [HttpPost]
-    public async Task<ActionResult> CreateTask ([FromBody] TaskCreateRequest taskCreateRequest)
+    [HttpPost ("arcstrides/cards/{cardID:guid}/tasks")]
+    public async Task<ActionResult> CreateTask (Guid cardID, [FromBody] TaskCreateRequest taskCreateRequest)
     {
         var validationResult = _taskCreateRequestValidator.Validate (taskCreateRequest);
         if (validationResult.IsValid is false)
@@ -73,6 +73,7 @@ public class TaskController : Controller
 
         var newTask = _taskMapper.MapTaskCreateRequestToTask (taskCreateRequest);
         newTask.PartitionKey = Guid.NewGuid ().ToString ();
+        newTask.RowKey = cardID.ToString ();
 
         await _taskRepository.AddTaskAsync (newTask);
         /*if (databaseResponse.IsError)

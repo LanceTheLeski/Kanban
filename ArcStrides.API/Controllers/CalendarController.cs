@@ -107,8 +107,8 @@ public class CalendarController : Controller
         return StatusCode (StatusCodes.Status418ImATeapot);
     }
 
-    [HttpPost ("dates")]
-    public async Task<ActionResult> CreateDate ([FromBody] DateCreateRequest dateCreateRequest)
+    [HttpPost ("months/{monthID:guid}/dates")]
+    public async Task<ActionResult> CreateDate ([FromRoute] Guid monthID, [FromBody] DateCreateRequest dateCreateRequest)
     {
         if (dateCreateRequest is null)
         {
@@ -121,7 +121,7 @@ public class CalendarController : Controller
         var newDate = new Date
         {
             PartitionKey = newDateID.ToString (),
-            RowKey = dateCreateRequest.MonthID.ToString (),
+            RowKey = monthID.ToString (),
 
             DateOrder = dateCreateRequest.DateOrder,
             WeekOrder = dateCreateRequest.WeekOrder,

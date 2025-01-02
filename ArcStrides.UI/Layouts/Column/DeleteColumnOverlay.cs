@@ -1,8 +1,8 @@
 ﻿using ArcStrides.UI.Components.ArcOverlay;
 
-namespace ArcStrides.UI.Layout.Task;
+namespace ArcStrides.UI.Layouts.Column;
 
-public partial class UpdateTaskOverlay : IArcOverlay
+public partial class DeleteColumnOverlay : IArcOverlay
 {
     public void OpenOverlay ()
         => Open = true;

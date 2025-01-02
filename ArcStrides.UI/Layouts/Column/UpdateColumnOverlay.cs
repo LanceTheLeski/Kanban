@@ -1,8 +1,8 @@
 ﻿using ArcStrides.UI.Components.ArcOverlay;
 
-namespace ArcStrides.UI.Layout.Swimlane;
+namespace ArcStrides.UI.Layouts.Column;
 
-public partial class DeleteSwimlaneOverlay : IArcOverlay
+public partial class UpdateColumnOverlay: IArcOverlay
 {
     public void OpenOverlay ()
         => Open = true;

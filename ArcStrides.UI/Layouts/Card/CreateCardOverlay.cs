@@ -5,7 +5,7 @@ using ArcStrides.UI.Models;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
 
-namespace ArcStrides.UI.Layout.Card;
+namespace ArcStrides.UI.Layouts.Card;
 
 public partial class CreateCardOverlay : IArcOverlay
 {

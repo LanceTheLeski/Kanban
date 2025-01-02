@@ -8,7 +8,6 @@ namespace ArcStrides.API.Mappers;
 [Mapper]
 public partial class TaskMapper : ITaskMapper
 {
-    [MapProperty (nameof (TaskCreateRequest.CardID), nameof (Models.Task.RowKey))]
     [MapProperty (nameof (TaskCreateRequest.Title), nameof (Models.Task.Title))]
     [MapProperty (nameof (TaskCreateRequest.TaskTypeID), nameof (Models.Task.TaskTypeID))]
     public partial Models.Task MapTaskCreateRequestToTask (TaskCreateRequest taskCreateRequest);
