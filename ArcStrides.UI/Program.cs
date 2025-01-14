@@ -1,7 +1,7 @@
 using ArcStrides.UI;
 using ArcStrides.UI.Components.ArcErrorHandler;
 using ArcStrides.UI.Options;
-using ArcStrides.UI.Services;
+using ArcStrides.UI.Repositories;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder (args);
@@ -13,13 +13,13 @@ builder.Services.AddRazorComponents ()
 builder.Services.AddMudServices ();
 builder.Services.AddHttpClient ();
 
-builder.Services.Configure<BackendOptions> (builder.Configuration.GetSection ("InternalAPI"));
+builder.Services.Configure<ArcStridesServiceOptions> (builder.Configuration.GetSection ("InternalAPI"));
 
 builder.Services.AddTransient<IArcErrorHandler, ArcErrorHandler> ();
 
-builder.Services.AddTransient<IBoardService, BoardService> ();
-builder.Services.AddTransient<ICardService, CardService> ();
-builder.Services.AddTransient<ITaskService, TaskService> ();
+builder.Services.AddTransient<IBoardRepository, BoardRepository> ();
+builder.Services.AddTransient<ICardRepository, CardRepository> ();
+builder.Services.AddTransient<ITaskRepository, TaskRepository> ();
 
 var app = builder.Build ();
 

@@ -1,7 +1,7 @@
 ﻿using ArcStrides.API.Exceptions;
 using ArcStrides.API.Mappers;
 using ArcStrides.API.Messages;
-using ArcStrides.API.Models;
+using ArcStrides.API.Models.Board;
 using ArcStrides.API.Options;
 using ArcStrides.API.Services;
 using DeepCopy;
@@ -108,7 +108,7 @@ public class SwimlaneRepository : ISwimlaneRepository
         return swimlaneToUpdateCollection;
     }
 
-    public async Task<IEnumerable<BoardCard>> FetchAndApplyNewOrderForEffectedBoardCardsAsync (IEnumerable<Swimlane> swimlaneEnumerable, IEnumerable<BoardCard> boardCardEnumerable)
+    public async Task<IEnumerable<CardPosition>> FetchAndApplyNewOrderForEffectedBoardCardsAsync (IEnumerable<Swimlane> swimlaneEnumerable, IEnumerable<CardPosition> boardCardEnumerable)
     {
         var effectedBoardCardEnumerable = boardCardEnumerable.Where (boardCard => swimlaneEnumerable.Any (swimlane => swimlane.Title == boardCard.SwimlaneTitle));
         if (effectedBoardCardEnumerable.Count () is not 0)
@@ -116,34 +116,34 @@ public class SwimlaneRepository : ISwimlaneRepository
             foreach (var boardCard in effectedBoardCardEnumerable)
                 boardCard.SwimlaneOrder = swimlaneEnumerable.Single (swimlane => swimlane.Title == boardCard.SwimlaneTitle).SwimlaneOrder;
 
-            await _cardRepository.UpdateBoardCardBatchAsync (effectedBoardCardEnumerable); ;
+            await _cardRepository.UpdateCardPositionBatchAsync (effectedBoardCardEnumerable); ;
         }
 
         return effectedBoardCardEnumerable;
     }
 
-    public async Task<Collection<BoardCard>> FetchAndApplyNewTitleForEffectedBoardCardsAsync (Guid boardID, Swimlane swimlaneToDelete)
+    public async Task<Collection<CardPosition>> FetchAndApplyNewTitleForEffectedBoardCardsAsync (Guid boardID, Swimlane swimlaneToDelete)
     {
         var swimlaneToTransferCandidates = await QuerySwimlanesAsync (swimlane => swimlane.RowKey == swimlaneToDelete.RowKey
                                                                             && (swimlane.SwimlaneOrder == swimlaneToDelete.SwimlaneOrder
                                                                                 || swimlane.SwimlaneOrder == swimlaneToDelete.SwimlaneOrder - 1));
         if (swimlaneToTransferCandidates.Count () is 0)
-            return new Collection<BoardCard> ();
+            return new Collection<CardPosition> ();
         var swimlaneToTransfer = swimlaneToTransferCandidates.Count is 2 ?
             swimlaneToTransferCandidates.MaxBy (swimlane => swimlane.SwimlaneOrder) :
             swimlaneToTransferCandidates.Single ();
 
-        var boardCardsFromTable = await _cardRepository.QueryBoardCardsAsync (board => board.PartitionKey == boardID.ToString ()
+        var boardCardsFromTable = await _cardRepository.QueryCardPositionsAsync (board => board.PartitionKey == boardID.ToString ()
                                                                                        && board.SwimlaneTitle == swimlaneToDelete.Title);
         if (boardCardsFromTable!.Count () is 0)
-            return new Collection<BoardCard> ();
+            return new Collection<CardPosition> ();
         foreach (var boardCard in boardCardsFromTable)
         {
             boardCard.SwimlaneID = Guid.Parse (swimlaneToTransfer!.PartitionKey);
             boardCard.SwimlaneTitle = swimlaneToTransfer!.Title;
             boardCard.SwimlaneOrder = swimlaneToTransfer!.SwimlaneOrder;
         }
-        await _cardRepository.UpdateBoardCardBatchAsync (boardCardsFromTable);
+        await _cardRepository.UpdateCardPositionBatchAsync (boardCardsFromTable);
 
         return boardCardsFromTable;
     }
@@ -157,9 +157,9 @@ public class SwimlaneRepository : ISwimlaneRepository
         return true;
     }
 
-    public async Task<bool> TryRevertEffectedBoardCardsToOriginalAsync (IEnumerable<BoardCard> originalBoardCardEnumerable)
+    public async Task<bool> TryRevertEffectedBoardCardsToOriginalAsync (IEnumerable<CardPosition> originalBoardCardEnumerable)
     {
-        try { await _cardRepository.UpdateBoardCardBatchAsync (originalBoardCardEnumerable); }
+        try { await _cardRepository.UpdateCardPositionBatchAsync (originalBoardCardEnumerable); }
         catch (TransactionFailedException)
         { return false; } // Nothing more to do here. We should be more concerned with the failures that led up to this point.
 

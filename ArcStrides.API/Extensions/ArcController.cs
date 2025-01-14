@@ -4,9 +4,12 @@ namespace Microsoft.AspNetCore.Mvc;
 
 public class ArcController : Controller
 {
-    public ActionResult ArcResponse (RequestFailureWrapperException wrapperException)
+    public ActionResult ArcErrorResponse (Exception wrapperException)
     {
-        switch (wrapperException.ActionResult)
+        if (wrapperException.GetType () != typeof (RequestFailureWrapperException))
+            return this.Problem ($"An unknown exception has occurred: {wrapperException.GetType ().Name}");
+
+        switch ((wrapperException as RequestFailureWrapperException)!.ActionResult)
         {
             case nameof (BadRequest):
                 return this.BadRequest (wrapperException.Message);

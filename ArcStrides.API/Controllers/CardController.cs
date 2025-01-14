@@ -1,4 +1,4 @@
-﻿using ArcStrides.API.Models;
+﻿using ArcStrides.API.Models.Board;
 using ArcStrides.API.Repositories;
 using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Response;
@@ -47,8 +47,8 @@ public class CardController : ControllerBase
         return Ok (cardList.Single ());
     }
 
-    [HttpPost]
-    public async Task<ActionResult> CreateCard ([FromBody] CardCreateRequest cardCreateRequest)
+    [HttpPost ("arcstrides/boards/{boardID:guid}/cards")]
+    public async Task<ActionResult> CreateCard ([FromRoute] Guid boardID, [FromBody] CardCreateRequest cardCreateRequest)
     {
         if (cardCreateRequest is null)
         {
@@ -56,21 +56,21 @@ public class CardController : ControllerBase
         }
 
         //An error should get thrown before this point if any of the ID's below are null. Will have a concrete validation later using ModelState or FluentValidation
-        var columnFromTable = await _columnRepository.GetColumnAsync (cardCreateRequest.ColumnID, cardCreateRequest.BoardID);
+        var columnFromTable = await _columnRepository.GetColumnAsync (cardCreateRequest.ColumnID, boardID);
         if (columnFromTable is null)
             return StatusCode (StatusCodes.Status500InternalServerError, "Could not find column.");
 
-        var swimlaneFromTable = await _swimlaneRepository.GetSwimlaneAsync (cardCreateRequest.SwimlaneID, cardCreateRequest.BoardID);
+        var swimlaneFromTable = await _swimlaneRepository.GetSwimlaneAsync (cardCreateRequest.SwimlaneID, boardID);
         if (swimlaneFromTable is null)
             return StatusCode (StatusCodes.Status500InternalServerError, "Could not find swimlane.");
 
         var newCardID = Guid.NewGuid ();
-        var newCard = new BoardCard
+        var newCard = new CardPosition
         {
-            PartitionKey = cardCreateRequest.BoardID.ToString (),
+            PartitionKey = boardID.ToString (),
             RowKey = newCardID.ToString (),
 
-            Title = columnFromTable.BoardTitle, //Should match swimlane's BoardTitle
+            //Title = columnFromTable.BoardTitle, //Should match swimlane's BoardTitle
 
             SwimlaneID = cardCreateRequest.SwimlaneID,
             SwimlaneTitle = swimlaneFromTable.Title,
@@ -80,23 +80,23 @@ public class CardController : ControllerBase
             ColumnTitle = columnFromTable.Title,
             ColumnOrder = columnFromTable.ColumnOrder,
 
-            CardTitle = cardCreateRequest.Title,
-            CardDescription = cardCreateRequest.Description,
+            //CardTitle = cardCreateRequest.Title,
+            //CardDescription = cardCreateRequest.Description,
 
         };
         //One day we will create new Card objects too with a lot of niche info. For now I just want shallow cards that we can store in the Board table
 
-        await _cardRepository.AddBoardCardAsync (newCard);
+        await _cardRepository.AddCardPositionAsync (newCard);
         /*if (addEntityResponse.IsError)
         {
             //We might want to have better verification later for failures. I'm thinking we actually query the table and grab the card so we can map it to a response object
             return StatusCode (StatusCodes.Status500InternalServerError, $"Could not insert a new card into database. Internal status: {addEntityResponse.Status}");
         }*/
-        var cardResponse = new BoardCardResponse
+        var cardResponse = new CardPositionResponse
         {
             ID = newCard.RowKey.ToString (),
-            Title = newCard.CardTitle,
-            Description = newCard.CardDescription,
+            //Title = newCard.CardTitle,
+            //Description = newCard.CardDescription,
             ColumnID = newCard.ColumnID.ToString (),
             ColumnTitle = newCard.ColumnTitle,
             ColumnOrder = newCard.ColumnOrder,

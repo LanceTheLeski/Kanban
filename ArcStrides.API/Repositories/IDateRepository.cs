@@ -1,4 +1,4 @@
-﻿using ArcStrides.API.Models;
+﻿using ArcStrides.API.Models.Calendar;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 

@@ -1,9 +1,11 @@
 ﻿@using ArcStrides.UI.Components
 @using ArcStrides.UI.Layouts.Board
-@using ArcStrides.UI.Layouts.Card
-@using ArcStrides.UI.Layouts.Column
-@using ArcStrides.UI.Layouts.Swimlane
+@using ArcStrides.UI.Layouts.Board.Card
+@using ArcStrides.UI.Layouts.Board.Column
+@using ArcStrides.UI.Layouts.Board.Swimlane
 @using ArcStrides.UI.Models
+@using ArcStrides.UI.Repositories
+@using MudBlazor
 
 @rendermode RenderMode.InteractiveServer
 
@@ -55,12 +57,10 @@
                        @bind-Swimlanes="Swimlanes"
                        @bind-SwimlaneTitles="SwimlaneTitles" 
                        Refresh="Refresh" />
-
 <DeleteSwimlaneOverlay @ref="deleteSwimlaneOverlay" 
                        @bind-Swimlanes="Swimlanes"
                        @bind-SwimlaneTitles="SwimlaneTitles" 
                        Refresh="Refresh" />
-
 <UpdateSwimlaneOverlay @ref="updateSwimlaneOverlay"
                        @bind-Swimlanes="Swimlanes"
                        @bind-SwimlaneTitles="SwimlaneTitles" 
@@ -70,12 +70,10 @@
                      @bind-Columns="Columns"
                      @bind-ColumnTitles="ColumnTitles" 
                      Refresh="Refresh" />
-
 <DeleteColumnOverlay @ref="deleteColumnOverlay"
                      @bind-Columns="Columns"
                      @bind-ColumnTitles="ColumnTitles" 
                      Refresh="Refresh" />
-
 <UpdateColumnOverlay @ref="updateColumnOverlay"
                      @bind-Columns="Columns"
                      @bind-ColumnTitles="ColumnTitles" 
@@ -113,13 +111,20 @@
     [Parameter]
     public EventCallback<bool> Refresh { get; set; }
 
+    private static IColumnRepository _columnRepository;
+
+    public BoardManagementNavigationBar (IColumnRepository columnRepository)
+    {
+        _columnRepository = columnRepository;
+    }
+
     private CreateCardOverlay createCardOverlay = new CreateCardOverlay ();
 
     private CreateSwimlaneOverlay createSwimlaneOverlay = new CreateSwimlaneOverlay ();
     private DeleteSwimlaneOverlay deleteSwimlaneOverlay = new DeleteSwimlaneOverlay ();
     private UpdateSwimlaneOverlay updateSwimlaneOverlay = new UpdateSwimlaneOverlay ();
 
-    private CreateColumnOverlay createColumnOverlay = new CreateColumnOverlay ();
+    private CreateColumnOverlay createColumnOverlay = new CreateColumnOverlay(_columnRepository);
     private DeleteColumnOverlay deleteColumnOverlay = new DeleteColumnOverlay ();
     private UpdateColumnOverlay updateColumnOverlay = new UpdateColumnOverlay ();
 

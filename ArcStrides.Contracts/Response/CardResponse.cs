@@ -8,6 +8,10 @@ public class CardResponse
 
     public string Description { get; set; } = string.Empty;
 
+    public CardDetailsResponse? Details { get; set; } = null;
+
+    public CardPositionResponse? Position { get; set; } = null;
+
     public List<TaskResponse>? Tasks { get; set; } = null;
 
     public TimelineResponse? Timeline { get; set; } = null;

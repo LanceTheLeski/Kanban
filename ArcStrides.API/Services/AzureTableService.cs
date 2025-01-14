@@ -81,15 +81,22 @@ public class AzureTableService<T> : IAzureTableService<T> where T : class, ITabl
         foreach (var entity in entityEnumerable)
             tableTransactionList.Add (new (TableTransactionActionType.UpdateMerge, entity));
 
-        var transactionResponse = await _table.SubmitTransactionAsync (tableTransactionList);
+        var response = await _table.SubmitTransactionAsync (tableTransactionList);
 
-        ValidateTransactionResponse (transactionResponse);
+        ValidateTransactionResponse (response);
     }
 
     public async Task DeleteEntityAsync (T entityToDelete)
     {
         var response = await _table.DeleteEntityAsync (entityToDelete, ETag.All);
         ValidateResponse (response);
+    }
+
+    public async Task<bool> SubmitArcTransactionAsync (ArcTransaction arcTransaction)
+    {
+        var response = await _table.SubmitTransactionAsync (arcTransaction);
+        ValidateTransactionResponse (response);
+        return true;
     }
 
     private void ValidateResponse (Response response)

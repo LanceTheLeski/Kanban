@@ -1,12 +1,11 @@
 ﻿using ArcStrides.API.Mappers;
 using ArcStrides.API.Messages;
-using ArcStrides.API.Models;
+using ArcStrides.API.Models.Board;
 using ArcStrides.API.Repositories;
 using ArcStrides.Contracts.Request.Patch;
 using ArcStrides.Contracts.Response;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.ObjectModel;
 
 namespace ArcStrides.API.Controllers;
 
@@ -38,7 +37,7 @@ public class BoardController : Controller
     [HttpGet ("{ID:guid}")]
     public async Task<ActionResult> FetchBoard (Guid ID)
     {
-        var boardCardCollection = await _cardRepository.GetBoardCardsAsync (ID);
+        var cardPositionCollection = await _cardRepository.GetCardPositionsAsync (ID);
 
         var columnCollection = await _columnRepository.GetAllBoardColumns (ID);
         // Validate that the colums have a distinct order and likely some unique names as well? Maybe also the same board name?
@@ -50,6 +49,10 @@ public class BoardController : Controller
 
         var boardResponse = new BoardResponse ();
         foreach (var column in columnCollectionOrdered)
+        {
+
+        }
+        /*foreach (var column in columnCollectionOrdered)
         {
             var swimlanes = new Collection<BoardResponse.BasicSwimlane> ();
             foreach (var swimlane in swimlaneCollectionOrdered)
@@ -91,7 +94,7 @@ public class BoardController : Controller
                 Order = column.ColumnOrder,
                 Swimlanes = swimlanes
             });
-        }
+        }*/
 
         return Ok (boardResponse);
     }
@@ -121,7 +124,7 @@ public class BoardController : Controller
     }
 
     [HttpPatch ("{boardID:guid}/cards/{cardID:guid}")]
-    public async Task<ActionResult> UpdateBoardCard (Guid boardID, Guid cardID, [FromBody] JsonPatchDocument<BoardCardPatchRequest> cardPatchRequest)
+    public async Task<ActionResult> UpdateCardPosition (Guid boardID, Guid cardID, [FromBody] JsonPatchDocument<CardPositionPatchRequest> cardPatchRequest)
     {
         if (cardPatchRequest is null)
         {
@@ -130,13 +133,13 @@ public class BoardController : Controller
 
         //var cardFromTable = await _boardTable.GetEntityAsync<BoardCard> (partitionKey: @"20a88077-10d4-4648-92cb-7dc7ba5b8df5", rowKey: cardID.ToString ());
 
-        var cardToUpdate = await _cardRepository.GetBoardCardAsync (boardID, cardID);
+        var cardToUpdate = await _cardRepository.GetCardPositionAsync (boardID, cardID);
         //var cardToUpdate = cardFromTable.Value;
 
-        var convertedCardToUpdate = new BoardCardPatchRequest
+        var convertedCardToUpdate = new CardPositionPatchRequest
         {
-            Title = cardToUpdate.CardTitle,
-            Description = cardToUpdate.CardDescription,
+            //Title = cardToUpdate.CardTitle,
+            //Description = cardToUpdate.CardDescription,
             ColumnID = cardToUpdate.ColumnID.ToString (),
             ColumnTitle = cardToUpdate.ColumnTitle,
             ColumnOrder = cardToUpdate.ColumnOrder,
@@ -147,8 +150,8 @@ public class BoardController : Controller
 
         cardPatchRequest.ApplyTo (convertedCardToUpdate); //Could add a ModelState validation somewhere here as well..
 
-        cardToUpdate.CardTitle = convertedCardToUpdate.Title;
-        cardToUpdate.CardDescription = convertedCardToUpdate.Description;
+        //cardToUpdate.CardTitle = convertedCardToUpdate.Title;
+        //cardToUpdate.CardDescription = convertedCardToUpdate.Description;
         cardToUpdate.ColumnID = Guid.Parse (convertedCardToUpdate.ColumnID);
         cardToUpdate.ColumnTitle = convertedCardToUpdate.ColumnTitle;
         cardToUpdate.ColumnOrder = convertedCardToUpdate.ColumnOrder;
@@ -156,17 +159,17 @@ public class BoardController : Controller
         cardToUpdate.SwimlaneTitle = convertedCardToUpdate.SwimlaneTitle;
         cardToUpdate.SwimlaneOrder = convertedCardToUpdate.SwimlaneOrder;
 
-        await _cardRepository.UpdateBoardCardAsync (cardToUpdate);
+        await _cardRepository.UpdateCardPositionAsync (cardToUpdate);
         /*if (response.IsError)
         {
             return BadRequest ($"Could not update card. Internal status: {response.Status}");
         }*/
 
-        var cardResponse = new BoardCardResponse
+        var cardResponse = new CardPositionResponse
         {
             ID = cardToUpdate.RowKey,
-            Title = cardToUpdate.CardTitle,
-            Description = cardToUpdate.CardDescription,
+            //Title = cardToUpdate.CardTitle,
+            //Description = cardToUpdate.CardDescription,
             ColumnID = cardToUpdate.ColumnID.ToString (),
             ColumnTitle = cardToUpdate.ColumnTitle,
             ColumnOrder = cardToUpdate.ColumnOrder,
@@ -179,13 +182,13 @@ public class BoardController : Controller
     }
 
     [HttpDelete ("{boardID:guid}/cards/{cardID:guid}")] // Need to delete from board AND card tables. There might also be extensions to remove. For now though, I'm just going to do board.
-    public async Task<ActionResult> DeleteBoardCard (Guid boardID, Guid cardID)
+    public async Task<ActionResult> DeleteCardPosition (Guid boardID, Guid cardID)
     {
-        var boardCardToDelete = await _cardRepository.GetBoardCardAsync (boardID, cardID);
+        var boardCardToDelete = await _cardRepository.GetCardPositionAsync (boardID, cardID);
         if (boardCardToDelete is null)
-            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (BoardCard)));
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (CardPosition)));
 
-        await _cardRepository.DeleteBoardCardAsync (boardCardToDelete);
+        await _cardRepository.DeleteCardPositionAsync (boardCardToDelete);
         /*if (boardCardToDeleteResponse.IsError)
             return Problem (ErrorResponseMessages.RemoveFromDatabaseErrorResponse (nameof (BoardCard)));*/
 

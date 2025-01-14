@@ -1,7 +1,7 @@
 ﻿using ArcStrides.API.Exceptions;
 using ArcStrides.API.Mappers;
 using ArcStrides.API.Messages;
-using ArcStrides.API.Models;
+using ArcStrides.API.Models.Board;
 using ArcStrides.API.Repositories;
 using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Request.Patch;
@@ -54,7 +54,7 @@ public class SwimlaneController : ArcController
             return Ok (swimlaneResponse);
         }
         catch (RequestFailureWrapperException requestFailureWrapper)
-        { return ArcResponse (requestFailureWrapper); }
+        { return ArcErrorResponse (requestFailureWrapper); }
     }
 
     [HttpPost ("/arcstrides/boards/{boardID:guid}/swimlanes")]
@@ -79,7 +79,7 @@ public class SwimlaneController : ArcController
             return Created (default (Uri)/*Generate this later*/, swimlaneResponse);
         }
         catch (RequestFailureWrapperException requestFailureWrapper)
-        { return ArcResponse (requestFailureWrapper); }
+        { return ArcErrorResponse (requestFailureWrapper); }
     }
 
     [HttpPatch ("/arcstrides/boards/{boardID:Guid}/swimlanes/{swimlaneID:Guid}")]
@@ -109,7 +109,7 @@ public class SwimlaneController : ArcController
             return Ok (swimlaneResponse);
         }
         catch (RequestFailureWrapperException requestFailureWrapper)
-        { return ArcResponse (requestFailureWrapper); }
+        { return ArcErrorResponse (requestFailureWrapper); }
     }
 
     [HttpDelete ("/arcstrides/boards/{boardID:guid}/swimlanes/{swimlaneID:guid}")]
@@ -123,7 +123,7 @@ public class SwimlaneController : ArcController
             return Ok ();
         }
         catch (RequestFailureWrapperException requestFailureWrapper)
-        { return ArcResponse (requestFailureWrapper); }
+        { return ArcErrorResponse (requestFailureWrapper); }
     }
 
     /// <summary>
@@ -168,14 +168,14 @@ public class SwimlaneController : ArcController
     /// Attempts to fetch a collection of board cards that are all all associated
     /// to a board by that board's ID.
     /// </summary>
-    private async Task<IEnumerable<BoardCard>> FetchAndValidateBoardCardsAsync (Guid boardID)
+    private async Task<IEnumerable<CardPosition>> FetchAndValidateBoardCardsAsync (Guid boardID)
     {
-        IEnumerable<BoardCard>? boardCardEnumerableFromDatabase = null;
-        try { boardCardEnumerableFromDatabase = await _cardRepository.GetBoardCardsAsync (boardID); }
+        IEnumerable<CardPosition>? boardCardEnumerableFromDatabase = null;
+        try { boardCardEnumerableFromDatabase = await _cardRepository.GetCardPositionsAsync (boardID); }
         catch (RequestFailedException reqFailedEx)
         {
             throw new RequestFailureWrapperException (nameof (Problem),
-                                                      ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (BoardCard), reqFailedEx.Status));
+                                                      ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (CardPosition), reqFailedEx.Status));
         }
 
         return boardCardEnumerableFromDatabase;
@@ -202,7 +202,7 @@ public class SwimlaneController : ArcController
     /// <summary>
     /// 
     /// </summary>
-    private async Task AddSwimlaneAndUpdateEffectedSwimlanesAndBoardCards (Swimlane newSwimlane, IEnumerable<BoardCard> boardCardEnumerable)
+    private async Task AddSwimlaneAndUpdateEffectedSwimlanesAndBoardCards (Swimlane newSwimlane, IEnumerable<CardPosition> boardCardEnumerable)
     {
         try { await _swimlaneRepository.AddSwimlaneAsync (newSwimlane); }
         catch (RequestFailedException reqFailedEx)
@@ -224,7 +224,7 @@ public class SwimlaneController : ArcController
         try { await _swimlaneRepository.FetchAndApplyNewOrderForEffectedBoardCardsAsync (swimlaneCollectionWithNewSwimlaneToUpdateOrder, boardCardEnumerable); }
         catch (RequestFailedException reqFailedEx)
         {
-            await RollbackEffectedEntitiesAndReturnErrorResponse<BoardCard> (reqFailedEx,
+            await RollbackEffectedEntitiesAndReturnErrorResponse<CardPosition> (reqFailedEx,
                                                                              swimlaneToDeleteOnFailure: newSwimlane,
                                                                              originalSwimlanesToRevertForFailure: swimlaneCollectionWithNewSwimlaneToUpdateOrder,
                                                                              originalBoardCardsToRevertForFailure: boardCardEnumerable);
@@ -257,18 +257,18 @@ public class SwimlaneController : ArcController
             otherSwimlanesWithUpdatedOrder.Add (swimlaneToUpdate);
         var allUpdatedSwimlanes = otherSwimlanesWithUpdatedOrder ?? new Collection<Swimlane> { swimlaneToUpdate };
 
-        Collection<BoardCard>? boardCardCollectionFromDatabase = null;
-        try { boardCardCollectionFromDatabase = await _cardRepository.GetBoardCardsAsync (boardID); }
+        Collection<CardPosition>? boardCardCollectionFromDatabase = null;
+        try { boardCardCollectionFromDatabase = await _cardRepository.GetCardPositionsAsync (boardID); }
         catch (RequestFailedException reqFailedEx)
         {
-            await RollbackEffectedEntitiesAndReturnErrorResponse<BoardCard> (reqFailedEx,
+            await RollbackEffectedEntitiesAndReturnErrorResponse<CardPosition> (reqFailedEx,
                                                                              originalSwimlanesToRevertForFailure: swimlanesFromBoard);
         }
 
         try { await _swimlaneRepository.FetchAndApplyNewOrderForEffectedBoardCardsAsync (allUpdatedSwimlanes, boardCardCollectionFromDatabase!); }
         catch (RequestFailedException reqFailedEx)
         {
-            await RollbackEffectedEntitiesAndReturnErrorResponse<BoardCard> (reqFailedEx,
+            await RollbackEffectedEntitiesAndReturnErrorResponse<CardPosition> (reqFailedEx,
                                                                              originalSwimlanesToRevertForFailure: swimlanesFromBoard,
                                                                              originalBoardCardsToRevertForFailure: boardCardCollectionFromDatabase);
         }
@@ -314,15 +314,15 @@ public class SwimlaneController : ArcController
                                                                           swimlaneToAddOnFailure: swimlaneToDelete);
         }
 
-        IEnumerable<BoardCard>? boardCardEnumerable = null;
+        IEnumerable<CardPosition>? boardCardEnumerable = null;
         try
         {
-            boardCardEnumerable = await _cardRepository.GetBoardCardsAsync (boardID);
+            boardCardEnumerable = await _cardRepository.GetCardPositionsAsync (boardID);
             await _swimlaneRepository.FetchAndApplyNewOrderForEffectedBoardCardsAsync (swimlanesWithUpdatedOrder, boardCardEnumerable!);
         }
         catch (RequestFailedException reqFailedEx)
         {
-            await RollbackEffectedEntitiesAndReturnErrorResponse<BoardCard> (reqFailedEx,
+            await RollbackEffectedEntitiesAndReturnErrorResponse<CardPosition> (reqFailedEx,
                                                                              swimlaneToAddOnFailure: swimlaneToDelete,
                                                                              originalSwimlanesToRevertForFailure: swimlanesToUpdateOrder);
         }
@@ -330,7 +330,7 @@ public class SwimlaneController : ArcController
         try { await _swimlaneRepository.FetchAndApplyNewTitleForEffectedBoardCardsAsync (boardID, swimlaneToDelete); }
         catch (RequestFailedException reqFailedEx)
         {
-            await RollbackEffectedEntitiesAndReturnErrorResponse<BoardCard> (reqFailedEx,
+            await RollbackEffectedEntitiesAndReturnErrorResponse<CardPosition> (reqFailedEx,
                                                                           swimlaneToAddOnFailure: swimlaneToDelete,
                                                                           originalSwimlanesToRevertForFailure: swimlanesToUpdateOrder,
                                                                           originalBoardCardsToRevertForFailure: boardCardEnumerable);
@@ -346,7 +346,7 @@ public class SwimlaneController : ArcController
     /// </summary>
     private async Task RollbackEffectedEntitiesAndReturnErrorResponse<T> (Exception exception,
                                                                           IEnumerable<Swimlane>? originalSwimlanesToRevertForFailure = null,
-                                                                          IEnumerable<BoardCard>? originalBoardCardsToRevertForFailure = null,
+                                                                          IEnumerable<CardPosition>? originalBoardCardsToRevertForFailure = null,
                                                                           Swimlane? swimlaneToAddOnFailure = null,
                                                                           Swimlane? swimlaneToDeleteOnFailure = null)
     {
@@ -378,7 +378,7 @@ public class SwimlaneController : ArcController
         if (originalBoardCardsToRevertForFailure is not null
             && await _swimlaneRepository.TryRevertEffectedBoardCardsToOriginalAsync (originalBoardCardsToRevertForFailure))
             throw new RequestFailureWrapperException (nameof (Problem),
-                                                      ErrorResponseMessages.UpdateEffectedEntitiesInDatabaseErrorResponse (nameof (BoardCard), exception.Message));
+                                                      ErrorResponseMessages.UpdateEffectedEntitiesInDatabaseErrorResponse (nameof (CardPosition), exception.Message));
 
         throw new RequestFailureWrapperException (nameof (Problem),
                                                   ErrorResponseMessages.UpdateEffectedEntitiesInDatabaseCatastrophicErrorResponse (typeof (T).Name, exception.Message));

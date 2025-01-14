@@ -1,4 +1,4 @@
-﻿using ArcStrides.API.Models;
+﻿using ArcStrides.API.Models.Board;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
@@ -22,21 +22,21 @@ public interface ICardRepository
 
     #endregion Card
 
-    #region Board Card
+    #region Card Position
 
-    Task<BoardCard?> GetBoardCardAsync (Guid boardID, Guid cardID);
+    Task<CardPosition?> GetCardPositionAsync (Guid boardID, Guid cardID);
 
-    Task<Collection<BoardCard>> GetBoardCardsAsync (Guid boardID);
+    Task<Collection<CardPosition>> GetCardPositionsAsync (Guid boardID);
 
-    Task<Collection<BoardCard>> QueryBoardCardsAsync (Expression<Func<BoardCard, bool>> boardCardQueryExpression);
+    Task<Collection<CardPosition>> QueryCardPositionsAsync (Expression<Func<CardPosition, bool>> boardCardQueryExpression);
 
-    Task AddBoardCardAsync (BoardCard boardCardToAdd);
+    Task AddCardPositionAsync (CardPosition boardCardToAdd);
 
-    Task UpdateBoardCardAsync (BoardCard boardCardToUpdate);
+    Task UpdateCardPositionAsync (CardPosition boardCardToUpdate);
 
-    Task UpdateBoardCardBatchAsync (IEnumerable<BoardCard> boardCardCollection);
+    Task UpdateCardPositionBatchAsync (IEnumerable<CardPosition> boardCardCollection);
 
-    Task DeleteBoardCardAsync (BoardCard boardCardToDelete);
+    Task DeleteCardPositionAsync (CardPosition boardCardToDelete);
 
-    #endregion Board Card
+    #endregion Card Position
 }

@@ -1,4 +1,4 @@
-﻿using ArcStrides.API.Models;
+﻿using ArcStrides.API.Models.Board;
 using ArcStrides.API.Options;
 using ArcStrides.API.Services;
 using Microsoft.Extensions.Options;
@@ -12,15 +12,15 @@ namespace ArcStrides.API.Repositories;
 public class CardRepository : ICardRepository
 {
     private const string cards = "Cards";
-    private const string boardCards = "BoardCards";
+    private const string cardPositions = "CardPositions";
 
     private readonly IAzureTableService<Card> _cardTable;
-    private readonly IAzureTableService<BoardCard> _boardCardTable;
+    private readonly IAzureTableService<CardPosition> _cardPositionTable;
 
     public CardRepository (IOptions<AzureTableOptions> azureTableOptions)
     { 
         _cardTable = new AzureTableService<Card> (cards, azureTableOptions);
-        _boardCardTable = new AzureTableService<BoardCard> (boardCards, azureTableOptions);
+        _cardPositionTable = new AzureTableService<CardPosition> (cardPositions, azureTableOptions);
     }
 
     public async Task<Card?> GetCardAsync (Guid cardID, Guid tagID)
@@ -38,28 +38,28 @@ public class CardRepository : ICardRepository
     public async Task<Collection<Card>> QueryCardsAsync (Expression<Func<Card, bool>> cardQueryExpression)
         => await _cardTable.QueryEntitiesAsync (cardQueryExpression);
 
-    #region Board Card
+    #region Card Position
 
-    public async Task<BoardCard?> GetBoardCardAsync (Guid boardID, Guid cardID)
-        => await _boardCardTable.GetEntityAsync (boardID, cardID);
+    public async Task<CardPosition?> GetCardPositionAsync (Guid boardID, Guid cardID)
+        => await _cardPositionTable.GetEntityAsync (boardID, cardID);
 
-    public async Task<Collection<BoardCard>> GetBoardCardsAsync (Guid boardID)
-        => await _boardCardTable.GetEntitiesAsync (boardID);
+    public async Task<Collection<CardPosition>> GetCardPositionsAsync (Guid boardID)
+        => await _cardPositionTable.GetEntitiesAsync (boardID);
 
-    public async Task<Collection<BoardCard>> QueryBoardCardsAsync (Expression<Func<BoardCard, bool>> boardCardQueryExpression)
-        => await _boardCardTable.QueryEntitiesAsync (boardCardQueryExpression);
+    public async Task<Collection<CardPosition>> QueryCardPositionsAsync (Expression<Func<CardPosition, bool>> boardCardQueryExpression)
+        => await _cardPositionTable.QueryEntitiesAsync (boardCardQueryExpression);
 
-    public async Task AddBoardCardAsync (BoardCard boardCardToAdd)
-        => await _boardCardTable.AddEntityAsync (boardCardToAdd);
+    public async Task AddCardPositionAsync (CardPosition boardCardToAdd)
+        => await _cardPositionTable.AddEntityAsync (boardCardToAdd);
 
-    public async Task UpdateBoardCardAsync (BoardCard boardCardToUpdate)
-        => await _boardCardTable.UpdateEntityAsync (boardCardToUpdate);
+    public async Task UpdateCardPositionAsync (CardPosition boardCardToUpdate)
+        => await _cardPositionTable.UpdateEntityAsync (boardCardToUpdate);
 
-    public async Task UpdateBoardCardBatchAsync (IEnumerable<BoardCard> boardCardBatch)
-        => await _boardCardTable.UpdateEntityBatchAsync (boardCardBatch);
+    public async Task UpdateCardPositionBatchAsync (IEnumerable<CardPosition> boardCardBatch)
+        => await _cardPositionTable.UpdateEntityBatchAsync (boardCardBatch);
 
-    public async Task DeleteBoardCardAsync (BoardCard boardCardToDelete)
-        => await _boardCardTable.DeleteEntityAsync (boardCardToDelete);
+    public async Task DeleteCardPositionAsync (CardPosition boardCardToDelete)
+        => await _cardPositionTable.DeleteEntityAsync (boardCardToDelete);
 
-    #endregion Board Card
+    #endregion Card Position
 }

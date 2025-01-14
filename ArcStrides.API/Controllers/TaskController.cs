@@ -1,6 +1,6 @@
 ﻿using ArcStrides.API.Mappers;
 using ArcStrides.API.Messages;
-using ArcStrides.API.Models;
+using ArcStrides.API.Models.TagGroup;
 using ArcStrides.API.Repositories;
 using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Request.Query;
@@ -44,7 +44,7 @@ public class TaskController : Controller
         if (validationResult.IsValid is false)
             return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TaskQueryParameters), ""));
 
-        Func<Models.Task, bool> taskQuery = task => true;
+        Func<Models.Board.Task, bool> taskQuery = task => true;
         if (string.IsNullOrWhiteSpace (taskQueryParameters.CardIDs) is false)
         {
             var cardIDCollection = taskQueryParameters.CardIDs.Split (',')
@@ -81,7 +81,7 @@ public class TaskController : Controller
 
         var taskTypeCollection = await _taskRepository.QueryTaskTypesAsync (taskType => taskType.PartitionKey == taskCreateRequest.TaskTypeID.ToString ());
         if (taskTypeCollection.Count is 0)
-            return BadRequest (ErrorResponseMessages.FieldDoesNotExistInDatabaseErrorResponse (nameof (Models.Task.TaskTypeID)));
+            return BadRequest (ErrorResponseMessages.FieldDoesNotExistInDatabaseErrorResponse (nameof (Models.Board.Task.TaskTypeID)));
         if (taskTypeCollection.Count is not 1)
             return Problem (ErrorResponseMessages.TooManyEntitiesErrorResponse (nameof (TaskType)));
 

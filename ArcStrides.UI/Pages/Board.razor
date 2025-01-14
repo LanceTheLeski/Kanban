@@ -1,6 +1,7 @@
 ﻿@using ArcStrides.Contracts.Response;
-@using ArcStrides.UI
+@using ArcStrides.UI.Layouts
 @using ArcStrides.UI.Layouts.Board
+@using ArcStrides.UI.Layouts.Board.Card
 @using ArcStrides.UI.Layouts.Card
 @using ArcStrides.UI.Layouts.Column
 @using ArcStrides.UI.Layouts.Swimlane
@@ -8,6 +9,7 @@
 @using ArcStrides.UI.Options
 @using ArcStrides.UI.Services
 @using Microsoft.Extensions.Options
+@using MudBlazor
 @using Newtonsoft.Json
 @using System.Net.Http.Headers
 
@@ -139,4 +141,10 @@
     public static DropCard? _activeCard = null;
 
     public bool editCardOverlayIsOpen = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var boardResponse = await _boardService.FetchBoard(Guid.Parse("20a88077-10d4-4648-92cb-7dc7ba5b8df5"));//Change later to be dynamic..
+        _cards = ConvertBoardResponseToDropCardList(boardResponse);
+    }
 }

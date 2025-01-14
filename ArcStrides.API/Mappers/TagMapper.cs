@@ -1,4 +1,5 @@
 ﻿using ArcStrides.API.Models;
+using ArcStrides.API.Models.TagGroup;
 using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Request.Patch;
 using ArcStrides.Contracts.Response;

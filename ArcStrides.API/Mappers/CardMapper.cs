@@ -1,4 +1,4 @@
-﻿using ArcStrides.API.Models;
+﻿using ArcStrides.API.Models.Board;
 using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Request.Patch;
 using Riok.Mapperly.Abstractions;
@@ -19,16 +19,16 @@ public partial class CardMapper : ICardMapper
     [MapProperty (nameof (CardCreateRequest.EndDeadlineUTC), nameof (Card.EndDeadlineUTC))]
     public partial Card MapCardCreateRequestToCard (CardCreateRequest cardCreateRequest);
 
-    [MapProperty (nameof (CardCreateRequest.Title), nameof (BoardCard.Title))]
-    [MapProperty (nameof (CardCreateRequest.Description), nameof (BoardCard.CardDescription))]
-    [MapProperty (nameof (CardCreateRequest.BoardID), nameof (BoardCard.PartitionKey))]
-    [MapProperty (nameof (CardCreateRequest.ColumnID), nameof (BoardCard.ColumnID))]
-    [MapProperty (nameof (CardCreateRequest.SwimlaneID), nameof (BoardCard.SwimlaneID))]
-    public partial BoardCard MapCardCreateRequestToBoardCard (CardCreateRequest cardCreateRequest);
+    //[MapProperty (nameof (CardCreateRequest.Title), nameof (CardPosition.Title))]
+    //[MapProperty (nameof (CardCreateRequest.Description), nameof (CardPosition.CardDescription))]
+    //[MapProperty (nameof (CardCreateRequest.BoardID), nameof (CardPosition.PartitionKey))]
+    [MapProperty (nameof (CardCreateRequest.ColumnID), nameof (CardPosition.ColumnID))]
+    [MapProperty (nameof (CardCreateRequest.SwimlaneID), nameof (CardPosition.SwimlaneID))]
+    public partial CardPosition MapCardCreateRequestToCardPosition (CardCreateRequest cardCreateRequest);
 
-    [MapProperty (nameof (BoardCardPatchRequest.Title), nameof(Card.Title))]
-    [MapProperty (nameof (BoardCardPatchRequest.Description), nameof (Card.Description))]
-    public partial Card MapCardPatchRequestToCard (BoardCardPatchRequest cardPatchRequest);
+    [MapProperty (nameof (CardPositionPatchRequest.Title), nameof(Card.Title))]
+    [MapProperty (nameof (CardPositionPatchRequest.Description), nameof (Card.Description))]
+    public partial Card MapCardPatchRequestToCard (CardPositionPatchRequest cardPatchRequest);
 
     #region Board Card
 

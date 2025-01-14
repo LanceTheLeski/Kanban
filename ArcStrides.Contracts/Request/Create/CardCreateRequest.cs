@@ -20,7 +20,7 @@ public class CardCreateRequest
 
     public DateTime? EndDeadlineUTC { get; set; }
 
-    public Guid BoardID { get; set; } //Partition Key for the BoardCard
+    //public Guid BoardID { get; set; } //Partition Key for the BoardCard
 
     public Guid ColumnID { get; set; }
 

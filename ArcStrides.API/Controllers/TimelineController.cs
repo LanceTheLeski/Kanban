@@ -1,6 +1,5 @@
 ﻿using FluentValidation;
 using ArcStrides.API.Mappers;
-using ArcStrides.API.Models;
 using ArcStrides.API.Repositories;
 using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Request.Patch;
@@ -8,6 +7,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using ArcStrides.API.Messages;
+using ArcStrides.API.Models.Board;
 
 namespace ArcStrides.API.Controllers;
 

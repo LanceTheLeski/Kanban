@@ -1,9 +1,8 @@
-﻿using ArcStrides.API.Exceptions;
-using ArcStrides.API.Mappers;
-using ArcStrides.API.Messages;
-using ArcStrides.API.Models;
+﻿using ArcStrides.API.Mappers;
+using ArcStrides.API.Models.Board;
 using ArcStrides.API.Options;
 using ArcStrides.API.Services;
+using Azure.Data.Tables;
 using DeepCopy;
 using Microsoft.Extensions.Options;
 using System.Collections.ObjectModel;
@@ -51,118 +50,94 @@ public class ColumnRepository : IColumnRepository
     public async Task DeleteColumnAsync (Column columnToDelete)
         => await _columnTable.DeleteEntityAsync (columnToDelete);
 
-    public IList<Column> IncrementExistingColumnsOrder (IList<Column> columnCollectionWithNewColumnToUpdateOrder, Column newColumn)
+    public async Task<bool> SubmitArcTransactionAsync (ArcTransaction arcTransaction)
+        => await _columnTable.SubmitArcTransactionAsync (arcTransaction);
+
+    public ArcTransaction IncrementExistingColumnsOrder (IEnumerable<Column> columnEnumerableToUpdate, ArcTransaction arcTransaction)
     {
-        var newColumnFromCollection = columnCollectionWithNewColumnToUpdateOrder.SingleOrDefault (column => column.PartitionKey == newColumn.PartitionKey);
-        var newColumnIndex = columnCollectionWithNewColumnToUpdateOrder.IndexOf (newColumnFromCollection ?? default!);
-        if (newColumnIndex is -1)
-            throw new ArgumentException (ExceptionMessages.EntityCollectionDoesNotContainNewEntityExceptionMessage (nameof (Column)));
-
-        columnCollectionWithNewColumnToUpdateOrder.RemoveAt (newColumnIndex);
-
-        foreach (var column in columnCollectionWithNewColumnToUpdateOrder)
-            column.ColumnOrder ++;
-
-        return columnCollectionWithNewColumnToUpdateOrder;
-    }
-
-    public ICollection<Column> DecrementExistingColumnsOrder (ICollection<Column> columnCollectionToUpdate)
-    {
-        var columnCollectionAfterUpdate = new Collection<Column> ();
-
-        foreach (var column in columnCollectionToUpdate)
+        foreach (var column in columnEnumerableToUpdate)
         {
-            columnCollectionAfterUpdate.Add (column);
-            columnCollectionAfterUpdate.Last ().ColumnOrder --;
+            column.ColumnOrder ++;
+            arcTransaction.Add (new (TableTransactionActionType.UpdateMerge, column));
         }
 
-        return columnCollectionToUpdate;
+        return arcTransaction;
     }
 
-    public async Task<Collection<Column>> FetchAndApplyNewOrderForEffectedColumnsAsync (Column columnToUpdate, int newColumnOrder)
+    public ArcTransaction DecrementExistingColumnsOrder (IEnumerable<Column> columnEnumerableToUpdate, ArcTransaction arcTransaction)
     {
-        var boardID = Guid.Parse(columnToUpdate.RowKey);
-        var boardColumnCollection = await GetAllBoardColumns (boardID);
+        foreach (var column in columnEnumerableToUpdate)
+        {
+            column.ColumnOrder --;
+            arcTransaction.Add (new (TableTransactionActionType.UpdateMerge, column));
+        }
 
-        var columnToUpdateCollection = new Collection<Column> ();
+        return arcTransaction;
+    }
+
+    public ArcTransaction ApplyNewOrderForExistingColumns (Column columnToUpdate, int newColumnOrder, IEnumerable<Column> boardColumnEnumerable, ArcTransaction arcTransaction)
+    {
         if (columnToUpdate.ColumnOrder == newColumnOrder)
-            return columnToUpdateCollection;
+            return arcTransaction;
 
         if (columnToUpdate.ColumnOrder < newColumnOrder)
             for (int index = columnToUpdate.ColumnOrder + 1; index <= newColumnOrder; index ++)
             {
-                var newColumnToUpdate = DeepCopier.Copy (boardColumnCollection.Single (column => column.ColumnOrder == index));
+                var newColumnToUpdate = DeepCopier.Copy (boardColumnEnumerable.Single (column => column.ColumnOrder == index));
                 newColumnToUpdate.ColumnOrder = index - 1;
-                columnToUpdateCollection.Add (newColumnToUpdate);
+                arcTransaction.Add (new (TableTransactionActionType.UpdateMerge, newColumnToUpdate));
             }
         if (columnToUpdate.ColumnOrder > newColumnOrder)
             for (int index = newColumnOrder; index < columnToUpdate.ColumnOrder; index ++)
             {
-                var newColumnToUpdate = DeepCopier.Copy (boardColumnCollection.Single (column => column.ColumnOrder == index));
+                var newColumnToUpdate = DeepCopier.Copy (boardColumnEnumerable.Single (column => column.ColumnOrder == index));
                 newColumnToUpdate.ColumnOrder = index + 1;
-                columnToUpdateCollection.Add (newColumnToUpdate);
+                arcTransaction.Add (new (TableTransactionActionType.UpdateMerge, newColumnToUpdate));
             }
-
-        await UpdateColumnBatchAsync (boardColumnCollection);
-
-        return columnToUpdateCollection;
+          
+        return arcTransaction;
     }
 
-    public async Task<IEnumerable<BoardCard>> FetchAndApplyNewOrderForEffectedBoardCardsAsync (IEnumerable<Column> columnEnumerable, IEnumerable<BoardCard> boardCardEnumerable)
+    public ArcTransaction ApplyNewOrderForExistingCardPositions (IEnumerable<Column> columnEnumerable, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction)
     {
-        var effectedBoardCardEnumerable = boardCardEnumerable.Where (boardCard => columnEnumerable.Any (column => column.Title == boardCard.ColumnTitle));
-        if (effectedBoardCardEnumerable.Count () is not 0)
+        var effectedCardPositionEnumerable = cardPositionEnumerable.Where (boardCard => columnEnumerable.Any (column => column.Title == boardCard.ColumnTitle));
+        if (effectedCardPositionEnumerable.Count () is not 0)
         {
-            foreach (var boardCard in effectedBoardCardEnumerable)
+            foreach (var boardCard in effectedCardPositionEnumerable)
+            {
                 boardCard.ColumnOrder = columnEnumerable.Single (column => column.Title == boardCard.ColumnTitle).ColumnOrder;
 
-            await _cardRepository.UpdateBoardCardBatchAsync (effectedBoardCardEnumerable);;
+                arcTransaction.Add (new (TableTransactionActionType.UpdateMerge, boardCard));
+            }
         }
 
-        return effectedBoardCardEnumerable;
+        return arcTransaction;
     }
 
-    public async Task<Collection<BoardCard>> FetchAndApplyNewTitleForEffectedBoardCardsAsync (Guid boardID, Column columnToDelete)
+    public ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Column columnToDelete, IEnumerable<Column> columnEnumerable, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction)
     {
-        var columnToTransferCandidates = await QueryColumnsAsync (column => column.RowKey == columnToDelete.RowKey
-                                                                            && (column.ColumnOrder == columnToDelete.ColumnOrder
-                                                                                || column.ColumnOrder == columnToDelete.ColumnOrder - 1));
+        var columnToTransferCandidates = columnEnumerable.Where (column => column.PartitionKey == columnToDelete.PartitionKey
+                                                                           && (column.ColumnOrder == columnToDelete.ColumnOrder
+                                                                               || column.ColumnOrder == columnToDelete.ColumnOrder - 1));
+
         if (columnToTransferCandidates.Count () is 0)
-            return new Collection<BoardCard> ();
-        var columnToTransfer = columnToTransferCandidates.Count is 2 ?
-            columnToTransferCandidates.MaxBy (column => column.ColumnOrder) :
+            return arcTransaction;
+        var columnToTransfer = columnToTransferCandidates.Count() is 2 ?
+            columnToTransferCandidates.MaxBy (column => column.ColumnOrder)! :
             columnToTransferCandidates.Single ();
 
-        var boardCardsFromTable = await _cardRepository.QueryBoardCardsAsync (board => board.PartitionKey == boardID.ToString ()
-                                                                                       && board.ColumnTitle == columnToDelete.Title);
-        if (boardCardsFromTable!.Count () is 0) 
-            return new Collection<BoardCard> ();
-        foreach (var boardCard in boardCardsFromTable)
+        var cardPositionsToTransfer = cardPositionEnumerable.Where (cardPosition => cardPosition.ColumnTitle == columnToDelete.Title)!;
+        if (cardPositionsToTransfer.Count () is 0) 
+            return arcTransaction;
+        foreach (var cardPosition in cardPositionsToTransfer)
         {
-            boardCard.ColumnID = Guid.Parse (columnToTransfer!.PartitionKey);
-            boardCard.ColumnTitle = columnToTransfer!.Title;
-            boardCard.ColumnOrder = columnToTransfer!.ColumnOrder;
+            cardPosition.ColumnID = Guid.Parse (columnToTransfer.RowKey);
+            cardPosition.ColumnTitle = columnToTransfer.Title;
+            cardPosition.ColumnOrder = columnToTransfer.ColumnOrder;
+            
+            arcTransaction.Add (new (TableTransactionActionType.UpdateMerge, cardPosition));
         }
-        await _cardRepository.UpdateBoardCardBatchAsync (boardCardsFromTable);
 
-        return boardCardsFromTable;
-    }
-    
-    public async Task<bool> TryRevertEffectedColumnsToOriginalAsync (IEnumerable<Column> originalColumnEnumerable)
-    {
-        try { await UpdateColumnBatchAsync (originalColumnEnumerable); }
-        catch (TransactionFailedException)
-            { return false; } // Nothing more to do here. We should be more concerned with the failures that led up to this point.
-
-        return true;
-    }
-    
-    public async Task<bool> TryRevertEffectedBoardCardsToOriginalAsync (IEnumerable<BoardCard> originalBoardCardEnumerable)
-    {
-        try { await _cardRepository.UpdateBoardCardBatchAsync (originalBoardCardEnumerable); }
-        catch (TransactionFailedException)
-            { return false; } // Nothing more to do here. We should be more concerned with the failures that led up to this point.
-
-        return true;
+        return arcTransaction;
     }
 }

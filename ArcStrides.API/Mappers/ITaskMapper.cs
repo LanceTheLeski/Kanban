@@ -6,11 +6,11 @@ namespace ArcStrides.API.Mappers;
 
 public interface ITaskMapper
 {
-    Models.Task MapTaskCreateRequestToTask (TaskCreateRequest taskCreateRequest);
+    Models.Board.Task MapTaskCreateRequestToTask (TaskCreateRequest taskCreateRequest);
 
-    Models.Task MapTaskPatchRequestToPatch (TaskPatchRequest taskPatchRequest);
+    Models.Board.Task MapTaskPatchRequestToPatch (TaskPatchRequest taskPatchRequest);
 
-    TaskPatchRequest MapTaskToTaskPatchRequest (Models.Task task);
+    TaskPatchRequest MapTaskToTaskPatchRequest (Models.Board.Task task);
 
-    TaskResponse MapTaskToTaskResponse (Models.Task task);
+    TaskResponse MapTaskToTaskResponse (Models.Board.Task task);
 }

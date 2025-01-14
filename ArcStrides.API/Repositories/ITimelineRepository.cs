@@ -1,4 +1,4 @@
-﻿using ArcStrides.API.Models;
+﻿using ArcStrides.API.Models.Board;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 

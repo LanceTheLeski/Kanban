@@ -1,6 +1,7 @@
 ﻿using ArcStrides.API.Mappers;
 using ArcStrides.API.Messages;
 using ArcStrides.API.Models;
+using ArcStrides.API.Models.TagGroup;
 using ArcStrides.API.Repositories;
 using ArcStrides.API.Validators;
 using ArcStrides.Contracts.Request.Create;

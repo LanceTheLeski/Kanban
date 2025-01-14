@@ -1,11 +1,12 @@
 ﻿using ArcStrides.API.Exceptions;
 using ArcStrides.API.Mappers;
 using ArcStrides.API.Messages;
-using ArcStrides.API.Models;
+using ArcStrides.API.Models.Board;
 using ArcStrides.API.Repositories;
 using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Request.Patch;
 using Azure;
+using Azure.Data.Tables;
 using DeepCopy;
 using FluentValidation;
 using Microsoft.AspNetCore.JsonPatch;
@@ -53,8 +54,8 @@ public class ColumnController : ArcController
             var columnResponse = _columnMapper.MapColumnToColumnResponse (columnFromDatabase);
             return Ok (columnResponse);
         }
-        catch (RequestFailureWrapperException requestFailureWrapper)
-            { return ArcResponse (requestFailureWrapper); }
+        catch (Exception ex)
+            { return ArcErrorResponse (ex); }
     }
 
     [HttpPost ("/arcstrides/boards/{boardID:guid}/columns")]
@@ -69,17 +70,16 @@ public class ColumnController : ArcController
             var boardCardEnumerableFromDatabase = await FetchAndValidateBoardCardsAsync (boardID);
 
             var newColumn = _columnMapper.MapColumnCreateRequestToColumn (columnCreateRequest);
-            newColumn.PartitionKey = Guid.NewGuid ().ToString ();
-            newColumn.RowKey = boardID.ToString ();
-            newColumn.BoardTitle = boardCardEnumerableFromDatabase.First ().Title;
+            newColumn.PartitionKey = boardID.ToString ();
+            newColumn.RowKey = Guid.NewGuid ().ToString ();
             
-            await AddColumnAndUpdateEffectedColumnsAndBoardCards (newColumn, boardCardEnumerableFromDatabase);
+            await AddColumnAndUpdateEffectedColumnsAndCardPositions (boardID, newColumn, boardCardEnumerableFromDatabase);
 
             var columnResponse = _columnMapper.MapColumnToColumnResponse (newColumn);
             return Created (default (Uri)/*Generate this later*/, columnResponse);
         }
-        catch (RequestFailureWrapperException requestFailureWrapper)
-            { return ArcResponse (requestFailureWrapper); }
+        catch (Exception ex)
+            { return ArcErrorResponse (ex); }
     }
 
     [HttpPatch ("/arcstrides/boards/{boardID:Guid}/columns/{columnID:Guid}")]
@@ -91,7 +91,7 @@ public class ColumnController : ArcController
 
         try
         {
-            var columnsFromBoard = await FetchAndValidateAllBoardColumnsAsync (boardID);
+            var columnsFromBoard = await FetchAndValidateAllExistingColumnsAsync (boardID);
 
             var columnToUpdate = columnsFromBoard.FirstOrDefault (column => column.PartitionKey == columnID.ToString ());
             if (columnToUpdate is null)
@@ -100,16 +100,16 @@ public class ColumnController : ArcController
             var convertedColumnToUpdate = _columnMapper.MapColumnToColumnPatchRequest (columnToUpdate);
             try { columnPatchRequest.ApplyTo (convertedColumnToUpdate); }
             catch (JsonPatchException)
-            { return BadRequest (ErrorResponseMessages.PatchRequestIsInvalidErrorResponse (nameof (Column))); }
-            ValidateConvertedColumnAgainstBoardColumns (columnToUpdate, convertedColumnToUpdate, columnsFromBoard);
+                { return BadRequest (ErrorResponseMessages.PatchRequestIsInvalidErrorResponse (nameof (Column))); }
+            ValidateConvertedColumnAgainstExistingColumns (columnToUpdate, convertedColumnToUpdate, columnsFromBoard);
 
-            var updatedColumn = await UpdateColumnAndUpdateEffectedColumnsAndBoardCards (boardID, columnsFromBoard, columnToUpdate, convertedColumnToUpdate, columnPatchRequest.Operations);
+            var updatedColumn = await UpdateColumnAndUpdateEffectedColumnsAndCardPositions (boardID, columnsFromBoard, columnToUpdate, convertedColumnToUpdate, columnPatchRequest.Operations);
 
             var columnResponse = _columnMapper.MapColumnToColumnResponse (updatedColumn);
             return Ok (columnResponse);
         }
-        catch (RequestFailureWrapperException requestFailureWrapper)
-            { return ArcResponse (requestFailureWrapper); }
+        catch (Exception ex)
+            { return ArcErrorResponse (ex); }
     }
 
     [HttpDelete ("/arcstrides/boards/{boardID:guid}/columns/{columnID:guid}")]
@@ -122,8 +122,8 @@ public class ColumnController : ArcController
             await DeleteColumnAndUpdateEffectedColumnsAndBoardCards (boardID, columnToDelete);
             return Ok ();
         }
-        catch (RequestFailureWrapperException requestFailureWrapper)
-            { return ArcResponse (requestFailureWrapper); }
+        catch (Exception ex)
+            { return ArcErrorResponse (ex); }
     }
 
     /// <summary>
@@ -154,7 +154,7 @@ public class ColumnController : ArcController
     /// Attempts to fetch a collection of columns that are all associated to 
     /// a board by that board's ID.
     /// </summary>
-    private async Task<IEnumerable<Column>> FetchAndValidateAllBoardColumnsAsync (Guid boardID)
+    private async Task<IEnumerable<Column>> FetchAndValidateAllExistingColumnsAsync (Guid boardID)
     {
         try { return await _columnRepository.GetAllBoardColumns (boardID); }
         catch (RequestFailedException reqFailedEx)
@@ -168,14 +168,14 @@ public class ColumnController : ArcController
     /// Attempts to fetch a collection of board cards that are all all associated
     /// to a board by that board's ID.
     /// </summary>
-    private async Task<IEnumerable<BoardCard>> FetchAndValidateBoardCardsAsync (Guid boardID)
+    private async Task<IEnumerable<CardPosition>> FetchAndValidateBoardCardsAsync (Guid boardID)
     {
-        IEnumerable<BoardCard>? boardCardEnumerableFromDatabase = null;
-        try { boardCardEnumerableFromDatabase = await _cardRepository.GetBoardCardsAsync (boardID); }
+        IEnumerable<CardPosition>? boardCardEnumerableFromDatabase = null;
+        try { boardCardEnumerableFromDatabase = await _cardRepository.GetCardPositionsAsync (boardID); }
         catch (RequestFailedException reqFailedEx)
         { 
             throw new RequestFailureWrapperException (nameof (Problem), 
-                                                      ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (BoardCard), reqFailedEx.Status)); 
+                                                      ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (CardPosition), reqFailedEx.Status)); 
         }
 
         return boardCardEnumerableFromDatabase;
@@ -184,7 +184,7 @@ public class ColumnController : ArcController
     /// <summary>
     /// 
     /// </summary>
-    private void ValidateConvertedColumnAgainstBoardColumns (Column columnToUpdate, ColumnPatchRequest convertedColumnToUpdate, IEnumerable<Column> columnsFromBoard)
+    private void ValidateConvertedColumnAgainstExistingColumns (Column columnToUpdate, ColumnPatchRequest convertedColumnToUpdate, IEnumerable<Column> columnsFromBoard)
     {
         if (convertedColumnToUpdate.Order is not 0
             && convertedColumnToUpdate.Order <= columnsFromBoard.Count ())
@@ -202,39 +202,31 @@ public class ColumnController : ArcController
     /// <summary>
     /// 
     /// </summary>
-    private async Task AddColumnAndUpdateEffectedColumnsAndBoardCards (Column newColumn, IEnumerable<BoardCard> boardCardEnumerable)
+    private async Task AddColumnAndUpdateEffectedColumnsAndCardPositions (Guid boardID, Column newColumn, IEnumerable<CardPosition> boardCardEnumerable)
     {
-        try { await _columnRepository.AddColumnAsync (newColumn); }
+        var createColumnTransaction = new ArcTransaction (Guid.Parse (newColumn.PartitionKey), 
+                                                          new TableTransactionAction (TableTransactionActionType.Add, newColumn));
+
+        var columnCollectionToUpdateOrder = await _columnRepository.QueryColumnsAsync (column => column.ColumnOrder >= newColumn.ColumnOrder
+                                                                                                 && column.PartitionKey == newColumn.PartitionKey);
+        createColumnTransaction = _columnRepository.IncrementExistingColumnsOrder (columnCollectionToUpdateOrder, createColumnTransaction);
+
+        var cardPositionCollectionToUpdateOrder = await _cardRepository.QueryCardPositionsAsync (cardPosition => cardPosition.ColumnOrder >= newColumn.ColumnOrder
+                                                                                                        && cardPosition.PartitionKey == newColumn.PartitionKey);
+        createColumnTransaction = _columnRepository.ApplyNewOrderForExistingCardPositions (columnCollectionToUpdateOrder, cardPositionCollectionToUpdateOrder, createColumnTransaction);
+
+        try { await _columnRepository.SubmitArcTransactionAsync (createColumnTransaction); }
         catch (RequestFailedException reqFailedEx)
         { 
             throw new RequestFailureWrapperException (nameof (Problem), 
                                                       ErrorResponseMessages.AddToDatabaseErrorResponse (nameof (Column), reqFailedEx.Status)); 
-        }
-
-        var columnCollectionWithNewColumnToUpdateOrder = await _columnRepository.QueryColumnsAsync (column => column.ColumnOrder >= newColumn.ColumnOrder
-                                                                                                    && column.RowKey == newColumn.RowKey);
-        try { _columnRepository.IncrementExistingColumnsOrder (columnCollectionWithNewColumnToUpdateOrder, newColumn); }
-        catch (ArgumentException argEx)
-        {
-            await RollbackEffectedEntitiesAndReturnErrorResponse<Column> (argEx,
-                                                                          columnToDeleteOnFailure: newColumn,
-                                                                          originalColumnsToRevertForFailure: columnCollectionWithNewColumnToUpdateOrder);
-        }
-
-        try { await _columnRepository.FetchAndApplyNewOrderForEffectedBoardCardsAsync (columnCollectionWithNewColumnToUpdateOrder, boardCardEnumerable); }
-        catch (RequestFailedException reqFailedEx)
-        {
-            await RollbackEffectedEntitiesAndReturnErrorResponse<BoardCard> (reqFailedEx,
-                                                                             columnToDeleteOnFailure: newColumn,
-                                                                             originalColumnsToRevertForFailure: columnCollectionWithNewColumnToUpdateOrder,
-                                                                             originalBoardCardsToRevertForFailure: boardCardEnumerable);
         }
     }
 
     /// <summary>
     /// 
     /// </summary>
-    private async Task<Column> UpdateColumnAndUpdateEffectedColumnsAndBoardCards (Guid boardID,
+    /*private async Task<Column> UpdateColumnAndUpdateEffectedColumnsAndBoardCards (Guid boardID,
                                                                             IEnumerable<Column> columnsFromBoard,
                                                                             Column columnToUpdate,
                                                                             ColumnPatchRequest convertedColumnToUpdate, 
@@ -257,20 +249,52 @@ public class ColumnController : ArcController
             otherColumnsWithUpdatedOrder.Add (columnToUpdate);
         var allUpdatedColumns = otherColumnsWithUpdatedOrder ?? new Collection<Column> { columnToUpdate };
 
-        Collection<BoardCard>? boardCardCollectionFromDatabase = null;
-        try { boardCardCollectionFromDatabase = await _cardRepository.GetBoardCardsAsync (boardID); }
+        Collection<CardPosition>? cardPositionCollectionFromDatabase = null;
+        try { cardPositionCollectionFromDatabase = await _cardRepository.GetCardPositionsAsync (boardID); }
         catch (RequestFailedException reqFailedEx)
         {
-            await RollbackEffectedEntitiesAndReturnErrorResponse<BoardCard> (reqFailedEx,
+            await RollbackEffectedEntitiesAndReturnErrorResponse<CardPosition> (reqFailedEx,
                                                                              originalColumnsToRevertForFailure: columnsFromBoard);
         }
 
-        try { await _columnRepository.FetchAndApplyNewOrderForEffectedBoardCardsAsync (allUpdatedColumns, boardCardCollectionFromDatabase!); }
+        try { await _columnRepository.FetchAndApplyNewOrderForEffectedBoardCardsAsync (allUpdatedColumns, cardPositionCollectionFromDatabase!); }
         catch (RequestFailedException reqFailedEx)
         {
-            await RollbackEffectedEntitiesAndReturnErrorResponse<BoardCard> (reqFailedEx,
+            await RollbackEffectedEntitiesAndReturnErrorResponse<CardPosition> (reqFailedEx,
                                                                              originalColumnsToRevertForFailure: columnsFromBoard,
-                                                                             originalBoardCardsToRevertForFailure: boardCardCollectionFromDatabase);
+                                                                             originalBoardCardsToRevertForFailure: cardPositionCollectionFromDatabase);
+        }
+
+        return columnToUpdate;
+    }*/
+
+    private async Task<Column> UpdateColumnAndUpdateEffectedColumnsAndCardPositions (Guid boardID,
+                                                                                     IEnumerable<Column> columnsFromBoard,
+                                                                                     Column columnToUpdate,
+                                                                                     ColumnPatchRequest convertedColumnToUpdate,
+                                                                                     IEnumerable<Microsoft.AspNetCore.JsonPatch.Operations.Operation<ColumnPatchRequest>> columnPatchRequest)
+    {
+        var updateColumnTransaction = new ArcTransaction (boardID);
+
+        var orderIsUpdated = columnPatchRequest.Any (operation => string.Equals (operation.path, $"/{nameof (ColumnPatchRequest.Order)}", StringComparison.OrdinalIgnoreCase));
+        if (orderIsUpdated)
+            updateColumnTransaction = _columnRepository.ApplyNewOrderForExistingColumns (columnToUpdate, convertedColumnToUpdate.Order, columnsFromBoard, updateColumnTransaction);
+
+        columnToUpdate = _columnMapper.MapColumnPatchRequestToColumn (convertedColumnToUpdate); // Make sure that the response object is preserved if not mapped to.
+
+        var allUpdatedColumns = (Collection<Column>) updateColumnTransaction.Select (action => action.Entity as Column);
+        allUpdatedColumns.Add (columnToUpdate);
+        
+        updateColumnTransaction.Add (new TableTransactionAction (TableTransactionActionType.UpdateMerge, columnToUpdate));
+
+        var cardPositionCollectionFromDatabase = await _cardRepository.GetCardPositionsAsync (boardID);
+        updateColumnTransaction = _columnRepository.ApplyNewOrderForExistingCardPositions (allUpdatedColumns!, cardPositionCollectionFromDatabase!, updateColumnTransaction);
+
+        try { await _columnRepository.SubmitArcTransactionAsync (updateColumnTransaction); }
+        catch (RequestFailedException reqFailedEx)
+        {
+            throw new RequestFailureWrapperException (nameof (Problem),
+                                                      ErrorResponseMessages.UpdateInDatabaseErrorResponse (nameof (Column), reqFailedEx.Status));
         }
 
         return columnToUpdate;
@@ -295,7 +319,7 @@ public class ColumnController : ArcController
     /// If any of these fail then there will be an attempt to roll back 
     /// effected columns and cards.
     /// </summary>
-    private async Task DeleteColumnAndUpdateEffectedColumnsAndBoardCards (Guid boardID, Column columnToDelete)
+    /*private async Task DeleteColumnAndUpdateEffectedColumnsAndBoardCards (Guid boardID, Column columnToDelete)
     {
         try { await _columnRepository.DeleteColumnAsync (columnToDelete); }
         catch (RequestFailedException reqFailedEx)
@@ -314,15 +338,15 @@ public class ColumnController : ArcController
                                                                           columnToAddOnFailure: columnToDelete);
         }
 
-        IEnumerable<BoardCard>? boardCardEnumerable = null;
+        IEnumerable<CardPosition>? boardCardEnumerable = null;
         try 
         { 
-            boardCardEnumerable = await _cardRepository.GetBoardCardsAsync (boardID);
+            boardCardEnumerable = await _cardRepository.GetCardPositionsAsync (boardID);
             await _columnRepository.FetchAndApplyNewOrderForEffectedBoardCardsAsync (columnsWithUpdatedOrder, boardCardEnumerable!);
         }
         catch (RequestFailedException reqFailedEx)
         {
-            await RollbackEffectedEntitiesAndReturnErrorResponse<BoardCard> (reqFailedEx,
+            await RollbackEffectedEntitiesAndReturnErrorResponse<CardPosition> (reqFailedEx,
                                                                              columnToAddOnFailure: columnToDelete,
                                                                              originalColumnsToRevertForFailure: columnsToUpdateOrder);
         }
@@ -330,10 +354,34 @@ public class ColumnController : ArcController
         try { await _columnRepository.FetchAndApplyNewTitleForEffectedBoardCardsAsync (boardID, columnToDelete); }
         catch (RequestFailedException reqFailedEx)
         {
-            await RollbackEffectedEntitiesAndReturnErrorResponse<BoardCard> (reqFailedEx,
+            await RollbackEffectedEntitiesAndReturnErrorResponse<CardPosition> (reqFailedEx,
                                                                           columnToAddOnFailure: columnToDelete,
                                                                           originalColumnsToRevertForFailure: columnsToUpdateOrder,
                                                                           originalBoardCardsToRevertForFailure: boardCardEnumerable);
+        }
+    }*/
+
+    private async Task DeleteColumnAndUpdateEffectedColumnsAndBoardCards (Guid boardID, Column columnToDelete)
+    {
+        var deleteColumnTransaction = new ArcTransaction (boardID);
+
+        var columnsToUpdateOrder = await _columnRepository.QueryColumnsAsync (column => column.ColumnOrder > columnToDelete.ColumnOrder
+                                                                                        && column.PartitionKey == columnToDelete.PartitionKey);
+        deleteColumnTransaction = _columnRepository.DecrementExistingColumnsOrder (columnsToUpdateOrder, deleteColumnTransaction);
+
+        var allUpdatedColumns = (Collection<Column>) deleteColumnTransaction.Select (action => action.Entity as Column);
+        allUpdatedColumns.Add (columnToDelete);
+        
+        deleteColumnTransaction.Add (new TableTransactionAction (TableTransactionActionType.Delete, columnToDelete));
+
+        var boardCardEnumerable = await _cardRepository.GetCardPositionsAsync (boardID);
+        deleteColumnTransaction = _columnRepository.ApplyNewTitleAndOrderForExistingCardPositions (columnToDelete, allUpdatedColumns, boardCardEnumerable, deleteColumnTransaction);
+
+        try { await _columnRepository.SubmitArcTransactionAsync (deleteColumnTransaction); }
+        catch (RequestFailedException reqFailedEx)
+        {
+            throw new RequestFailureWrapperException (nameof (Problem),
+                                                      ErrorResponseMessages.RemoveFromDatabaseErrorResponse (nameof (Column), reqFailedEx.Status));
         }
     }
 
@@ -344,9 +392,9 @@ public class ColumnController : ArcController
     /// If the rollback fails then a response exception is thrown to indicate 
     /// that something went wrong and that the rollback also failed.
     /// </summary>
-    private async Task RollbackEffectedEntitiesAndReturnErrorResponse<T> (Exception exception,
+    /*private async Task RollbackEffectedEntitiesAndReturnErrorResponse<T> (Exception exception,
                                                                           IEnumerable<Column>? originalColumnsToRevertForFailure = null,
-                                                                          IEnumerable<BoardCard>? originalBoardCardsToRevertForFailure = null,
+                                                                          IEnumerable<CardPosition>? originalBoardCardsToRevertForFailure = null,
                                                                           Column? columnToAddOnFailure = null,
                                                                           Column? columnToDeleteOnFailure = null)
     {
@@ -378,9 +426,9 @@ public class ColumnController : ArcController
         if (originalBoardCardsToRevertForFailure is not null
             && await _columnRepository.TryRevertEffectedBoardCardsToOriginalAsync (originalBoardCardsToRevertForFailure))
             throw new RequestFailureWrapperException (nameof (Problem),
-                                                      ErrorResponseMessages.UpdateEffectedEntitiesInDatabaseErrorResponse (nameof (BoardCard), exception.Message));
+                                                      ErrorResponseMessages.UpdateEffectedEntitiesInDatabaseErrorResponse (nameof (CardPosition), exception.Message));
 
         throw new RequestFailureWrapperException (nameof (Problem),
                                                   ErrorResponseMessages.UpdateEffectedEntitiesInDatabaseCatastrophicErrorResponse (typeof (T).Name, exception.Message));
-    }
+    }*/
 }

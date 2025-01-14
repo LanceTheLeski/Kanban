@@ -1,4 +1,5 @@
 ﻿using ArcStrides.API.Models;
+using ArcStrides.API.Models.TagGroup;
 using ArcStrides.API.Options;
 using ArcStrides.API.Services;
 using Microsoft.Extensions.Options;
@@ -82,7 +83,7 @@ public class TagRepository : ITagRepository
                 return dateCollection?.Count () is 0;
 
             case 3:// Card
-                var cardCollection = await _cardRepository.GetBoardCardsAsync (parentID);
+                var cardCollection = await _cardRepository.GetCardPositionsAsync (parentID);
                 return cardCollection?.Count () is 0;
 
             case 4:// Task

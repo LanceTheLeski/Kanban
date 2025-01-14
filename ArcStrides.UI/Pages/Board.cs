@@ -6,12 +6,6 @@ namespace ArcStrides.UI.Pages;
 
 public partial class Board
 {
-    protected override async Task OnInitializedAsync ()
-    {
-        var boardResponse = await _boardService.FetchBoard (Guid.Parse ("20a88077-10d4-4648-92cb-7dc7ba5b8df5"));//Change later to be dynamic..
-        _cards = ConvertBoardResponseToDropCardList (boardResponse);
-    }
-
     public void OpenEditCardOverlay ()
     {
         editCardOverlayIsOpen = true;
@@ -47,7 +41,7 @@ public partial class Board
             SendCardPatchRequest (cardToUpdate.Item)).Result;
     }
 
-    private async Task<BoardCardResponse?> SendCardPatchRequest (DropCard cardToUpdate)
+    private async Task<CardPositionResponse?> SendCardPatchRequest (DropCard cardToUpdate)
     {
         var patchRequest =
         $@"[

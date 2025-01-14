@@ -1,0 +1,89 @@
+﻿@using ArcStrides.UI.Components
+@using ArcStrides.UI.Components.ArcExpandingSelector
+@using ArcStrides.UI.Components.ArcOverlay
+@using ArcStrides.UI.Options
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using ArcStrides.UI.Models
+@using System.Net.Http.Headers
+
+@inject HttpClient http
+@inject IOptions<ArcStridesServiceOptions> interfaceOptions
+@inject ISnackbar Snackbar
+
+@rendermode RenderMode.InteractiveServer
+
+<ArcOverlay @bind-Open="Open" 
+            OnSubmitAsync="RemoveColumn">
+    
+    <MudText>Edit Column</MudText>
+    
+    <ArcExpandingSelector @bind-Options="ColumnTitles" 
+                          OptionSelected="SetColumnNameToDelete" />
+
+</ArcOverlay>
+
+@code
+{
+    [Parameter]
+    public bool Open { get; set; }
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public List<Guid> Columns { get; set; }
+    [Parameter]
+    public EventCallback<List<Guid>> ColumnsChanged { get; set; }
+
+    [Parameter]
+    public List<string> ColumnTitles { get; set; }
+    [Parameter]
+    public EventCallback<List<string>> ColumnTitlesChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> Refresh { get; set; }
+
+    private static string columnTitleSelected = "";
+    private void SetColumnNameToDelete (string columnName)
+    {
+        var matchingColumnNameCount = ColumnTitles.FindAll (column => column == columnName).Count ();
+        if (matchingColumnNameCount is not 1)
+        {
+            // Should we throw exceptions? Or have the snackbar display exceptions?
+            // I think that the API should throw exceptions and the Blazor UI should maybe use something reliable like the snackbar.
+            throw new Exception ($"The column selected does not correspond to a single column in our list of columns. Number of this column found: {matchingColumnNameCount}");
+        }
+        //Replace with FluentValidation in the cs partial class. If it fails then use the Snackbar to display the error.
+
+        columnTitleSelected = columnName;
+    }
+
+    private async Task RemoveColumn ()
+    {
+        //Keep in mind that on a given board, column names should be unique.
+        var columnToDeleteListIndex = ColumnTitles.IndexOf (columnTitleSelected);
+        var columnToDeleteGuid = Columns [columnToDeleteListIndex];
+
+        //Move to service class in components:
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Delete, @$"{interfaceOptions.Value.URL}ArcStrides/columns/{columnToDeleteGuid}");
+
+        var response = await http.SendAsync (httpRequestMessage);
+        if (!response.IsSuccessStatusCode)
+        {
+            Snackbar.Add ($"Could not delete Column. Error code: {response.StatusCode}");
+        }
+        //This should be:
+        //columnService.DeleteColumn(columnToDeleteGuid);
+        // It should still use the Snackbar to display any issues that arise. Clicking the error should then pop up a window with more info.
+
+        Columns.RemoveAt (columnToDeleteListIndex);//This needs to be better
+        await ColumnsChanged.InvokeAsync (Columns);
+
+        ColumnTitles.RemoveAt (columnToDeleteListIndex);//This needs to be better
+        await ColumnTitlesChanged.InvokeAsync (ColumnTitles);
+
+        Refresh.InvokeAsync (true);
+
+        CloseOverlay();
+    }
+}

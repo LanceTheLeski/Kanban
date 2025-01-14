@@ -1,4 +1,4 @@
-﻿using ArcStrides.API.Models;
+﻿using ArcStrides.API.Models.Calendar;
 using ArcStrides.API.Options;
 using ArcStrides.API.Services;
 using Microsoft.Extensions.Options;

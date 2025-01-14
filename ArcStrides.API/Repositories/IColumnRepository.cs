@@ -1,4 +1,5 @@
-﻿using ArcStrides.API.Models;
+﻿using ArcStrides.API.Models.Board;
+using Azure.Data.Tables;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
@@ -22,17 +23,15 @@ public interface IColumnRepository
 
     Task DeleteColumnAsync (Column columnToDelete);
 
-    IList<Column> IncrementExistingColumnsOrder (IList<Column> columnCollectionWithNewColumnToUpdateOrder, Column newColumn);
+    Task<bool> SubmitArcTransactionAsync (ArcTransaction arcTransaction);
 
-    ICollection<Column> DecrementExistingColumnsOrder (ICollection<Column> columnCollectionToUpdate);
+    ArcTransaction IncrementExistingColumnsOrder (IEnumerable<Column> columnEnumerableToUpdate, ArcTransaction arcTransaction);
 
-    Task<Collection<Column>> FetchAndApplyNewOrderForEffectedColumnsAsync (Column columnToUpdate, int newColumnOrder);
+    ArcTransaction DecrementExistingColumnsOrder (IEnumerable<Column> columnEnumerableToUpdate, ArcTransaction arcTransaction);
 
-    Task<IEnumerable<BoardCard>> FetchAndApplyNewOrderForEffectedBoardCardsAsync (IEnumerable<Column> columnEnumerable, IEnumerable<BoardCard> boardCardEnumerable);
+    ArcTransaction ApplyNewOrderForExistingColumns (Column columnToUpdate, int newColumnOrder, IEnumerable<Column> boardColumnEnumerable, ArcTransaction arcTransaction);
 
-    Task<Collection<BoardCard>> FetchAndApplyNewTitleForEffectedBoardCardsAsync (Guid boardID, Column columnToDelete);
+    ArcTransaction ApplyNewOrderForExistingCardPositions (IEnumerable<Column> columnEnumerable, IEnumerable<CardPosition> boardCardEnumerable, ArcTransaction arcTransaction);
 
-    Task<bool> TryRevertEffectedColumnsToOriginalAsync (IEnumerable<Column> originalColumnEnumerable);
-
-    Task<bool> TryRevertEffectedBoardCardsToOriginalAsync (IEnumerable<BoardCard> originalBoardCardEnumerable);
+    ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Column columnToDelete, IEnumerable<Column> columnEnumerable, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction)
 }

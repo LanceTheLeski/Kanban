@@ -23,4 +23,6 @@ public interface IAzureTableService<T> where T : class, ITableEntity, new()
     Task UpdateEntityBatchAsync (IEnumerable<T> entityEnumerable);
 
     Task DeleteEntityAsync (T entityToDelete);
+
+    Task<bool> SubmitArcTransactionAsync (ArcTransaction arcTransaction);
 }

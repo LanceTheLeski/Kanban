@@ -1,4 +1,4 @@
-﻿using ArcStrides.API.Models;
+﻿using ArcStrides.API.Models.Board;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
@@ -28,11 +28,11 @@ public interface ISwimlaneRepository
 
     Task<Collection<Swimlane>> FetchAndApplyNewOrderForEffectedSwimlanesAsync (Swimlane swimlaneToUpdate, int newSwimlaneOrder);
 
-    Task<IEnumerable<BoardCard>> FetchAndApplyNewOrderForEffectedBoardCardsAsync (IEnumerable<Swimlane> swimlaneEnumerable, IEnumerable<BoardCard> boardCardEnumerable);
+    Task<IEnumerable<CardPosition>> FetchAndApplyNewOrderForEffectedBoardCardsAsync (IEnumerable<Swimlane> swimlaneEnumerable, IEnumerable<CardPosition> boardCardEnumerable);
 
-    Task<Collection<BoardCard>> FetchAndApplyNewTitleForEffectedBoardCardsAsync (Guid boardID, Swimlane swimlaneToDelete);
+    Task<Collection<CardPosition>> FetchAndApplyNewTitleForEffectedBoardCardsAsync (Guid boardID, Swimlane swimlaneToDelete);
 
     Task<bool> TryRevertEffectedSwimlanesToOriginalAsync (IEnumerable<Swimlane> originalSwimlaneEnumerable);
 
-    Task<bool> TryRevertEffectedBoardCardsToOriginalAsync (IEnumerable<BoardCard> originalBoardCardEnumerable);
+    Task<bool> TryRevertEffectedBoardCardsToOriginalAsync (IEnumerable<CardPosition> originalBoardCardEnumerable);
 }
