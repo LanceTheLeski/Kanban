@@ -1,5 +1,4 @@
 ﻿using ArcStrides.API.Models.Board;
-using Azure.Data.Tables;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
@@ -33,5 +32,5 @@ public interface IColumnRepository
 
     ArcTransaction ApplyNewOrderForExistingCardPositions (IEnumerable<Column> columnEnumerable, IEnumerable<CardPosition> boardCardEnumerable, ArcTransaction arcTransaction);
 
-    ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Column columnToDelete, IEnumerable<Column> columnEnumerable, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction)
+    ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Column columnToDelete, IEnumerable<Column> columnEnumerable, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction);
 }

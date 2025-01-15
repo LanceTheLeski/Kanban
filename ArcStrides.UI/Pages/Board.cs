@@ -1,6 +1,7 @@
 ﻿using ArcStrides.Contracts.Response;
 using ArcStrides.UI.Models;
 using MudBlazor;
+using System.Collections.ObjectModel;
 
 namespace ArcStrides.UI.Pages;
 
@@ -53,7 +54,7 @@ public partial class Board
             {{ ""op"": ""replace"", ""path"": ""/SwimlaneOrder"", ""value"": ""{cardToUpdate.SwimlaneNumber}"" }}
         ]";
 
-        return await _cardService.UpdateCard (Guid.Parse (cardToUpdate.Id), patchRequest);
+        return await _cardRepository.UpdateCard (Guid.Parse (cardToUpdate.Id), patchRequest);
     }
 
     private (int swimlanePos, int columnPos) ConvertCardAreaToColumnAndSwimlane (string cardAreaValue)
@@ -79,28 +80,27 @@ public partial class Board
         _swimlaneTitles = new List<string> ();
         _swimlanes = new List<Guid> ();
 
-        var columnList = boardResponse.Columns;
-        for (int columnIndex = 0; columnIndex < columnList.Count; columnIndex++)
+        var columnList = (Collection<ColumnResponse>) boardResponse.newColumns;
+        var swimlaneList = (Collection<SwimlaneResponse>) boardResponse.newSwimlanes;
+        for (int columnIndex = 0; columnIndex < columnList.Count; columnIndex ++)
         {
-            var swimlaneList = columnList [columnIndex].Swimlanes;
-
-            for (int swimlaneIndex = 0; swimlaneIndex < swimlaneList.Count; swimlaneIndex++)
+            for (int swimlaneIndex = 0; swimlaneIndex < swimlaneList.Count (); swimlaneIndex ++)
             {
-                var cardList = swimlaneList [swimlaneIndex].Cards;
+                var cardList = boardResponse.newCards.Where (card => card.Position.ColumnOrder == columnIndex && card.Position.SwimlaneOrder == swimlaneIndex);
 
                 var cardArea = ConvertColumnAndSwimlaneToCardArea (swimlaneList [swimlaneIndex].Order, columnList [columnIndex].Order);
                 foreach (var card in cardList)
                 {
                     dropCardList.Add (new DropCard
                     {
-                        Id = card.ID,
+                        Id = card.ID.ToString (),
                         Title = card.Title,
                         Description = card.Description,
                         ColumnNumber = columnIndex,
-                        ColumnID = Guid.Parse (columnList [columnIndex].ID),
+                        ColumnID = columnList [columnIndex].ID,
                         ColumnName = columnList [columnIndex].Title,
                         SwimlaneNumber = swimlaneIndex,
-                        SwimlaneID = Guid.Parse (swimlaneList [swimlaneIndex].ID),
+                        SwimlaneID = swimlaneList [swimlaneIndex].ID,
                         SwimlaneName = swimlaneList [swimlaneIndex].Title,
                         //Tasks = card.Tasks,
                         CardArea = cardArea
@@ -109,13 +109,13 @@ public partial class Board
             }
 
             _columnTitles.Add (columnList [columnIndex].Title);
-            _columns.Add (Guid.Parse (columnList [columnIndex].ID));
+            _columns.Add (columnList [columnIndex].ID);
         }
 
-        for (int swimlaneIndex = 0; swimlaneIndex < columnList [0].Swimlanes.Count; swimlaneIndex++)
+        for (int swimlaneIndex = 0; swimlaneIndex < swimlaneList.Count (); swimlaneIndex++)
         {
-            _swimlaneTitles.Add (columnList [0].Swimlanes [swimlaneIndex].Title);
-            _swimlanes.Add (Guid.Parse (columnList [0].Swimlanes [swimlaneIndex].ID));
+            _swimlaneTitles.Add (swimlaneList [swimlaneIndex].Title);
+            _swimlanes.Add (swimlaneList [swimlaneIndex].ID);
         }
 
         return dropCardList;

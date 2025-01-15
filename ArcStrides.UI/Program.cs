@@ -1,7 +1,9 @@
+using ArcStrides.Contracts.Response;
 using ArcStrides.UI;
 using ArcStrides.UI.Components.ArcErrorHandler;
 using ArcStrides.UI.Options;
 using ArcStrides.UI.Repositories;
+using ArcStrides.UI.Services;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder (args);
@@ -16,6 +18,12 @@ builder.Services.AddHttpClient ();
 builder.Services.Configure<ArcStridesServiceOptions> (builder.Configuration.GetSection ("InternalAPI"));
 
 builder.Services.AddTransient<IArcErrorHandler, ArcErrorHandler> ();
+builder.Services.AddTransient<IArcStridesService<CardResponse>, ArcStridesService<CardResponse>> ();
+builder.Services.AddTransient<IArcStridesService<CardPositionResponse>, ArcStridesService<CardPositionResponse>> ();
+builder.Services.AddTransient<IArcStridesService<BoardResponse>, ArcStridesService<BoardResponse>> (); 
+builder.Services.AddTransient<IArcStridesService<ColumnResponse>, ArcStridesService<ColumnResponse>> ();
+builder.Services.AddTransient<IArcStridesService<SwimlaneResponse>, ArcStridesService<SwimlaneResponse>> ();
+
 
 builder.Services.AddTransient<IBoardRepository, BoardRepository> ();
 builder.Services.AddTransient<ICardRepository, CardRepository> ();

@@ -52,7 +52,7 @@ public partial class CreateCardOverlay : IArcOverlay
         {
             Title = cardTitle,
             Description = cardDescription,
-            BoardID = Guid.Parse ("20a88077-10d4-4648-92cb-7dc7ba5b8df5"),
+            //BoardID = Guid.Parse ("20a88077-10d4-4648-92cb-7dc7ba5b8df5"),
             ColumnID = Columns [ColumnTitles.IndexOf (columnToAddCard)],
             SwimlaneID = Swimlanes [SwimlaneTitles.IndexOf (swimlaneToAddCard)]
         };

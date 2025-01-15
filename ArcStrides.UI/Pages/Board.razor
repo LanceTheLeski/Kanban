@@ -2,19 +2,19 @@
 @using ArcStrides.UI.Layouts
 @using ArcStrides.UI.Layouts.Board
 @using ArcStrides.UI.Layouts.Board.Card
-@using ArcStrides.UI.Layouts.Card
-@using ArcStrides.UI.Layouts.Column
-@using ArcStrides.UI.Layouts.Swimlane
+@using ArcStrides.UI.Layouts.Board.Column
+@using ArcStrides.UI.Layouts.Board.Swimlane
 @using ArcStrides.UI.Models
 @using ArcStrides.UI.Options
+@using ArcStrides.UI.Repositories
 @using ArcStrides.UI.Services
 @using Microsoft.Extensions.Options
 @using MudBlazor
 @using Newtonsoft.Json
 @using System.Net.Http.Headers
 
-@inject IBoardService _boardService
-@inject ICardService _cardService
+@inject IBoardRepository _boardRepository
+@inject ICardRepository _cardRepository
 
 @page "/board"
 
@@ -144,7 +144,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var boardResponse = await _boardService.FetchBoard(Guid.Parse("20a88077-10d4-4648-92cb-7dc7ba5b8df5"));//Change later to be dynamic..
+        var boardResponse = await _boardRepository.FetchBoard(Guid.Parse("20a88077-10d4-4648-92cb-7dc7ba5b8df5"));//Change later to be dynamic..
         _cards = ConvertBoardResponseToDropCardList(boardResponse);
     }
 }

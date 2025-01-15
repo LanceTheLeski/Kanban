@@ -22,17 +22,15 @@ public interface ISwimlaneRepository
 
     Task DeleteSwimlaneAsync (Swimlane swimlaneToDelete);
 
-    IList<Swimlane> IncrementExistingSwimlanesOrder (IList<Swimlane> swimlaneCollectionWithNewSwimlaneToUpdateOrder, Swimlane newSwimlane);
+    Task<bool> SubmitArcTransactionAsync (ArcTransaction arcTransaction);
 
-    ICollection<Swimlane> DecrementExistingSwimlanesOrder (ICollection<Swimlane> swimlaneCollectionToUpdate);
+    ArcTransaction IncrementExistingSwimlanesOrder (IEnumerable<Swimlane> swimlaneEnumerableToUpdate, ArcTransaction arcTransaction);
 
-    Task<Collection<Swimlane>> FetchAndApplyNewOrderForEffectedSwimlanesAsync (Swimlane swimlaneToUpdate, int newSwimlaneOrder);
+    ArcTransaction DecrementExistingSwimlanesOrder (IEnumerable<Swimlane> swimlaneEnumerableToUpdate, ArcTransaction arcTransaction);
 
-    Task<IEnumerable<CardPosition>> FetchAndApplyNewOrderForEffectedBoardCardsAsync (IEnumerable<Swimlane> swimlaneEnumerable, IEnumerable<CardPosition> boardCardEnumerable);
+    ArcTransaction ApplyNewOrderForExistingSwimlanes (Swimlane swimlaneToUpdate, int newSwimlaneOrder, IEnumerable<Swimlane> boardSwimlaneEnumerable, ArcTransaction arcTransaction);
 
-    Task<Collection<CardPosition>> FetchAndApplyNewTitleForEffectedBoardCardsAsync (Guid boardID, Swimlane swimlaneToDelete);
+    ArcTransaction ApplyNewOrderForExistingCardPositions (IEnumerable<Swimlane> swimlaneEnumerable, IEnumerable<CardPosition> boardCardEnumerable, ArcTransaction arcTransaction);
 
-    Task<bool> TryRevertEffectedSwimlanesToOriginalAsync (IEnumerable<Swimlane> originalSwimlaneEnumerable);
-
-    Task<bool> TryRevertEffectedBoardCardsToOriginalAsync (IEnumerable<CardPosition> originalBoardCardEnumerable);
+    ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Swimlane swimlaneToDelete, IEnumerable<Swimlane> swimlaneEnumerable, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction);
 }
