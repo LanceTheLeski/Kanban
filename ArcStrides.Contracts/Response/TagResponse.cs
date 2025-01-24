@@ -2,11 +2,11 @@
 
 public class TagResponse
 {
-    public Guid TagID { get; set; }
+    public Guid? ID { get; init; } = null;
 
-    public Guid ParentID { get; set; }
+    public Guid? ParentID { get; init; } = null;
 
-    public string? ParentTypeName { get; set; } = null;
+    public string? ParentTypeName { get; init; } = null;
 
-    public string Title { get; set; }
+    public string? Title { get; init; } = null;
 }

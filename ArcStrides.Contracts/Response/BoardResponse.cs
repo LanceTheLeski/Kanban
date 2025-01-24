@@ -2,13 +2,13 @@
 
 public class BoardResponse
 {
-    public Guid ID { get; set; }
+    public Guid? ID { get; init; } = null;
 
-    public string Title { get; set; }
+    public string? Title { get; init; } = null;
 
-    public ICollection<ColumnResponse>? newColumns { get; set; } = null;
+    public ICollection<ColumnResponse>? Columns { get; init; } = null;
 
-    public ICollection<SwimlaneResponse>? newSwimlanes { get; set; } = null;
+    public ICollection<SwimlaneResponse>? Swimlanes { get; init; } = null;
 
-    public ICollection<CardResponse>? newCards { get; set; } = null;
+    public ICollection<CardResponse>? Cards { get; init; } = null;
 }

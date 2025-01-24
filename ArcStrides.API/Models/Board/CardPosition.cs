@@ -5,19 +5,17 @@ namespace ArcStrides.API.Models.Board;
 
 public class CardPosition : ITableEntity
 {
-    public string PartitionKey { get; set; } //Required -- Board ID --> BoardID
+    public string PartitionKey { get; set; } //Required -- BoardID
 
-    public string RowKey { get; set; } //Required -- Card ID --> CardPositionID
+    public string RowKey { get; set; } //Required -- CardPositionID
 
     public DateTimeOffset? Timestamp { get; set; } = default!; //Required
 
     public ETag ETag { get; set; } = default!; //Required ??
-    //Why the !(?)
 
-    //public string Title { get; set; }
+    //ParentID?
 
     public bool IsVisible { get; set; } = true;
-    // Do we need/want this here? It could be an interesting feature.
 
     public Guid SwimlaneID { get; set; }
 
@@ -30,8 +28,4 @@ public class CardPosition : ITableEntity
     public string ColumnTitle { get; set; }
 
     public int ColumnOrder { get; set; }
-
-    //public string CardTitle { get; set; } //To remove soon?
-
-    //public string CardDescription { get; set; } //To remove soon?
 }

@@ -1,4 +1,5 @@
-﻿using ArcStrides.API.Models.Board;
+﻿using ArcStrides.API.Mappers;
+using ArcStrides.API.Models.Board;
 using ArcStrides.API.Repositories;
 using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Response;
@@ -35,9 +36,9 @@ public class CardController : ControllerBase
             return StatusCode (StatusCodes.Status500InternalServerError, "Multiple cards were found with the same ID.");
 
         var cardFromDatabase = cardList.Single ();
-        var cardToReturn = new CardDetailsResponse
+        var cardToReturn = new CardResponse
         {
-            ID = cardFromDatabase.PartitionKey,
+            ID = Guid.Parse(cardFromDatabase.PartitionKey),
             Title = cardFromDatabase.Title,
             Description = cardFromDatabase.Description
         };
@@ -56,11 +57,11 @@ public class CardController : ControllerBase
         }
 
         //An error should get thrown before this point if any of the ID's below are null. Will have a concrete validation later using ModelState or FluentValidation
-        var columnFromTable = await _columnRepository.GetColumnAsync (cardCreateRequest.ColumnID, boardID);
+        var columnFromTable = await _columnRepository.GetColumnAsync (cardCreateRequest.ColumnID.Value, boardID);
         if (columnFromTable is null)
             return StatusCode (StatusCodes.Status500InternalServerError, "Could not find column.");
 
-        var swimlaneFromTable = await _swimlaneRepository.GetSwimlaneAsync (cardCreateRequest.SwimlaneID, boardID);
+        var swimlaneFromTable = await _swimlaneRepository.GetSwimlaneAsync (cardCreateRequest.SwimlaneID.Value, boardID);
         if (swimlaneFromTable is null)
             return StatusCode (StatusCodes.Status500InternalServerError, "Could not find swimlane.");
 
@@ -72,11 +73,11 @@ public class CardController : ControllerBase
 
             //Title = columnFromTable.BoardTitle, //Should match swimlane's BoardTitle
 
-            SwimlaneID = cardCreateRequest.SwimlaneID,
+            SwimlaneID = cardCreateRequest.SwimlaneID.Value,
             SwimlaneTitle = swimlaneFromTable.Title,
             SwimlaneOrder = swimlaneFromTable.SwimlaneOrder,
 
-            ColumnID = cardCreateRequest.ColumnID,
+            ColumnID = cardCreateRequest.ColumnID.Value,
             ColumnTitle = columnFromTable.Title,
             ColumnOrder = columnFromTable.ColumnOrder,
 
@@ -92,9 +93,9 @@ public class CardController : ControllerBase
             //We might want to have better verification later for failures. I'm thinking we actually query the table and grab the card so we can map it to a response object
             return StatusCode (StatusCodes.Status500InternalServerError, $"Could not insert a new card into database. Internal status: {addEntityResponse.Status}");
         }*/
-        var cardResponse = new CardPositionResponse
+        /*var cardResponse = new CardPositionResponse
         {
-            ID = newCard.RowKey.ToString (),
+            ID = newCard.RowKey,
             //Title = newCard.CardTitle,
             //Description = newCard.CardDescription,
             ColumnID = newCard.ColumnID.ToString (),
@@ -103,7 +104,9 @@ public class CardController : ControllerBase
             SwimlaneID = newCard.SwimlaneID.ToString (),
             SwimlaneTitle = newCard.SwimlaneTitle,
             SwimlaneOrder = newCard.SwimlaneOrder
-        };
+        };*/
+        var mapper = new CardMapper ();
+        var cardResponse = mapper.MapCardPositionToCardPositionResponse (newCard);
 
         return StatusCode (StatusCodes.Status201Created, cardResponse);
     }

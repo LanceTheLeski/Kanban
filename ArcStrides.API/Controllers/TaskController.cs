@@ -95,9 +95,9 @@ public class TaskController : Controller
     {
         var taskTypes = await _taskRepository.QueryTaskTypesAsync (taskType => true);
 
-        var taskTypeListReponse = new TaskTypesResponse { Titles = new List<string> () };
-        foreach (var taskType in taskTypes)
-            taskTypeListReponse.Titles.Add (taskType.Title);
+        var taskTypeListReponse = new TaskTypeResponse { Title = /*new List<string> ()*/string.Empty };
+        //foreach (var taskType in taskTypes)
+        //    taskTypeListReponse.Title.Add (taskType.Title);
 
         return Ok (taskTypeListReponse);
     }

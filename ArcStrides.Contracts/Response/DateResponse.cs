@@ -2,13 +2,13 @@
 
 public class DateResponse
 {
-    public string ID { get; set; }
+    public Guid? ID { get; init; } = null;
 
-    public int DateOrder { get; set; }
+    public int? DateOrder { get; init; } = null;
 
-    public int WeekOrder { get; set; }
+    public int? WeekOrder { get; init; } = null;
 
-    public int DayOfTheWeekOrder { get; set; }
+    public int? DayOfTheWeekOrder { get; init; } = null;
 
-    public List<CardResponse> Cards { get; set; } = new List<CardResponse> { };
+    public IEnumerable<CardResponse>? Cards { get; init; } = null;
 }

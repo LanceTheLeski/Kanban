@@ -4,11 +4,13 @@ namespace ArcStrides.UI.Models;
 
 public class Card
 {
-    public string Id { get; set; }
+    public Guid Id { get; set; }
 
     public string Title { get; set; }
 
     public string Description { get; set; }
+
+    public Guid BoardID { get; set; }
 
     public int ColumnNumber { get; set; }
 

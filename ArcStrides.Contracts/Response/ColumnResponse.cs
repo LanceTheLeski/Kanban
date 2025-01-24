@@ -2,11 +2,11 @@
 
 public class ColumnResponse
 {
-    public Guid ID { get; set; } = Guid.Empty;
+    public Guid? ID { get; init; } = null;
 
-    public string Title { get; set; } = string.Empty;
+    public string? Title { get; init; } = null;
 
-    public int Order { get; set; } = -1;
+    public int? Order { get; init; } = null;
 
-    public Guid? BoardID { get; set; } = null;
+    public Guid? BoardID { get; init; } = null;
 }

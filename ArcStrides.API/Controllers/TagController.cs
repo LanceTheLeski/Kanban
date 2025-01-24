@@ -49,7 +49,7 @@ public class TagController : Controller
         if (validationResult.IsValid is false)
             return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TagCreateRequest), validationResult.ToString ()));
 
-        var parentExists = await _tagRepository.ParentExistsAsync (tagCreateRequest.ParentID, tagCreateRequest.TypeID);
+        var parentExists = await _tagRepository.ParentExistsAsync (tagCreateRequest.ParentID.Value, tagCreateRequest.TypeID.Value);
         if (parentExists is false)
             return BadRequest (ErrorResponseMessages.NotFoundErrorResponse ("Parent"));
 

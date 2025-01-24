@@ -2,9 +2,9 @@
 
 public class TagCreateRequest
 {
-    public Guid ParentID { get; set; }
+    public Guid? ParentID { get; init; } = null;
 
-    public string Title { get; set; }
+    public string? Title { get; init; } = null;
 
-    public int TypeID { get; set; }
+    public int? TypeID { get; init; } = null;
 }

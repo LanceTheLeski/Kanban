@@ -2,27 +2,23 @@
 
 public class CardCreateRequest
 {
-    public string Title { get; set; }
+    public string? Title { get; init; } = null;
 
-    public string Description { get; set; }
+    public string? Description { get; init; } = null;
 
-    public Guid TagID { get; set; } //Row Key for the Card
+    public Guid? StartDependencyTagGroupID { get; init; } = null;
 
-    public Guid? StartDependencyTagGroupID { get; set; }
+    public DateTime? StartPreferenceUTC { get; init; } = null;
 
-    public DateTime? StartPreferenceUTC { get; set; }
+    public DateTime? StartDeadlineUTC { get; init; } = null;
 
-    public DateTime? StartDeadlineUTC { get; set; }
+    public Guid? EndDependencyTagGroupID { get; init; } = null;
 
-    public Guid? EndDependencyTagGroupID { get; set; }
+    public DateTime? EndPreferenceUTC { get; init; } = null;
 
-    public DateTime? EndPreferenceUTC { get; set; }
+    public DateTime? EndDeadlineUTC { get; init; } = null;
 
-    public DateTime? EndDeadlineUTC { get; set; }
+    public Guid? ColumnID { get; init; } = null;
 
-    //public Guid BoardID { get; set; } //Partition Key for the BoardCard
-
-    public Guid ColumnID { get; set; }
-
-    public Guid SwimlaneID { get; set; }
+    public Guid? SwimlaneID { get; init; } = null;
 }

@@ -86,10 +86,10 @@
             var responseBody = await response.Content.ReadAsStringAsync ();
             var deserialized = JsonConvert.DeserializeObject<SwimlaneResponse> (responseBody);
 
-            Swimlanes.Insert (deserialized.Order, deserialized.ID);
+            Swimlanes.Insert (deserialized.Order.Value, deserialized.ID.Value);
             await SwimlanesChanged.InvokeAsync (Swimlanes);
 
-            SwimlaneTitles.Insert (deserialized.Order, deserialized.Title);
+            SwimlaneTitles.Insert (deserialized.Order.Value, deserialized.Title);
             await SwimlaneTitlesChanged.InvokeAsync (SwimlaneTitles);
 
             Refresh.InvokeAsync (true);

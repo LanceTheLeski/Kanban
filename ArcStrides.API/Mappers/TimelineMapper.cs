@@ -29,7 +29,7 @@ public partial class TimelineMapper : ITimelineMapper
     public partial Timeline MapTimelinePatchRequestToTimeline (TimelinePatchRequest timelineCreateRequest);
 
     [MapProperty (nameof (Timeline.TimelineTypeID), nameof (TimelinePatchRequest.TimelineTypeID))]
-    [MapProperty (nameof (Timeline.StartDependencyTagGroupID), nameof (TimelinePatchRequest.EndDependencyTagGroupID))]
+    [MapProperty (nameof (Timeline.StartDependencyTagGroupID), nameof (TimelinePatchRequest.StartDependencyTagGroupID))]
     [MapProperty (nameof (Timeline.StartPreferenceUTC), nameof (TimelinePatchRequest.StartPreferenceUTC))]
     [MapProperty (nameof (Timeline.StartDeadlineUTC), nameof (TimelinePatchRequest.StartDeadlineUTC))]
     [MapProperty (nameof (Timeline.EndDependencyTagGroupID), nameof (TimelinePatchRequest.EndDependencyTagGroupID))]

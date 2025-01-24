@@ -107,7 +107,7 @@
 
         var taskTypesResponse = await FetchTaskTypesAsync ();
 
-        _taskTypeTitles = taskTypesResponse.Titles;
+        //_taskTypeTitles = taskTypesResponse.Title;
     }
 
     private RenderFragment _taskTypeList;
@@ -194,7 +194,7 @@
         };
     }
 
-    public async Task<TaskTypesResponse?> FetchTaskTypesAsync ()
+    public async Task<TaskTypeResponse?> FetchTaskTypesAsync ()
     {
         var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, @$"{interfaceOptions.Value.URL}ArcStrides/tasks/types");
 
@@ -205,7 +205,7 @@
         }
 
         var responseBody = await response.Content.ReadAsStringAsync ();
-        return JsonConvert.DeserializeObject<TaskTypesResponse> (responseBody);
+        return JsonConvert.DeserializeObject<TaskTypeResponse> (responseBody);
     }
 
     public async Task<TaskResponse> CreateTaskAsync ()

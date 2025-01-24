@@ -2,9 +2,9 @@
 
 public class TagGroupTypeResponse
 {
-    public Guid ID { get; set; }
+    public int? ID { get; set; } = null;
 
-    public Guid TagGroupID { get; set; }
+    public Guid? TagGroupID { get; set; } = null;
 
-    public string Title { get; set; }
+    public string? Title { get; set; } = null;
 }

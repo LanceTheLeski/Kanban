@@ -17,5 +17,5 @@ public partial class CardMapper
     [MapProperty (nameof (CardPositionResponse.SwimlaneID), nameof (DropCard.SwimlaneID))]
     [MapProperty (nameof (CardPositionResponse.SwimlaneTitle), nameof (DropCard.SwimlaneName))]
     //CardArea = ConvertColumnAndSwimlaneToCardArea (deserialized.SwimlaneOrder, deserialized.ColumnOrder)
-    public partial DropCard MapBoardCardResponseToDropCard (CardPositionResponse boardCardResponse);
+    public partial DropCard MapCardPositionResponseToDropCard (CardPositionResponse boardCardResponse);
 }

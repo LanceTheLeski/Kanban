@@ -5,9 +5,9 @@ namespace ArcStrides.API.Models.Board;
 
 public class Card : ITableEntity
 {
-    public string PartitionKey { get; set; } //Required -- Card ID --> BoardID
+    public string PartitionKey { get; set; } //Required -- BoardID
 
-    public string RowKey { get; set; } //Required -- Tag ID --> CardID
+    public string RowKey { get; set; } //Required -- CardID
 
     public DateTimeOffset? Timestamp { get; set; } //Required
 
@@ -17,7 +17,7 @@ public class Card : ITableEntity
 
     public string Description { get; set; }
 
-    public Guid? BoardCardPositionID { get; set; }
+    public Guid? CardPositionID { get; set; }
 
     public Guid? TimelineID { get; set; }
 

@@ -2,19 +2,17 @@
 
 public class CardResponse
 {
-    public Guid ID { get; set; } = Guid.Empty;
+    public Guid? ID { get; init; } = null;
 
-    public string Title { get; set; } = string.Empty;
+    public string? Title { get; init; } = null;
 
-    public string Description { get; set; } = string.Empty;
+    public string? Description { get; init; } = null;
 
-    public CardDetailsResponse? Details { get; set; } = null;
+    public CardPositionResponse? Position { get; init; } = null;
 
-    public CardPositionResponse? Position { get; set; } = null;
+    public IEnumerable<TaskResponse>? Tasks { get; init; } = null;
 
-    public List<TaskResponse>? Tasks { get; set; } = null;
+    public TimelineResponse? Timeline { get; init; } = null;
 
-    public TimelineResponse? Timeline { get; set; } = null;
-
-    public List<TagResponse>? Tags { get; set; } = null;
+    public IEnumerable<TagResponse>? Tags { get; init; } = null;
 }

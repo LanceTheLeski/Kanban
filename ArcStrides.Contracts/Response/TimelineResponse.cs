@@ -2,19 +2,19 @@
 
 public class TimelineResponse
 {
-    public Guid ID { get; set; }
+    public Guid? ID { get; init; } = null;
 
-    public int TimelineTypeID { get; set; }
+    public int? TimelineTypeID { get; init; } = null;
 
-    public Guid? StartDependencyTagGroupID { get; set; }
+    public Guid? StartDependencyTagGroupID { get; init; } = null;
 
-    public DateTime? StartPreferenceUTC { get; set; }
+    public DateTime? StartPreferenceUTC { get; init; } = null;
 
-    public DateTime? StartDeadlineUTC { get; set; }
+    public DateTime? StartDeadlineUTC { get; init; } = null;
 
-    public Guid? EndDependencyTagGroupID { get; set; }
+    public Guid? EndDependencyTagGroupID { get; init; } = null;
 
-    public DateTime? EndPreferenceUTC { get; set; }
+    public DateTime? EndPreferenceUTC { get; init; } = null;
 
-    public DateTime? EndDeadlineUTC { get; set; }
+    public DateTime? EndDeadlineUTC { get; init; } = null;
 }

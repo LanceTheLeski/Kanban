@@ -58,7 +58,7 @@ public class CalendarController : Controller
         foreach (var cardID in cardIDsForMonth)
             cardsForMonth.AddRange (await _cardRepository.QueryCardsAsync (card => card.PartitionKey == cardID));
 
-        var monthResponse = new MonthResponse ();
+        var dateList = new List<DateResponse> ();
         foreach (var date in dates)
         {
             var tagIDsForDay = tagGroupsForMonth.Where (tagGroup => tagGroup.PartitionKey == date.CardTagGroupID.ToString ())
@@ -67,7 +67,7 @@ public class CalendarController : Controller
                                            .Select (tagGroup => tagGroup.RowKey);
             var cardsForDay = cardsForMonth.Where (card => cardIDsForDay.Contains (card.PartitionKey));
 
-            var cards = new List<MonthResponse.BasicCard> ();
+            var cards = new List<CardResponse> ();
             foreach (var card in cardsForDay) 
             {
                 var tasks = await _taskRepository.QueryTasksAsync (task => task.RowKey == card.PartitionKey);
@@ -82,22 +82,26 @@ public class CalendarController : Controller
                         isCompleted = task.IsComplete
                     });
 
-                cards.Add (new MonthResponse.BasicCard
+                cards.Add (new CardResponse
                 {
                     Title = card.Title,
                     Tasks = taskResponseList,
-                    BoardID = Guid.Empty
+                    //Position.BoardID = Guid.Empty
                 });
             }
-            monthResponse.Days.Add (new MonthResponse.BasicDate
+            dateList.Add (new DateResponse
             {
-                ID = date.PartitionKey,
+                ID = Guid.Parse(date.PartitionKey),
                 DateOrder = date.DateOrder,
                 WeekOrder = date.WeekOrder,
                 DayOfTheWeekOrder = date.DayOfTheWeekOrder,
                 Cards = cards
             });
         }
+        var monthResponse = new MonthResponse 
+        { 
+            Dates = dateList,
+        };
 
         return Ok (monthResponse);
     }
@@ -126,12 +130,12 @@ public class CalendarController : Controller
             PartitionKey = newDateID.ToString (),
             RowKey = monthID.ToString (),
 
-            DateOrder = dateCreateRequest.DateOrder,
-            WeekOrder = dateCreateRequest.WeekOrder,
-            DayOfTheWeekOrder = dateCreateRequest.DayOfTheWeekOrder,
-            MonthOrder = dateCreateRequest.MonthOrder,
+            DateOrder = dateCreateRequest.DateOrder.Value,
+            WeekOrder = dateCreateRequest.WeekOrder.Value,
+            DayOfTheWeekOrder = dateCreateRequest.DayOfTheWeekOrder.Value,
+            MonthOrder = dateCreateRequest.MonthOrder.Value,
             MonthName = dateCreateRequest.MonthName,
-            Year = dateCreateRequest.Year,
+            Year = dateCreateRequest.Year.Value,
 
             CardTagGroupID = Guid.Empty
         };
@@ -142,16 +146,18 @@ public class CalendarController : Controller
             //We might want to have better verification later for failures. I'm thinking we actually query the table and grab the date so we can map it to a response object
             return StatusCode (StatusCodes.Status500InternalServerError, $"Could not insert a new date into database. Internal status: {addDateResponse.Status}");
         }*/
-        var dateResponse = new DateResponse
+        /*var dateResponse = new DateResponse
         {
-            ID = newDate.PartitionKey,
+            ID = Guid.Parse(newDate.PartitionKey),
 
             DateOrder = newDate.DateOrder,
             WeekOrder = newDate.WeekOrder,
             DayOfTheWeekOrder = newDate.DayOfTheWeekOrder,
 
             Cards = new List<CardResponse> ()
-        };
+        };*/
+        var mapper = new DateMapper ();
+        var dateResponse = mapper.MapDateToDateResponse (newDate);
 
         return StatusCode (StatusCodes.Status201Created, dateResponse);
     }
@@ -181,12 +187,12 @@ public class CalendarController : Controller
 
         datePatchRequest.ApplyTo (convertedDateToUpdate); //Could add a ModelState validation somewhere here as well..
 
-        dateToUpdate.DateOrder = convertedDateToUpdate.DateOrder;
-        dateToUpdate.WeekOrder = convertedDateToUpdate.WeekOrder;
-        dateToUpdate.DayOfTheWeekOrder = convertedDateToUpdate.DayOfTheWeekOrder;
-        dateToUpdate.MonthOrder = convertedDateToUpdate.MonthOrder;
+        dateToUpdate.DateOrder = convertedDateToUpdate.DateOrder.Value;
+        dateToUpdate.WeekOrder = convertedDateToUpdate.WeekOrder.Value;
+        dateToUpdate.DayOfTheWeekOrder = convertedDateToUpdate.DayOfTheWeekOrder.Value;
+        dateToUpdate.MonthOrder = convertedDateToUpdate.MonthOrder.Value;
         dateToUpdate.MonthName = convertedDateToUpdate.MonthName;
-        dateToUpdate.Year = convertedDateToUpdate.Year;
+        dateToUpdate.Year = convertedDateToUpdate.Year.Value;
 
         await _dateRepository.UpdateDateAsync (dateToUpdate);
         /*if (response.IsError)
@@ -194,14 +200,16 @@ public class CalendarController : Controller
             return BadRequest ($"Could not update date. Internal status: {response.Status}");
         }*/
 
-        var dateResponse = new DateResponse
+        /*var dateResponse = new DateResponse
         {
-            ID = dateToUpdate.PartitionKey,
+            ID = Guid.Parse(dateToUpdate.PartitionKey),
             DateOrder = dateToUpdate.DateOrder,
             WeekOrder = dateToUpdate.WeekOrder,
             DayOfTheWeekOrder = dateToUpdate.DayOfTheWeekOrder,
             Cards = new List<CardResponse> ()
-        };
+        };*/
+        var mapper = new DateMapper ();
+        var dateResponse = mapper.MapDateToDateResponse (dateToUpdate);
 
         return Ok (dateResponse);
     }

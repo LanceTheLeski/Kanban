@@ -2,11 +2,15 @@
 
 public class TaskResponse
 {
-    public string Title { get; set; }
+    public Guid? ID { get; init; } = null;
 
-    public int TaskTypeID { get; set; }
+    public Guid? BoardID { get; init; } = null;
 
-    public string TaskTypeTitle { get; set; }
+    public string? Title { get; init; } = null;
 
-    public bool isCompleted { get; set; }
+    public int? TaskTypeID { get; init; } = null;
+
+    public string? TaskTypeTitle { get; init; } = null;
+
+    public bool? isCompleted { get; init; } = null;
 }

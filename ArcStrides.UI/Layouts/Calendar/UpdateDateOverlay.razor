@@ -42,7 +42,7 @@
 </ArcOverlay>
 
 <UpdateTaskOverlay @bind-Open="_taskViewIsOpen"
-                   @bind-TaskData="@(_cardToView.Tasks [0])"
+                   @bind-TaskData="@(_cardToView.Tasks.ToList() [0])"
                    Refresh="Refresh" />
 
 <MudOverlay @bind-Visible="_addTaskIsOpen" DarkBackground="true" ZIndex="20">
@@ -68,7 +68,7 @@
 
     private static bool _taskViewIsOpen = false;
     private static bool _addTaskIsOpen = false;
-    private static MonthResponse.BasicCard _cardToView = null;
+    private static CardResponse _cardToView = null;
     private static Guid _boardIdToFilter = Guid.Empty;
 
     private RenderFragment _taskTypeList;
@@ -90,8 +90,9 @@
 
     private RenderFragment _taskTypeListRenderFragment ()
     {
-        var boardIDs = DayData.Cards?.Select(card => card.BoardID)
-                                      .Distinct() ?? new List<Guid> { };
+        var boardIDs = DayData.Cards?.Select(card => card.Position.BoardID)
+                                     .Distinct()
+                                     .ToList() ?? new List<Guid?> { };
 
         return __builder =>
         {
@@ -103,7 +104,7 @@
                         </MudListItem>
                         @foreach (var boardID in boardIDs)
                         {
-                            <MudListItem OnClick="(() => ChooseTaskTypeToFilter(boardID))">
+                            <MudListItem OnClick="(() => ChooseTaskTypeToFilter(boardID.Value))">
                                 Task Type Name: @(boardID.ToString ())
                             </MudListItem>
                         }
@@ -117,7 +118,7 @@
         _boardIdToFilter = boardID;
     }
 
-    private static async Task ExpandTaskView (MonthResponse.BasicCard card)
+    private static async Task ExpandTaskView (CardResponse card)
     {
         _cardToView = card;
         _taskViewIsOpen = true;

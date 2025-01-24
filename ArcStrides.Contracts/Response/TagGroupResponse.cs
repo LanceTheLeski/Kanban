@@ -2,11 +2,11 @@
 
 public class TagGroupResponse
 {
-    public Guid ID { get; set; }
+    public Guid? ID { get; init; } = null;
 
-    public Guid TagID { get; set; }
+    public Guid? TagID { get; init; } = null;
 
-    public string Title { get; set; }
+    public string? Title { get; init; } = null;
 
-    public int TagGroupType { get; set; }
+    public int? TagGroupTypeID { get; init; } = null;
 }

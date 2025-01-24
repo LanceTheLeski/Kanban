@@ -2,5 +2,5 @@
 
 public class TaskQueryParameters
 {
-    public string CardIDs { get; set; }
+    public string? CardIDs { get; init; } = null;
 }

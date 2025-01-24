@@ -2,21 +2,23 @@
 
 public class CardPositionResponse
 {
-    public string ID { get; set; }
+    public Guid? ID { get; init; } = null;
 
-    public string Title { get; set; }
+    public string? Title { get; init; } = null;
 
-    public string Description { get; set; }
+    public string? Description { get; init; } = null;
 
-    public string ColumnID { get; set; }
+    public Guid? BoardID { get; init; } = null;
 
-    public string ColumnTitle { get; set; }
+    public Guid? ColumnID { get; init; } = null;
 
-    public int ColumnOrder { get; set; }
+    public string? ColumnTitle { get; init; } = null;
 
-    public string SwimlaneID { get; set; }
+    public int? ColumnOrder { get; init; } = null;
 
-    public string SwimlaneTitle { get; set; }
+    public Guid? SwimlaneID { get; init; } = null;
 
-    public int SwimlaneOrder { get; set; }
+    public string? SwimlaneTitle { get; init; } = null;
+
+    public int? SwimlaneOrder { get; init; } = null;
 }

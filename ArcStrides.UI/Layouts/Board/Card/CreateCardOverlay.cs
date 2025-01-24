@@ -1,6 +1,7 @@
 ﻿using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Response;
 using ArcStrides.UI.Components.ArcOverlay;
+using ArcStrides.UI.Mappers;
 using ArcStrides.UI.Models;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
@@ -67,7 +68,11 @@ public partial class CreateCardOverlay : IArcOverlay
             var deserialized = JsonConvert.DeserializeObject<CardPositionResponse> (responseBody);
 
             //Add it to the DropCard list? And if we want to use the boardResponse as a source of truth then that too? But I don't think that should be the case
-            Cards.Add (new DropCard
+            var mapper = new CardMapper ();
+            var dropCard = mapper.MapCardPositionResponseToDropCard (deserialized);
+            dropCard.CardArea = ConvertColumnAndSwimlaneToCardArea (deserialized.SwimlaneOrder.Value, deserialized.ColumnOrder.Value);
+            Cards.Add (dropCard);
+            /*Cards.Add (new DropCard
             {
                 Id = deserialized.ID,
                 Title = deserialized.Title,
@@ -79,7 +84,7 @@ public partial class CreateCardOverlay : IArcOverlay
                 SwimlaneID = Guid.Parse (deserialized.SwimlaneID),
                 SwimlaneName = deserialized.SwimlaneTitle,
                 CardArea = ConvertColumnAndSwimlaneToCardArea (deserialized.SwimlaneOrder, deserialized.ColumnOrder)
-            });
+            */
 
             Refresh.InvokeAsync (true);
 

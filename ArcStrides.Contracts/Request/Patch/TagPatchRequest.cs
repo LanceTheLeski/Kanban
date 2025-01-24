@@ -2,7 +2,7 @@
 
 public class TagPatchRequest
 {
-    public string Title { get; set; }
+    public string? Title { get; set; } = null;
 
-    public int TypeID { get; set; }
+    public int? TypeID { get; set; } = null;
 }

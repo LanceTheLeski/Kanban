@@ -5,9 +5,9 @@ namespace ArcStrides.API.Models.Board;
 
 public class Swimlane : ITableEntity
 {
-    public string PartitionKey { get; set; } //Required -- Swimlane ID --> BoardId
+    public string PartitionKey { get; set; } //Required -- BoardId
 
-    public string RowKey { get; set; } //Required -- Board ID --> SwimlaneID
+    public string RowKey { get; set; } //Required -- SwimlaneID
 
     public DateTimeOffset? Timestamp { get; set; } //Required
 
@@ -24,21 +24,6 @@ public class Swimlane : ITableEntity
     public string SwimlaneColor { get; set; }
 
     public string GlobalSwimlaneColor { get; set; }
-
-    public string BoardTitle { get; set; }
-
-    public Swimlane DeepCopy ()
-     => new Swimlane
-     {
-         PartitionKey = PartitionKey,
-         RowKey = RowKey,
-         Timestamp = Timestamp,
-         ETag = ETag,
-         Title = Title,
-         IsVisible = IsVisible,
-         SwimlaneOrder = SwimlaneOrder,
-         BoardTitle = BoardTitle
-     };
 
     //public IEnumerable<int> CardIDs { get; set; }
     //public virtual IEnumerable<Card> Cards { get; set; } //Same as columns

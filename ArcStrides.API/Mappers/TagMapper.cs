@@ -25,7 +25,7 @@ public partial class TagMapper : ITagMapper
     [MapProperty (nameof (Tag.TagType), nameof (TagPatchRequest.TypeID))]
     public partial TagPatchRequest MapTagToTagPatchRequest (Tag tag);
 
-    [MapProperty (nameof (Tag.PartitionKey), nameof (TagResponse.TagID))]
+    [MapProperty (nameof (Tag.PartitionKey), nameof (TagResponse.ID))]
     [MapProperty (nameof (Tag.RowKey), nameof (TagResponse.ParentID))]
     [MapProperty (nameof (Tag.Title), nameof (TagResponse.Title))]
     public partial TagResponse MapTagToTagResponse (Tag tag);
@@ -46,7 +46,7 @@ public partial class TagMapper : ITagMapper
     [MapProperty (nameof (TagGroup.PartitionKey), nameof (TagGroupResponse.ID))]
     [MapProperty (nameof (TagGroup.RowKey), nameof (TagGroupResponse.TagID))]
     [MapProperty (nameof (TagGroup.Title), nameof (TagGroupResponse.Title))]
-    [MapProperty (nameof (TagGroup.TagGroupType), nameof (TagGroupResponse.TagGroupType))]
+    [MapProperty (nameof (TagGroup.TagGroupType), nameof (TagGroupResponse.TagGroupTypeID))]
     public partial TagGroupResponse MapTagGroupToTagGroupResponse (TagGroup tagGroup);
 
     #endregion TagGroup

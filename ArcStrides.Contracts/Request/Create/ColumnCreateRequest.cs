@@ -2,7 +2,7 @@
 
 public class ColumnCreateRequest
 {
-    public string Title { get; set; }
+    public string? Title { get; init; } = null;
 
-    public int Order { get; set; }
+    public int? Order { get; init; } = null;
 }

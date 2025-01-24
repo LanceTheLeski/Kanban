@@ -37,10 +37,10 @@ public partial class CreateColumnOverlay : IArcOverlay
         var response = await _columnRepository.CreateColumnAsync (BoardID, createRequest);
         if (response is not null)
         {
-            Columns.Insert (response.Order, response.ID);
+            Columns.Insert (response.Order.Value, response.ID.Value);
             await ColumnsChanged.InvokeAsync (Columns);
 
-            ColumnTitles.Insert (response.Order, response.Title);
+            ColumnTitles.Insert (response.Order.Value, response.Title);
             await ColumnTitlesChanged.InvokeAsync (ColumnTitles);
 
             Refresh.InvokeAsync (true);

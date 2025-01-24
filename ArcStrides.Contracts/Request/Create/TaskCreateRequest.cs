@@ -2,12 +2,21 @@
 
 public class TaskCreateRequest
 {
-    public string Title { get; set; }
+    public string? Title { get; set; } = null;
 
-    public int TaskTypeID { get; set; }
+    public int? TaskTypeID { get; set; } = null;
 
-    public Guid CardID {  get; set; }
+    public Guid? CardID { get; set; } = null;
 
+    public Guid? StartDependencyTagGroupID { get; init; } = null;
 
-    //public Guid DeadlineID { get; set; } - TODO: Implement this later
+    public DateTime? StartPreferenceUTC { get; init; } = null;
+
+    public DateTime? StartDeadlineUTC { get; init; } = null;
+
+    public Guid? EndDependencyTagGroupID { get; init; } = null;
+
+    public DateTime? EndPreferenceUTC { get; init; } = null;
+
+    public DateTime? EndDeadlineUTC { get; init; } = null;
 }

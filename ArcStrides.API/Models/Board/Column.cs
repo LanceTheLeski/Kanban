@@ -5,9 +5,9 @@ namespace ArcStrides.API.Models.Board;
 
 public class Column : ITableEntity
 {
-    public string PartitionKey { get; set; } //Required -- Column ID --> BoardID
+    public string PartitionKey { get; set; } //Required -- BoardID
 
-    public string RowKey { get; set; } //Required -- Board ID --> ColumnID
+    public string RowKey { get; set; } //Required -- ColumnID
 
     public DateTimeOffset? Timestamp { get; set; } //Required
 
@@ -24,6 +24,4 @@ public class Column : ITableEntity
     public string ColumnColor { get; set; }
 
     public string GlobalColumnColor { get; set; }
-
-    //public string BoardTitle { get; set; }
 }

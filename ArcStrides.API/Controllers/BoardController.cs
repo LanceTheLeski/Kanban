@@ -140,10 +140,10 @@ public class BoardController : Controller
         {
             //Title = cardToUpdate.CardTitle,
             //Description = cardToUpdate.CardDescription,
-            ColumnID = cardToUpdate.ColumnID.ToString (),
+            ColumnID = cardToUpdate.ColumnID,
             ColumnTitle = cardToUpdate.ColumnTitle,
             ColumnOrder = cardToUpdate.ColumnOrder,
-            SwimlaneID = cardToUpdate.SwimlaneID.ToString (),
+            SwimlaneID = cardToUpdate.SwimlaneID,
             SwimlaneTitle = cardToUpdate.SwimlaneTitle,
             SwimlaneOrder = cardToUpdate.SwimlaneOrder
         };
@@ -152,12 +152,12 @@ public class BoardController : Controller
 
         //cardToUpdate.CardTitle = convertedCardToUpdate.Title;
         //cardToUpdate.CardDescription = convertedCardToUpdate.Description;
-        cardToUpdate.ColumnID = Guid.Parse (convertedCardToUpdate.ColumnID);
+        cardToUpdate.ColumnID = convertedCardToUpdate.ColumnID.Value;
         cardToUpdate.ColumnTitle = convertedCardToUpdate.ColumnTitle;
-        cardToUpdate.ColumnOrder = convertedCardToUpdate.ColumnOrder;
-        cardToUpdate.SwimlaneID = Guid.Parse (convertedCardToUpdate.SwimlaneID);
+        cardToUpdate.ColumnOrder = convertedCardToUpdate.ColumnOrder.Value;
+        cardToUpdate.SwimlaneID = convertedCardToUpdate.SwimlaneID.Value;
         cardToUpdate.SwimlaneTitle = convertedCardToUpdate.SwimlaneTitle;
-        cardToUpdate.SwimlaneOrder = convertedCardToUpdate.SwimlaneOrder;
+        cardToUpdate.SwimlaneOrder = convertedCardToUpdate.SwimlaneOrder.Value;
 
         await _cardRepository.UpdateCardPositionAsync (cardToUpdate);
         /*if (response.IsError)
@@ -165,7 +165,7 @@ public class BoardController : Controller
             return BadRequest ($"Could not update card. Internal status: {response.Status}");
         }*/
 
-        var cardResponse = new CardPositionResponse
+        /*var cardResponse = new CardPositionResponse
         {
             ID = cardToUpdate.RowKey,
             //Title = cardToUpdate.CardTitle,
@@ -176,7 +176,9 @@ public class BoardController : Controller
             SwimlaneID = cardToUpdate.SwimlaneID.ToString (),
             SwimlaneTitle = cardToUpdate.SwimlaneTitle,
             SwimlaneOrder = cardToUpdate.SwimlaneOrder
-        };
+        };*/
+        var mapper = new CardMapper ();
+        var cardResponse = mapper.MapCardPositionToCardPositionResponse (cardToUpdate);
 
         return Ok (cardResponse);
     }

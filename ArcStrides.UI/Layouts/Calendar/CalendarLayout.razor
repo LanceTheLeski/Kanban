@@ -1,9 +1,11 @@
 ﻿@using ArcStrides.Contracts.Response
 @using ArcStrides.UI.Layouts.Calendar
+@using ArcStrides.UI.Models
 @using ArcStrides.UI.Options
 @using Microsoft.Extensions.Options
 @using Microsoft.Net.Http.Headers
 @using Newtonsoft.Json
+@using System.Collections.ObjectModel
 
 @using static ArcStrides.UI.Models.Date
 
@@ -115,103 +117,103 @@
 
             //We need to get this to pull task types to get this next part to work well..
             monthResponse = deserialized;
-            foreach (var day in monthResponse.Days)
+            foreach (var day in monthResponse.Dates)
             {
                 Week? week = null;
                 switch (day.DayOfTheWeekOrder)
                 {
                     case 0:
-                        week = month.Weeks.SingleOrDefault (Week => Week?.Sunday?.DayOfTheMonth == day.DateOrder);
+                        week = month.Weeks.SingleOrDefault (Week => Week?.Sunday?.DayOfTheMonth == day.DateOrder.Value);
                         if (week is null) break;
 
                         month.Weeks [month.Weeks.IndexOf (week)].Sunday = new Day
                         {
-                            DayOfTheMonth = day.DateOrder,
+                            DayOfTheMonth = day.DateOrder.Value,
                             DonutChartData = CountBoardTypes (day.Cards),
                             LineChartData = GetBoardTypeData (day.Cards),
-                            Cards = day.Cards ?? new List<MonthResponse.BasicCard> () { }
+                            Cards = day.Cards.ToList()
                         };
 
                         break;
                     case 1:
-                        week = month.Weeks.SingleOrDefault (Week => Week?.Monday?.DayOfTheMonth == day.DateOrder);
+                        week = month.Weeks.SingleOrDefault (Week => Week?.Monday?.DayOfTheMonth == day.DateOrder.Value);
                         if (week is null) break;
 
                         month.Weeks [month.Weeks.IndexOf (week)].Monday = new Day
                         {
-                            DayOfTheMonth = day.DateOrder,
+                            DayOfTheMonth = day.DateOrder.Value,
                             DonutChartData = CountBoardTypes (day.Cards),
                             LineChartData = GetBoardTypeData (day.Cards),
-                            Cards = day.Cards ?? new List<MonthResponse.BasicCard> () { }
+                            Cards = day.Cards.ToList()
                         };
 
                         break;
                     case 2:
-                        week = month.Weeks.SingleOrDefault (Week => Week?.Tuesday?.DayOfTheMonth == day.DateOrder);
+                        week = month.Weeks.SingleOrDefault (Week => Week?.Tuesday?.DayOfTheMonth == day.DateOrder.Value);
                         if (week is null) break;
 
                         month.Weeks [month.Weeks.IndexOf (week)].Tuesday = new Day
                         {
-                            DayOfTheMonth = day.DateOrder,
+                            DayOfTheMonth = day.DateOrder.Value,
                             DonutChartData = CountBoardTypes (day.Cards),
                             LineChartData = GetBoardTypeData (day.Cards),
-                            Cards = day.Cards ?? new List<MonthResponse.BasicCard> () { }
+                                Cards = day.Cards.ToList()
                         };
 
                         break;
                     case 3:
-                        week = month.Weeks.SingleOrDefault (Week => Week?.Wednesday?.DayOfTheMonth == day.DateOrder);
+                        week = month.Weeks.SingleOrDefault (Week => Week?.Wednesday?.DayOfTheMonth == day.DateOrder.Value);
                         if (week is null) break;
 
                         month.Weeks [month.Weeks.IndexOf (week)].Wednesday = new Day
                         {
-                            DayOfTheMonth = day.DateOrder,
+                            DayOfTheMonth = day.DateOrder.Value,
                             DonutChartData = CountBoardTypes (day.Cards),
                             LineChartData = GetBoardTypeData (day.Cards),
-                            Cards = day.Cards ?? new List<MonthResponse.BasicCard> () { }
+                                Cards = day.Cards.ToList()
                         };
 
                         break;
                     case 4:
-                        week = month.Weeks.SingleOrDefault (Week => Week?.Thursday?.DayOfTheMonth == day.DateOrder);
+                        week = month.Weeks.SingleOrDefault (Week => Week?.Thursday?.DayOfTheMonth == day.DateOrder.Value);
                         if (week is null) break;
 
 
                         month.Weeks [month.Weeks.IndexOf (week)].Thursday = new Day ()
                         {
-                            DayOfTheMonth = day.DateOrder,
+                            DayOfTheMonth = day.DateOrder.Value,
                             DonutChartData = CountBoardTypes (day.Cards),
                             Labels = new string [] { "1" },//POPULATE THIS IF POSSIBLE - Might not need to
                             LineChartData = new List<ChartSeries>() { new ChartSeries { Data = new double [] { 1, 11, 111 } } },//GetTaskTypeData (day.Tasks),
                             xAxisLabels = new string [] { "1", "11", "111", "12", "122", "13" },//POPULATE THIS IF POSSIBLE
-                            Cards = day.Cards ?? new List<MonthResponse.BasicCard> () { }
+                                Cards = day.Cards.ToList()
                         };
 
 
                         break;
                     case 5:
-                        week = month.Weeks.SingleOrDefault (Week => Week?.Friday?.DayOfTheMonth == day.DateOrder);
+                        week = month.Weeks.SingleOrDefault (Week => Week?.Friday?.DayOfTheMonth == day.DateOrder.Value);
                         if (week is null) break;
 
                         month.Weeks [month.Weeks.IndexOf (week)].Friday = new Day
                         {
-                            DayOfTheMonth = day.DateOrder,
+                            DayOfTheMonth = day.DateOrder.Value,
                             DonutChartData = CountBoardTypes (day.Cards),
                             LineChartData = GetBoardTypeData (day.Cards),
-                            Cards = day.Cards ?? new List<MonthResponse.BasicCard> () { }
+                                Cards = day.Cards.ToList()
                         };
 
                         break;
                     case 6:
-                        week = month.Weeks.SingleOrDefault (Week => Week?.Saturday?.DayOfTheMonth == day.DateOrder);
+                        week = month.Weeks.SingleOrDefault (Week => Week?.Saturday?.DayOfTheMonth == day.DateOrder.Value);
                         if (week is null) break;
 
                         month.Weeks [month.Weeks.IndexOf (week)].Saturday = new Day
                         {
-                            DayOfTheMonth = day.DateOrder,
+                            DayOfTheMonth = day.DateOrder.Value,
                             DonutChartData = CountBoardTypes (day.Cards),
                             LineChartData = GetBoardTypeData (day.Cards),
-                            Cards = day.Cards ?? new List<MonthResponse.BasicCard> () { }
+                                Cards = day.Cards.ToList()
                         };
 
                         break;
@@ -238,25 +240,25 @@
             switch (dayIndex % 7)
             {
                 case 0:
-                    newMonth.Weeks [weekIndex].Sunday = new Day { DayOfTheMonth = dayIndex, Cards = new List<MonthResponse.BasicCard> { } };
+                    newMonth.Weeks [weekIndex].Sunday = new Day { DayOfTheMonth = dayIndex };
                     break;
                 case 1:
-                    newMonth.Weeks [weekIndex].Monday = new Day { DayOfTheMonth = dayIndex, Cards = new List<MonthResponse.BasicCard> { } };
+                    newMonth.Weeks [weekIndex].Monday = new Day { DayOfTheMonth = dayIndex };
                     break;
                 case 2:
-                    newMonth.Weeks [weekIndex].Tuesday = new Day { DayOfTheMonth = dayIndex, Cards = new List<MonthResponse.BasicCard> { } };
+                    newMonth.Weeks [weekIndex].Tuesday = new Day { DayOfTheMonth = dayIndex };
                     break;
                 case 3:
-                    newMonth.Weeks [weekIndex].Wednesday = new Day { DayOfTheMonth = dayIndex, Cards = new List<MonthResponse.BasicCard> { } };
+                    newMonth.Weeks [weekIndex].Wednesday = new Day { DayOfTheMonth = dayIndex };
                     break;
                 case 4:
-                    newMonth.Weeks [weekIndex].Thursday = new Day { DayOfTheMonth = dayIndex, Cards = new List<MonthResponse.BasicCard> { } };
+                    newMonth.Weeks [weekIndex].Thursday = new Day { DayOfTheMonth = dayIndex };
                     break;
                 case 5:
-                    newMonth.Weeks [weekIndex].Friday = new Day { DayOfTheMonth = dayIndex, Cards = new List<MonthResponse.BasicCard> { } };
+                    newMonth.Weeks [weekIndex].Friday = new Day { DayOfTheMonth = dayIndex };
                     break;
                 case 6:
-                    newMonth.Weeks [weekIndex].Saturday = new Day { DayOfTheMonth = dayIndex, Cards = new List<MonthResponse.BasicCard> { } };
+                    newMonth.Weeks [weekIndex].Saturday = new Day { DayOfTheMonth = dayIndex };
                     newMonth.Weeks.Add (new Week ());
                     weekIndex += 1;
                     break;
@@ -266,22 +268,22 @@
         return newMonth;
     }
 
-    private double [] CountBoardTypes (List<MonthResponse.BasicCard> cards)
+    private double [] CountBoardTypes (IEnumerable<CardResponse> cards)
     {
-        var cardsDistinctByType = cards.Select (card => card.BoardID)
+        var cardsDistinctByType = cards.Select (card => card.Position.BoardID)
                                        .Distinct ();
 
         var cardCounts = new double [cardsDistinctByType.Count ()];
         for (var cardCountIndex = 0; cardCountIndex < cardCounts.Length; cardCountIndex ++)
-            cardCounts [cardCountIndex] = cards.Where (card => card.BoardID == cardsDistinctByType.ElementAt (cardCountIndex))
+            cardCounts [cardCountIndex] = cards.Where (card => card.Position.BoardID == cardsDistinctByType.ElementAt (cardCountIndex))
                                                .Count ();
 
         return cardCounts;
     }
 
-    private List<ChartSeries> GetBoardTypeData (List<MonthResponse.BasicCard> cards)
+    private List<ChartSeries> GetBoardTypeData(IEnumerable<CardResponse> cards)
     {
-        var boardTypesList = cards.Select (card => card.BoardID)
+        var boardTypesList = cards.Select (card => card.Position.BoardID)
                                   .Distinct ();
 
         var cardsCompletedList = new List<ChartSeries> ();
@@ -289,7 +291,7 @@
         {
             var tasksCompleted = new double [boardTypesList.Count ()];
             for (var tasksIndex = 0; tasksIndex < tasksCompleted.Length; tasksIndex++)
-                tasksCompleted [tasksIndex] = cards.Where (card => card.BoardID == boardTypesList.ElementAt (tasksIndex))
+                tasksCompleted [tasksIndex] = cards.Where (card => card.Position.BoardID == boardTypesList.ElementAt (tasksIndex))
                                                    .Select (card => card.Tasks.Where (task => task.isCompleted == true))
                                                    .Count ();
 
@@ -356,53 +358,53 @@
         {
             new Week
             {
-                Sunday = new Day { DayOfTheMonth = 28, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { }, IsFromDifferentMonth = true },
-                Monday = new Day { DayOfTheMonth = 29, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { }, IsFromDifferentMonth = true },
-                Tuesday = new Day { DayOfTheMonth = 30, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { }, IsFromDifferentMonth = true },
-                Wednesday = new Day { DayOfTheMonth = 31, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { }, IsFromDifferentMonth = true },
-                Thursday = new Day { DayOfTheMonth = 1, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Friday = new Day { DayOfTheMonth = 2, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Saturday = new Day { DayOfTheMonth = 3, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } }
+                Sunday = new Day { DayOfTheMonth = 28, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, IsFromDifferentMonth = true },
+                Monday = new Day { DayOfTheMonth = 29, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, IsFromDifferentMonth = true },
+                Tuesday = new Day { DayOfTheMonth = 30, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, IsFromDifferentMonth = true },
+                Wednesday = new Day { DayOfTheMonth = 31, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, IsFromDifferentMonth = true },
+                Thursday = new Day { DayOfTheMonth = 1, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Friday = new Day { DayOfTheMonth = 2, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Saturday = new Day { DayOfTheMonth = 3, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } }
             },
             new Week
             {
-                Sunday = new Day { DayOfTheMonth = 4, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Monday = new Day { DayOfTheMonth = 5, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Tuesday = new Day { DayOfTheMonth = 6, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Wednesday = new Day { DayOfTheMonth = 7, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Thursday = new Day { DayOfTheMonth = 8, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Friday = new Day { DayOfTheMonth = 9, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Saturday = new Day { DayOfTheMonth = 10, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } }
+                Sunday = new Day { DayOfTheMonth = 4, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Monday = new Day { DayOfTheMonth = 5, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Tuesday = new Day { DayOfTheMonth = 6, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Wednesday = new Day { DayOfTheMonth = 7, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Thursday = new Day { DayOfTheMonth = 8, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Friday = new Day { DayOfTheMonth = 9, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Saturday = new Day { DayOfTheMonth = 10, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } }
             },
             new Week
             {
-                Sunday = new Day { DayOfTheMonth = 11, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Monday = new Day { DayOfTheMonth = 12, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Tuesday = new Day { DayOfTheMonth = 13, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Wednesday = new Day { DayOfTheMonth = 14, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Thursday = new Day { DayOfTheMonth = 15, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Friday = new Day { DayOfTheMonth = 16, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Saturday = new Day { DayOfTheMonth = 17, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } }
+                Sunday = new Day { DayOfTheMonth = 11, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Monday = new Day { DayOfTheMonth = 12, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Tuesday = new Day { DayOfTheMonth = 13, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Wednesday = new Day { DayOfTheMonth = 14, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Thursday = new Day { DayOfTheMonth = 15, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Friday = new Day { DayOfTheMonth = 16, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Saturday = new Day { DayOfTheMonth = 17, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } }
             },
             new Week
             {
-                Sunday = new Day { DayOfTheMonth = 18, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Monday = new Day { DayOfTheMonth = 19, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Tuesday = new Day { DayOfTheMonth = 20, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Wednesday = new Day { DayOfTheMonth = 21, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Thursday = new Day { DayOfTheMonth = 22, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Friday = new Day { DayOfTheMonth = 23, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Saturday = new Day { DayOfTheMonth = 24, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } }
+                Sunday = new Day { DayOfTheMonth = 18, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Monday = new Day { DayOfTheMonth = 19, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Tuesday = new Day { DayOfTheMonth = 20, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Wednesday = new Day { DayOfTheMonth = 21, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Thursday = new Day { DayOfTheMonth = 22, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Friday = new Day { DayOfTheMonth = 23, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Saturday = new Day { DayOfTheMonth = 24, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } }
             },
             new Week
             {
-                Sunday = new Day { DayOfTheMonth = 25, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Monday = new Day { DayOfTheMonth = 26, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Tuesday = new Day { DayOfTheMonth = 27, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Wednesday = new Day { DayOfTheMonth = 28, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Thursday = new Day { DayOfTheMonth = 29, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Friday = new Day { DayOfTheMonth = 30, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { } },
-                Saturday = new Day { DayOfTheMonth = 1, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, Cards = new List<MonthResponse.BasicCard> { }, IsFromDifferentMonth = true }
+                Sunday = new Day { DayOfTheMonth = 25, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Monday = new Day { DayOfTheMonth = 26, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Tuesday = new Day { DayOfTheMonth = 27, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Wednesday = new Day { DayOfTheMonth = 28, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Thursday = new Day { DayOfTheMonth = 29, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Friday = new Day { DayOfTheMonth = 30, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { } },
+                Saturday = new Day { DayOfTheMonth = 1, DonutChartData = new double [] { }, LineChartData = new List<ChartSeries> { }, Labels = new string [] { }, xAxisLabels = new string [] { }, IsFromDifferentMonth = true }
             }
         }
     };

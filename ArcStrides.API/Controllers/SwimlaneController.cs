@@ -224,7 +224,7 @@ public class SwimlaneController : ArcController
 
         var orderIsUpdated = swimlanePatchRequest.Any (operation => string.Equals (operation.path, $"/{nameof (SwimlanePatchRequest.Order)}", StringComparison.OrdinalIgnoreCase));
         if (orderIsUpdated)
-            updateSwimlaneTransaction = _swimlaneRepository.ApplyNewOrderForExistingSwimlanes (swimlaneToUpdate, convertedSwimlaneToUpdate.Order, swimlanesFromBoard, updateSwimlaneTransaction);
+            updateSwimlaneTransaction = _swimlaneRepository.ApplyNewOrderForExistingSwimlanes (swimlaneToUpdate, convertedSwimlaneToUpdate.Order.Value, swimlanesFromBoard, updateSwimlaneTransaction);
 
         swimlaneToUpdate = _swimlaneMapper.MapSwimlanePatchRequestToSwimlane (convertedSwimlaneToUpdate); // Make sure that the response object is preserved if not mapped to.
 
