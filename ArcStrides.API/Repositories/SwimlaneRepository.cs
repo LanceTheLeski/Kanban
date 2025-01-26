@@ -18,25 +18,17 @@ public class SwimlaneRepository : ISwimlaneRepository
 
     private readonly IAzureTableService<Swimlane> _swimlaneTable;
 
-    private readonly ICardRepository _cardRepository;
-
     public SwimlaneRepository (IOptions<AzureTableOptions> azureTableOptions,
-                             ICardRepository cardRepository,
-                             ISwimlaneMapper swimlaneMapper)
+                               ISwimlaneMapper swimlaneMapper)
     {
         _swimlaneTable = new AzureTableService<Swimlane> (swimlanes, azureTableOptions);
-
-        _cardRepository = cardRepository;
     }
 
     public async Task<Swimlane?> GetSwimlaneAsync (Guid swimlaneID, Guid boardID)
         => await _swimlaneTable.GetEntityAsync (swimlaneID, boardID);
 
-    public async Task<Collection<Swimlane>> GetSwimlanesAsync (Guid swimlaneID)
-        => await _swimlaneTable.GetEntitiesAsync (swimlaneID);
-
     public async Task<Collection<Swimlane>> GetAllBoardSwimlanes (Guid boardID)
-        => await _swimlaneTable.QueryEntitiesAsync (swimlane => swimlane.RowKey == boardID.ToString ());
+        => await _swimlaneTable.GetEntitiesAsync (boardID);
 
     public async Task<Collection<Swimlane>> QuerySwimlanesAsync (Expression<Func<Swimlane, bool>> swimlaneQueryExpression)
         => await _swimlaneTable.QueryEntitiesAsync (swimlaneQueryExpression);

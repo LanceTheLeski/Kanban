@@ -33,7 +33,7 @@ public class SwimlaneController : ArcController
     private readonly ICardRepository _cardRepository;
 
     public SwimlaneController (ISwimlaneRepository swimlaneRepository,
-                             ICardRepository cardRepository)
+                               ICardRepository cardRepository)
     {
         _swimlaneCreateRequestValidator = new SwimlaneCreateRequestValidator ();
         _swimlanePatchRequestDocumentValidator = new SwimlanePatchRequestDocumentValidator ();
@@ -136,7 +136,7 @@ public class SwimlaneController : ArcController
     private async Task<Swimlane> FetchAndValidateSwimlane (Guid swimlaneID)
     {
         IEnumerable<Swimlane>? swimlaneEnumerableFromDatabase = null;
-        try { await _swimlaneRepository.GetSwimlanesAsync (swimlaneID); }
+        try { await _swimlaneRepository.QuerySwimlanesAsync (swimlane => swimlane.RowKey == swimlaneID.ToString ()); }
         catch (RequestFailedException reqFailedEx)
         { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (Swimlane), reqFailedEx.Status)); }
 

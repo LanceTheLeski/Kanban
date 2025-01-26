@@ -2,7 +2,7 @@
 
 public class TagType : ArcTagGroupsEntity
 {
-    public int TagTypeID { get; set => EntityID = TagTypeID.ToString (); }
+    public override string RowKey { get; set; }
 
     public string? Title { get; set; }
 }

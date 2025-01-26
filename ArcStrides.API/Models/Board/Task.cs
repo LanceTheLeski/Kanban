@@ -2,7 +2,7 @@
 
 public class Task : ArcBoardsEntity
 {
-    public Guid TaskID { get; set => EntityID = TaskID.ToString (); }
+    public override string RowKey { get; set; }
 
     public string Title { get; set; }
 

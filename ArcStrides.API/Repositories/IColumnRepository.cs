@@ -10,8 +10,6 @@ public interface IColumnRepository
 {
     Task<Column?> GetColumnAsync (Guid columnID, Guid boardID);
 
-    Task<Collection<Column>> GetColumnsAsync (Guid columnID);
-
     Task<Collection<Column>> GetAllBoardColumns (Guid boardID);
 
     Task<Collection<Column>> QueryColumnsAsync (Expression<Func<Column, bool>> columnQueryExpression);

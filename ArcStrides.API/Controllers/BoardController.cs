@@ -6,6 +6,7 @@ using ArcStrides.Contracts.Request.Patch;
 using ArcStrides.Contracts.Response;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.ObjectModel;
 
 namespace ArcStrides.API.Controllers;
 
@@ -18,12 +19,18 @@ public class BoardController : Controller
     private readonly ICardRepository _cardRepository;
     private readonly ITaskRepository _taskRepository;
 
+    private readonly ISwimlaneMapper _swimlaneMapper;
+    private readonly IColumnMapper _columnMapper;
+    private readonly ICardMapper _cardMapper;
     private readonly ITaskMapper _taskMapper;
 
     public BoardController (IColumnRepository columnRepository,
                             ISwimlaneRepository swimlaneRepository,
                             ICardRepository cardRepository,
                             ITaskRepository taskRepository,
+                            ISwimlaneMapper swimlaneMapper,
+                            IColumnMapper columnMapper,
+                            ICardMapper cardMapper,
                             ITaskMapper taskMapper)
     {
         _columnRepository = columnRepository;
@@ -31,13 +38,16 @@ public class BoardController : Controller
         _cardRepository = cardRepository;
         _taskRepository = taskRepository;
 
+        _swimlaneMapper = swimlaneMapper;
+        _columnMapper = columnMapper;
+        _cardMapper = cardMapper;
         _taskMapper = taskMapper;
     }
 
     [HttpGet ("{ID:guid}")]
     public async Task<ActionResult> FetchBoard (Guid ID)
     {
-        var cardPositionCollection = await _cardRepository.GetCardPositionsAsync (ID);
+        //var cardPositionCollection = await _cardRepository.GetCardPositionsAsync (ID);
 
         var columnCollection = await _columnRepository.GetAllBoardColumns (ID);
         // Validate that the colums have a distinct order and likely some unique names as well? Maybe also the same board name?
@@ -47,55 +57,38 @@ public class BoardController : Controller
         // Validate that the swimlanes have a distinct order and likely some unique names as well? Maybe also the same board name?
         var swimlaneCollectionOrdered = swimlaneCollection.OrderBy (swimlane => swimlane.SwimlaneOrder);
 
-        var boardResponse = new BoardResponse ();
+        var cardCollection = await _cardRepository.GetCardsAsync (ID);
+        //var cardPositionCollection = await _cardRepository.QueryCardPositionsAsync (cardPosition =>  cardPosition.CardID == ID.ToString ());
+
+        var columnResponse = new Collection<ColumnResponse> ();
         foreach (var column in columnCollectionOrdered)
         {
-
+            var mappedColumn = _columnMapper.MapColumnToColumnResponse (column);
+            columnResponse.Add (mappedColumn);
         }
-        /*foreach (var column in columnCollectionOrdered)
+
+        var swimlaneResponse = new Collection<SwimlaneResponse> ();
+        foreach (var swimlane in swimlaneCollectionOrdered)
         {
-            var swimlanes = new Collection<BoardResponse.BasicSwimlane> ();
-            foreach (var swimlane in swimlaneCollectionOrdered)
-            {
-                var boardCardEnumarable = boardCardCollection.Where (boardCard => boardCard.ColumnID == Guid.Parse (column.PartitionKey) 
-                                                                                  && boardCard.SwimlaneID == Guid.Parse (swimlane.PartitionKey));
+            var mappedSwimlane = _swimlaneMapper.MapSwimlaneToSwimlaneResponse (swimlane);
+            swimlaneResponse.Add (mappedSwimlane);
+        }
 
-                var cards = new Collection<BoardResponse.BasicCard> ();
-                foreach (var boardCard in boardCardEnumarable)
-                {
-                    var taskCollection = await _taskRepository.QueryTasksAsync (task => task.RowKey == boardCard.RowKey);
-                    
-                    var cardTasks = new Collection<TaskResponse> ();
-                    foreach (var task in taskCollection)
-                        cardTasks.Add (_taskMapper.MapTaskToTaskResponse (task));
+        var cardResponse = new Collection<CardResponse> ();
+        foreach (var card in cardCollection)
+        {
+            var mappedCard = _cardMapper.MapCardToCardResponse (card);
+            cardResponse.Add (mappedCard);
+        }
 
-                    cards.Add (new BoardResponse.BasicCard // I want to circleu back to breaking this object up after this refactoring. It needs to be better soon.
-                    {
-                        ID = boardCard.RowKey,
-                        Title = boardCard.CardTitle,
-                        Description = boardCard.CardDescription,
-                        Tasks = cardTasks
-                    });
-                }
-
-                swimlanes.Add (new BoardResponse.BasicSwimlane
-                {
-                    ID = swimlane.PartitionKey,
-                    Title = swimlane.Title,
-                    Order = swimlane.SwimlaneOrder,
-                    Cards = cards
-                });
-            }
-
-            boardResponse.Columns.Add (new BoardResponse.BasicColumn
-            {
-                ID = column.PartitionKey,
-                Title = column.Title,
-                Order = column.ColumnOrder,
-                Swimlanes = swimlanes
-            });
-        }*/
-
+        var boardResponse = new BoardResponse
+        {
+            ID = ID,
+            Title = "Placeholder..",
+            Swimlanes = swimlaneResponse,
+            Columns = columnResponse,
+            Cards = cardResponse
+        };
         return Ok (boardResponse);
     }
 

@@ -49,7 +49,7 @@ public partial class TimelineMapper : ITimelineMapper
     /// <summary>
     /// <see cref="Timeline"/> --> <see cref="TimelineResponse"/>
     /// </summary>
-    [MapProperty (nameof (Timeline.TimeLineID), nameof (TimelineResponse.ID))]
+    [MapProperty (nameof (Timeline.RowKey), nameof (TimelineResponse.ID))]
     [MapProperty (nameof (Timeline.TimelineTypeID), nameof (TimelineResponse.TimelineTypeID))]
     [MapProperty (nameof (Timeline.StartDependencyTagGroupID), nameof (TimelineResponse.StartDependencyTagGroupID))]
     [MapProperty (nameof (Timeline.StartPreferenceUTC), nameof (TimelineResponse.StartPreferenceUTC))]

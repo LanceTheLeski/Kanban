@@ -2,7 +2,7 @@
 
 public class Timeline : ArcBoardsEntity
 {
-    public Guid TimeLineID { get; set => EntityID = TimeLineID.ToString (); }
+    public override string RowKey { get; set; }
 
     public Guid ParentObjectID { get; set; } //Parent Object ID (Card/Task)
 

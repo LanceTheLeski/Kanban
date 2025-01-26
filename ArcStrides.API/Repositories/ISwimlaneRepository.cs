@@ -10,8 +10,6 @@ public interface ISwimlaneRepository
 {
     Task<Swimlane?> GetSwimlaneAsync (Guid swimlaneID, Guid boardID);
 
-    Task<Collection<Swimlane>> GetSwimlanesAsync (Guid swimlaneID);
-
     Task<Collection<Swimlane>> GetAllBoardSwimlanes (Guid boardID);
 
     Task<Collection<Swimlane>> QuerySwimlanesAsync (Expression<Func<Swimlane, bool>> swimlaneQueryExpression);

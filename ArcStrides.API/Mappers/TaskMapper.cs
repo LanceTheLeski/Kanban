@@ -39,8 +39,8 @@ public partial class TaskMapper : ITaskMapper
     /// <summary>
     /// <see cref="Task"/> --> <see cref="TaskResponse"/>
     /// </summary>
-    [MapProperty (nameof (Models.Board.Task.BoardID), nameof (TaskResponse.BoardID))]
-    [MapProperty (nameof (Models.Board.Task.TaskID), nameof (TaskResponse.ID))]
+    [MapProperty (nameof (Models.Board.Task.PartitionKey), nameof (TaskResponse.BoardID))]
+    [MapProperty (nameof (Models.Board.Task.RowKey), nameof (TaskResponse.ID))]
     [MapProperty (nameof (Models.Board.Task.Title), nameof (TaskResponse.Title))]
     [MapProperty (nameof (Models.Board.Task.TaskTypeID), nameof (TaskResponse.TaskTypeID))]
     [MapProperty (nameof (Models.Board.Task.IsComplete), nameof (TaskResponse.isCompleted))]

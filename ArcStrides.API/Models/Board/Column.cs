@@ -2,7 +2,7 @@
 
 public class Column : ArcBoardsEntity
 {
-    public Guid ColumnID { get; set => EntityID = ColumnID.ToString (); }
+    public override string RowKey { get; set; }
 
     public string Title { get; set; }
 

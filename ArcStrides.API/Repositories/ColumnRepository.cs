@@ -18,25 +18,17 @@ public class ColumnRepository : IColumnRepository
 
     private readonly IAzureTableService<Column> _columnTable;
 
-    private readonly ICardRepository _cardRepository;
-
     public ColumnRepository (IOptions<AzureTableOptions> azureTableOptions,
-                             ICardRepository cardRepository,
                              IColumnMapper columnMapper)
     {
         _columnTable = new AzureTableService<Column> (columns, azureTableOptions);
-
-        _cardRepository = cardRepository;
     }
 
     public async Task<Column?> GetColumnAsync (Guid columnID, Guid boardID)
         => await _columnTable.GetEntityAsync (columnID, boardID);
 
-    public async Task<Collection<Column>> GetColumnsAsync (Guid columnID)
-        => await _columnTable.GetEntitiesAsync (columnID);
-
     public async Task<Collection<Column>> GetAllBoardColumns (Guid boardID)
-        => await _columnTable.QueryEntitiesAsync (column => column.RowKey == boardID.ToString ());
+        => await _columnTable.GetEntitiesAsync (boardID);
 
     public async Task<Collection<Column>> QueryColumnsAsync (Expression<Func<Column, bool>> columnQueryExpression)
         => await _columnTable.QueryEntitiesAsync (columnQueryExpression);

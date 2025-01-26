@@ -136,7 +136,7 @@ public class ColumnController : ArcController
     private async Task<Column> FetchAndValidateColumn (Guid columnID)
     {
         IEnumerable<Column>? columnEnumerableFromDatabase = null;
-        try { await _columnRepository.GetColumnsAsync (columnID); }
+        try { await _columnRepository.QueryColumnsAsync (column => column.RowKey == columnID.ToString ()); }
         catch (RequestFailedException reqFailedEx)
             { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (Column), reqFailedEx.Status)); }
 

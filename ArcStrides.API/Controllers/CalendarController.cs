@@ -63,8 +63,8 @@ public class CalendarController : Controller
         {
             var tagIDsForDay = tagGroupsForMonth.Where (tagGroup => tagGroup.PartitionKey == date.CardTagGroupID.ToString ())
                                                 .Select (tagGroup => tagGroup.RowKey);
-            var cardIDsForDay = tagsForMonth.Where (tag => tagIDsForDay.Contains(tag.PartitionKey))
-                                           .Select (tagGroup => tagGroup.RowKey);
+            var cardIDsForDay = tagsForMonth.Where ((Func<Tag, bool>) (tag => Enumerable.Contains<string> (tagIDsForDay, tag.PartitionKey)))
+                                           .Select <Tag, string> (tagGroup => tagGroup.RowKey);
             var cardsForDay = cardsForMonth.Where (card => cardIDsForDay.Contains (card.PartitionKey));
 
             var cards = new List<CardResponse> ();

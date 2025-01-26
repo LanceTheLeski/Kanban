@@ -5,11 +5,12 @@ namespace ArcStrides.API.Models.Calendar;
 
 public class ArcCalendarsEntity : ITableEntity
 {
-    public Guid MonthID { get; set => PartitionKey = MonthID!.ToString (); }
-    public string? PartitionKey { get; set => MonthID = Guid.Parse (PartitionKey!); }
+    /// <summary>
+    /// Date ID
+    /// </summary>
+    public string? PartitionKey { get; set; }
 
-    public string EntityID { get; set => RowKey = EntityID!; }
-    public string? RowKey { get; set => MonthID = Guid.Parse (RowKey!); }
+    public virtual string? RowKey { get; set; }
 
     public DateTimeOffset? Timestamp { get; set; } = default!;
 

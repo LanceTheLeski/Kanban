@@ -144,7 +144,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var boardResponse = await _boardRepository.FetchBoard(Guid.Parse("20a88077-10d4-4648-92cb-7dc7ba5b8df5"));//Change later to be dynamic..
+        var boardResponse = await _boardRepository.FetchBoard(Guid.Parse("1cb0ce6e-6145-4fe7-833a-0b7c0545c449"));//Change later to be dynamic..
         _cards = ConvertBoardResponseToDropCardList(boardResponse);
     }
 }

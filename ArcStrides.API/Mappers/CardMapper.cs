@@ -26,8 +26,8 @@ public partial class CardMapper : ICardMapper
     /// <see cref="Card"/> --> <see cref="CardPosition"/>
     /// </summary>
     [MapProperty (nameof (Card.PartitionKey), nameof (CardPosition.PartitionKey))]
-    [MapProperty (nameof (Card.CardPositionID), nameof (CardPosition.CardPositionID))]
-    [MapProperty (nameof (Card.CardID), nameof (CardPosition.CardID))]
+    [MapProperty (nameof (Card.CardPositionID), nameof (CardPosition.RowKey))]
+    [MapProperty (nameof (Card.RowKey), nameof (CardPosition.CardID))]
     public partial CardPosition MapCardToCardPosition (Card card);
 
     /// <summary>
@@ -36,15 +36,20 @@ public partial class CardMapper : ICardMapper
     [MapProperty (nameof (Card.CardPositionID), nameof (CardPositionResponse.ID))]
     [MapProperty (nameof (Card.Title), nameof (CardPositionResponse.Title))]
     [MapProperty (nameof (Card.Description), nameof (CardPositionResponse.Description))]
-    [MapProperty (nameof (Card.BoardID), nameof (CardPositionResponse.BoardID))]
+    [MapProperty (nameof (Card.PartitionKey), nameof (CardPositionResponse.BoardID))]
     public partial CardPositionResponse MapCardToCardPositionResponse (Card card);
+
+    [MapProperty (nameof (Card.RowKey), nameof (CardResponse.ID))]
+    [MapProperty (nameof (Card.Title), nameof (CardResponse.Title))]
+    [MapProperty (nameof (Card.Description), nameof (CardResponse.Description))]
+    public partial CardResponse MapCardToCardResponse (Card card);
 
     #region CardPosition
 
     /// <summary>
     /// <see cref="CardPosition"/> --> <see cref="CardPositionResponse"/>
     /// </summary>
-    [MapProperty (nameof (CardPosition.CardPositionID), nameof (CardPositionResponse.ID))]
+    [MapProperty (nameof (CardPosition.RowKey), nameof (CardPositionResponse.ID))]
     [MapProperty (nameof (CardPosition.ColumnID), nameof (CardPositionResponse.ColumnID))]
     [MapProperty (nameof (CardPosition.ColumnTitle), nameof (CardPositionResponse.ColumnTitle))]
     [MapProperty (nameof (CardPosition.ColumnOrder), nameof (CardPositionResponse.ColumnOrder))]

@@ -71,11 +71,11 @@ public class TagRepository : ITagRepository
         switch (taskTypeID)
         {
             case 0:// Column
-                var columnCollection = await _columnRepository.GetColumnsAsync (parentID);
+                var columnCollection = await _columnRepository.QueryColumnsAsync (column => column.RowKey == parentID.ToString ());
                 return columnCollection?.Count () is 0;
 
             case 1:// Swimlane
-                var swimlaneCollection = await _swimlaneRepository.GetSwimlanesAsync (parentID);
+                var swimlaneCollection = await _swimlaneRepository.QuerySwimlanesAsync (swimlane => swimlane.RowKey == parentID.ToString ());
                 return swimlaneCollection?.Count () is 0;
 
             case 2:// Date

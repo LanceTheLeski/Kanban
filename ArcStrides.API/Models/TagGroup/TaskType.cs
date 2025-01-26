@@ -2,7 +2,7 @@
 
 public class TaskType : ArcTagGroupsEntity
 {
-    public int TaskTypeID { get; set => EntityID = TaskTypeID.ToString (); }
+    public override string RowKey { get; set; }
 
     public string? Title { get; set; }
 }

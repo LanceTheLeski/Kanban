@@ -10,9 +10,9 @@ public interface ICardRepository
 {
     #region Card
 
-    Task<Card?> GetCardAsync (Guid cardID, Guid tagID);
+    Task<Card?> GetCardAsync (Guid boardID, Guid cardID);
 
-    Task<Collection<Card>> GetCardsAsync (Guid cardID);
+    Task<Collection<Card>> GetCardsAsync (Guid boardID);
 
     Task<Collection<Card>> QueryCardsAsync (Expression<Func<Card, bool>> cardQueryExpression);
 

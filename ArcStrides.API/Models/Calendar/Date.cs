@@ -5,7 +5,7 @@
 /// </summary>
 public class Date : ArcCalendarsEntity
 {
-    public Guid DateID { get; set => EntityID = DateID.ToString (); }
+    public override string RowKey { get; set; }
 
     public int DateOrder { get; set; } // Add to database. Is the date itself - e.g. The 15th
 

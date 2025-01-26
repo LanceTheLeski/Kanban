@@ -23,11 +23,11 @@ public class CardRepository : ICardRepository
         _cardPositionTable = new AzureTableService<CardPosition> (cardPositions, azureTableOptions);
     }
 
-    public async Task<Card?> GetCardAsync (Guid cardID, Guid tagID)
-        => await _cardTable.GetEntityAsync (cardID, tagID);
+    public async Task<Card?> GetCardAsync (Guid boardID, Guid cardID)
+        => await _cardTable.GetEntityAsync (boardID, cardID);
 
-    public async Task<Collection<Card>> GetCardsAsync (Guid cardID)
-        => await _cardTable.GetEntitiesAsync (cardID);
+    public async Task<Collection<Card>> GetCardsAsync (Guid boardID)
+        => await _cardTable.GetEntitiesAsync (boardID);
 
     public async Task AddCardAsync (Card cardToAdd)
         => await _cardTable.AddEntityAsync (cardToAdd);
@@ -40,8 +40,8 @@ public class CardRepository : ICardRepository
 
     #region Card Position
 
-    public async Task<CardPosition?> GetCardPositionAsync (Guid boardID, Guid cardID)
-        => await _cardPositionTable.GetEntityAsync (boardID, cardID);
+    public async Task<CardPosition?> GetCardPositionAsync (Guid boardID, Guid cardPositionID)
+        => await _cardPositionTable.GetEntityAsync (boardID, cardPositionID);
 
     public async Task<Collection<CardPosition>> GetCardPositionsAsync (Guid boardID)
         => await _cardPositionTable.GetEntitiesAsync (boardID);

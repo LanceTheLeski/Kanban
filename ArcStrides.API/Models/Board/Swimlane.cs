@@ -2,7 +2,7 @@
 
 public class Swimlane : ArcBoardsEntity
 {
-    public Guid SwimlaneID { get; set => EntityID = SwimlaneID.ToString (); }
+    public override string RowKey { get; set; }
 
     public string Title { get; set; }
 

@@ -33,8 +33,8 @@ public partial class SwimlaneMapper : ISwimlaneMapper
     /// <summary>
     /// <see cref="Swimlane"/> --> <see cref="SwimlaneResponse"/>
     /// </summary>
-    [MapProperty (nameof (Swimlane.SwimlaneID), nameof (SwimlaneResponse.ID))]
-    [MapProperty (nameof (Swimlane.BoardID), nameof (SwimlaneResponse.BoardID))]
+    [MapProperty (nameof (Swimlane.RowKey), nameof (SwimlaneResponse.ID))]
+    [MapProperty (nameof (Swimlane.PartitionKey), nameof (SwimlaneResponse.BoardID))]
     [MapProperty (nameof (Swimlane.Title), nameof (SwimlaneResponse.Title))]
     [MapProperty (nameof (Swimlane.SwimlaneOrder), nameof (SwimlaneResponse.Order))]
     public partial SwimlaneResponse MapSwimlaneToSwimlaneResponse (Swimlane swimlane);

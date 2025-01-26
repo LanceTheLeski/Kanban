@@ -34,7 +34,7 @@ public partial class DateMapper : IDateMapper
     /// <summary>
     /// <see cref="Date"/> --> <see cref="DateResponse"/>
     /// </summary>
-    [MapProperty (nameof (Date.DateID), nameof (DateResponse.ID))]
+    [MapProperty (nameof (Date.RowKey), nameof (DateResponse.ID))]
     [MapProperty (nameof (Date.DateOrder), nameof (DateResponse.DateOrder))]
     [MapProperty (nameof (Date.WeekOrder), nameof (DateResponse.WeekOrder))]
     [MapProperty (nameof (Date.DayOfTheWeekOrder), nameof (DateResponse.DayOfTheWeekOrder))]

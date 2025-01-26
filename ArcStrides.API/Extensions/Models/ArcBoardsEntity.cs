@@ -5,11 +5,12 @@ namespace ArcStrides.API.Models.Board;
 
 public class ArcBoardsEntity : ITableEntity
 {
-    public Guid BoardID { get; set => PartitionKey = BoardID!.ToString (); }
-    public string? PartitionKey { get; set => BoardID = Guid.Parse (PartitionKey!); }
+    /// <summary>
+    /// Board ID
+    /// </summary>
+    public string? PartitionKey { get; set; }
 
-    public string EntityID { get; set => RowKey = EntityID!; }
-    public string? RowKey { get; set => BoardID = Guid.Parse (RowKey!); }
+    public virtual string? RowKey { get; set; }
 
     public DateTimeOffset? Timestamp { get; set; } = default!;
 
