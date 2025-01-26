@@ -1,19 +1,10 @@
-﻿using Azure;
-using Azure.Data.Tables;
+﻿namespace ArcStrides.API.Models.Board;
 
-namespace ArcStrides.API.Models.Board;
-
-public class Timeline : ITableEntity
+public class Timeline : ArcBoardsEntity
 {
-    public string PartitionKey { get; set; } //Required -- Timeline ID --> BoardID
+    public Guid TimeLineID { get; set => EntityID = TimeLineID.ToString (); }
 
-    public string RowKey { get; set; } //Required -- Parent Object ID (Card/Task) --> TimelineID
-
-    public DateTimeOffset? Timestamp { get; set; } //Required
-
-    public ETag ETag { get; set; } //Required ??
-
-    public Guid ParentID { get; set; } //Parent Object ID (Card/Task)
+    public Guid ParentObjectID { get; set; } //Parent Object ID (Card/Task)
 
     //Ideally this only refers to what type of parent the Timeline has: Card or Task? Could also be used to identify what type of deadlines and all are set.
     public int TimelineTypeID { get; set; }

@@ -1,17 +1,8 @@
-﻿using Azure;
-using Azure.Data.Tables;
+﻿namespace ArcStrides.API.Models.Board;
 
-namespace ArcStrides.API.Models.Board;
-
-public class Column : ITableEntity
+public class Column : ArcBoardsEntity
 {
-    public string PartitionKey { get; set; } //Required -- BoardID
-
-    public string RowKey { get; set; } //Required -- ColumnID
-
-    public DateTimeOffset? Timestamp { get; set; } //Required
-
-    public ETag ETag { get; set; } //Required ??
+    public Guid ColumnID { get; set => EntityID = ColumnID.ToString (); }
 
     public string Title { get; set; }
 

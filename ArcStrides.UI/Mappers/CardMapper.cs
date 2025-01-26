@@ -7,15 +7,17 @@ namespace ArcStrides.UI.Mappers;
 [Mapper]
 public partial class CardMapper
 {
-    [MapProperty (nameof (CardPositionResponse.ID), nameof (DropCard.Id))]
-    [MapProperty (nameof (CardPositionResponse.Title), nameof (DropCard.Title))]
-    [MapProperty (nameof (CardPositionResponse.Description), nameof (DropCard.Description))]
-    [MapProperty (nameof (CardPositionResponse.ColumnOrder), nameof (DropCard.ColumnNumber))]
-    [MapProperty (nameof (CardPositionResponse.ColumnID), nameof (DropCard.ColumnID))]
-    [MapProperty (nameof (CardPositionResponse.ColumnTitle), nameof (DropCard.ColumnName))]
-    [MapProperty (nameof (CardPositionResponse.SwimlaneOrder), nameof (DropCard.SwimlaneNumber))]
-    [MapProperty (nameof (CardPositionResponse.SwimlaneID), nameof (DropCard.SwimlaneID))]
-    [MapProperty (nameof (CardPositionResponse.SwimlaneTitle), nameof (DropCard.SwimlaneName))]
-    //CardArea = ConvertColumnAndSwimlaneToCardArea (deserialized.SwimlaneOrder, deserialized.ColumnOrder)
-    public partial DropCard MapCardPositionResponseToDropCard (CardPositionResponse boardCardResponse);
+    /// <summary>
+    /// <see cref="CardPositionResponse"/> --> <see cref="Card"/>
+    /// </summary>
+    [MapProperty (nameof (CardPositionResponse.ID), nameof (Card.Id))]
+    [MapProperty (nameof (CardPositionResponse.Title), nameof (Card.Title))]
+    [MapProperty (nameof (CardPositionResponse.Description), nameof (Card.Description))]
+    [MapProperty (nameof (CardPositionResponse.ColumnOrder), nameof (Card.ColumnNumber))]
+    [MapProperty (nameof (CardPositionResponse.ColumnID), nameof (Card.ColumnID))]
+    [MapProperty (nameof (CardPositionResponse.ColumnTitle), nameof (Card.ColumnName))]
+    [MapProperty (nameof (CardPositionResponse.SwimlaneOrder), nameof (Card.SwimlaneNumber))]
+    [MapProperty (nameof (CardPositionResponse.SwimlaneID), nameof (Card.SwimlaneID))]
+    [MapProperty (nameof (CardPositionResponse.SwimlaneTitle), nameof (Card.SwimlaneName))]
+    public partial Card MapCardPositionResponseToCard (CardPositionResponse boardCardResponse);
 }

@@ -12,21 +12,34 @@ public partial class TagMapper : ITagMapper
 {
     #region Tag
 
-    [MapProperty (nameof (TagCreateRequest.ParentID), nameof (Tag.RowKey))]
+    /// <summary>
+    /// <see cref="TagCreateRequest"/> --> <see cref="Tag"/>
+    /// </summary>
+    [MapProperty (nameof (TagCreateRequest.ParentID), nameof (Tag.ParentObjectID))]
     [MapProperty (nameof (TagCreateRequest.Title), nameof (Tag.Title))]
-    [MapProperty (nameof (TagCreateRequest.TypeID), nameof (Tag.TagType))]
+    [MapProperty (nameof (TagCreateRequest.TypeID), nameof (Tag.TagTypeID))]
     public partial Tag MapTagCreateRequestToTag (TagCreateRequest tagCreateRequest);
 
+    /// <summary>
+    /// <see cref="TagPatchRequest"/> --> <see cref="Tag"/>
+    /// </summary>
     [MapProperty (nameof (TagPatchRequest.Title), nameof (Tag.Title))]
-    [MapProperty (nameof (TagPatchRequest.TypeID), nameof (Tag.TagType))]
+    [MapProperty (nameof (TagPatchRequest.TypeID), nameof (Tag.TagTypeID))]
     public partial Tag MapTagPatchRequestToTag (TagPatchRequest tagPatchRequest);
 
+    /// <summary>
+    /// <see cref="Tag"/> --> <see cref="TagPatchRequest"/>
+    /// </summary>
     [MapProperty (nameof (Tag.Title), nameof (TagPatchRequest.Title))]
-    [MapProperty (nameof (Tag.TagType), nameof (TagPatchRequest.TypeID))]
+    [MapProperty (nameof (Tag.TagTypeID), nameof (TagPatchRequest.TypeID))]
     public partial TagPatchRequest MapTagToTagPatchRequest (Tag tag);
 
-    [MapProperty (nameof (Tag.PartitionKey), nameof (TagResponse.ID))]
-    [MapProperty (nameof (Tag.RowKey), nameof (TagResponse.ParentID))]
+    /// <summary>
+    /// <see cref="Tag"/> --> <see cref="TagResponse"/>
+    /// </summary>
+    [MapProperty (nameof (Tag.TagID), nameof (TagResponse.ID))]
+    [MapProperty (nameof (Tag.ParentObjectID), nameof (TagResponse.ParentID))]
+    [MapProperty (nameof (Tag.ParentObjectTypeName), nameof (TagResponse.ParentTypeName))]
     [MapProperty (nameof (Tag.Title), nameof (TagResponse.Title))]
     public partial TagResponse MapTagToTagResponse (Tag tag);
 
@@ -34,8 +47,11 @@ public partial class TagMapper : ITagMapper
 
     #region TagType
 
-    [MapProperty (nameof (TagType.PartitionKey), nameof (TagTypeResponse.ID))]
-    [MapProperty (nameof (TagType.RowKey), nameof (TagTypeResponse.TagGroupID))]
+    /// <summary>
+    /// <see cref="TagType"/> --> <see cref="TagTypeResponse"/>
+    /// </summary>
+    [MapProperty (nameof (TagType.TagGroupID), nameof (TagTypeResponse.TagGroupID))]
+    [MapProperty (nameof (TagType.TagTypeID), nameof (TagTypeResponse.ID))]
     [MapProperty (nameof (TagType.Title), nameof (TagTypeResponse.Title))]
     public partial TagTypeResponse MapTagTypeToTagTypeResponse (TagType tagType);
 
@@ -43,8 +59,11 @@ public partial class TagMapper : ITagMapper
 
     #region TagGroup
 
-    [MapProperty (nameof (TagGroup.PartitionKey), nameof (TagGroupResponse.ID))]
-    [MapProperty (nameof (TagGroup.RowKey), nameof (TagGroupResponse.TagID))]
+    /// <summary>
+    /// <see cref="TagGroup"/> --> <see cref="TagGroupResponse"/>
+    /// </summary>
+    [MapProperty (nameof (TagGroup.TagGroupID), nameof (TagGroupResponse.ID))]
+    [MapProperty (nameof (TagGroup.TagID), nameof (TagGroupResponse.TagID))]
     [MapProperty (nameof (TagGroup.Title), nameof (TagGroupResponse.Title))]
     [MapProperty (nameof (TagGroup.TagGroupType), nameof (TagGroupResponse.TagGroupTypeID))]
     public partial TagGroupResponse MapTagGroupToTagGroupResponse (TagGroup tagGroup);
@@ -53,8 +72,11 @@ public partial class TagMapper : ITagMapper
 
     #region TagGroupType
 
-    [MapProperty (nameof (TagGroupType.PartitionKey), nameof (TagGroupTypeResponse.ID))]
-    [MapProperty (nameof (TagGroupType.RowKey), nameof (TagGroupTypeResponse.TagGroupID))]
+    /// <summary>
+    /// <see cref="TagGroupType"/> --> <see cref="TagGroupTypeResponse"/>
+    /// </summary>
+    [MapProperty (nameof (TagGroupType.TagGroupID), nameof (TagGroupTypeResponse.TagGroupID))]
+    [MapProperty (nameof (TagGroupType.TagGroupTypeID), nameof (TagGroupTypeResponse.ID))]
     [MapProperty (nameof (TagGroupType.Title), nameof (TagGroupTypeResponse.Title))]
     public partial TagGroupTypeResponse MapTagGroupTypeToTagGroupTypeResponse (TagGroupType tagGroupType); 
 

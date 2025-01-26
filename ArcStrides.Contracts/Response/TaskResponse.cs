@@ -10,7 +10,5 @@ public class TaskResponse
 
     public int? TaskTypeID { get; init; } = null;
 
-    public string? TaskTypeTitle { get; init; } = null;
-
     public bool? isCompleted { get; init; } = null;
 }

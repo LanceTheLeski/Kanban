@@ -9,6 +9,9 @@ namespace ArcStrides.API.Calendars.Mappers;
 [Mapper]
 public partial class DateMapper : IDateMapper
 {
+    /// <summary>
+    /// <see cref="DateCreateRequest"/> --> <see cref="Date"/>
+    /// </summary>
     [MapProperty (nameof (DateCreateRequest.DateOrder), nameof (Date.DateOrder))]
     [MapProperty (nameof (DateCreateRequest.WeekOrder), nameof (Date.WeekOrder))]
     [MapProperty (nameof (DateCreateRequest.DayOfTheWeekOrder), nameof (Date.DayOfTheWeekOrder))]
@@ -17,6 +20,9 @@ public partial class DateMapper : IDateMapper
     [MapProperty (nameof (DateCreateRequest.Year), nameof (Date.Year))]
     public partial Date MapDateCreateRequestToDate (DateCreateRequest dateCreateRequest);
 
+    /// <summary>
+    /// <see cref="DatePatchRequest"/> --> <see cref="Date"/>
+    /// </summary>
     [MapProperty (nameof (DatePatchRequest.DateOrder), nameof (Date.DateOrder))]
     [MapProperty (nameof (DatePatchRequest.WeekOrder), nameof (Date.WeekOrder))]
     [MapProperty (nameof (DatePatchRequest.DayOfTheWeekOrder), nameof (Date.DayOfTheWeekOrder))]
@@ -25,7 +31,10 @@ public partial class DateMapper : IDateMapper
     [MapProperty (nameof (DatePatchRequest.Year), nameof (Date.Year))]
     public partial Date MapDatePatchRequestToDate (DatePatchRequest datePatchRequest);
 
-    [MapProperty (nameof (Date.PartitionKey), nameof (DateResponse.ID))]
+    /// <summary>
+    /// <see cref="Date"/> --> <see cref="DateResponse"/>
+    /// </summary>
+    [MapProperty (nameof (Date.DateID), nameof (DateResponse.ID))]
     [MapProperty (nameof (Date.DateOrder), nameof (DateResponse.DateOrder))]
     [MapProperty (nameof (Date.WeekOrder), nameof (DateResponse.WeekOrder))]
     [MapProperty (nameof (Date.DayOfTheWeekOrder), nameof (DateResponse.DayOfTheWeekOrder))]

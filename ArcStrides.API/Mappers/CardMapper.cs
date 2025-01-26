@@ -9,6 +9,9 @@ namespace ArcStrides.API.Mappers;
 [Mapper]
 public partial class CardMapper : ICardMapper
 {
+    /// <summary>
+    /// <see cref="CardCreateRequest"/> --> <see cref="Card"/>
+    /// </summary>
     [MapProperty (nameof (CardCreateRequest.Title), nameof (Card.Title))]
     [MapProperty (nameof (CardCreateRequest.Description), nameof (Card.Description))]
     [MapProperty (nameof (CardCreateRequest.StartDependencyTagGroupID), nameof (Card.StartDependencyTagGroupID))]
@@ -19,18 +22,29 @@ public partial class CardMapper : ICardMapper
     [MapProperty (nameof (CardCreateRequest.EndDeadlineUTC), nameof (Card.EndDeadlineUTC))]
     public partial Card MapCardCreateRequestToCard (CardCreateRequest cardCreateRequest);
 
+    /// <summary>
+    /// <see cref="Card"/> --> <see cref="CardPosition"/>
+    /// </summary>
     [MapProperty (nameof (Card.PartitionKey), nameof (CardPosition.PartitionKey))]
-    [MapProperty (nameof (Card.CardPositionID), nameof (CardPosition.RowKey))]
+    [MapProperty (nameof (Card.CardPositionID), nameof (CardPosition.CardPositionID))]
+    [MapProperty (nameof (Card.CardID), nameof (CardPosition.CardID))]
     public partial CardPosition MapCardToCardPosition (Card card);
 
+    /// <summary>
+    /// <see cref="Card"/> --> <see cref="CardPositionResponse"/>
+    /// </summary>
     [MapProperty (nameof (Card.CardPositionID), nameof (CardPositionResponse.ID))]
     [MapProperty (nameof (Card.Title), nameof (CardPositionResponse.Title))]
     [MapProperty (nameof (Card.Description), nameof (CardPositionResponse.Description))]
+    [MapProperty (nameof (Card.BoardID), nameof (CardPositionResponse.BoardID))]
     public partial CardPositionResponse MapCardToCardPositionResponse (Card card);
 
     #region CardPosition
 
-    [MapProperty (nameof (CardPosition.RowKey), nameof (CardPositionResponse.ID))]
+    /// <summary>
+    /// <see cref="CardPosition"/> --> <see cref="CardPositionResponse"/>
+    /// </summary>
+    [MapProperty (nameof (CardPosition.CardPositionID), nameof (CardPositionResponse.ID))]
     [MapProperty (nameof (CardPosition.ColumnID), nameof (CardPositionResponse.ColumnID))]
     [MapProperty (nameof (CardPosition.ColumnTitle), nameof (CardPositionResponse.ColumnTitle))]
     [MapProperty (nameof (CardPosition.ColumnOrder), nameof (CardPositionResponse.ColumnOrder))]
@@ -39,13 +53,16 @@ public partial class CardMapper : ICardMapper
     [MapProperty (nameof (CardPosition.SwimlaneOrder), nameof (CardPositionResponse.SwimlaneOrder))]
     public partial CardPositionResponse MapCardPositionToCardPositionResponse (CardPosition cardPosition);
 
-    //[MapProperty (nameof (CardCreateRequest.Title), nameof (CardPosition.Title))]
-    //[MapProperty (nameof (CardCreateRequest.Description), nameof (CardPosition.CardDescription))]
-    //[MapProperty (nameof (CardCreateRequest.BoardID), nameof (CardPosition.PartitionKey))]
+    /// <summary>
+    /// <see cref="CardCreateRequest"/> --> <see cref="CardPosition"/>
+    /// </summary>
     [MapProperty (nameof (CardCreateRequest.ColumnID), nameof (CardPosition.ColumnID))]
     [MapProperty (nameof (CardCreateRequest.SwimlaneID), nameof (CardPosition.SwimlaneID))]
     public partial CardPosition MapCardCreateRequestToCardPosition (CardCreateRequest cardCreateRequest);
 
+    /// <summary>
+    /// <see cref="CardPositionPatchRequest"/> --> <see cref="CardPosition"/>
+    /// </summary>
     [MapProperty (nameof (CardPosition.ColumnID), nameof (CardPositionPatchRequest.ColumnID))]
     [MapProperty (nameof (CardPosition.ColumnTitle), nameof (CardPositionPatchRequest.ColumnTitle))]
     [MapProperty (nameof (CardPosition.ColumnOrder), nameof (CardPositionPatchRequest.ColumnOrder))]

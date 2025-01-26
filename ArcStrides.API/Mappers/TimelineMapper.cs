@@ -9,9 +9,12 @@ namespace ArcStrides.API.Mappers;
 [Mapper]
 public partial class TimelineMapper : ITimelineMapper
 {
-    [MapProperty (nameof (TimelineCreateRequest.ParentID), nameof (Timeline.RowKey))]
+    /// <summary>
+    /// <see cref="TimelineCreateRequest"/> --> <see cref="Timeline"/>
+    /// </summary>
+    [MapProperty (nameof (TimelineCreateRequest.ParentID), nameof (Timeline.ParentObjectID))]
     [MapProperty (nameof (TimelineCreateRequest.TimelineTypeID), nameof (Timeline.TimelineTypeID))]
-    [MapProperty (nameof (TimelineCreateRequest.EndDependencyTagGroupID), nameof (Timeline.StartDependencyTagGroupID))]
+    [MapProperty (nameof (TimelineCreateRequest.StartDependencyTagGroupID), nameof (Timeline.StartDependencyTagGroupID))]
     [MapProperty (nameof (TimelineCreateRequest.StartPreferenceUTC), nameof (Timeline.StartPreferenceUTC))]
     [MapProperty (nameof (TimelineCreateRequest.StartDeadlineUTC), nameof (Timeline.StartDeadlineUTC))]
     [MapProperty (nameof (TimelineCreateRequest.EndDependencyTagGroupID), nameof (Timeline.EndDependencyTagGroupID))]
@@ -19,8 +22,11 @@ public partial class TimelineMapper : ITimelineMapper
     [MapProperty (nameof (TimelineCreateRequest.EndDeadlineUTC), nameof (Timeline.EndDeadlineUTC))]
     public partial Timeline MapTimelineCreateRequestToTimeline (TimelineCreateRequest timelineCreateRequest);
 
+    /// <summary>
+    /// <see cref="TimelinePatchRequest"/> --> <see cref="Timeline"/>
+    /// </summary>
     [MapProperty (nameof (TimelinePatchRequest.TimelineTypeID), nameof (Timeline.TimelineTypeID))]
-    [MapProperty (nameof (TimelinePatchRequest.EndDependencyTagGroupID), nameof (Timeline.StartDependencyTagGroupID))]
+    [MapProperty (nameof (TimelinePatchRequest.StartDependencyTagGroupID), nameof (Timeline.StartDependencyTagGroupID))]
     [MapProperty (nameof (TimelinePatchRequest.StartPreferenceUTC), nameof (Timeline.StartPreferenceUTC))]
     [MapProperty (nameof (TimelinePatchRequest.StartDeadlineUTC), nameof (Timeline.StartDeadlineUTC))]
     [MapProperty (nameof (TimelinePatchRequest.EndDependencyTagGroupID), nameof (Timeline.EndDependencyTagGroupID))]
@@ -28,6 +34,9 @@ public partial class TimelineMapper : ITimelineMapper
     [MapProperty (nameof (TimelinePatchRequest.EndDeadlineUTC), nameof (Timeline.EndDeadlineUTC))]
     public partial Timeline MapTimelinePatchRequestToTimeline (TimelinePatchRequest timelineCreateRequest);
 
+    /// <summary>
+    /// <see cref="Timeline"/> --> <see cref="TimelinePatchRequest"/>
+    /// </summary>
     [MapProperty (nameof (Timeline.TimelineTypeID), nameof (TimelinePatchRequest.TimelineTypeID))]
     [MapProperty (nameof (Timeline.StartDependencyTagGroupID), nameof (TimelinePatchRequest.StartDependencyTagGroupID))]
     [MapProperty (nameof (Timeline.StartPreferenceUTC), nameof (TimelinePatchRequest.StartPreferenceUTC))]
@@ -37,7 +46,10 @@ public partial class TimelineMapper : ITimelineMapper
     [MapProperty (nameof (Timeline.EndDeadlineUTC), nameof (TimelinePatchRequest.EndDeadlineUTC))]
     public partial TimelinePatchRequest MapTimelineToTimelinePatchRequest (Timeline timeline);
 
-    [MapProperty (nameof (Timeline.PartitionKey), nameof (TimelineResponse.ID))]
+    /// <summary>
+    /// <see cref="Timeline"/> --> <see cref="TimelineResponse"/>
+    /// </summary>
+    [MapProperty (nameof (Timeline.TimeLineID), nameof (TimelineResponse.ID))]
     [MapProperty (nameof (Timeline.TimelineTypeID), nameof (TimelineResponse.TimelineTypeID))]
     [MapProperty (nameof (Timeline.StartDependencyTagGroupID), nameof (TimelineResponse.StartDependencyTagGroupID))]
     [MapProperty (nameof (Timeline.StartPreferenceUTC), nameof (TimelineResponse.StartPreferenceUTC))]

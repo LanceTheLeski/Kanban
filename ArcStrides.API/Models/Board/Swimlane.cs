@@ -1,17 +1,8 @@
-﻿using Azure.Data.Tables;
-using Azure;
+﻿namespace ArcStrides.API.Models.Board;
 
-namespace ArcStrides.API.Models.Board;
-
-public class Swimlane : ITableEntity
+public class Swimlane : ArcBoardsEntity
 {
-    public string PartitionKey { get; set; } //Required -- BoardId
-
-    public string RowKey { get; set; } //Required -- SwimlaneID
-
-    public DateTimeOffset? Timestamp { get; set; } //Required
-
-    public ETag ETag { get; set; } //Required ??
+    public Guid SwimlaneID { get; set => EntityID = SwimlaneID.ToString (); }
 
     public string Title { get; set; }
 

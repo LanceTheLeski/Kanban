@@ -1,20 +1,11 @@
-﻿using Azure.Data.Tables;
-using Azure;
-
-namespace ArcStrides.API.Models.Calendar;
+﻿namespace ArcStrides.API.Models.Calendar;
 
 /// <summary>
 /// Loosely corresponds to a day within a month.
 /// </summary>
-public class Date : ITableEntity
+public class Date : ArcCalendarsEntity
 {
-    public string PartitionKey { get; set; } //Required -- Date ID --> MonthID
-
-    public string RowKey { get; set; } //Required -- Month ID --> DateID
-
-    public DateTimeOffset? Timestamp { get; set; } = default!; //Required
-
-    public ETag ETag { get; set; } = default!; //Required ??
+    public Guid DateID { get; set => EntityID = DateID.ToString (); }
 
     public int DateOrder { get; set; } // Add to database. Is the date itself - e.g. The 15th
 

@@ -1,21 +1,13 @@
-﻿using Azure.Data.Tables;
-using Azure;
+﻿namespace ArcStrides.API.Models;
 
-namespace ArcStrides.API.Models;
-
-public class Tag : ITableEntity
+public class Tag : ArcTagsEntity
 {
-    public string PartitionKey { get; set; } //Required -- Tag ID
+    public string ParentObjectID { get; set => EntityID = ParentObjectID; }
+    public string ParentObjectTypeName {  get; set; }
 
-    public string RowKey { get; set; } //Required -- Parent Object ID -- interesting idea?
+    public string? Title { get; set; }
 
-    public DateTimeOffset? Timestamp { get; set; } = default!; //Required
-
-    public ETag ETag { get; set; } = default!; //Required ??
-
-    public string Title { get; set; }
-
-    public int TagType { get; set; }
+    public int TagTypeID { get; set; }
 
     
 
