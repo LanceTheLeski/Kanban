@@ -58,7 +58,7 @@ public class BoardController : Controller
         var swimlaneCollectionOrdered = swimlaneCollection.OrderBy (swimlane => swimlane.SwimlaneOrder);
 
         var cardCollection = await _cardRepository.GetCardsAsync (ID);
-        //var cardPositionCollection = await _cardRepository.QueryCardPositionsAsync (cardPosition =>  cardPosition.CardID == ID.ToString ());
+        var cardPositionCollection = await _cardRepository.GetCardPositionsAsync (ID);
 
         var columnResponse = new Collection<ColumnResponse> ();
         foreach (var column in columnCollectionOrdered)
@@ -77,7 +77,12 @@ public class BoardController : Controller
         var cardResponse = new Collection<CardResponse> ();
         foreach (var card in cardCollection)
         {
+            var cardPosition = cardPositionCollection.SingleOrDefault (cardPosition => cardPosition.RowKey == card.CardPositionID.ToString ());
+            if (cardPosition is null) ;//??
+            var mappedCardPosition = _cardMapper.MapCardPositionToCardPositionResponse (cardPosition!);
+
             var mappedCard = _cardMapper.MapCardToCardResponse (card);
+            mappedCard.Position = mappedCardPosition;
             cardResponse.Add (mappedCard);
         }
 

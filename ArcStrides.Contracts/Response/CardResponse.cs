@@ -8,7 +8,7 @@ public class CardResponse
 
     public string? Description { get; init; } = null;
 
-    public CardPositionResponse? Position { get; init; } = null;
+    public CardPositionResponse? Position { get; set; } = null; //This line differs
 
     public IEnumerable<TaskResponse>? Tasks { get; init; } = null;
 
