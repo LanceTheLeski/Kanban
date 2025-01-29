@@ -13,8 +13,8 @@ public class BoardRepository : IBoardRepository
     private readonly IArcErrorHandler _arcErrorHandler;
 
     public BoardRepository (IHttpClientFactory httpClientFactory,
-                         IOptions<ArcStridesServiceOptions> backendOptions,
-                         IArcErrorHandler arcErrorHandler)
+                            IOptions<ArcStridesServiceOptions> backendOptions,
+                            IArcErrorHandler arcErrorHandler)
     {
         _httpClient = httpClientFactory.CreateClient ();
         _backendOptions = backendOptions.Value;

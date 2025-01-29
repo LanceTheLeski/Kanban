@@ -80,8 +80,8 @@ public partial class Board
         _swimlaneTitles = new List<string> ();
         _swimlanes = new List<Guid> ();
 
-        var columnList = (Collection<ColumnResponse>) boardResponse.Columns;
-        var swimlaneList = (Collection<SwimlaneResponse>) boardResponse.Swimlanes;
+        var columnList = (List<ColumnResponse>) boardResponse.Columns;
+        var swimlaneList = (List<SwimlaneResponse>) boardResponse.Swimlanes;
         for (int columnIndex = 0; columnIndex < columnList.Count; columnIndex ++)
         {
             for (int swimlaneIndex = 0; swimlaneIndex < swimlaneList.Count (); swimlaneIndex ++)

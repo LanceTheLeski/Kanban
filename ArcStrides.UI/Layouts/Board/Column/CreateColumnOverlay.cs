@@ -2,16 +2,23 @@
 using ArcStrides.Contracts.Response;
 using ArcStrides.UI.Components.ArcOverlay;
 using ArcStrides.UI.Repositories;
+using ArcStrides.UI.Services;
 
 namespace ArcStrides.UI.Layouts.Board.Column;
 
 public partial class CreateColumnOverlay : IArcOverlay
 {
-    private readonly IColumnRepository _columnRepository;
+    //private readonly IColumnRepository _columnRepository;
 
-    public CreateColumnOverlay (IColumnRepository columnRepository)
+    public CreateColumnOverlay (/*IArcStridesServiceFactory<ColumnResponse> columnServiceFactory*/
+                                /*IColumnRepository columnRepository*/)
     {
-        _columnRepository = columnRepository;
+        //var columnService = columnServiceFactory.CreateArcStridesService ();
+        //_columnRepository = new IColumnRepository (columnService);
+
+        //_columnRepository = columnRepository;
+
+        //_columnRepository = new ColumnRepository (columnService);
     }
 
     public void OpenOverlay ()

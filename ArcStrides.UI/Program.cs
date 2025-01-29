@@ -1,9 +1,12 @@
+using ApexCharts;
 using ArcStrides.Contracts.Response;
 using ArcStrides.UI;
 using ArcStrides.UI.Components.ArcErrorHandler;
+using ArcStrides.UI.Layouts.Board.Column;
 using ArcStrides.UI.Options;
 using ArcStrides.UI.Repositories;
 using ArcStrides.UI.Services;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder (args);
@@ -17,6 +20,8 @@ builder.Services.AddHttpClient ();
 
 builder.Services.Configure<ArcStridesServiceOptions> (builder.Configuration.GetSection ("InternalAPI"));
 
+builder.Services.AddTransient<CreateColumnOverlay> ();
+
 builder.Services.AddTransient<IArcErrorHandler, ArcErrorHandler> ();
 builder.Services.AddTransient<IArcStridesService<CardResponse>, ArcStridesService<CardResponse>> ();
 builder.Services.AddTransient<IArcStridesService<CardPositionResponse>, ArcStridesService<CardPositionResponse>> ();
@@ -24,8 +29,12 @@ builder.Services.AddTransient<IArcStridesService<BoardResponse>, ArcStridesServi
 builder.Services.AddTransient<IArcStridesService<ColumnResponse>, ArcStridesService<ColumnResponse>> ();
 builder.Services.AddTransient<IArcStridesService<SwimlaneResponse>, ArcStridesService<SwimlaneResponse>> ();
 
+builder.Services.AddSingleton<ArcStridesServiceExtensions<ColumnResponse>> ();
+builder.Services.TryAddSingleton<IArcStridesServiceFactory<ColumnResponse>> (serviceProvider => serviceProvider.GetRequiredService<ArcStridesServiceExtensions<ColumnResponse>> ());
+//builder.Services.AddTransient<IArcStridesServiceFactory<ColumnResponse>, ArcStridesServiceExtensions<ColumnResponse>> ();
 
 builder.Services.AddTransient<IBoardRepository, BoardRepository> ();
+builder.Services.AddTransient<IColumnRepository, ColumnRepository> ();
 builder.Services.AddTransient<ICardRepository, CardRepository> ();
 builder.Services.AddTransient<ITaskRepository, TaskRepository> ();
 

@@ -1,11 +1,15 @@
-﻿@using ArcStrides.UI.Components
+﻿@using ArcStrides.Contracts.Response
+@using ArcStrides.UI.Components
 @using ArcStrides.UI.Layouts.Board
 @using ArcStrides.UI.Layouts.Board.Card
 @using ArcStrides.UI.Layouts.Board.Column
 @using ArcStrides.UI.Layouts.Board.Swimlane
 @using ArcStrides.UI.Models
 @using ArcStrides.UI.Repositories
+@using ArcStrides.UI.Services
 @using MudBlazor
+
+@inject IArcStridesServiceFactory<ColumnResponse> columnServiceFactory
 
 @rendermode RenderMode.InteractiveServer
 
@@ -45,41 +49,41 @@
     </MudToolBar>
 </MudPaper>
 
-<CreateCardOverlay @ref="createCardOverlay"
-                   @bind-Cards="Cards"
-                   @bind-Columns="Columns"
-                   @bind-ColumnTitles="ColumnTitles"
-                   @bind-Swimlanes="Swimlanes"
-                   @bind-SwimlaneTitles="SwimlaneTitles"
-                   Refresh="Refresh" />
+<CreateCardOverlay  @ref="createCardOverlay"
+@bind-Cards="Cards"
+@bind-Columns="Columns"
+@bind-ColumnTitles="ColumnTitles"
+@bind-Swimlanes="Swimlanes"
+@bind-SwimlaneTitles="SwimlaneTitles"
+Refresh="Refresh" />
 
-<CreateSwimlaneOverlay @ref="createSwimlaneOverlay"
-                       @bind-Swimlanes="Swimlanes"
-                       @bind-SwimlaneTitles="SwimlaneTitles" 
-                       Refresh="Refresh" />
-<DeleteSwimlaneOverlay @ref="deleteSwimlaneOverlay" 
-                       @bind-Swimlanes="Swimlanes"
-                       @bind-SwimlaneTitles="SwimlaneTitles" 
-                       Refresh="Refresh" />
-<UpdateSwimlaneOverlay @ref="updateSwimlaneOverlay"
-                       @bind-Swimlanes="Swimlanes"
-                       @bind-SwimlaneTitles="SwimlaneTitles" 
-                       Refresh="Refresh" />
+<CreateSwimlaneOverlay  @ref="createSwimlaneOverlay"
+@bind-Swimlanes="Swimlanes"
+@bind-SwimlaneTitles="SwimlaneTitles" 
+Refresh="Refresh" />
+<DeleteSwimlaneOverlay  @ref="deleteSwimlaneOverlay" 
+@bind-Swimlanes="Swimlanes"
+@bind-SwimlaneTitles="SwimlaneTitles" 
+Refresh="Refresh" />
+<UpdateSwimlaneOverlay  @ref="updateSwimlaneOverlay"
+@bind-Swimlanes="Swimlanes"
+@bind-SwimlaneTitles="SwimlaneTitles" 
+Refresh="Refresh" />
 
-<CreateColumnOverlay @ref="createColumnOverlay"
-                     @bind-Columns="Columns"
-                     @bind-ColumnTitles="ColumnTitles" 
-                     Refresh="Refresh" />
-<DeleteColumnOverlay @ref="deleteColumnOverlay"
-                     @bind-Columns="Columns"
-                     @bind-ColumnTitles="ColumnTitles" 
-                     Refresh="Refresh" />
-<UpdateColumnOverlay @ref="updateColumnOverlay"
-                     @bind-Columns="Columns"
-                     @bind-ColumnTitles="ColumnTitles" 
-                     Refresh="Refresh" />
+<CreateColumnOverlay    @ref="createColumnOverlay"
+@bind-Columns="Columns"
+@bind-ColumnTitles="ColumnTitles" 
+Refresh="Refresh" />
+<DeleteColumnOverlay    @ref="deleteColumnOverlay"
+@bind-Columns="Columns"
+@bind-ColumnTitles="ColumnTitles" 
+Refresh="Refresh" />
+<UpdateColumnOverlay    @ref="updateColumnOverlay"
+@bind-Columns="Columns"
+@bind-ColumnTitles="ColumnTitles" 
+Refresh="Refresh" />
 
-<AddManageBoardOverlay @ref="addManageBoardOverlay" />
+<AddManageBoardOverlay  @ref="addManageBoardOverlay" />
 
 @code 
 {
@@ -111,22 +115,22 @@
     [Parameter]
     public EventCallback<bool> Refresh { get; set; }
 
-    private static IColumnRepository _columnRepository;
+    //private static IColumnRepository _columnRepository;
 
-    public BoardManagementNavigationBar (IColumnRepository columnRepository)
+    public BoardManagementNavigationBar ()
     {
-        _columnRepository = columnRepository;
+        //createColumnOverlay = new CreateColumnOverlay (columnServiceFactory);
     }
 
-    private CreateCardOverlay createCardOverlay = new CreateCardOverlay ();
+    private CreateCardOverlay createCardOverlay;
 
-    private CreateSwimlaneOverlay createSwimlaneOverlay = new CreateSwimlaneOverlay ();
-    private DeleteSwimlaneOverlay deleteSwimlaneOverlay = new DeleteSwimlaneOverlay ();
-    private UpdateSwimlaneOverlay updateSwimlaneOverlay = new UpdateSwimlaneOverlay ();
+    private CreateSwimlaneOverlay createSwimlaneOverlay;
+    private DeleteSwimlaneOverlay deleteSwimlaneOverlay;
+    private UpdateSwimlaneOverlay updateSwimlaneOverlay;
 
-    private CreateColumnOverlay createColumnOverlay = new CreateColumnOverlay(_columnRepository);
-    private DeleteColumnOverlay deleteColumnOverlay = new DeleteColumnOverlay ();
-    private UpdateColumnOverlay updateColumnOverlay = new UpdateColumnOverlay ();
+    private CreateColumnOverlay createColumnOverlay;
+    private DeleteColumnOverlay deleteColumnOverlay;
+    private UpdateColumnOverlay updateColumnOverlay;
 
-    private AddManageBoardOverlay addManageBoardOverlay = new AddManageBoardOverlay ();
+    private AddManageBoardOverlay addManageBoardOverlay;
 }
