@@ -24,8 +24,8 @@ public class SwimlaneRepository : ISwimlaneRepository
         _swimlaneTable = new AzureTableService<Swimlane> (swimlanes, azureTableOptions);
     }
 
-    public async Task<Swimlane?> GetSwimlaneAsync (Guid swimlaneID, Guid boardID)
-        => await _swimlaneTable.GetEntityAsync (swimlaneID, boardID);
+    public async Task<Swimlane?> GetSwimlaneAsync (Guid boardID, Guid swimlaneID)
+        => await _swimlaneTable.GetEntityAsync (boardID, swimlaneID);
 
     public async Task<Collection<Swimlane>> GetAllBoardSwimlanes (Guid boardID)
         => await _swimlaneTable.GetEntitiesAsync (boardID);

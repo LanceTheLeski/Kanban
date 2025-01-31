@@ -25,7 +25,8 @@
 
 <MudPaper Style="background-color: aqua;"> <!--Class="glass"--> <!--Class="mud-theme-backgroundgray"--->
     <MudPaper Height="50px" Width="100%" Class="d-inline mud-theme-primary">
-        <BoardManagementNavigationBar @bind-Cards="@_cards"
+        <BoardManagementNavigationBar @bind-BoardID="_boardID"
+                                      @bind-Cards="@_cards"
                                       @bind-Swimlanes="_swimlanes"
                                       @bind-SwimlaneTitles="_swimlaneTitles"
                                       @bind-Columns="_columns"
@@ -63,10 +64,10 @@
             </MudPaper>
         </MudItem>
         <MudDropContainer @ref="_dropContainer"
-                          T="DropCard" 
-                          Items="_cards" 
-                          ItemDropped="UpdateCard"
-                          ItemsSelector="@((card, dropzone) => card.CardArea == dropzone)">
+        T="DropCard" 
+        Items="_cards" 
+        ItemDropped="UpdateCard"
+        ItemsSelector="@((card, dropzone) => card.CardArea == dropzone)">
             <ChildContent>
                 @foreach (var rowIndex in Enumerable.Range(0, _swimlaneTitles.Count()))
                 {
@@ -93,14 +94,14 @@
                                         <MudItem Style="height: 250px;">
                                             <!--We want columns to have a set width-->
                                             <MudList T="MudDropZone<DropCard>"
-                                                     ReadOnly="false"
-                                                     Class="d-flex flex-column mud-height-full" 
-                                                     Style="height: 250px;">
+                                            ReadOnly="false"
+                                            Class="d-flex flex-column mud-height-full" 
+                                            Style="height: 250px;">
                                                 <MudDropZone T="DropCard" 
-                                                             Identifier="@identifier" 
-                                                             CanDropClass="mud-border-success"
-                                                             Class="d-flex flex-wrap flex-grow-1 justify-space-around gap-4 pa-2 overflow-auto"
-                                                             Style="background-color: #ECED7b; width: 300px; height: 200px;"/>
+                                                Identifier="@identifier" 
+                                                CanDropClass="mud-border-success"
+                                                Class="d-flex flex-wrap flex-grow-1 justify-space-around gap-4 pa-2 overflow-auto"
+                                                Style="background-color: #ECED7b; width: 300px; height: 200px;"/>
                                             </MudList>
                                         </MudItem>
                                     }
@@ -123,11 +124,15 @@
 
 <!--Should move this to a different layout component which manages cards-->
 <UpdateCardOverlay @bind-Open="editCardOverlayIsOpen"
-                   @bind-ActiveCard="_activeCard"
-                   Refresh="Refresh" />
+@bind-ActiveCard="_activeCard"
+Refresh="Refresh" />
 
 @code 
 {
+    private BoardResponse _board;
+
+    private Guid _boardID = Guid.Empty;
+
     public List<DropCard> _cards = new List<DropCard> ();
 
     public List<Guid> _swimlanes = new List<Guid> ();
@@ -144,7 +149,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var boardResponse = await _boardRepository.FetchBoard(Guid.Parse("1cb0ce6e-6145-4fe7-833a-0b7c0545c449"));//Change later to be dynamic..
-        _cards = ConvertBoardResponseToDropCardList(boardResponse);
+        _board = await _boardRepository.FetchBoard(Guid.Parse("1cb0ce6e-6145-4fe7-833a-0b7c0545c449"));//Change later to be dynamic..
+        // todo: Validate Board Response here and throw an error if it is not what we want it to be...
+
+        _boardID = _board.ID!.Value;
+
+        _cards = ConvertBoardResponseToDropCardList(_board);
     }
 }

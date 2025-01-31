@@ -1,6 +1,7 @@
 ﻿@using ArcStrides.UI.Components
 @using ArcStrides.UI.Components.ArcOverlay
 @using ArcStrides.UI.Options
+@using ArcStrides.UI.Repositories
 @using Microsoft.Extensions.Options
 @using Newtonsoft.Json
 @using ArcStrides.UI.Models
@@ -8,21 +9,27 @@
 @using ArcStrides.Contracts.Response
 @using System.Net.Http.Headers
 
-@inject HttpClient http
-@inject IOptions<ArcStridesServiceOptions> interfaceOptions
-@inject ISnackbar Snackbar
-
 @rendermode RenderMode.InteractiveServer
 
-<ArcOverlay @bind-Open="Open">
+<ArcOverlay @bind-Open="Open"
+            OnSubmitAsync="CreateSwimlaneAsync">
+
     <MudText>Add a New Swimlane</MudText>
-    <MudTextField T="string" @bind-Value="swimlaneTitle" Label="Title" Variant="Variant.Filled" AutoGrow HelperText="Swimlane Title" />
-    <MudTextField T="string" @bind-Value="swimlaneOrder" Label="Order" Variant="Variant.Filled" AutoGrow HelperText="Swimlane Order" />
-    <MudButtonGroup>
-        <MudButton OnClick="CreateSwimlane">Submit</MudButton>
-        <MudButton OnClick="CloseSwimlaneOverlay">Discard</MudButton>
-    </MudButtonGroup>
+    
+    <MudTextField T="string" 
+                  @bind-Value="_swimlaneTitle" 
+                  Label="Title" 
+                  Variant="Variant.Filled" 
+                  AutoGrow HelperText="Swimlane Title" />
+
+    <MudTextField T="string" 
+                  @bind-Value="_swimlaneOrder" 
+                  Label="Order" 
+                  Variant="Variant.Filled" 
+                  AutoGrow HelperText="Swimlane Order" />
 </ArcOverlay>
+
+@inject ISwimlaneRepository _swimlaneRepository;
 
 @code
 {
@@ -30,6 +37,11 @@
     public bool Open { get; set; }
     [Parameter]
     public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public Guid BoardID { get; set; }
+    [Parameter]
+    public EventCallback<Guid> BoardIDChanged { get; set; }
 
     [Parameter]
     public List<Guid> Swimlanes { get; set; }
@@ -44,70 +56,7 @@
     [Parameter]
     public EventCallback<bool> Refresh { get; set; }
 
-    private static List<Guid> _swimlanes = new List<Guid> ();
-    private static List<string> _swimlaneTitles = new List<string> ();
+    private string _swimlaneTitle = "";
 
-    public CreateSwimlaneOverlay ()
-    {
-        Open = false;
-        _swimlanes = Swimlanes;
-        _swimlaneTitles = SwimlaneTitles;
-    }
-
-    private string swimlaneTitle = "";
-    private string swimlaneOrder = "";
-    private async Task<SwimlaneResponse> CreateSwimlane ()
-    {
-        int? order = null;
-        try
-        {
-            order = swimlaneOrder is not null ?
-                int.Parse (swimlaneOrder) :
-                Swimlanes.Count ();
-        }
-        catch (FormatException)
-        {
-            Snackbar.Add ("Could not add new Swimlane. The input for Order was invalid.");
-        }
-
-        var createRequest = new SwimlaneCreateRequest
-        {
-            Title = swimlaneTitle,
-            Order = order!.Value,
-            //BoardID = Guid.Parse ("20a88077-10d4-4648-92cb-7dc7ba5b8df5")
-        };
-
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{interfaceOptions.Value.URL}ArcStrides/swimlanes");
-        httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject (createRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
-
-        var response = await http.SendAsync (httpRequestMessage);
-        if (response.IsSuccessStatusCode)
-        {
-            var responseBody = await response.Content.ReadAsStringAsync ();
-            var deserialized = JsonConvert.DeserializeObject<SwimlaneResponse> (responseBody);
-
-            Swimlanes.Insert (deserialized.Order.Value, deserialized.ID.Value);
-            await SwimlanesChanged.InvokeAsync (Swimlanes);
-
-            SwimlaneTitles.Insert (deserialized.Order.Value, deserialized.Title);
-            await SwimlaneTitlesChanged.InvokeAsync (SwimlaneTitles);
-
-            Refresh.InvokeAsync (true);
-
-            CloseSwimlaneOverlay ();
-
-            return deserialized;
-        }
-
-        var responseErrorBody = await response.Content.ReadAsStringAsync ();
-        Snackbar.Add ($"Error: {responseErrorBody}");
-
-        return null;
-    }
-
-    private void CloseSwimlaneOverlay ()
-    {
-        Open = false;
-        OpenChanged.InvokeAsync (Open);
-    }
+    private string _swimlaneOrder = "";
 }

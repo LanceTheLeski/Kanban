@@ -44,12 +44,12 @@ public class SwimlaneController : ArcController
         _cardRepository = cardRepository;
     }
 
-    [HttpGet ("{ID:guid}")]
-    public async Task<ActionResult> FetchSwimlane (Guid ID)
+    [HttpGet ("/arcstrides/boards/{boardID:guid}/swimlanes/{swimlaneID:guid}")]
+    public async Task<ActionResult> FetchSwimlane (Guid boardID, Guid swimlaneID)
     {
         try
         {
-            var swimlaneFromDatabase = await FetchAndValidateSwimlane (ID);
+            var swimlaneFromDatabase = await FetchAndValidateSwimlane (boardID, swimlaneID);
 
             var swimlaneResponse = _swimlaneMapper.MapSwimlaneToSwimlaneResponse (swimlaneFromDatabase);
             return Ok (swimlaneResponse);
@@ -60,7 +60,7 @@ public class SwimlaneController : ArcController
 
     [HttpPost ("/arcstrides/boards/{boardID:guid}/swimlanes")]
     public async Task<ActionResult> CreateBoardSwimlane ([FromRoute] Guid boardID,
-                                                       [FromBody] SwimlaneCreateRequest swimlaneCreateRequest)
+                                                         [FromBody] SwimlaneCreateRequest swimlaneCreateRequest)
     {
         var validationResult = _swimlaneCreateRequestValidator.Validate (swimlaneCreateRequest);
         if (validationResult.IsValid is false)
@@ -78,13 +78,13 @@ public class SwimlaneController : ArcController
             return Created (default (Uri)/*Generate this later*/, swimlaneResponse);
         }
         catch (Exception ex)
-        { return ArcErrorResponse (ex); }
+            { return ArcErrorResponse (ex); }
     }
 
     [HttpPatch ("/arcstrides/boards/{boardID:Guid}/swimlanes/{swimlaneID:Guid}")]
     public async Task<ActionResult> UpdateBoardSwimlane ([FromRoute] Guid boardID,
-                                                       [FromRoute] Guid swimlaneID,
-                                                       [FromBody] JsonPatchDocument<SwimlanePatchRequest> swimlanePatchRequest)
+                                                         [FromRoute] Guid swimlaneID,
+                                                         [FromBody] JsonPatchDocument<SwimlanePatchRequest> swimlanePatchRequest)
     {
         var validationResult = _swimlanePatchRequestDocumentValidator.Validate (swimlanePatchRequest);
         if (validationResult.IsValid is false)
@@ -111,16 +111,16 @@ public class SwimlaneController : ArcController
             return Ok (swimlaneResponse);
         }
         catch (Exception ex)
-        { return ArcErrorResponse (ex); }
+            { return ArcErrorResponse (ex); }
     }
 
     [HttpDelete ("/arcstrides/boards/{boardID:guid}/swimlanes/{swimlaneID:guid}")]
     public async Task<ActionResult> DeleteBoardSwimlane ([FromRoute] Guid boardID,
-                                                       [FromRoute] Guid swimlaneID)
+                                                         [FromRoute] Guid swimlaneID)
     {
         try
         {
-            var swimlaneToDelete = await FetchAndValidateSwimlane (swimlaneID);
+            var swimlaneToDelete = await FetchAndValidateSwimlane (boardID, swimlaneID);
 
             await DeleteSwimlaneAndUpdateEffectedSwimlanesAndCardPositions (boardID, swimlaneToDelete);
             return Ok ();
@@ -133,10 +133,10 @@ public class SwimlaneController : ArcController
     /// Attempts to fetch a single swimlane based on its ID. If a single swimlane 
     /// is not returned then the request fails.
     /// </summary>
-    private async Task<Swimlane> FetchAndValidateSwimlane (Guid swimlaneID)
+    private async Task<Swimlane> FetchAndValidateSwimlane (Guid boardID, Guid swimlaneID)
     {
         IEnumerable<Swimlane>? swimlaneEnumerableFromDatabase = null;
-        try { await _swimlaneRepository.QuerySwimlanesAsync (swimlane => swimlane.RowKey == swimlaneID.ToString ()); }
+        try { await _swimlaneRepository.GetSwimlaneAsync (boardID, swimlaneID); }
         catch (RequestFailedException reqFailedEx)
         { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (Swimlane), reqFailedEx.Status)); }
 
@@ -228,7 +228,7 @@ public class SwimlaneController : ArcController
 
         swimlaneToUpdate = _swimlaneMapper.MapSwimlanePatchRequestToSwimlane (convertedSwimlaneToUpdate); // Make sure that the response object is preserved if not mapped to.
 
-        var allUpdatedSwimlanes = (Collection<Swimlane>) updateSwimlaneTransaction.Select (action => action.Entity as Swimlane);
+        var allUpdatedSwimlanes = updateSwimlaneTransaction.Select (action => (Swimlane) action.Entity).ToList ();
         allUpdatedSwimlanes.Add (swimlaneToUpdate);
 
         updateSwimlaneTransaction.Add (new TableTransactionAction (TableTransactionActionType.UpdateMerge, swimlaneToUpdate));
@@ -243,7 +243,7 @@ public class SwimlaneController : ArcController
     }
 
     private async Task DeleteSwimlaneAndUpdateEffectedSwimlanesAndCardPositions (Guid boardID,
-                                                                             Swimlane swimlaneToDelete)
+                                                                                 Swimlane swimlaneToDelete)
     {
         var deleteSwimlaneTransaction = new ArcTransaction (boardID);
 
@@ -251,7 +251,7 @@ public class SwimlaneController : ArcController
                                                                                         && swimlane.PartitionKey == swimlaneToDelete.PartitionKey);
         deleteSwimlaneTransaction = _swimlaneRepository.DecrementExistingSwimlanesOrder (swimlanesToUpdateOrder, deleteSwimlaneTransaction);
 
-        var allUpdatedSwimlanes = (Collection<Swimlane>) deleteSwimlaneTransaction.Select (action => action.Entity as Swimlane);
+        var allUpdatedSwimlanes = deleteSwimlaneTransaction.Select (action => (Swimlane) action.Entity).ToList ();
         allUpdatedSwimlanes.Add (swimlaneToDelete);
 
         deleteSwimlaneTransaction.Add (new TableTransactionAction (TableTransactionActionType.Delete, swimlaneToDelete));

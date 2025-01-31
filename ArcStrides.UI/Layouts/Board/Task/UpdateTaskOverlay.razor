@@ -1,10 +1,15 @@
 ﻿@using ArcStrides.Contracts.Response
 @using ArcStrides.UI.Components
 @using ArcStrides.UI.Components.ArcOverlay
+@using ArcStrides.UI.Repositories
 
-<ArcOverlay @bind-Open="Open">
+<ArcOverlay @bind-Open="Open"
+            OnSubmitAsync="UpdateTaskAsync">
+
     <MudText>@TaskData.Title</MudText>
+
     <MudText>Completed: @(TaskData.isCompleted)</MudText>
+
     <!--<MudExpansionPanels>
         <MudExpansionPanel Text="Column" MaxHeight="1000" ExpandedChanged="TaskTypeListExpandedChanged">
             @_taskTypeList
@@ -18,11 +23,7 @@
     </MudExpansionPanels>-->
 </ArcOverlay>
 
-<!--<MudOverlay @bind-Visible="_taskViewIsOpen" DarkBackground="true" ZIndex="20">
-    <UpdateTaskOverlay @bind-Open="_taskViewIsOpen"
-                       @bind-TaskData="_swimlanes"
-                       Refresh="Refresh" />
-</MudOverlay>-->
+@inject ITaskRepository _taskRepository;
 
 @code 
 {
@@ -30,6 +31,11 @@
     public bool Open { get; set; }
     [Parameter]
     public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public Guid BoardID { get; set; }
+    [Parameter]
+    public EventCallback<Guid> BoardIDChanged { get; set; }
 
     [Parameter]
     public TaskResponse TaskData { get; set; }

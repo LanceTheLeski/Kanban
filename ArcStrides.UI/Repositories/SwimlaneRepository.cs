@@ -1,77 +1,25 @@
 ﻿using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Response;
-using ArcStrides.UI.Components.ArcErrorHandler;
-using ArcStrides.UI.Options;
-using Microsoft.Extensions.Options;
+using ArcStrides.UI.Services;
 using Newtonsoft.Json;
-using System.Net.Http.Headers;
 
 namespace ArcStrides.UI.Repositories;
 
-public class SwimlaneRepository
+public class SwimlaneRepository : ISwimlaneRepository
 {
-    private readonly HttpClient _httpClient;
+    private readonly IArcStridesService<SwimlaneResponse> _arcStridesBackend;
 
-    private readonly ArcStridesServiceOptions _backendOptions;
-
-    private readonly IArcErrorHandler _arcErrorHandler;
-
-    public SwimlaneRepository (IHttpClientFactory httpClientFactory,
-                          IOptions<ArcStridesServiceOptions> backendOptions,
-                          IArcErrorHandler arcErrorHandler)
+    public SwimlaneRepository (IArcStridesService<SwimlaneResponse> arcStridesBackend)
     {
-        _httpClient = httpClientFactory.CreateClient ();
-
-        _backendOptions = backendOptions.Value;
-
-        _arcErrorHandler = arcErrorHandler;
+        _arcStridesBackend = arcStridesBackend;
     }
 
-    public async Task<SwimlaneResponse?> CreateSwimlane (Guid boardID, SwimlaneCreateRequest swimlaneCreateRequest)
-    {
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{_backendOptions.URL}arcstrides/boards/{boardID}/swimlanes");
-        httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject (swimlaneCreateRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
+    public async Task<SwimlaneResponse?> CreateSwimlaneAsync (Guid boardID, SwimlaneCreateRequest swimlaneCreateRequest)
+        => await _arcStridesBackend.CreateEntityAsync (@$"arcstrides/boards/{boardID}/swimlanes", JsonConvert.SerializeObject (swimlaneCreateRequest));
 
-        var response = await _httpClient.SendAsync (httpRequestMessage);
-        if (response.IsSuccessStatusCode is false)
-        {
-            _arcErrorHandler.AddError (response.ReasonPhrase ?? string.Empty, response.StatusCode);
-            return null;
-        }
+    public async Task<SwimlaneResponse?> UpdateSwimlaneAsync (Guid boardID, Guid swimlaneID, string swimlanePatchRequest)
+        => await _arcStridesBackend.UpdateEntityAsync (@$"arcstrides/boards/{boardID}/swimlanes/{swimlaneID}", swimlanePatchRequest);
 
-        var responseBody = await response.Content.ReadAsStringAsync ();
-        var swimlaneResponse = JsonConvert.DeserializeObject<SwimlaneResponse> (responseBody);
-        return swimlaneResponse;
-    }
-
-    public async Task<SwimlaneResponse?> UpdateSwimlane (Guid boardID, Guid swimlaneID, string swimlanePatchRequest)
-    {
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{_backendOptions.URL}arcstrides/boards/{boardID}/swimlanes/{swimlaneID}");
-        httpRequestMessage.Content = new StringContent (swimlanePatchRequest, mediaType: new MediaTypeHeaderValue (@"application/json"));
-
-        var response = await _httpClient.SendAsync (httpRequestMessage);
-        if (response.IsSuccessStatusCode is false)
-        {
-            _arcErrorHandler.AddError (response.ReasonPhrase ?? string.Empty, response.StatusCode);
-            return null;
-        }
-
-        var responseBody = await response.Content.ReadAsStringAsync ();
-        var swimlaneResponse = JsonConvert.DeserializeObject<SwimlaneResponse> (responseBody);
-        return swimlaneResponse!;
-    }
-
-    public async Task<bool> DeleteSwimlane (Guid boardID, Guid swimlaneID)
-    {
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Delete, @$"{_backendOptions.URL}arcstrides/boards/{boardID}/swimlanes/{swimlaneID}");
-
-        var response = await _httpClient.SendAsync (httpRequestMessage);
-        if (response.IsSuccessStatusCode is false)
-        {
-            _arcErrorHandler.AddError (response.ReasonPhrase ?? string.Empty, response.StatusCode);
-            return false;
-        }
-
-        return true;
-    }
+    public async Task DeleteSwimlaneAsync (Guid boardID, Guid swimlaneID)
+        => await _arcStridesBackend.DeleteEntityAsync (@$"arcstrides/boards/{boardID}/swimlanes/{swimlaneID}");
 }

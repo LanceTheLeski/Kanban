@@ -7,27 +7,39 @@
 @using ArcStrides.UI.Layouts
 @using ArcStrides.UI.Models
 @using ArcStrides.UI.Options
+@using ArcStrides.UI.Repositories
 @using Microsoft.Extensions.Options
 @using Newtonsoft.Json
 @using System.Net.Http.Headers
 
-@inject HttpClient http
-@inject IOptions<ArcStridesServiceOptions> interfaceOptions
-
 <ArcOverlay @bind-Open="Open" 
-            OnSubmitAsync="CreateCard">
+OnSubmitAsync="CreateCardAsync">
 
     <MudText>Add a New Card</MudText>
-    <MudTextField @bind-Value="cardTitle" T="string" Label="Title" Variant="Variant.Filled" HelperText="Card Title" />
-    <MudTextField @bind-Value="cardDescription" T="string" Label="Description" Variant="Variant.Filled" AutoGrow Lines="7" HelperText="Description" />
+
+    <MudTextField @bind-Value="_cardTitle" 
+    T="string" 
+    Label="Title" 
+    Variant="Variant.Filled" 
+    HelperText="Card Title" />
+
+    <MudTextField @bind-Value="_cardDescription" 
+    T="string" 
+    Label="Description" 
+    Variant="Variant.Filled" 
+    AutoGrow 
+    Lines="7" 
+    HelperText="Description" />
 
     <ArcExpandingSelector @bind-Options="ColumnTitles"
-                             OptionSelected="SetColumnNameToAddCard" />
+    OptionSelected="SetColumnNameToAddCard" />
 
     <ArcExpandingSelector @bind-Options="SwimlaneTitles"
-                             OptionSelected="SetSwimlaneNameToAddCard"/>
+    OptionSelected="SetSwimlaneNameToAddCard"/>
 
 </ArcOverlay>
+
+@inject ICardRepository _cardRepository;
 
 @code
 {
@@ -35,6 +47,11 @@
     public bool Open { get; set; }
     [Parameter]
     public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public Guid BoardID { get; set; }
+    [Parameter]
+    public EventCallback<Guid> BoardIDChanged { get; set; }
 
     [Parameter]
     public List<DropCard>? Cards { get; set; }
@@ -64,6 +81,9 @@
     [Parameter]
     public EventCallback<bool> Refresh { get; set; }
 
-    private string cardTitle = "";
-    private string cardDescription = "";
+    private string _cardTitle = string.Empty;
+    private string _cardDescription = string.Empty;
+
+    private string _swimlaneToAddCard = string.Empty;
+    private string _columnToAddCard = string.Empty;
 }

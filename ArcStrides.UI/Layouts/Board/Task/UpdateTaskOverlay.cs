@@ -12,4 +12,9 @@ public partial class UpdateTaskOverlay : IArcOverlay
         Open = false;
         OpenChanged.InvokeAsync (Open);
     }
+
+    private async System.Threading.Tasks.Task UpdateTaskAsync ()
+    { 
+    
+    }
 }

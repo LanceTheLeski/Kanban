@@ -5,9 +5,9 @@ namespace ArcStrides.UI.Repositories;
 
 public interface ICardRepository
 {
-    Task<CardPositionResponse?> CreateCard (CardCreateRequest boardCardCreateRequest);
+    Task<CardPositionResponse?> CreateCardPositionAsync (CardCreateRequest boardCardCreateRequest);
 
-    Task<CardPositionResponse?> UpdateCard (Guid cardID, string boardCardPatchRequest);
+    Task<CardPositionResponse?> UpdateCardPositionAsync (Guid cardID, string boardCardPatchRequest);
 
-    Task DeleteCard (Guid cardID);
+    Task DeleteCardPositionAsync (Guid cardID);
 }

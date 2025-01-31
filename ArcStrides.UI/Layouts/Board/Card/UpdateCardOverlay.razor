@@ -6,17 +6,15 @@
 @using ArcStrides.UI.Layouts.Board.Task
 @using ArcStrides.UI.Models
 @using ArcStrides.UI.Options
+@using ArcStrides.UI.Repositories
 @using Microsoft.Extensions.Options
 @using Newtonsoft.Json
 @using System.Net.Http.Headers
 
-@inject HttpClient http
-@inject IOptions<ArcStridesServiceOptions> interfaceOptions
-@inject ISnackbar Snackbar
-
 @inherits LayoutComponentBase
 
-<ArcOverlay @bind-Open="Open">
+<ArcOverlay @bind-Open="Open"
+            OnSubmitAsync="UpdateCard">
     <MudPaper Width="900px" Height="500px" Class="mud-background">
         <MudStack>
             <MudItem>
@@ -35,7 +33,7 @@
                             </MudItem>
                             <MudItem></MudItem>
                             <MudItem>
-                                @_taskList
+                                <!--@_taskList-->
                             </MudItem>
                         </MudStack>
                     </MudItem>
@@ -61,12 +59,19 @@
     </MudPaper>
 </ArcOverlay>
 
+@inject ICardRepository _cardRepository;
+
 @code 
 {
     [Parameter]
     public bool Open { get; set; }
     [Parameter]
     public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public Guid BoardID { get; set; }
+    [Parameter]
+    public EventCallback<Guid> BoardIDChanged { get; set; }
 
     [Parameter]
     public DropCard? ActiveCard { get; set; }
@@ -76,8 +81,8 @@
     [Parameter]
     public EventCallback<bool> Refresh { get; set; }
 
-    public string cardTitle = "";
-    public string cardDescription = "";
+    public string _cardTitle = string.Empty;
+    public string _cardDescription = string.Empty;
 
     private Guid? CardID = null;
 
@@ -103,7 +108,7 @@
                         @foreach (var task in ActiveCard.Tasks)
                         {
                             <MudListItem>
-                                <CreateTaskOverlay @bind-TaskTitle="cardTitle" @bind-CardID="CardID" />
+                                <CreateTaskOverlay @bind-TaskTitle="_cardTitle" @bind-CardID="CardID" />
                             </MudListItem>
                         }
                         <MudListItem>
@@ -119,72 +124,8 @@
     {
         if (ActiveCard is not null)
         {
-            cardTitle = ActiveCard.Title;
-            cardDescription = ActiveCard.Description;
+            _cardTitle = ActiveCard.Title;
+            _cardDescription = ActiveCard.Description;
         }
-    }
-
-    private async Task UpdateCard ()
-    {
-        var patchRequestForTitle = string.IsNullOrEmpty (cardTitle) ? 
-            "" : 
-            $@"{{ ""op"": ""replace"", ""path"": ""/Title"", ""value"": ""{cardTitle}"" }},";
-        var patchRequestForDescription = string.IsNullOrEmpty (cardDescription) ?
-            "" :
-            $@"{{ ""op"": ""replace"", ""path"": ""/Description"", ""value"": ""{cardDescription}"" }},";
-
-        if (patchRequestForTitle is "" && patchRequestForDescription is "")
-            return;
-
-        var patchRequest =
-        $@"[
-            {patchRequestForTitle}
-            {patchRequestForDescription}
-        ]";
-
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{interfaceOptions.Value.URL}ArcStrides/cards/{ActiveCard.Id}");
-        httpRequestMessage.Content = new StringContent (patchRequest, mediaType: new MediaTypeHeaderValue (@"application/json"));
-
-        var response = await http.SendAsync (httpRequestMessage);
-        if (!response.IsSuccessStatusCode)
-        {
-            Snackbar.Add ($"Could not update card. Error code: {response.StatusCode}");
-        }
-
-        Refresh.InvokeAsync (true);
-
-        CloseOverlay();
-    }
-
-    /*private async Task<List<TaskResponse>> FetchTasksForCard ()
-    {
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, @$"{interfaceOptions.Value.URL}ArcStrides/tasks/fetch?cardID={ActiveCard.Id}");
-
-        var response = await http.SendAsync (httpRequestMessage);
-        if (!response.IsSuccessStatusCode)
-        {
-            Snackbar.Add ($"Could not fetch the tasks. Error code: {response.StatusCode}");
-        }
-
-        var responseBody = await response.Content.ReadAsStringAsync ();
-        var deserialized = JsonConvert.DeserializeObject<List<TaskResponse>> (responseBody);
-
-        return deserialized;
-    }*/
-
-    private async Task DeleteCard ()
-    {
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Delete, @$"{interfaceOptions.Value.URL}ArcStrides/boards/{ActiveCard.Id}");//Not sure if this should be
-                                                                                                                                           //boards or cards
-
-        var response = await http.SendAsync (httpRequestMessage);
-        if (!response.IsSuccessStatusCode)
-        {
-            Snackbar.Add ($"Could not update Column. Error code: {response.StatusCode}");
-        }
-
-        Refresh.InvokeAsync (true);
-
-        CloseOverlay ();
     }
 }

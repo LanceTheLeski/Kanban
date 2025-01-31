@@ -7,4 +7,7 @@ public interface IColumnRepository
 {
     Task<ColumnResponse?> CreateColumnAsync (Guid boardID, ColumnCreateRequest columnCreateRequest);
 
+    Task<ColumnResponse?> UpdateColumnAsync (Guid boardID, Guid columnID, string columnPatchRequest);
+
+    Task DeleteColumnAsync (Guid boardID, Guid columnID);
 }

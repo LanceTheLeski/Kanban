@@ -1,10 +1,7 @@
 ﻿using ArcStrides.Contracts.Request.Create;
-using ArcStrides.Contracts.Response;
 using ArcStrides.UI.Components.ArcOverlay;
 using ArcStrides.UI.Mappers;
 using ArcStrides.UI.Models;
-using Newtonsoft.Json;
-using System.Net.Http.Headers;
 
 namespace ArcStrides.UI.Layouts.Board.Card;
 
@@ -19,7 +16,6 @@ public partial class CreateCardOverlay : IArcOverlay
         OpenChanged.InvokeAsync (Open);
     }
 
-    private string columnToAddCard = string.Empty;
     private void SetColumnNameToAddCard (string columnName)
     {
         var matchingColumnNameCount = ColumnTitles?.FindAll (column => column == columnName).Count ();
@@ -30,10 +26,9 @@ public partial class CreateCardOverlay : IArcOverlay
             throw new Exception ($"The column selected does not correspond to a single column in our list of columns. Number of this column found: {matchingColumnNameCount}");
         }
 
-        columnToAddCard = columnName;
+        _columnToAddCard = columnName;
     }
 
-    private string swimlaneToAddCard = string.Empty;
     private void SetSwimlaneNameToAddCard (string swimlaneName)
     {
         var matchingSwimlaneNameCount = SwimlaneTitles?.FindAll (swimlane => swimlane == swimlaneName).Count ();
@@ -44,54 +39,43 @@ public partial class CreateCardOverlay : IArcOverlay
             throw new Exception ($"The swimlane selected does not correspond to a single column in our list of swimlanes. Number of this swimlane found: {matchingSwimlaneNameCount}");
         }
 
-        swimlaneToAddCard = swimlaneName;
+        _swimlaneToAddCard = swimlaneName;
     }
 
-    public async Task<CardPositionResponse> CreateCard () //We will probably want a restriction down the road that swimlanes and columns don't have duplicate titles
+    public async System.Threading.Tasks.Task CreateCardAsync () //We will probably want a restriction down the road that swimlanes and columns don't have duplicate titles
     {
         var createRequest = new CardCreateRequest
         {
-            Title = cardTitle,
-            Description = cardDescription,
-            //BoardID = Guid.Parse ("20a88077-10d4-4648-92cb-7dc7ba5b8df5"),
-            ColumnID = Columns [ColumnTitles.IndexOf (columnToAddCard)],
-            SwimlaneID = Swimlanes [SwimlaneTitles.IndexOf (swimlaneToAddCard)]
+            Title = _cardTitle,
+            Description = _cardDescription,
+            ColumnID = Columns [ColumnTitles.IndexOf (_columnToAddCard)],
+            SwimlaneID = Swimlanes [SwimlaneTitles.IndexOf (_swimlaneToAddCard)]
         };
 
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{interfaceOptions.Value.URL}ArcStrides/cards");
-        httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject (createRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
+        var cardResponse = await _cardRepository.CreateCardPositionAsync (createRequest);
 
-        var response = await http.SendAsync (httpRequestMessage);
-        if (response.IsSuccessStatusCode)
+        //Do validation here..
+        
+        //Add it to the DropCard list? And if we want to use the boardResponse as a source of truth then that too? But I don't think that should be the case
+        var mapper = new CardMapper ();
+        var dropCard = (DropCard) mapper.MapCardPositionResponseToCard (cardResponse);
+        dropCard.CardArea = ConvertColumnAndSwimlaneToCardArea (cardResponse.SwimlaneOrder.Value, cardResponse.ColumnOrder.Value);
+        Cards.Add (dropCard);
+        /*Cards.Add (new DropCard
         {
-            var responseBody = await response.Content.ReadAsStringAsync ();
-            var deserialized = JsonConvert.DeserializeObject<CardPositionResponse> (responseBody);
-
-            //Add it to the DropCard list? And if we want to use the boardResponse as a source of truth then that too? But I don't think that should be the case
-            var mapper = new CardMapper ();
-            var dropCard = (DropCard) mapper.MapCardPositionResponseToCard (deserialized);
-            dropCard.CardArea = ConvertColumnAndSwimlaneToCardArea (deserialized.SwimlaneOrder.Value, deserialized.ColumnOrder.Value);
-            Cards.Add (dropCard);
-            /*Cards.Add (new DropCard
-            {
-                Id = deserialized.ID,
-                Title = deserialized.Title,
-                Description = deserialized.Description,
-                ColumnNumber = deserialized.ColumnOrder,
-                ColumnID = Guid.Parse (deserialized.ColumnID),
-                ColumnName = deserialized.ColumnTitle,
-                SwimlaneNumber = deserialized.SwimlaneOrder,
-                SwimlaneID = Guid.Parse (deserialized.SwimlaneID),
-                SwimlaneName = deserialized.SwimlaneTitle,
-                CardArea = ConvertColumnAndSwimlaneToCardArea (deserialized.SwimlaneOrder, deserialized.ColumnOrder)
+            Id = deserialized.ID,
+            Title = deserialized.Title,
+            Description = deserialized.Description,
+            ColumnNumber = deserialized.ColumnOrder,
+            ColumnID = Guid.Parse (deserialized.ColumnID),
+            ColumnName = deserialized.ColumnTitle,
+            SwimlaneNumber = deserialized.SwimlaneOrder,
+            SwimlaneID = Guid.Parse (deserialized.SwimlaneID),
+            SwimlaneName = deserialized.SwimlaneTitle,
+            CardArea = ConvertColumnAndSwimlaneToCardArea (deserialized.SwimlaneOrder, deserialized.ColumnOrder)
             */
 
-            Refresh.InvokeAsync (true);
-
-            return deserialized;
-        }
-
-        return null;
+        Refresh.InvokeAsync (true);
     }
 
     private string ConvertColumnAndSwimlaneToCardArea (int swimlanePos, int columnPos)

@@ -2,9 +2,12 @@
 @using ArcStrides.UI.Components.ArcOverlay
 @using MudBlazor
 
-<ArcOverlay>
+<ArcOverlay @bind-Open="Open">
+
     <MudText>Add/Edit Board</MudText>
+
     <MudTextField T="string" Label="Title" Variant="Variant.Filled" AutoGrow HelperText="Board Title" />
+
 </ArcOverlay>
 
 @code 

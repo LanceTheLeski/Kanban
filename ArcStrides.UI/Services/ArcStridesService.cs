@@ -27,7 +27,7 @@ public class ArcStridesService<TResp> : IArcStridesService<TResp> where TResp : 
 
     public async Task<TResp?> CreateEntityAsync (string urlPath, string serializedEntityCreateRequest)
     {
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, $"{_backendOptions.URL}/{urlPath}");
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, $"{_backendOptions.URL.TrimEnd ('/')}/{urlPath}");
         httpRequestMessage.Content = new StringContent (serializedEntityCreateRequest, mediaType: new MediaTypeHeaderValue (@"application/json"));
 
         var response = await _httpClient.SendAsync (httpRequestMessage);
@@ -44,7 +44,7 @@ public class ArcStridesService<TResp> : IArcStridesService<TResp> where TResp : 
 
     public async Task<TResp?> UpdateEntityAsync (string urlPath, string serializedEntityPatchRequest)
     {
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, $"{_backendOptions.URL}/{urlPath}");
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, $"{_backendOptions.URL.TrimEnd ('/')}/{urlPath}");
         httpRequestMessage.Content = new StringContent (serializedEntityPatchRequest, mediaType: new MediaTypeHeaderValue (@"application/json"));
 
         var response = await _httpClient.SendAsync (httpRequestMessage);
@@ -61,7 +61,7 @@ public class ArcStridesService<TResp> : IArcStridesService<TResp> where TResp : 
 
     public async Task DeleteEntityAsync (string urlPath)
     {
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Delete, $"{_backendOptions.URL}/{urlPath}");
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Delete, $"{_backendOptions.URL.TrimEnd ('/')}/{urlPath}");
 
         var response = await _httpClient.SendAsync (httpRequestMessage);
         if (response.IsSuccessStatusCode is false)

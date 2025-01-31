@@ -24,8 +24,8 @@ public class ColumnRepository : IColumnRepository
         _columnTable = new AzureTableService<Column> (columns, azureTableOptions);
     }
 
-    public async Task<Column?> GetColumnAsync (Guid columnID, Guid boardID)
-        => await _columnTable.GetEntityAsync (columnID, boardID);
+    public async Task<Column?> GetColumnAsync (Guid boardID, Guid columnID)
+        => await _columnTable.GetEntityAsync (boardID, columnID);
 
     public async Task<Collection<Column>> GetAllBoardColumns (Guid boardID)
         => await _columnTable.GetEntitiesAsync (boardID);

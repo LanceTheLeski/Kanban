@@ -44,12 +44,12 @@ public class ColumnController : ArcController
         _cardRepository = cardRepository;
     }
 
-    [HttpGet ("{ID:guid}")]
-    public async Task<ActionResult> FetchColumn (Guid ID)
+    [HttpGet ("/arcstrides/boards/{boardID:guid}/columns/{columnID:guid}")]
+    public async Task<ActionResult> FetchColumn (Guid boardID, Guid columnID)
     {
         try
         {
-            var columnFromDatabase = await FetchAndValidateColumn (ID);
+            var columnFromDatabase = await FetchAndValidateColumn (boardID, columnID);
 
             var columnResponse = _columnMapper.MapColumnToColumnResponse (columnFromDatabase);
             return Ok (columnResponse);
@@ -120,7 +120,7 @@ public class ColumnController : ArcController
     {
         try
         {
-            var columnToDelete = await FetchAndValidateColumn (columnID);
+            var columnToDelete = await FetchAndValidateColumn (boardID, columnID);
 
             await DeleteColumnAndUpdateEffectedColumnsAndCardPositions (boardID, columnToDelete);
             return Ok ();
@@ -133,19 +133,17 @@ public class ColumnController : ArcController
     /// Attempts to fetch a single column based on its ID. If a single column 
     /// is not returned then the request fails.
     /// </summary>
-    private async Task<Column> FetchAndValidateColumn (Guid columnID)
+    private async Task<Column> FetchAndValidateColumn (Guid boardID, Guid columnID)
     {
-        IEnumerable<Column>? columnEnumerableFromDatabase = null;
-        try { await _columnRepository.QueryColumnsAsync (column => column.RowKey == columnID.ToString ()); }
+        Column? columnFromDatabase = null;
+        try { columnFromDatabase = await _columnRepository.GetColumnAsync (boardID, columnID); }
         catch (RequestFailedException reqFailedEx)
             { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (Column), reqFailedEx.Status)); }
 
-        if (columnEnumerableFromDatabase!.Count () is 0)
+        if (columnFromDatabase is null)
             throw new RequestFailureWrapperException (nameof (NotFound), ErrorResponseMessages.NotFoundErrorResponse (nameof (Column)));
-        if (columnEnumerableFromDatabase!.Count () is not 1)
-            throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.TooManyEntitiesErrorResponse (nameof (Column)));
 
-        return columnEnumerableFromDatabase!.Single ();
+        return columnFromDatabase!;
     }
 
     /// <summary>
@@ -228,7 +226,7 @@ public class ColumnController : ArcController
 
         columnToUpdate = _columnMapper.MapColumnPatchRequestToColumn (convertedColumnToUpdate); // Make sure that the response object is preserved if not mapped to.
 
-        var allUpdatedColumns = (Collection<Column>) updateColumnTransaction.Select (action => action.Entity as Column);
+        var allUpdatedColumns = updateColumnTransaction.Select (action => (Column) action.Entity).ToList ();
         allUpdatedColumns.Add (columnToUpdate);
         
         updateColumnTransaction.Add (new TableTransactionAction (TableTransactionActionType.UpdateMerge, columnToUpdate));
@@ -251,7 +249,7 @@ public class ColumnController : ArcController
                                                                                         && column.PartitionKey == columnToDelete.PartitionKey);
         deleteColumnTransaction = _columnRepository.DecrementExistingColumnsOrder (columnsToUpdateOrder, deleteColumnTransaction);
 
-        var allUpdatedColumns = (Collection<Column>) deleteColumnTransaction.Select (action => action.Entity as Column);
+        var allUpdatedColumns = deleteColumnTransaction.Select (action => (Column) action.Entity).ToList ();
         allUpdatedColumns.Add (columnToDelete);
         
         deleteColumnTransaction.Add (new TableTransactionAction (TableTransactionActionType.Delete, columnToDelete));

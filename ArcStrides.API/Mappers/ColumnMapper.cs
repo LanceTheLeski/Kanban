@@ -33,8 +33,8 @@ public partial class ColumnMapper : IColumnMapper
     /// <summary>
     /// <see cref="Column"/> --> <see cref="ColumnResponse"/>
     /// </summary>
-    [MapProperty (nameof (Column.PartitionKey), nameof (ColumnResponse.ID))]
-    [MapProperty (nameof (Column.RowKey), nameof (ColumnResponse.BoardID))]
+    [MapProperty (nameof (Column.PartitionKey), nameof (ColumnResponse.BoardID))]
+    [MapProperty (nameof (Column.RowKey), nameof (ColumnResponse.ID))]
     [MapProperty (nameof (Column.Title), nameof (ColumnResponse.Title))]
     [MapProperty (nameof (Column.ColumnOrder), nameof (ColumnResponse.Order))]
     public partial ColumnResponse MapColumnToColumnResponse (Column column);

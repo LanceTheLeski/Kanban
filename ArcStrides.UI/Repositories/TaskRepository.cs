@@ -17,8 +17,8 @@ public class TaskRepository : ITaskRepository
     private readonly IArcErrorHandler _arcErrorHandler;
 
     public TaskRepository (IHttpClientFactory httpClientFactory,
-                       IOptions<ArcStridesServiceOptions> backendOptions,
-                       IArcErrorHandler arcErrorHandler)
+                           IOptions<ArcStridesServiceOptions> backendOptions,
+                           IArcErrorHandler arcErrorHandler)
     {
         _httpClient = httpClientFactory.CreateClient ();
 

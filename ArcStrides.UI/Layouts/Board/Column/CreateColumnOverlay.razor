@@ -9,27 +9,28 @@
 @using Newtonsoft.Json
 @using System.Net.Http.Headers
 
-@inject IColumnRepository _columnRepository
-
 @rendermode RenderMode.InteractiveServer
 
 <ArcOverlay @bind-Open="Open"
-            OnSubmitAsync="CreateColumn">
+            OnSubmitAsync="CreateColumnAsync">
 
     <MudText>Add a New Column</MudText>
 
     <MudTextField T="string" 
-                  @bind-Value="columnTitle" 
+                  @bind-Value="_columnTitle" 
                   Label="Title" 
                   Variant="Variant.Filled" 
                   AutoGrow HelperText="Column Title" />
+
     <MudTextField T="string" 
-                  @bind-Value="columnOrder" 
+                  @bind-Value="_columnOrder" 
                   Label="Order" 
                   Variant="Variant.Filled" 
                   AutoGrow HelperText="Column Order" />
 
 </ArcOverlay>
+
+@inject IColumnRepository _columnRepository
 
 @code 
 {
@@ -40,8 +41,8 @@
 
     [Parameter]
     public Guid BoardID { get; set; }
-    //[Parameter]
-    //public EventCallback<List<Guid>> BoardChanged { get; set; }
+    [Parameter]
+    public EventCallback<Guid> BoardIDChanged { get; set; }
 
     [Parameter]
     public List<Guid> Columns { get; set; }
@@ -56,6 +57,7 @@
     [Parameter]
     public EventCallback<bool> Refresh { get; set; }
     
-    private string columnTitle = "";
-    private string columnOrder = "";
+    private string _columnTitle = string.Empty;
+
+    private string _columnOrder = string.Empty;
 }

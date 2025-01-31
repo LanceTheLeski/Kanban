@@ -1,7 +1,6 @@
 ﻿using ArcStrides.Contracts.Response;
 using ArcStrides.UI.Models;
 using MudBlazor;
-using System.Collections.ObjectModel;
 
 namespace ArcStrides.UI.Pages;
 
@@ -54,7 +53,7 @@ public partial class Board
             {{ ""op"": ""replace"", ""path"": ""/SwimlaneOrder"", ""value"": ""{cardToUpdate.SwimlaneNumber}"" }}
         ]";
 
-        return await _cardRepository.UpdateCard (cardToUpdate.Id, patchRequest);
+        return await _cardRepository.UpdateCardPositionAsync (cardToUpdate.Id, patchRequest);
     }
 
     private (int swimlanePos, int columnPos) ConvertCardAreaToColumnAndSwimlane (string cardAreaValue)
