@@ -18,7 +18,7 @@ public partial class DeleteSwimlaneOverlay : IArcOverlay
         var matchingSwimlaneNameCount = SwimlaneTitles.FindAll (swimlane => swimlane == swimlaneName).Count ();
         if (matchingSwimlaneNameCount is not 1)
         {
-            throw new Exception ($"The swimlane selected does not correspond to a single swimlane in our list of columns. Number of this swimlane found: {matchingSwimlaneNameCount}");
+            throw new Exception ($"The swimlane selected does not correspond to a single swimlane in our list of swimlanes. Number of this swimlane found: {matchingSwimlaneNameCount}");
         }
         //Replace with FluentValidation in the cs partial class. If it fails then use the Snackbar to display the error.
 

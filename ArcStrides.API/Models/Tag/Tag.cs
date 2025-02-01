@@ -1,10 +1,10 @@
-﻿namespace ArcStrides.API.Models;
+﻿namespace ArcStrides.API.Models.Tag;
 
 public class Tag : ArcTagsEntity
 {
     public string RowKey { get; set; }
 
-    public string ParentObjectTypeName {  get; set; }
+    public string ParentObjectTypeName { get; set; }
 
     public string? Title { get; set; }
 

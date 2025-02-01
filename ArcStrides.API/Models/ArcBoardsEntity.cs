@@ -1,7 +1,7 @@
 ﻿using Azure;
 using Azure.Data.Tables;
 
-namespace ArcStrides.API.Models.Board;
+namespace ArcStrides.API.Models;
 
 public class ArcBoardsEntity : ITableEntity
 {

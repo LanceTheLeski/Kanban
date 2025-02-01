@@ -3,12 +3,12 @@
 public static class ExceptionMessages
 {
     /// <summary>
-    /// At least one or more transaction items failed while updating a {entity} batch.
+    /// At least one or more transaction items failed while updating on the {entityTable} table
     /// Exception Details:
-    /// {exceptionDetailss}"
+    /// {exceptionDetails}"
     /// </summary>
-    public static string UpdateEntityBatchTransactionExceptionMessage (string entity, string [] exceptionMessages)
-        => $"At least one or more transaction items failed while updating a {entity} batch.\nException Details:\n{string.Join ("\n- ", exceptionMessages)}";
+    public static string UpdateEntityBatchTransactionExceptionMessage (string entityTable, string [] exceptionMessages)
+        => $"At least one or more transaction items failed while updating on the {entityTable} table.\nException Details:\n{string.Join ("\n- ", exceptionMessages)}";
 
     /// <summary>
     /// The {entity} Collection unexpectedly did not contain an instance of the newly added {entity}.

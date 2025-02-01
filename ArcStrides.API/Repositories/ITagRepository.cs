@@ -1,4 +1,4 @@
-﻿using ArcStrides.API.Models;
+﻿using ArcStrides.API.Models.Tag;
 using ArcStrides.API.Models.TagGroup;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;

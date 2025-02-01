@@ -12,14 +12,12 @@ namespace ArcStrides.API.Services;
 public class AzureTableService<T> : IAzureTableService<T> where T : class, ITableEntity, new()
 {
     private readonly TableServiceClient _tableServiceClient;
-
     private readonly TableClient _table;
 
     public AzureTableService (string tableName,
                               IOptions<AzureTableOptions> azureTableOptions)
     {
         _tableServiceClient = new TableServiceClient (azureTableOptions.Value.ServiceEndpoint);
-
         _table = _tableServiceClient.GetTableClient (tableName: tableName);
     }
 
@@ -92,12 +90,12 @@ public class AzureTableService<T> : IAzureTableService<T> where T : class, ITabl
         ValidateResponse (response);
     }
 
-    public async Task<bool> SubmitArcTransactionAsync (ArcTransaction arcTransaction)
+    /*public async Task<bool> SubmitArcTransactionAsync (ArcTransaction arcTransaction)
     {
         var response = await _table.SubmitTransactionAsync (arcTransaction);
         ValidateTransactionResponse (response);
         return true;
-    }
+    }*/
 
     private void ValidateResponse (Response response)
     {
@@ -105,7 +103,7 @@ public class AzureTableService<T> : IAzureTableService<T> where T : class, ITabl
             throw new RequestFailedException (response.Status, response.ReasonPhrase);
     }
 
-    private void ValidateTransactionResponse (Response<IReadOnlyList<Response>> responseBatch)
+    /*private void ValidateTransactionResponse (Response<IReadOnlyList<Response>> responseBatch)
     {
         var rawResponse = responseBatch.GetRawResponse ();
         if (rawResponse.IsError)
@@ -126,5 +124,5 @@ public class AzureTableService<T> : IAzureTableService<T> where T : class, ITabl
                                                   ExceptionMessages.UpdateEntityBatchTransactionExceptionMessage (typeof (T).Name, exceptions.Select (ex => ex.Message)
                                                                                                                                              .ToArray ()),
                                                   exceptions);
-    }
+    }*/
 }
