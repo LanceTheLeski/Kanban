@@ -1,4 +1,5 @@
-﻿using Azure.Data.Tables;
+﻿using ArcStrides.API.Models;
+using Azure.Data.Tables;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
@@ -24,5 +25,5 @@ public interface IAzureTableService<T> where T : class, ITableEntity, new()
 
     Task DeleteEntityAsync (T entityToDelete);
 
-    Task<bool> SubmitArcTransactionAsync (ArcTransaction arcTransaction);
+    Task<bool> SubmitArcTransactionAsync (ArcTransaction arcTransaction, bool throwExceptionOnSuccessfulRollback = false);
 }

@@ -1,9 +1,11 @@
 ﻿using ArcStrides.API.Exceptions;
 using ArcStrides.API.Messages;
+using ArcStrides.API.Models;
 using ArcStrides.API.Options;
 using Azure;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Options;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
@@ -90,12 +92,59 @@ public class AzureTableService<T> : IAzureTableService<T> where T : class, ITabl
         ValidateResponse (response);
     }
 
-    /*public async Task<bool> SubmitArcTransactionAsync (ArcTransaction arcTransaction)
+    public async Task<bool> SubmitArcTransactionAsync (ArcTransaction arcTransaction, bool throwExceptionOnSuccessfulRollback = false)
     {
-        var response = await _table.SubmitTransactionAsync (arcTransaction);
-        ValidateTransactionResponse (response);
+        var transactionsToExecute = arcTransaction.GetTransactionDictionary ();
+        var transactionsForRollback = arcTransaction.GetRollbackTransactions ();
+        //Validate that these two lists correlate 1-1
+
+        var completedTransactions = new Dictionary<string, ArcTransactionCollection> ();
+        foreach (var transaction in transactionsToExecute)
+        { 
+            var tableClient = _tableServiceClient.GetTableClient (tableName: transaction.Key);
+            
+            var response = await tableClient.SubmitTransactionAsync (transaction.Value);
+            try
+                { ValidateTransactionResponse (response); }
+            catch (TransactionFailedException)
+            {
+                var rollbackResponse = await SubmitArcRollbackAsync (completedTransactions, transactionsForRollback);
+                if (rollbackResponse is true && throwExceptionOnSuccessfulRollback)
+                    throw;
+
+                return false;
+            }
+
+            completedTransactions [transaction.Key] = transaction.Value;
+        }
+
         return true;
-    }*/
+    }
+
+    private async Task<bool> SubmitArcRollbackAsync (IDictionary<string, ArcTransactionCollection> completedTransactions,
+                                                     IEnumerable<ArcTransactionRollbackCollection> rollbackTransactions)
+    {
+        foreach (var completedTransaction in completedTransactions)
+        {
+            var rollbackPartitionKey = completedTransaction.Value.First ().Entity.PartitionKey;
+            var rollbackRowKey = completedTransaction.Value.First ().Entity.RowKey;
+            var rollbackTransaction = rollbackTransactions.SingleOrDefault (transaction => transaction.First ().Entity.PartitionKey == rollbackPartitionKey
+                                                                                           && transaction.First ().Entity.RowKey == rollbackRowKey);
+            //Validation..
+
+            var tableClient = _tableServiceClient.GetTableClient (tableName: completedTransaction.Key);
+
+            var response = await tableClient.SubmitTransactionAsync (rollbackTransaction);
+            try
+                { ValidateTransactionResponse (response); }
+            catch
+            {
+                //This is a big issue. Should definitely throw something of value here..
+            }
+        }
+
+        return true;
+    }
 
     private void ValidateResponse (Response response)
     {
@@ -103,7 +152,7 @@ public class AzureTableService<T> : IAzureTableService<T> where T : class, ITabl
             throw new RequestFailedException (response.Status, response.ReasonPhrase);
     }
 
-    /*private void ValidateTransactionResponse (Response<IReadOnlyList<Response>> responseBatch)
+    private void ValidateTransactionResponse (Response<IReadOnlyList<Response>> responseBatch)
     {
         var rawResponse = responseBatch.GetRawResponse ();
         if (rawResponse.IsError)
@@ -124,5 +173,5 @@ public class AzureTableService<T> : IAzureTableService<T> where T : class, ITabl
                                                   ExceptionMessages.UpdateEntityBatchTransactionExceptionMessage (typeof (T).Name, exceptions.Select (ex => ex.Message)
                                                                                                                                              .ToArray ()),
                                                   exceptions);
-    }*/
+    }
 }

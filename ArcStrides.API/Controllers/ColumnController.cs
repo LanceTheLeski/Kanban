@@ -1,6 +1,7 @@
 ﻿using ArcStrides.API.Exceptions;
 using ArcStrides.API.Mappers;
 using ArcStrides.API.Messages;
+using ArcStrides.API.Models;
 using ArcStrides.API.Models.Board;
 using ArcStrides.API.Repositories;
 using ArcStrides.Contracts.Request.Create;
