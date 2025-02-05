@@ -1,6 +1,7 @@
 ﻿using ArcStrides.API.Exceptions;
 using ArcStrides.API.Mappers;
 using ArcStrides.API.Messages;
+using ArcStrides.API.Models;
 using ArcStrides.API.Models.Board;
 using ArcStrides.API.Repositories;
 using ArcStrides.Contracts.Request.Create;
@@ -12,7 +13,6 @@ using FluentValidation;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.ObjectModel;
 
 using static ArcStrides.API.Validators.SwimlaneValidators;
 
@@ -55,7 +55,7 @@ public class SwimlaneController : ArcController
             return Ok (swimlaneResponse);
         }
         catch (Exception ex)
-        { return ArcErrorResponse (ex); }
+            { return ArcErrorResponse (ex); }
     }
 
     [HttpPost ("/arcstrides/boards/{boardID:guid}/swimlanes")]
@@ -95,14 +95,14 @@ public class SwimlaneController : ArcController
             var swimlanesFromDatabase = await FetchAndValidateAllExistingSwimlanesAsync (boardID);//Move into method
             var cardPositionsFromDatabase = await FetchAndValidateCardPositionsAsync (boardID);//Move into method
 
-            var swimlaneToUpdate = swimlanesFromDatabase.FirstOrDefault (swimlane => swimlane.PartitionKey == swimlaneID.ToString ());
+            var swimlaneToUpdate = swimlanesFromDatabase.FirstOrDefault (swimlane => swimlane.RowKey == swimlaneID.ToString ());
             if (swimlaneToUpdate is null)
                 return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Swimlane)));
 
             var convertedSwimlaneToUpdate = _swimlaneMapper.MapSwimlaneToSwimlanePatchRequest (swimlaneToUpdate);
             try { swimlanePatchRequest.ApplyTo (convertedSwimlaneToUpdate); }
             catch (JsonPatchException)
-            { return BadRequest (ErrorResponseMessages.PatchRequestIsInvalidErrorResponse (nameof (Swimlane))); }
+                { return BadRequest (ErrorResponseMessages.PatchRequestIsInvalidErrorResponse (nameof (Swimlane))); }
             ValidateConvertedSwimlaneAgainstExistingSwimlanes (swimlaneToUpdate, convertedSwimlaneToUpdate, swimlanesFromDatabase);
 
             var updatedSwimlane = await UpdateSwimlaneAndUpdateEffectedSwimlanesAndCardPositions (boardID, swimlaneToUpdate, convertedSwimlaneToUpdate, swimlanesFromDatabase, cardPositionsFromDatabase, swimlanePatchRequest.Operations);
@@ -126,7 +126,7 @@ public class SwimlaneController : ArcController
             return Ok ();
         }
         catch (Exception ex)
-        { return ArcErrorResponse (ex); }
+            { return ArcErrorResponse (ex); }
     }
 
     /// <summary>
@@ -135,17 +135,15 @@ public class SwimlaneController : ArcController
     /// </summary>
     private async Task<Swimlane> FetchAndValidateSwimlane (Guid boardID, Guid swimlaneID)
     {
-        IEnumerable<Swimlane>? swimlaneEnumerableFromDatabase = null;
-        try { await _swimlaneRepository.GetSwimlaneAsync (boardID, swimlaneID); }
+        Swimlane? swimlaneFromDatabase = null;
+        try { swimlaneFromDatabase = await _swimlaneRepository.GetSwimlaneAsync (boardID, swimlaneID); }
         catch (RequestFailedException reqFailedEx)
-        { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (Swimlane), reqFailedEx.Status)); }
+            { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (Swimlane), reqFailedEx.Status)); }
 
-        if (swimlaneEnumerableFromDatabase!.Count () is 0)
+        if (swimlaneFromDatabase is null)
             throw new RequestFailureWrapperException (nameof (NotFound), ErrorResponseMessages.NotFoundErrorResponse (nameof (Swimlane)));
-        if (swimlaneEnumerableFromDatabase!.Count () is not 1)
-            throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.TooManyEntitiesErrorResponse (nameof (Swimlane)));
 
-        return swimlaneEnumerableFromDatabase!.Single ();
+        return swimlaneFromDatabase!;
     }
 
     /// <summary>
@@ -156,7 +154,7 @@ public class SwimlaneController : ArcController
     {
         try { return await _swimlaneRepository.GetAllBoardSwimlanes (boardID); }
         catch (RequestFailedException reqFailedEx)
-        { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (Swimlane), reqFailedEx.Status)); }
+            { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (Swimlane), reqFailedEx.Status)); }
     }
 
     /// <summary>
@@ -168,7 +166,7 @@ public class SwimlaneController : ArcController
         IEnumerable<CardPosition>? boardCardEnumerableFromDatabase = null;
         try { boardCardEnumerableFromDatabase = await _cardRepository.GetCardPositionsAsync (boardID); }
         catch (RequestFailedException reqFailedEx)
-        { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (CardPosition), reqFailedEx.Status)); }
+            { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (CardPosition), reqFailedEx.Status)); }
 
         return boardCardEnumerableFromDatabase;
     }
@@ -177,8 +175,8 @@ public class SwimlaneController : ArcController
     /// 
     /// </summary>
     private void ValidateConvertedSwimlaneAgainstExistingSwimlanes (Swimlane swimlaneToUpdate,
-                                                                SwimlanePatchRequest convertedSwimlaneToUpdate,
-                                                                IEnumerable<Swimlane> swimlanesFromBoard)
+                                                                    SwimlanePatchRequest convertedSwimlaneToUpdate,
+                                                                    IEnumerable<Swimlane> swimlanesFromBoard)
     {
         if (convertedSwimlaneToUpdate.Order is not 0 && convertedSwimlaneToUpdate.Order <= swimlanesFromBoard.Count ())
             throw new RequestFailureWrapperException (nameof (BadRequest), ErrorResponseMessages.ValidationFailedErrorResponse (nameof (Swimlane), ValidatorMessages.FieldOutOfRangeValdiatorMessage (nameof (Swimlane.SwimlaneOrder))));
@@ -194,13 +192,13 @@ public class SwimlaneController : ArcController
     /// 
     /// </summary>
     private async Task AddSwimlaneAndUpdateEffectedSwimlanesAndCardPositions (Guid boardID,
-                                                                          Swimlane newSwimlane)
+                                                                              Swimlane newSwimlane)
     {
-        var createSwimlaneTransaction = new ArcTransaction (Guid.Parse (newSwimlane.PartitionKey),
-                                                          new TableTransactionAction (TableTransactionActionType.Add, newSwimlane));
+        var transaction = new TableTransactionAction (TableTransactionActionType.Add, newSwimlane);
+        var createSwimlaneTransaction = new ArcTransaction ((transaction, newSwimlane));
 
         var swimlaneCollectionToUpdateOrder = await _swimlaneRepository.QuerySwimlanesAsync (swimlane => swimlane.SwimlaneOrder >= newSwimlane.SwimlaneOrder
-                                                                                                 && swimlane.PartitionKey == newSwimlane.PartitionKey);
+                                                                                                         && swimlane.PartitionKey == newSwimlane.PartitionKey);
         createSwimlaneTransaction = _swimlaneRepository.IncrementExistingSwimlanesOrder (swimlaneCollectionToUpdateOrder, createSwimlaneTransaction);
 
         var cardPositionsFromBoard = await _cardRepository.GetCardPositionsAsync (boardID);
@@ -210,17 +208,17 @@ public class SwimlaneController : ArcController
 
         try { await _swimlaneRepository.SubmitArcTransactionAsync (createSwimlaneTransaction); }
         catch (RequestFailedException reqFailedEx)
-        { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.AddToDatabaseErrorResponse (nameof (Swimlane), reqFailedEx.Status)); }
+            { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.AddToDatabaseErrorResponse (nameof (Swimlane), reqFailedEx.Status)); }
     }
 
     private async Task<Swimlane> UpdateSwimlaneAndUpdateEffectedSwimlanesAndCardPositions (Guid boardID,
-                                                                                     Swimlane swimlaneToUpdate,
-                                                                                     SwimlanePatchRequest convertedSwimlaneToUpdate,
-                                                                                     IEnumerable<Swimlane> swimlanesFromBoard,
-                                                                                     IEnumerable<CardPosition> cardPositionsFromBoard,
-                                                                                     IEnumerable<Microsoft.AspNetCore.JsonPatch.Operations.Operation<SwimlanePatchRequest>> swimlanePatchRequest)
+                                                                                           Swimlane swimlaneToUpdate,
+                                                                                           SwimlanePatchRequest convertedSwimlaneToUpdate,
+                                                                                           IEnumerable<Swimlane> swimlanesFromBoard,
+                                                                                           IEnumerable<CardPosition> cardPositionsFromBoard,
+                                                                                           IEnumerable<Microsoft.AspNetCore.JsonPatch.Operations.Operation<SwimlanePatchRequest>> swimlanePatchRequest)
     {
-        var updateSwimlaneTransaction = new ArcTransaction (boardID);
+        var updateSwimlaneTransaction = new ArcTransaction ();
 
         var orderIsUpdated = swimlanePatchRequest.Any (operation => string.Equals (operation.path, $"/{nameof (SwimlanePatchRequest.Order)}", StringComparison.OrdinalIgnoreCase));
         if (orderIsUpdated)
@@ -228,16 +226,19 @@ public class SwimlaneController : ArcController
 
         swimlaneToUpdate = _swimlaneMapper.MapSwimlanePatchRequestToSwimlane (convertedSwimlaneToUpdate); // Make sure that the response object is preserved if not mapped to.
 
-        var allUpdatedSwimlanes = updateSwimlaneTransaction.Select (action => (Swimlane) action.Entity).ToList ();
+        var allUpdatedSwimlanes = updateSwimlaneTransaction.GetTransactionDictionary () [typeof (Swimlane).GetArcTableName ()]
+                                                           .Select (action => (Swimlane) action.Entity)
+                                                           .ToList ();
         allUpdatedSwimlanes.Add (swimlaneToUpdate);
 
-        updateSwimlaneTransaction.Add (new TableTransactionAction (TableTransactionActionType.UpdateMerge, swimlaneToUpdate));
+        var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, swimlaneToUpdate);
+        updateSwimlaneTransaction.Add (transaction, swimlaneToUpdate);
 
         updateSwimlaneTransaction = _swimlaneRepository.ApplyNewOrderForExistingCardPositions (allUpdatedSwimlanes!, cardPositionsFromBoard!, updateSwimlaneTransaction);
 
         try { await _swimlaneRepository.SubmitArcTransactionAsync (updateSwimlaneTransaction); }
         catch (RequestFailedException reqFailedEx)
-        { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.UpdateInDatabaseErrorResponse (nameof (Swimlane), reqFailedEx.Status)); }
+            { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.UpdateInDatabaseErrorResponse (nameof (Swimlane), reqFailedEx.Status)); }
 
         return swimlaneToUpdate;
     }
@@ -245,22 +246,27 @@ public class SwimlaneController : ArcController
     private async Task DeleteSwimlaneAndUpdateEffectedSwimlanesAndCardPositions (Guid boardID,
                                                                                  Swimlane swimlaneToDelete)
     {
-        var deleteSwimlaneTransaction = new ArcTransaction (boardID);
+        var deleteSwimlaneTransaction = new ArcTransaction ();
 
         var swimlanesToUpdateOrder = await _swimlaneRepository.QuerySwimlanesAsync (swimlane => swimlane.SwimlaneOrder > swimlaneToDelete.SwimlaneOrder
-                                                                                        && swimlane.PartitionKey == swimlaneToDelete.PartitionKey);
+                                                                                                && swimlane.PartitionKey == swimlaneToDelete.PartitionKey);
         deleteSwimlaneTransaction = _swimlaneRepository.DecrementExistingSwimlanesOrder (swimlanesToUpdateOrder, deleteSwimlaneTransaction);
 
-        var allUpdatedSwimlanes = deleteSwimlaneTransaction.Select (action => (Swimlane) action.Entity).ToList ();
+        var allUpdatedSwimlanes = deleteSwimlaneTransaction.GetTransactionDictionary () [typeof (Swimlane).GetArcTableName ()]
+                                                           .Select (action => (Swimlane) action.Entity)
+                                                           .ToList ();
+        var boardCardEnumerable = await _cardRepository.GetCardPositionsAsync (boardID);
+        deleteSwimlaneTransaction = _swimlaneRepository.ApplyNewOrderForExistingCardPositions (allUpdatedSwimlanes, boardCardEnumerable, deleteSwimlaneTransaction);
+
         allUpdatedSwimlanes.Add (swimlaneToDelete);
 
-        deleteSwimlaneTransaction.Add (new TableTransactionAction (TableTransactionActionType.Delete, swimlaneToDelete));
+        var transaction = new TableTransactionAction (TableTransactionActionType.Delete, swimlaneToDelete);
+        deleteSwimlaneTransaction.Add (transaction, swimlaneToDelete);
 
-        var boardCardEnumerable = await _cardRepository.GetCardPositionsAsync (boardID);
         deleteSwimlaneTransaction = _swimlaneRepository.ApplyNewTitleAndOrderForExistingCardPositions (swimlaneToDelete, allUpdatedSwimlanes, boardCardEnumerable, deleteSwimlaneTransaction);
 
         try { await _swimlaneRepository.SubmitArcTransactionAsync (deleteSwimlaneTransaction); }
         catch (RequestFailedException reqFailedEx)
-        { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.RemoveFromDatabaseErrorResponse (nameof (Swimlane), reqFailedEx.Status)); }
+            { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.RemoveFromDatabaseErrorResponse (nameof (Swimlane), reqFailedEx.Status)); }
     }
 }

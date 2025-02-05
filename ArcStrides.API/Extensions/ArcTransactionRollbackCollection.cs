@@ -1,5 +1,6 @@
 ﻿using ArcStrides.API.Messages;
 using Azure.Data.Tables;
+using System.Collections.ObjectModel;
 
 namespace System.Collections;
 
@@ -9,9 +10,16 @@ public class ArcTransactionRollbackCollection : ICollection<TableTransactionActi
     private readonly ICollection<TableTransactionAction> _rollbackTransactionActions;
 
     public ArcTransactionRollbackCollection (Guid partitionKey,
-                                             params ICollection<TableTransactionAction>? transactionActions)
+                                             params ICollection<(TableTransactionAction transactionAction, ITableEntity tableEntity)>? transactionActions)
     {
         _transactionPartitionKey = partitionKey;
+
+        // We can probably do some validating here..
+
+        _rollbackTransactionActions = new Collection<TableTransactionAction> ();
+
+        foreach (var transaction in transactionActions!)
+            Add (transaction.transactionAction, transaction.tableEntity);
     }
 
     public int Count 

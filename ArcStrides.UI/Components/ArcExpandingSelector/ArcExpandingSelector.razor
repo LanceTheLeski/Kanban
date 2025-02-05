@@ -1,5 +1,5 @@
 ﻿<MudExpansionPanels>
-    <MudExpansionPanel Text="Column" MaxHeight="1000" ExpandedChanged="ColumnListExpandedChanged">
+    <MudExpansionPanel Text="--Select--" MaxHeight="1000" ExpandedChanged="ListExpandedChanged">
         @selectionListRenderFragment
     </MudExpansionPanel>
 </MudExpansionPanels>
@@ -16,7 +16,7 @@
     // As an alternative, we could make this a string and whenever it's set, update the calling component. Then that component will clear it when the action processes there.
 
     private RenderFragment? selectionListRenderFragment = null;
-    private void ColumnListExpandedChanged (bool showSelectionList)
+    private void ListExpandedChanged (bool showSelectionList)
     {
         if (showSelectionList)
             selectionListRenderFragment = __builder =>
@@ -27,7 +27,7 @@
                             @foreach (var option in Options)
                             {
                                 <MudListItem OnClick="(() => OptionSelected (option))">
-                                    Column Name: @(option)
+                                    @(option)
                                 </MudListItem>
                             }
                         </MudList>

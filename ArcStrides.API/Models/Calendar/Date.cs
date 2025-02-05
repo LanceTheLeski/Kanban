@@ -1,8 +1,11 @@
-﻿namespace ArcStrides.API.Models.Calendar;
+﻿using ArcStrides.API.Attributes;
+
+namespace ArcStrides.API.Models.Calendar;
 
 /// <summary>
 /// Loosely corresponds to a day within a month.
 /// </summary>
+[ArcTableName ("Dates")]
 public class Date : ArcCalendarsEntity
 {
     public override string RowKey { get; set; }

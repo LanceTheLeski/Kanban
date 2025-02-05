@@ -1,4 +1,5 @@
 ﻿using ArcStrides.API.Mappers;
+using ArcStrides.API.Models;
 using ArcStrides.API.Models.Board;
 using ArcStrides.API.Options;
 using ArcStrides.API.Services;
@@ -50,7 +51,9 @@ public class ColumnRepository : IColumnRepository
         foreach (var column in columnEnumerableToUpdate)
         {
             column.ColumnOrder ++;
-            arcTransaction.Add (new (TableTransactionActionType.UpdateMerge, column));
+
+            var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, column);
+            arcTransaction.Add (transaction, column);
         }
 
         return arcTransaction;
@@ -61,7 +64,9 @@ public class ColumnRepository : IColumnRepository
         foreach (var column in columnEnumerableToUpdate)
         {
             column.ColumnOrder --;
-            arcTransaction.Add (new (TableTransactionActionType.UpdateMerge, column));
+
+            var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, column);
+            arcTransaction.Add (transaction, column);
         }
 
         return arcTransaction;
@@ -77,14 +82,18 @@ public class ColumnRepository : IColumnRepository
             {
                 var newColumnToUpdate = DeepCopier.Copy (boardColumnEnumerable.Single (column => column.ColumnOrder == index));
                 newColumnToUpdate.ColumnOrder = index - 1;
-                arcTransaction.Add (new (TableTransactionActionType.UpdateMerge, newColumnToUpdate));
+
+                var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, newColumnToUpdate);
+                arcTransaction.Add (transaction, newColumnToUpdate);
             }
         if (columnToUpdate.ColumnOrder > newColumnOrder)
             for (int index = newColumnOrder; index < columnToUpdate.ColumnOrder; index ++)
             {
                 var newColumnToUpdate = DeepCopier.Copy (boardColumnEnumerable.Single (column => column.ColumnOrder == index));
                 newColumnToUpdate.ColumnOrder = index + 1;
-                arcTransaction.Add (new (TableTransactionActionType.UpdateMerge, newColumnToUpdate));
+
+                var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, newColumnToUpdate);
+                arcTransaction.Add (transaction, newColumnToUpdate);
             }
           
         return arcTransaction;
@@ -95,11 +104,12 @@ public class ColumnRepository : IColumnRepository
         var effectedCardPositionEnumerable = cardPositionEnumerable.Where (boardCard => columnEnumerable.Any (column => column.Title == boardCard.ColumnTitle));
         if (effectedCardPositionEnumerable.Count () is not 0)
         {
-            foreach (var boardCard in effectedCardPositionEnumerable)
+            foreach (var cardPosition in effectedCardPositionEnumerable)
             {
-                boardCard.ColumnOrder = columnEnumerable.Single (column => column.Title == boardCard.ColumnTitle).ColumnOrder;
+                cardPosition.ColumnOrder = columnEnumerable.Single (column => column.Title == cardPosition.ColumnTitle).ColumnOrder;
 
-                arcTransaction.Add (new (TableTransactionActionType.UpdateMerge, boardCard));
+                var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, cardPosition);
+                arcTransaction.Add (transaction, cardPosition);
             }
         }
 
@@ -126,8 +136,9 @@ public class ColumnRepository : IColumnRepository
             cardPosition.ColumnID = Guid.Parse (columnToTransfer.RowKey);
             cardPosition.ColumnTitle = columnToTransfer.Title;
             cardPosition.ColumnOrder = columnToTransfer.ColumnOrder;
-            
-            arcTransaction.Add (new (TableTransactionActionType.UpdateMerge, cardPosition));
+
+            var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, cardPosition);
+            arcTransaction.Add (transaction, cardPosition);
         }
 
         return arcTransaction;

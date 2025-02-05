@@ -15,7 +15,7 @@ public partial class UpdateColumnOverlay: IArcOverlay
 
     private void GetColumnIndexList ()
     {
-        _columnTitleList = Enumerable.Range (0, ColumnTitles.Count ())
+        _columnOrderList = Enumerable.Range (0, ColumnTitles.Count ())
                                      .Select (index => $"{index}")
                                      .ToList ();
     }

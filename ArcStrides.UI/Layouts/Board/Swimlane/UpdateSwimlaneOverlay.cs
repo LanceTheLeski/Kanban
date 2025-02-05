@@ -15,7 +15,7 @@ public partial class UpdateSwimlaneOverlay : IArcOverlay
 
     private void GetSwimlaneIndexList ()
     {
-        _swimlaneTitleList = Enumerable.Range (0, SwimlaneTitles.Count ())
+        _swimlaneOrderList = Enumerable.Range (0, SwimlaneTitles.Count ())
                                        .Select (index => $"{index}")
                                        .ToList ();
     }

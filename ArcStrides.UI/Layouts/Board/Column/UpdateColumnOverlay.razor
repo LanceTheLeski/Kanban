@@ -18,16 +18,15 @@
     <ArcExpandingSelector @bind-Options="ColumnTitles"
                           OptionSelected="SetColumnNameToUpdate" />
 
-    <MudTextField @ref="columnText" 
-                  T="string" 
+    <MudTextField T="string" 
                   @bind-Value="_columnTitleReplacement" 
                   Label="New Title" 
                   Variant="Variant.Filled" 
                   AutoGrow 
                   HelperText="Column Title" />
 
-    <ArcExpandingSelector @bind-Options='_columnTitleList'
-                          OptionSelected="@((str) => _columnOrderSelected = int.Parse(str))" />
+    <ArcExpandingSelector @bind-Options='_columnOrderList'
+                          OptionSelected="@((orderSelected) => _columnOrderSelected = int.Parse(orderSelected))" />
 
  </ArcOverlay>
 
@@ -58,14 +57,15 @@
     [Parameter]
     public EventCallback<bool> Refresh { get; set; }
 
-    private MudTextField<string> columnText;
-
-    protected override void OnInitialized ()
+    protected override void OnParametersSet ()
     {
+        base.OnParametersSet();
+
         GetColumnIndexList();
     }
 
-    private List<string> _columnTitleList = new ();
+    private List<string> _columnOrderList = new ();
+
     private string _columnTitleSelected = string.Empty;
     private string _columnTitleReplacement = string.Empty;
 

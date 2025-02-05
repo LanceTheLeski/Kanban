@@ -13,7 +13,6 @@ using FluentValidation;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.ObjectModel;
 
 using static ArcStrides.API.Validators.ColumnValidators;
 
@@ -96,7 +95,7 @@ public class ColumnController : ArcController
             var columnsFromDatabase = await FetchAndValidateAllExistingColumnsAsync (boardID);//Move into method
             var cardPositionsFromDatabase = await FetchAndValidateCardPositionsAsync (boardID);//Move into method
 
-            var columnToUpdate = columnsFromDatabase.FirstOrDefault (column => column.PartitionKey == columnID.ToString ());
+            var columnToUpdate = columnsFromDatabase.FirstOrDefault (column => column.RowKey == columnID.ToString ());
             if (columnToUpdate is null)
                 return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Column)));
 
@@ -195,8 +194,8 @@ public class ColumnController : ArcController
     private async Task AddColumnAndUpdateEffectedColumnsAndCardPositions (Guid boardID, 
                                                                           Column newColumn)
     {
-        var createColumnTransaction = new ArcTransaction (Guid.Parse (newColumn.PartitionKey), 
-                                                          new TableTransactionAction (TableTransactionActionType.Add, newColumn));
+        var transaction = new TableTransactionAction (TableTransactionActionType.Add, newColumn);
+        var createColumnTransaction = new ArcTransaction ((transaction, newColumn));
 
         var columnCollectionToUpdateOrder = await _columnRepository.QueryColumnsAsync (column => column.ColumnOrder >= newColumn.ColumnOrder
                                                                                                  && column.PartitionKey == newColumn.PartitionKey);
@@ -219,7 +218,7 @@ public class ColumnController : ArcController
                                                                                      IEnumerable<CardPosition> cardPositionsFromBoard,
                                                                                      IEnumerable<Microsoft.AspNetCore.JsonPatch.Operations.Operation<ColumnPatchRequest>> columnPatchRequest)
     {
-        var updateColumnTransaction = new ArcTransaction (boardID);
+        var updateColumnTransaction = new ArcTransaction ();
 
         var orderIsUpdated = columnPatchRequest.Any (operation => string.Equals (operation.path, $"/{nameof (ColumnPatchRequest.Order)}", StringComparison.OrdinalIgnoreCase));
         if (orderIsUpdated)
@@ -227,10 +226,13 @@ public class ColumnController : ArcController
 
         columnToUpdate = _columnMapper.MapColumnPatchRequestToColumn (convertedColumnToUpdate); // Make sure that the response object is preserved if not mapped to.
 
-        var allUpdatedColumns = updateColumnTransaction.Select (action => (Column) action.Entity).ToList ();
+        var allUpdatedColumns = updateColumnTransaction.GetTransactionDictionary () [typeof(Column).GetArcTableName ()]
+                                                       .Select (action => (Column) action.Entity)
+                                                       .ToList ();
         allUpdatedColumns.Add (columnToUpdate);
-        
-        updateColumnTransaction.Add (new TableTransactionAction (TableTransactionActionType.UpdateMerge, columnToUpdate));
+
+        var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, columnToUpdate);
+        updateColumnTransaction.Add (transaction, columnToUpdate);
 
         updateColumnTransaction = _columnRepository.ApplyNewOrderForExistingCardPositions (allUpdatedColumns!, cardPositionsFromBoard!, updateColumnTransaction);
 
@@ -241,21 +243,26 @@ public class ColumnController : ArcController
         return columnToUpdate;
     }
 
-    private async Task DeleteColumnAndUpdateEffectedColumnsAndCardPositions (Guid boardID, 
+    private async Task DeleteColumnAndUpdateEffectedColumnsAndCardPositions (Guid boardID,
                                                                              Column columnToDelete)
     {
-        var deleteColumnTransaction = new ArcTransaction (boardID);
+        var deleteColumnTransaction = new ArcTransaction ();
 
         var columnsToUpdateOrder = await _columnRepository.QueryColumnsAsync (column => column.ColumnOrder > columnToDelete.ColumnOrder
                                                                                         && column.PartitionKey == columnToDelete.PartitionKey);
         deleteColumnTransaction = _columnRepository.DecrementExistingColumnsOrder (columnsToUpdateOrder, deleteColumnTransaction);
 
-        var allUpdatedColumns = deleteColumnTransaction.Select (action => (Column) action.Entity).ToList ();
-        allUpdatedColumns.Add (columnToDelete);
-        
-        deleteColumnTransaction.Add (new TableTransactionAction (TableTransactionActionType.Delete, columnToDelete));
-
+        var allUpdatedColumns = deleteColumnTransaction.GetTransactionDictionary () [typeof (Column).GetArcTableName ()]
+                                                       .Select (action => (Column) action.Entity)
+                                                       .ToList ();
         var boardCardEnumerable = await _cardRepository.GetCardPositionsAsync (boardID);
+        deleteColumnTransaction = _columnRepository.ApplyNewOrderForExistingCardPositions (allUpdatedColumns, boardCardEnumerable, deleteColumnTransaction);
+
+        allUpdatedColumns.Add (columnToDelete);
+
+        var transaction = new TableTransactionAction (TableTransactionActionType.Delete, columnToDelete);
+        deleteColumnTransaction.Add (transaction, columnToDelete);
+
         deleteColumnTransaction = _columnRepository.ApplyNewTitleAndOrderForExistingCardPositions (columnToDelete, allUpdatedColumns, boardCardEnumerable, deleteColumnTransaction);
 
         try { await _columnRepository.SubmitArcTransactionAsync (deleteColumnTransaction); }

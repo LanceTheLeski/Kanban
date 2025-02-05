@@ -12,12 +12,14 @@ public class ArcTransactionCollection : ICollection<TableTransactionAction>
     private readonly ArcTransactionRollbackCollection _transactionRollback;
 
     public ArcTransactionCollection (Guid partitionKey,
-                                     params ICollection<TableTransactionAction>? transactionActions)
+                                     params ICollection<(TableTransactionAction transactionAction, ITableEntity tableEntity)>? transactionActions)
     {
         _transactionPartitionKey = partitionKey;
-        _transactionActions = transactionActions ?? new Collection<TableTransactionAction> ();
-
-        _transactionRollback = new ArcTransactionRollbackCollection (partitionKey, transactionActions);
+        _transactionActions = new Collection<TableTransactionAction> ();
+        _transactionRollback = new ArcTransactionRollbackCollection (partitionKey);
+        
+        foreach (var transaction in transactionActions!)
+            Add (transaction.transactionAction, transaction.tableEntity);
     }
 
     public ArcTransactionRollbackCollection GetTransactionRollback ()

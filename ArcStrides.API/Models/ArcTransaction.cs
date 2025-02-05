@@ -12,18 +12,12 @@ public class ArcTransaction
         _transactionDictionary = new ();
     }
 
-    public ArcTransaction (Guid transactionPartitionKey,
-                           Type entityType,
-                           params ICollection<TableTransactionAction> transactionActions)
+    public ArcTransaction (params ICollection<(TableTransactionAction transactionAction, ITableEntity originalTableEntity)> transactionTuples)
     {
-        var tableName = entityType.GetArcTableName ();
-        if (tableName is null || tableName is "")
-            throw new ArgumentException ("Invalid Table Entity Type..");
+        _transactionDictionary = new ();
 
-        _transactionDictionary = new ()
-        {
-            [tableName] = new ArcTransactionCollection (transactionPartitionKey, transactionActions)
-        };
+        foreach (var transactionTuple in transactionTuples)
+            Add (transactionTuple.transactionAction, transactionTuple.originalTableEntity);
     }
 
     public IDictionary<string, ArcTransactionCollection> GetTransactionDictionary ()
@@ -48,7 +42,11 @@ public class ArcTransaction
             && tableTransactionActionEntityType != originalEntityForRollbackEntityType)
             throw new ArgumentException ("The given entities do not have a matching table name.");
 
-        _transactionDictionary [tableTransactionActionEntityType!].Add (tableTransactionAction, originalEntityForRollback);
+        if (_transactionDictionary.ContainsKey (tableTransactionActionEntityType!))
+            _transactionDictionary [tableTransactionActionEntityType!].Add (tableTransactionAction, originalEntityForRollback);
+        else
+            _transactionDictionary.Add (tableTransactionActionEntityType!, new ArcTransactionCollection (Guid.Parse (originalEntityForRollback.PartitionKey),
+                                                                                                         (tableTransactionAction, originalEntityForRollback)));
     }
 
     public void Remove (TableTransactionAction tableTransactionAction, ITableEntity originalEntityForRollback)

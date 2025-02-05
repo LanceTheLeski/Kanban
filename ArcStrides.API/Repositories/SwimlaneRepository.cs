@@ -1,4 +1,5 @@
 ﻿using ArcStrides.API.Mappers;
+using ArcStrides.API.Models;
 using ArcStrides.API.Models.Board;
 using ArcStrides.API.Options;
 using ArcStrides.API.Services;
@@ -19,7 +20,7 @@ public class SwimlaneRepository : ISwimlaneRepository
     private readonly IAzureTableService<Swimlane> _swimlaneTable;
 
     public SwimlaneRepository (IOptions<AzureTableOptions> azureTableOptions,
-                               ISwimlaneMapper swimlaneMapper)
+                             ISwimlaneMapper swimlaneMapper)
     {
         _swimlaneTable = new AzureTableService<Swimlane> (swimlanes, azureTableOptions);
     }
@@ -49,8 +50,10 @@ public class SwimlaneRepository : ISwimlaneRepository
     {
         foreach (var swimlane in swimlaneEnumerableToUpdate)
         {
-            swimlane.SwimlaneOrder++;
-            arcTransaction.Add (new (TableTransactionActionType.UpdateMerge, swimlane));
+            swimlane.SwimlaneOrder ++;
+
+            var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, swimlane);
+            arcTransaction.Add (transaction, swimlane);
         }
 
         return arcTransaction;
@@ -60,8 +63,10 @@ public class SwimlaneRepository : ISwimlaneRepository
     {
         foreach (var swimlane in swimlaneEnumerableToUpdate)
         {
-            swimlane.SwimlaneOrder--;
-            arcTransaction.Add (new (TableTransactionActionType.UpdateMerge, swimlane));
+            swimlane.SwimlaneOrder --;
+
+            var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, swimlane);
+            arcTransaction.Add (transaction, swimlane);
         }
 
         return arcTransaction;
@@ -77,14 +82,18 @@ public class SwimlaneRepository : ISwimlaneRepository
             {
                 var newSwimlaneToUpdate = DeepCopier.Copy (boardSwimlaneEnumerable.Single (swimlane => swimlane.SwimlaneOrder == index));
                 newSwimlaneToUpdate.SwimlaneOrder = index - 1;
-                arcTransaction.Add (new (TableTransactionActionType.UpdateMerge, newSwimlaneToUpdate));
+
+                var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, newSwimlaneToUpdate);
+                arcTransaction.Add (transaction, newSwimlaneToUpdate);
             }
         if (swimlaneToUpdate.SwimlaneOrder > newSwimlaneOrder)
             for (int index = newSwimlaneOrder; index < swimlaneToUpdate.SwimlaneOrder; index++)
             {
                 var newSwimlaneToUpdate = DeepCopier.Copy (boardSwimlaneEnumerable.Single (swimlane => swimlane.SwimlaneOrder == index));
                 newSwimlaneToUpdate.SwimlaneOrder = index + 1;
-                arcTransaction.Add (new (TableTransactionActionType.UpdateMerge, newSwimlaneToUpdate));
+
+                var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, newSwimlaneToUpdate);
+                arcTransaction.Add (transaction, newSwimlaneToUpdate);
             }
 
         return arcTransaction;
@@ -92,14 +101,15 @@ public class SwimlaneRepository : ISwimlaneRepository
 
     public ArcTransaction ApplyNewOrderForExistingCardPositions (IEnumerable<Swimlane> swimlaneEnumerable, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction)
     {
-        var effectedCardPositionEnumerable = cardPositionEnumerable.Where (boardCard => swimlaneEnumerable.Any (swimlane => swimlane.Title == boardCard.SwimlaneTitle));
+        var effectedCardPositionEnumerable = cardPositionEnumerable.Where (cardPosition => swimlaneEnumerable.Any (swimlane => swimlane.Title == cardPosition.SwimlaneTitle));
         if (effectedCardPositionEnumerable.Count () is not 0)
         {
-            foreach (var boardCard in effectedCardPositionEnumerable)
+            foreach (var cardPosition in effectedCardPositionEnumerable)
             {
-                boardCard.SwimlaneOrder = swimlaneEnumerable.Single (swimlane => swimlane.Title == boardCard.SwimlaneTitle).SwimlaneOrder;
+                cardPosition.SwimlaneOrder = swimlaneEnumerable.Single (swimlane => swimlane.Title == cardPosition.SwimlaneTitle).SwimlaneOrder;
 
-                arcTransaction.Add (new (TableTransactionActionType.UpdateMerge, boardCard));
+                var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, cardPosition);
+                arcTransaction.Add (transaction, cardPosition);
             }
         }
 
@@ -109,8 +119,8 @@ public class SwimlaneRepository : ISwimlaneRepository
     public ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Swimlane swimlaneToDelete, IEnumerable<Swimlane> swimlaneEnumerable, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction)
     {
         var swimlaneToTransferCandidates = swimlaneEnumerable.Where (swimlane => swimlane.PartitionKey == swimlaneToDelete.PartitionKey
-                                                                           && (swimlane.SwimlaneOrder == swimlaneToDelete.SwimlaneOrder
-                                                                               || swimlane.SwimlaneOrder == swimlaneToDelete.SwimlaneOrder - 1));
+                                                                                 && (swimlane.SwimlaneOrder == swimlaneToDelete.SwimlaneOrder
+                                                                                     || swimlane.SwimlaneOrder == swimlaneToDelete.SwimlaneOrder - 1));
 
         if (swimlaneToTransferCandidates.Count () is 0)
             return arcTransaction;
@@ -127,7 +137,8 @@ public class SwimlaneRepository : ISwimlaneRepository
             cardPosition.SwimlaneTitle = swimlaneToTransfer.Title;
             cardPosition.SwimlaneOrder = swimlaneToTransfer.SwimlaneOrder;
 
-            arcTransaction.Add (new (TableTransactionActionType.UpdateMerge, cardPosition));
+            var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, cardPosition);
+            arcTransaction.Add (transaction, cardPosition);
         }
 
         return arcTransaction;

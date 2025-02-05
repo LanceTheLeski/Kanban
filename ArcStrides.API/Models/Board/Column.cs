@@ -1,5 +1,8 @@
-﻿namespace ArcStrides.API.Models.Board;
+﻿using ArcStrides.API.Attributes;
 
+namespace ArcStrides.API.Models.Board;
+
+[ArcTableName ("Columns")]
 public class Column : ArcBoardsEntity
 {
     public override string RowKey { get; set; }

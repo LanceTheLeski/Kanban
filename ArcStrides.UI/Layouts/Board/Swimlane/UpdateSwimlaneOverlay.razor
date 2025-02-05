@@ -11,7 +11,7 @@
 
 <ArcOverlay @bind-Open="Open"
             OnSubmitAsync="UpdateSwimlane">
-    
+
     <MudText>Edit Swimlane</MudText>
 
     <ArcExpandingSelector @bind-Options="SwimlaneTitles"
@@ -24,8 +24,8 @@
                   AutoGrow 
                   HelperText="Swimlane Title" />
 
-    <ArcExpandingSelector @bind-Options="_swimlaneTitleList"
-                          OptionSelected="@((str) => _swimlaneOrderSelected = int.Parse(str))" />
+    <ArcExpandingSelector @bind-Options="_swimlaneOrderList"
+                          OptionSelected="@((orderSelected) => _swimlaneOrderSelected = int.Parse(orderSelected))" />
 
 </ArcOverlay>
 
@@ -56,12 +56,15 @@
     [Parameter]
     public EventCallback<bool> Refresh { get; set; }
 
-    protected override void OnInitialized ()
+    protected override void OnParametersSet ()
     {
-        GetSwimlaneIndexList ();
+        base.OnParametersSet ();
+
+        GetSwimlaneIndexList();
     }
 
-    private List<string> _swimlaneTitleList = new ();
+    private List<string> _swimlaneOrderList = new ();
+
     private string _swimlaneTitleSelected = string.Empty;
     private string _swimlaneTitleReplacement = string.Empty;
 

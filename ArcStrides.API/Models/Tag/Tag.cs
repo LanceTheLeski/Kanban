@@ -1,5 +1,8 @@
-﻿namespace ArcStrides.API.Models.Tag;
+﻿using ArcStrides.API.Attributes;
 
+namespace ArcStrides.API.Models.Tag;
+
+[ArcTableName ("Tags")]
 public class Tag : ArcTagsEntity
 {
     public string RowKey { get; set; }
