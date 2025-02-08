@@ -2,6 +2,7 @@
 
 namespace ArcStrides.UI.Models;
 
+// To delete..?
 public class Card
 {
     public Guid Id { get; set; }

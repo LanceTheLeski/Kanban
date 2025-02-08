@@ -2,9 +2,11 @@
 
 public interface IArcStridesService<TResp> where TResp : class, new()
 {
-    Task<TResp?> CreateEntityAsync (string url, string entityCreateRequestSerialized);
+    Task<TResp?> FetchEntityAsync (string urlPath);
 
-    Task<TResp?> UpdateEntityAsync (string url, string entityPatchRequestSerialized);
+    Task<TResp?> CreateEntityAsync (string urlPath, string entityCreateRequestSerialized);
 
-    Task DeleteEntityAsync (string url);
+    Task<TResp?> UpdateEntityAsync (string urlPath, string entityPatchRequestSerialized);
+
+    Task DeleteEntityAsync (string urlPath);
 }

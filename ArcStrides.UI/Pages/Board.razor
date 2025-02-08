@@ -13,9 +13,6 @@
 @using Newtonsoft.Json
 @using System.Net.Http.Headers
 
-@inject IBoardRepository _boardRepository
-@inject ICardRepository _cardRepository
-
 @page "/board"
 
 @rendermode RenderMode.InteractiveServer
@@ -124,8 +121,11 @@
 
 <!--Should move this to a different layout component which manages cards-->
 <UpdateCardOverlay @bind-Open="editCardOverlayIsOpen"
-@bind-ActiveCard="_activeCard"
-Refresh="Refresh" />
+                   @bind-ActiveCard="_activeCard"
+                   Refresh="Refresh" />
+
+@inject IBoardRepository _boardRepository
+@inject ICardRepository _cardRepository
 
 @code 
 {

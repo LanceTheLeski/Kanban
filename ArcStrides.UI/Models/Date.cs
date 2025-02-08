@@ -3,55 +3,30 @@ using MudBlazor;
 
 namespace ArcStrides.UI.Models;
 
-public class Date
+public class Date : DateResponse
 {
-    // 0 = Sunday
-    // 1 = Monday
-    // 2 = Tuesday
-    // 3 = Wednesday
-    // 4 = Thursday
-    // 5 = Friday
-    // 6 = Saturday
-    public class Month()
-    {
-        public int DaysInMonth { get; set; }
+    /// <summary>
+    /// The sum of all the different task types for the day.
+    /// </summary>
+    public double [] DonutChartData { get; set; }
 
-        public int FirstDayIndex { get; set; }
+    /// <summary>
+    /// A list of multiple ChartSeries. Each ChartSeries tracks how many tasks 
+    /// have been completed out of the total for a single task type for the day.The 
+    /// collection holds the completion data for all tasks, sorted by type, for a 
+    /// single day - giving a full picture of everything completed in the grand scheme 
+    /// of things.
+    /// </summary>
+    public List<ChartSeries> LineChartData { get; set; }
 
-        public List<Week> Weeks { get; set; }
-    }
+    /// <summary>
+    /// Labels are required to assign on the donut chart. They will correspond to all 
+    /// of the task types for the day.
+    /// </summary>
+    public string [] Labels { get; set; }
 
-    public class Week()
-    {
-        public Day Sunday { get; set; }
-        public Day Monday { get; set; }
-        public Day Tuesday { get; set; }
-        public Day Wednesday { get; set; }
-        public Day Thursday { get; set; }
-        public Day Friday { get; set; }
-        public Day Saturday { get; set; }
-    }
-
-    public class Day()
-    {
-        public int DayOfTheMonth { get; set; }
-
-        public bool IsFromDifferentMonth { get; set; } = false;
-
-        public List<CardResponse> Cards { get; set; }
-
-        /// <summary>
-        /// Task Total
-        /// </summary>
-        public double[] DonutChartData { get; set; }
-
-        /// <summary>
-        /// Tasks completed out of total expected to be completed by task group
-        /// </summary>
-        public List<ChartSeries> LineChartData { get; set; }
-
-        public string[] Labels { get; set; }
-
-        public string[] xAxisLabels { get; set; }
-    }
+    /// <summary>
+    /// The x-axis labels should correspond to task type of the line chart. (I think??)
+    /// </summary>
+    public string [] xAxisLabels { get; set; }
 }
