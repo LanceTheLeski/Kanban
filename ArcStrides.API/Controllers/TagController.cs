@@ -18,10 +18,10 @@ public class TagController : Controller
 {
     private readonly ITagRepository _tagRepository;
 
-    private readonly ITagMapper _tagMapper;
+    private readonly TagMapper _tagMapper;
 
     public TagController (ITagRepository tagRepository,
-                          ITagMapper tagMapper)
+                          TagMapper tagMapper)
     {
         _tagRepository = tagRepository;
 

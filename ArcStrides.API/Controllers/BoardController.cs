@@ -19,19 +19,19 @@ public class BoardController : Controller
     private readonly ICardRepository _cardRepository;
     private readonly ITaskRepository _taskRepository;
 
-    private readonly ISwimlaneMapper _swimlaneMapper;
-    private readonly IColumnMapper _columnMapper;
-    private readonly ICardMapper _cardMapper;
-    private readonly ITaskMapper _taskMapper;
+    private readonly SwimlaneMapper _swimlaneMapper;
+    private readonly ColumnMapper _columnMapper;
+    private readonly CardMapper _cardMapper;
+    private readonly TaskMapper _taskMapper;
 
     public BoardController (IColumnRepository columnRepository,
                             ISwimlaneRepository swimlaneRepository,
                             ICardRepository cardRepository,
                             ITaskRepository taskRepository,
-                            ISwimlaneMapper swimlaneMapper,
-                            IColumnMapper columnMapper,
-                            ICardMapper cardMapper,
-                            ITaskMapper taskMapper)
+                            SwimlaneMapper swimlaneMapper,
+                            ColumnMapper columnMapper,
+                            CardMapper cardMapper,
+                            TaskMapper taskMapper)
     {
         _columnRepository = columnRepository;
         _swimlaneRepository = swimlaneRepository;
@@ -40,7 +40,7 @@ public class BoardController : Controller
 
         _swimlaneMapper = swimlaneMapper;
         _columnMapper = columnMapper;
-        _cardMapper = cardMapper;
+        _cardMapper = new CardMapper ();
         _taskMapper = taskMapper;
     }
 
@@ -63,14 +63,16 @@ public class BoardController : Controller
         var columnResponse = new Collection<ColumnResponse> ();
         foreach (var column in columnCollectionOrdered)
         {
-            var mappedColumn = _columnMapper.MapColumnToColumnResponse (column);
+            var mappedColumn = new ColumnResponse ();
+            _columnMapper.MapColumnToColumnResponse (column, mappedColumn);
             columnResponse.Add (mappedColumn);
         }
 
         var swimlaneResponse = new Collection<SwimlaneResponse> ();
         foreach (var swimlane in swimlaneCollectionOrdered)
         {
-            var mappedSwimlane = _swimlaneMapper.MapSwimlaneToSwimlaneResponse (swimlane);
+            var mappedSwimlane = new SwimlaneResponse ();
+            mappedSwimlane = _swimlaneMapper.MapSwimlaneToSwimlaneResponse (swimlane/*, mappedSwimlane*/);
             swimlaneResponse.Add (mappedSwimlane);
         }
 
@@ -78,10 +80,13 @@ public class BoardController : Controller
         foreach (var card in cardCollection)
         {
             var cardPosition = cardPositionCollection.SingleOrDefault (cardPosition => cardPosition.RowKey == card.CardPositionID.ToString ());
-            if (cardPosition is null) ;//??
-            var mappedCardPosition = _cardMapper.MapCardPositionToCardPositionResponse (cardPosition!);
 
-            var mappedCard = _cardMapper.MapCardToCardResponse (card);
+            CardPositionResponse mappedCardPosition = new ();
+            if (cardPosition is null) ;//??
+            _cardMapper.MapCardPositionToCardPositionResponse (cardPosition!, mappedCardPosition);
+
+            CardResponse mappedCard = new ();
+            _cardMapper.MapCardToCardResponse (card, mappedCard);
             mappedCard.Position = mappedCardPosition;
             cardResponse.Add (mappedCard);
         }
@@ -176,7 +181,9 @@ public class BoardController : Controller
             SwimlaneOrder = cardToUpdate.SwimlaneOrder
         };*/
         var mapper = new CardMapper ();
-        var cardResponse = mapper.MapCardPositionToCardPositionResponse (cardToUpdate);
+
+        CardPositionResponse cardResponse = new ();
+        mapper.MapCardPositionToCardPositionResponse (cardToUpdate, cardResponse);
 
         return Ok (cardResponse);
     }

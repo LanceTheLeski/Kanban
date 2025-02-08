@@ -21,13 +21,13 @@ public class TimelineController : Controller
 
     private readonly ITimelineRepository _timelineRepository;
 
-    private readonly ITimelineMapper _timelineMapper;
+    private readonly TimelineMapper _timelineMapper;
 
     public TimelineController (IValidator<TimelineCreateRequest> timelineCreateRequestValidator,
                                IValidator<JsonPatchDocument<TimelinePatchRequest>> timelinePatchRequestDocumentValidator,
                                IValidator<TimelinePatchRequest> timelinePatchRequestValidator,
                                ITimelineRepository timelineRepository,
-                               ITimelineMapper timelineMapper)
+                               TimelineMapper timelineMapper)
     {
         _timelineCreateRequestValidator = timelineCreateRequestValidator;
         _timelinePatchRequestDocumentValidator = timelinePatchRequestDocumentValidator;

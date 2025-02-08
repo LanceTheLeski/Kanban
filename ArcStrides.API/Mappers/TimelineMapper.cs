@@ -7,7 +7,7 @@ using Riok.Mapperly.Abstractions;
 namespace ArcStrides.API.Mappers;
 
 [Mapper]
-public partial class TimelineMapper : ITimelineMapper
+public partial class TimelineMapper
 {
     /// <summary>
     /// <see cref="TimelineCreateRequest"/> --> <see cref="Timeline"/>

@@ -20,7 +20,7 @@ public class ColumnRepository : IColumnRepository
     private readonly IAzureTableService<Column> _columnTable;
 
     public ColumnRepository (IOptions<AzureTableOptions> azureTableOptions,
-                             IColumnMapper columnMapper)
+                             ColumnMapper columnMapper)
     {
         _columnTable = new AzureTableService<Column> (columns, azureTableOptions);
     }
@@ -80,16 +80,18 @@ public class ColumnRepository : IColumnRepository
         if (columnToUpdate.ColumnOrder < newColumnOrder)
             for (int index = columnToUpdate.ColumnOrder + 1; index <= newColumnOrder; index ++)
             {
-                var newColumnToUpdate = DeepCopier.Copy (boardColumnEnumerable.Single (column => column.ColumnOrder == index));
+                var currentColumnToUpdate = boardColumnEnumerable.Single (column => column.ColumnOrder == index);
+                var newColumnToUpdate = DeepCopier.Copy (currentColumnToUpdate);
                 newColumnToUpdate.ColumnOrder = index - 1;
 
                 var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, newColumnToUpdate);
-                arcTransaction.Add (transaction, newColumnToUpdate);
+                arcTransaction.Add (transaction, currentColumnToUpdate);
             }
         if (columnToUpdate.ColumnOrder > newColumnOrder)
             for (int index = newColumnOrder; index < columnToUpdate.ColumnOrder; index ++)
             {
-                var newColumnToUpdate = DeepCopier.Copy (boardColumnEnumerable.Single (column => column.ColumnOrder == index));
+                var currentColumnToUpdate = boardColumnEnumerable.Single (column => column.ColumnOrder == index);
+                var newColumnToUpdate = DeepCopier.Copy (currentColumnToUpdate);
                 newColumnToUpdate.ColumnOrder = index + 1;
 
                 var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, newColumnToUpdate);
@@ -101,16 +103,14 @@ public class ColumnRepository : IColumnRepository
 
     public ArcTransaction ApplyNewOrderForExistingCardPositions (IEnumerable<Column> columnEnumerable, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction)
     {
-        var effectedCardPositionEnumerable = cardPositionEnumerable.Where (boardCard => columnEnumerable.Any (column => column.Title == boardCard.ColumnTitle));
-        if (effectedCardPositionEnumerable.Count () is not 0)
+        var effectedCardPositionEnumerable = cardPositionEnumerable.Where (cardPosition => columnEnumerable.Any (column => column.Title == cardPosition.ColumnTitle));
+        foreach (var cardPosition in effectedCardPositionEnumerable)
         {
-            foreach (var cardPosition in effectedCardPositionEnumerable)
-            {
-                cardPosition.ColumnOrder = columnEnumerable.Single (column => column.Title == cardPosition.ColumnTitle).ColumnOrder;
+            var originalCardPosition = DeepCopier.Copy (cardPosition);
+            cardPosition.ColumnOrder = columnEnumerable.Single (column => column.Title == cardPosition.ColumnTitle).ColumnOrder;
 
-                var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, cardPosition);
-                arcTransaction.Add (transaction, cardPosition);
-            }
+            var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, cardPosition);
+            arcTransaction.Add (transaction, originalCardPosition);
         }
 
         return arcTransaction;

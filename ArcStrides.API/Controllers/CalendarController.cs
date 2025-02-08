@@ -21,13 +21,13 @@ public class CalendarController : Controller
     private readonly ICardRepository _cardRepository;
     private readonly ITaskRepository _taskRepository;
 
-    private readonly IDateMapper _dateMapper;
+    private readonly DateMapper _dateMapper;
 
     public CalendarController (IDateRepository dateRepository,
                                ITagRepository tagRepository,
                                ICardRepository cardRepository,
                                ITaskRepository taskRepository,
-                               IDateMapper dateMapper)
+                               DateMapper dateMapper)
     {
         _dateRepository = dateRepository;
         _tagRepository = tagRepository;
@@ -156,8 +156,10 @@ public class CalendarController : Controller
 
             Cards = new List<CardResponse> ()
         };*/
+        DateResponse dateResponse = new ();
+
         var mapper = new DateMapper ();
-        var dateResponse = mapper.MapDateToDateResponse (newDate);
+        mapper.MapDateToDateResponse (newDate, dateResponse);
 
         return StatusCode (StatusCodes.Status201Created, dateResponse);
     }
@@ -208,8 +210,10 @@ public class CalendarController : Controller
             DayOfTheWeekOrder = dateToUpdate.DayOfTheWeekOrder,
             Cards = new List<CardResponse> ()
         };*/
+        DateResponse dateResponse = new ();
+
         var mapper = new DateMapper ();
-        var dateResponse = mapper.MapDateToDateResponse (dateToUpdate);
+        mapper.MapDateToDateResponse (dateToUpdate, dateResponse);
 
         return Ok (dateResponse);
     }

@@ -22,13 +22,13 @@ builder.Services.AddScoped<IValidator<TimelinePatchRequest>, TimelineValidators.
 builder.Services.AddScoped<IValidator<TagCreateRequest>, TagValidators.TagCreateRequestValidator> ();
 builder.Services.AddScoped<IValidator<JsonPatchDocument<TagPatchRequest>>, TagValidators.TagPatchRequestDocumentValidatorcs> ();*/
 
-builder.Services.AddTransient<IColumnMapper, ColumnMapper> ();
-builder.Services.AddTransient<ISwimlaneMapper, SwimlaneMapper> ();
-builder.Services.AddTransient<IDateMapper, DateMapper> ();
-builder.Services.AddTransient<ICardMapper, CardMapper> ();
-builder.Services.AddTransient<ITaskMapper, TaskMapper> ();
-builder.Services.AddTransient<ITimelineMapper, TimelineMapper> ();
-builder.Services.AddTransient<ITagMapper, TagMapper> ();
+builder.Services.AddScoped<ColumnMapper> ();
+builder.Services.AddScoped<SwimlaneMapper> ();
+builder.Services.AddScoped<DateMapper> ();
+builder.Services.AddScoped<CardMapper> ();
+builder.Services.AddScoped<TaskMapper> ();
+builder.Services.AddScoped<TimelineMapper> ();
+builder.Services.AddScoped<TagMapper> ();
 
 builder.Services.AddTransient<IColumnRepository, ColumnRepository> ();
 builder.Services.AddTransient<ISwimlaneRepository, SwimlaneRepository> ();

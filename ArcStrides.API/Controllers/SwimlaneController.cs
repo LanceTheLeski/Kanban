@@ -13,7 +13,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-
+using System.Collections.ObjectModel;
 using static ArcStrides.API.Validators.SwimlaneValidators;
 
 using Task = System.Threading.Tasks.Task;
@@ -27,7 +27,7 @@ public class SwimlaneController : ArcController
     private readonly IValidator<SwimlaneCreateRequest> _swimlaneCreateRequestValidator;
     private readonly IValidator<JsonPatchDocument<SwimlanePatchRequest>> _swimlanePatchRequestDocumentValidator;
 
-    private readonly ISwimlaneMapper _swimlaneMapper;
+    private readonly SwimlaneMapper _swimlaneMapper;
 
     private readonly ISwimlaneRepository _swimlaneRepository;
     private readonly ICardRepository _cardRepository;
@@ -252,9 +252,7 @@ public class SwimlaneController : ArcController
                                                                                                 && swimlane.PartitionKey == swimlaneToDelete.PartitionKey);
         deleteSwimlaneTransaction = _swimlaneRepository.DecrementExistingSwimlanesOrder (swimlanesToUpdateOrder, deleteSwimlaneTransaction);
 
-        var allUpdatedSwimlanes = deleteSwimlaneTransaction.GetTransactionDictionary () [typeof (Swimlane).GetArcTableName ()]
-                                                           .Select (action => (Swimlane) action.Entity)
-                                                           .ToList ();
+        var allUpdatedSwimlanes = deleteSwimlaneTransaction.GetTransactionEntities<Swimlane> ().ToList ();
         var boardCardEnumerable = await _cardRepository.GetCardPositionsAsync (boardID);
         deleteSwimlaneTransaction = _swimlaneRepository.ApplyNewOrderForExistingCardPositions (allUpdatedSwimlanes, boardCardEnumerable, deleteSwimlaneTransaction);
 

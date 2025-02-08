@@ -8,7 +8,7 @@ using Riok.Mapperly.Abstractions;
 namespace ArcStrides.API.Mappers;
 
 [Mapper]
-public partial class TagMapper : ITagMapper
+public partial class TagMapper
 {
     #region Tag
 

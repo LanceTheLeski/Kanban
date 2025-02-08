@@ -18,7 +18,7 @@ public class ColumnRepository : IColumnRepository
         => await _arcStridesBackend.CreateEntityAsync ($@"arcstrides/boards/{boardID}/columns", JsonConvert.SerializeObject (columnCreateRequest));
     
     public async Task<ColumnResponse?> UpdateColumnAsync (Guid boardID, Guid columnID, string columnPatchRequest)
-        => await _arcStridesBackend.UpdateEntityAsync ($@"arcstrides/boards/{boardID}/columns/{columnID}", JsonConvert.SerializeObject (columnPatchRequest));
+        => await _arcStridesBackend.UpdateEntityAsync ($@"arcstrides/boards/{boardID}/columns/{columnID}", /*JsonConvert.SerializeObject (*/columnPatchRequest/*)*/);
 
     public async Task DeleteColumnAsync (Guid boardID, Guid columnID)
         => await _arcStridesBackend.DeleteEntityAsync ($@"arcstrides/boards/{boardID}/columns/{columnID}");

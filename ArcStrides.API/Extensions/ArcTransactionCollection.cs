@@ -52,6 +52,8 @@ public class ArcTransactionCollection : ICollection<TableTransactionAction>
 
         _transactionActions.Add (tableTransactionAction);
         _transactionRollback.Add (tableTransactionAction, originalTableEntity);
+
+        var hello = 0;
     }
 
     public void Add (TableTransactionAction tableTransactionAction)

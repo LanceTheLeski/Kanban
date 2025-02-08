@@ -20,13 +20,13 @@ public class TaskController : Controller
     private readonly ITaskRepository _taskRepository;
     private readonly ITimelineRepository _timelineRepository;
 
-    private readonly ITaskMapper _taskMapper;
+    private readonly TaskMapper _taskMapper;
 
     public TaskController (IValidator<TaskQueryParameters> taskQueryParametersValidator,
                            IValidator<TaskCreateRequest> taskCreateRequestValidator,
                            ITaskRepository taskRepository,
                            ITimelineRepository timelineRepository,
-                           ITaskMapper taskMapper)
+                           TaskMapper taskMapper)
     {
         _taskQueryParametersValidator = taskQueryParametersValidator;
         _taskCreateRequestValidator = taskCreateRequestValidator;

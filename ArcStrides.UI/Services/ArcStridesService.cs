@@ -50,6 +50,8 @@ public class ArcStridesService<TResp> : IArcStridesService<TResp> where TResp : 
         var response = await _httpClient.SendAsync (httpRequestMessage);
         if (response.IsSuccessStatusCode is false)
         {
+            var responseBodyy = await response.Content.ReadAsStringAsync ();
+
             _arcErrorHandler.AddError (response.ReasonPhrase ?? string.Empty, response.StatusCode);
             return null;
         }

@@ -5,23 +5,32 @@ namespace ArcStrides.API.Models;
 
 public class ArcTransaction
 {
-    private readonly Dictionary<string, ArcTransactionCollection> _transactionDictionary;
-
-    public ArcTransaction ()
+    public struct TransactionWithOriginalEntity
     {
-        _transactionDictionary = new ();
+        public TableTransactionAction transactionAction;
+        public ITableEntity originalTableEntity;
     }
 
-    public ArcTransaction (params ICollection<(TableTransactionAction transactionAction, ITableEntity originalTableEntity)> transactionTuples)
+    private readonly Dictionary<string, ArcTransactionCollection> _transactionDictionary;
+
+
+    public ArcTransaction (params ICollection<(TableTransactionAction transactionAction, ITableEntity originalTableEntity)> transactionCollection)
     {
         _transactionDictionary = new ();
 
-        foreach (var transactionTuple in transactionTuples)
-            Add (transactionTuple.transactionAction, transactionTuple.originalTableEntity);
+        foreach (var transaction in transactionCollection)
+            Add (transaction.transactionAction, transaction.originalTableEntity);
     }
 
     public IDictionary<string, ArcTransactionCollection> GetTransactionDictionary ()
         => _transactionDictionary;
+
+    public IEnumerable<T> GetTransactionEntities<T> () where T : ITableEntity
+    {
+        var transactionCollection = _transactionDictionary [typeof (T).GetArcTableName ()];
+
+        return transactionCollection.Select (transactionAction => (T) transactionAction.Entity);
+    }
 
     public IEnumerable<ArcTransactionCollection> GetTransactions ()
         => _transactionDictionary.Values;
@@ -45,8 +54,10 @@ public class ArcTransaction
         if (_transactionDictionary.ContainsKey (tableTransactionActionEntityType!))
             _transactionDictionary [tableTransactionActionEntityType!].Add (tableTransactionAction, originalEntityForRollback);
         else
-            _transactionDictionary.Add (tableTransactionActionEntityType!, new ArcTransactionCollection (Guid.Parse (originalEntityForRollback.PartitionKey),
-                                                                                                         (tableTransactionAction, originalEntityForRollback)));
+            _transactionDictionary [tableTransactionActionEntityType!] = new ArcTransactionCollection (Guid.Parse (originalEntityForRollback.PartitionKey),
+                                                                                                       (tableTransactionAction, originalEntityForRollback));
+
+        var hello = 0;
     }
 
     public void Remove (TableTransactionAction tableTransactionAction, ITableEntity originalEntityForRollback)

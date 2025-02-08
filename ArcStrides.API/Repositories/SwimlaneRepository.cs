@@ -20,7 +20,7 @@ public class SwimlaneRepository : ISwimlaneRepository
     private readonly IAzureTableService<Swimlane> _swimlaneTable;
 
     public SwimlaneRepository (IOptions<AzureTableOptions> azureTableOptions,
-                             ISwimlaneMapper swimlaneMapper)
+                               SwimlaneMapper swimlaneMapper)
     {
         _swimlaneTable = new AzureTableService<Swimlane> (swimlanes, azureTableOptions);
     }

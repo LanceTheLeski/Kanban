@@ -6,8 +6,8 @@ using Riok.Mapperly.Abstractions;
 
 namespace ArcStrides.API.Mappers;
 
-[Mapper]
-public partial class CardMapper : ICardMapper
+[Mapper (AllowNullPropertyAssignment = false)]
+public partial class CardMapper
 {
     /// <summary>
     /// <see cref="CardCreateRequest"/> --> <see cref="Card"/>
@@ -20,7 +20,7 @@ public partial class CardMapper : ICardMapper
     [MapProperty (nameof (CardCreateRequest.EndDependencyTagGroupID), nameof (Card.EndDependencyTagGroupID))]
     [MapProperty (nameof (CardCreateRequest.EndPreferenceUTC), nameof (Card.EndPreferenceUTC))]
     [MapProperty (nameof (CardCreateRequest.EndDeadlineUTC), nameof (Card.EndDeadlineUTC))]
-    public partial Card MapCardCreateRequestToCard (CardCreateRequest cardCreateRequest);
+    public partial void MapCardCreateRequestToCard (CardCreateRequest cardCreateRequest, Card card);
 
     /// <summary>
     /// <see cref="Card"/> --> <see cref="CardPosition"/>
@@ -28,7 +28,7 @@ public partial class CardMapper : ICardMapper
     [MapProperty (nameof (Card.PartitionKey), nameof (CardPosition.PartitionKey))]
     [MapProperty (nameof (Card.CardPositionID), nameof (CardPosition.RowKey))]
     [MapProperty (nameof (Card.RowKey), nameof (CardPosition.CardID))]
-    public partial CardPosition MapCardToCardPosition (Card card);
+    public partial void MapCardToCardPosition (Card card, CardPosition cardPosition);
 
     /// <summary>
     /// <see cref="Card"/> --> <see cref="CardPositionResponse"/>
@@ -37,12 +37,12 @@ public partial class CardMapper : ICardMapper
     [MapProperty (nameof (Card.Title), nameof (CardPositionResponse.Title))]
     [MapProperty (nameof (Card.Description), nameof (CardPositionResponse.Description))]
     [MapProperty (nameof (Card.PartitionKey), nameof (CardPositionResponse.BoardID))]
-    public partial CardPositionResponse MapCardToCardPositionResponse (Card card);
+    public partial void MapCardToCardPositionResponse (Card card, CardPositionResponse cardPositionResponse);
 
     [MapProperty (nameof (Card.RowKey), nameof (CardResponse.ID))]
     [MapProperty (nameof (Card.Title), nameof (CardResponse.Title))]
     [MapProperty (nameof (Card.Description), nameof (CardResponse.Description))]
-    public partial CardResponse MapCardToCardResponse (Card card);
+    public partial void MapCardToCardResponse (Card card, CardResponse cardResponse);
 
     #region CardPosition
 
@@ -56,14 +56,14 @@ public partial class CardMapper : ICardMapper
     [MapProperty (nameof (CardPosition.SwimlaneID), nameof (CardPositionResponse.SwimlaneID))]
     [MapProperty (nameof (CardPosition.SwimlaneTitle), nameof (CardPositionResponse.SwimlaneTitle))]
     [MapProperty (nameof (CardPosition.SwimlaneOrder), nameof (CardPositionResponse.SwimlaneOrder))]
-    public partial CardPositionResponse MapCardPositionToCardPositionResponse (CardPosition cardPosition);
+    public partial void MapCardPositionToCardPositionResponse (CardPosition cardPosition, CardPositionResponse cardPositionResponse);
 
     /// <summary>
     /// <see cref="CardCreateRequest"/> --> <see cref="CardPosition"/>
     /// </summary>
     [MapProperty (nameof (CardCreateRequest.ColumnID), nameof (CardPosition.ColumnID))]
     [MapProperty (nameof (CardCreateRequest.SwimlaneID), nameof (CardPosition.SwimlaneID))]
-    public partial CardPosition MapCardCreateRequestToCardPosition (CardCreateRequest cardCreateRequest);
+    public partial void MapCardCreateRequestToCardPosition (CardCreateRequest cardCreateRequest, CardPosition cardPosition);
 
     /// <summary>
     /// <see cref="CardPositionPatchRequest"/> --> <see cref="CardPosition"/>
@@ -74,7 +74,7 @@ public partial class CardMapper : ICardMapper
     [MapProperty (nameof (CardPosition.SwimlaneID), nameof (CardPositionPatchRequest.SwimlaneID))]
     [MapProperty (nameof (CardPosition.SwimlaneTitle), nameof (CardPositionPatchRequest.SwimlaneTitle))]
     [MapProperty (nameof (CardPosition.SwimlaneOrder), nameof (CardPositionPatchRequest.SwimlaneOrder))]
-    public partial CardPosition MapCardPatchRequestToCard (CardPositionPatchRequest cardPatchRequest);
+    public partial void MapCardPatchRequestToCard (CardPositionPatchRequest cardPatchRequest, CardPosition cardPosition);
 
     #endregion CardPosition
 }

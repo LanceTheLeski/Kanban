@@ -6,7 +6,7 @@ using Riok.Mapperly.Abstractions;
 namespace ArcStrides.API.Mappers;
 
 [Mapper]
-public partial class TaskMapper : ITaskMapper
+public partial class TaskMapper
 {
     /// <summary>
     /// <see cref="TaskCreateRequest"/> --> <see cref="Task"/>

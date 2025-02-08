@@ -7,7 +7,7 @@ using Riok.Mapperly.Abstractions;
 namespace ArcStrides.API.Mappers;
 
 [Mapper]
-public partial class SwimlaneMapper : ISwimlaneMapper
+public partial class SwimlaneMapper
 {
     /// <summary>
     /// <see cref="SwimlaneCreateRequest"/> --> <see cref="Swimlane"/>
