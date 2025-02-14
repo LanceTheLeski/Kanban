@@ -156,10 +156,9 @@ public class CalendarController : Controller
 
             Cards = new List<CardResponse> ()
         };*/
-        DateResponse dateResponse = new ();
 
         var mapper = new DateMapper ();
-        mapper.MapDateToDateResponse (newDate, dateResponse);
+        var dateResponse = mapper.MapDateToDateResponse (newDate);
 
         return StatusCode (StatusCodes.Status201Created, dateResponse);
     }
@@ -210,10 +209,9 @@ public class CalendarController : Controller
             DayOfTheWeekOrder = dateToUpdate.DayOfTheWeekOrder,
             Cards = new List<CardResponse> ()
         };*/
-        DateResponse dateResponse = new ();
 
         var mapper = new DateMapper ();
-        mapper.MapDateToDateResponse (dateToUpdate, dateResponse);
+        var dateResponse = mapper.MapDateToDateResponse (dateToUpdate);
 
         return Ok (dateResponse);
     }

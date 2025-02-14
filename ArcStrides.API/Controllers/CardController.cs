@@ -106,10 +106,8 @@ public class CardController : ControllerBase
             SwimlaneOrder = newCard.SwimlaneOrder
         };*/
 
-        var cardResponse = new CardPositionResponse ();
-
         var mapper = new CardMapper ();
-        mapper.MapCardPositionToCardPositionResponse (newCard, cardResponse);
+        var cardResponse = mapper.MapCardPositionToCardPositionResponse (newCard);
 
         return StatusCode (StatusCodes.Status201Created, cardResponse);
     }

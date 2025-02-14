@@ -63,8 +63,7 @@ public class BoardController : Controller
         var columnResponse = new Collection<ColumnResponse> ();
         foreach (var column in columnCollectionOrdered)
         {
-            var mappedColumn = new ColumnResponse ();
-            _columnMapper.MapColumnToColumnResponse (column, mappedColumn);
+            var mappedColumn = _columnMapper.MapColumnToColumnResponse (column);
             columnResponse.Add (mappedColumn);
         }
 
@@ -80,13 +79,11 @@ public class BoardController : Controller
         foreach (var card in cardCollection)
         {
             var cardPosition = cardPositionCollection.SingleOrDefault (cardPosition => cardPosition.RowKey == card.CardPositionID.ToString ());
-
-            CardPositionResponse mappedCardPosition = new ();
+            
             if (cardPosition is null) ;//??
-            _cardMapper.MapCardPositionToCardPositionResponse (cardPosition!, mappedCardPosition);
+            var mappedCardPosition = _cardMapper.MapCardPositionToCardPositionResponse (cardPosition!);
 
-            CardResponse mappedCard = new ();
-            _cardMapper.MapCardToCardResponse (card, mappedCard);
+            var mappedCard = _cardMapper.MapCardToCardResponse (card);
             mappedCard.Position = mappedCardPosition;
             cardResponse.Add (mappedCard);
         }
@@ -182,8 +179,7 @@ public class BoardController : Controller
         };*/
         var mapper = new CardMapper ();
 
-        CardPositionResponse cardResponse = new ();
-        mapper.MapCardPositionToCardPositionResponse (cardToUpdate, cardResponse);
+        var cardResponse = mapper.MapCardPositionToCardPositionResponse (cardToUpdate);
 
         return Ok (cardResponse);
     }

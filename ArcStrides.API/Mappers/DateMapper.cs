@@ -18,7 +18,7 @@ public partial class DateMapper
     [MapProperty (nameof (DateCreateRequest.MonthOrder), nameof (Date.MonthOrder))]
     [MapProperty (nameof (DateCreateRequest.MonthName), nameof (Date.MonthName))]
     [MapProperty (nameof (DateCreateRequest.Year), nameof (Date.Year))]
-    public partial void MapDateCreateRequestToDate (DateCreateRequest dateCreateRequest, Date date);
+    public partial Date MapDateCreateRequestToDate (DateCreateRequest dateCreateRequest);
 
     /// <summary>
     /// <see cref="DatePatchRequest"/> --> <see cref="Date"/>
@@ -29,7 +29,7 @@ public partial class DateMapper
     [MapProperty (nameof (DatePatchRequest.MonthOrder), nameof (Date.MonthOrder))]
     [MapProperty (nameof (DatePatchRequest.MonthName), nameof (Date.MonthName))]
     [MapProperty (nameof (DatePatchRequest.Year), nameof (Date.Year))]
-    public partial void MapDatePatchRequestToDate (DatePatchRequest datePatchRequest, Date date);
+    public partial Date MapDatePatchRequestToDate (DatePatchRequest datePatchRequest);
 
     /// <summary>
     /// <see cref="Date"/> --> <see cref="DateResponse"/>
@@ -38,5 +38,5 @@ public partial class DateMapper
     [MapProperty (nameof (Date.DateOrder), nameof (DateResponse.DateOrder))]
     [MapProperty (nameof (Date.WeekOrder), nameof (DateResponse.WeekOrder))]
     [MapProperty (nameof (Date.DayOfTheWeekOrder), nameof (DateResponse.DayOfTheWeekOrder))]
-    public partial void MapDateToDateResponse (Date date, DateResponse dateResponse);
+    public partial DateResponse MapDateToDateResponse (Date date);
 }

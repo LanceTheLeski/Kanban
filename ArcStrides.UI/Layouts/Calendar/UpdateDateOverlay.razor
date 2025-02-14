@@ -10,7 +10,7 @@
 @inherits LayoutComponentBase
 
 <ArcOverlay @bind-Open="Open">
-    <MudText>@DayData.DayOfTheMonth</MudText>
+    <MudText>@(Date.DateOrder)</MudText>
     <MudExpansionPanels>
         <MudExpansionPanel Text="Column" MaxHeight="1000" ExpandedChanged="TaskTypeListExpandedChanged">
             @_taskTypeList
@@ -20,9 +20,9 @@
     <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
         <MudStack Class="flex-grow-1" Width="100%" Height="100%">
             <MudList T="string" ReadOnly="false">
-                @if (DayData.Cards is not null)
+                @if (Date.Cards is not null)
                 {
-                    @foreach (var task in DayData.Cards)
+                    @foreach (var task in Date.Cards)
                     {
                         <MudListItem OnClick="(() => ExpandTaskView(task))">
                             Task Name: @(task.Title)
@@ -47,7 +47,6 @@
 
 <MudOverlay @bind-Visible="_addTaskIsOpen" DarkBackground="true" ZIndex="20">
     <CreateTaskOverlay @bind-Open="_addTaskIsOpen"
-                       @bind-Day="DayData"
                        Refresh="Refresh" />
 </MudOverlay>
 
@@ -59,9 +58,9 @@
     public EventCallback<bool> OpenChanged { get; set; }
 
     [Parameter]
-    public Date.Day DayData { get; set; }
+    public Date Date { get; set; }
     [Parameter]
-    public EventCallback<Date.Day> DayDataChanged { get; set; }
+    public EventCallback<Date> DateChanged { get; set; }
 
     [Parameter]
     public EventCallback<bool> Refresh { get; set; }
@@ -90,9 +89,9 @@
 
     private RenderFragment _taskTypeListRenderFragment ()
     {
-        var boardIDs = DayData.Cards?.Select(card => card.Position.BoardID)
-                                     .Distinct()
-                                     .ToList() ?? new List<Guid?> { };
+        var boardIDs = Date.Cards?.Select(card => card.Position.BoardID)
+                                  .Distinct()
+                                  .ToList() ?? new List<Guid?> { };
 
         return __builder =>
         {

@@ -20,7 +20,7 @@ public partial class CardMapper
     [MapProperty (nameof (CardCreateRequest.EndDependencyTagGroupID), nameof (Card.EndDependencyTagGroupID))]
     [MapProperty (nameof (CardCreateRequest.EndPreferenceUTC), nameof (Card.EndPreferenceUTC))]
     [MapProperty (nameof (CardCreateRequest.EndDeadlineUTC), nameof (Card.EndDeadlineUTC))]
-    public partial void MapCardCreateRequestToCard (CardCreateRequest cardCreateRequest, Card card);
+    public partial Card MapCardCreateRequestToCard (CardCreateRequest cardCreateRequest);
 
     /// <summary>
     /// <see cref="Card"/> --> <see cref="CardPosition"/>
@@ -28,7 +28,7 @@ public partial class CardMapper
     [MapProperty (nameof (Card.PartitionKey), nameof (CardPosition.PartitionKey))]
     [MapProperty (nameof (Card.CardPositionID), nameof (CardPosition.RowKey))]
     [MapProperty (nameof (Card.RowKey), nameof (CardPosition.CardID))]
-    public partial void MapCardToCardPosition (Card card, CardPosition cardPosition);
+    public partial CardPosition MapCardToCardPosition (Card card);
 
     /// <summary>
     /// <see cref="Card"/> --> <see cref="CardPositionResponse"/>
@@ -37,12 +37,12 @@ public partial class CardMapper
     [MapProperty (nameof (Card.Title), nameof (CardPositionResponse.Title))]
     [MapProperty (nameof (Card.Description), nameof (CardPositionResponse.Description))]
     [MapProperty (nameof (Card.PartitionKey), nameof (CardPositionResponse.BoardID))]
-    public partial void MapCardToCardPositionResponse (Card card, CardPositionResponse cardPositionResponse);
+    public partial CardPositionResponse MapCardToCardPositionResponse (Card card);
 
     [MapProperty (nameof (Card.RowKey), nameof (CardResponse.ID))]
     [MapProperty (nameof (Card.Title), nameof (CardResponse.Title))]
     [MapProperty (nameof (Card.Description), nameof (CardResponse.Description))]
-    public partial void MapCardToCardResponse (Card card, CardResponse cardResponse);
+    public partial CardResponse MapCardToCardResponse (Card card);
 
     #region CardPosition
 
@@ -56,14 +56,14 @@ public partial class CardMapper
     [MapProperty (nameof (CardPosition.SwimlaneID), nameof (CardPositionResponse.SwimlaneID))]
     [MapProperty (nameof (CardPosition.SwimlaneTitle), nameof (CardPositionResponse.SwimlaneTitle))]
     [MapProperty (nameof (CardPosition.SwimlaneOrder), nameof (CardPositionResponse.SwimlaneOrder))]
-    public partial void MapCardPositionToCardPositionResponse (CardPosition cardPosition, CardPositionResponse cardPositionResponse);
+    public partial CardPositionResponse MapCardPositionToCardPositionResponse (CardPosition cardPosition);
 
     /// <summary>
     /// <see cref="CardCreateRequest"/> --> <see cref="CardPosition"/>
     /// </summary>
     [MapProperty (nameof (CardCreateRequest.ColumnID), nameof (CardPosition.ColumnID))]
     [MapProperty (nameof (CardCreateRequest.SwimlaneID), nameof (CardPosition.SwimlaneID))]
-    public partial void MapCardCreateRequestToCardPosition (CardCreateRequest cardCreateRequest, CardPosition cardPosition);
+    public partial CardPosition MapCardCreateRequestToCardPosition (CardCreateRequest cardCreateRequest);
 
     /// <summary>
     /// <see cref="CardPositionPatchRequest"/> --> <see cref="CardPosition"/>
@@ -74,7 +74,7 @@ public partial class CardMapper
     [MapProperty (nameof (CardPosition.SwimlaneID), nameof (CardPositionPatchRequest.SwimlaneID))]
     [MapProperty (nameof (CardPosition.SwimlaneTitle), nameof (CardPositionPatchRequest.SwimlaneTitle))]
     [MapProperty (nameof (CardPosition.SwimlaneOrder), nameof (CardPositionPatchRequest.SwimlaneOrder))]
-    public partial void MapCardPatchRequestToCard (CardPositionPatchRequest cardPatchRequest, CardPosition cardPosition);
+    public partial CardPosition MapCardPatchRequestToCard (CardPositionPatchRequest cardPatchRequest);
 
     #endregion CardPosition
 }

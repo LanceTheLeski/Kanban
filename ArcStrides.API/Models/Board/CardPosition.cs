@@ -2,7 +2,7 @@
 
 namespace ArcStrides.API.Models.Board;
 
-[ArcTableName ("CardPosition")]
+[ArcTableName ("CardPositions")]
 public class CardPosition : ArcBoardsEntity
 {
     public override string RowKey { get; set; }

@@ -53,8 +53,7 @@ public class ColumnController : ArcController
         {
             var columnFromDatabase = await FetchAndValidateColumn (boardID, columnID);
 
-            var columnResponse = new ColumnResponse ();
-            _columnMapper.MapColumnToColumnResponse (columnFromDatabase, columnResponse);
+            var columnResponse = _columnMapper.MapColumnToColumnResponse (columnFromDatabase);
             return Ok (columnResponse);
         }
         catch (Exception ex)
@@ -71,15 +70,13 @@ public class ColumnController : ArcController
 
         try
         {
-            var newColumn = new Column ();
-            _columnMapper.MapColumnCreateRequestToColumn (columnCreateRequest, newColumn);
+            var newColumn = _columnMapper.MapColumnCreateRequestToColumn (columnCreateRequest);
             newColumn.PartitionKey = boardID.ToString ();
             newColumn.RowKey = Guid.NewGuid ().ToString ();
             
             await AddColumnAndUpdateEffectedColumnsAndCardPositions (boardID, newColumn);
 
-            ColumnResponse columnResponse = new ();
-            _columnMapper.MapColumnToColumnResponse (newColumn, columnResponse);
+            var columnResponse = _columnMapper.MapColumnToColumnResponse (newColumn);
             return Created (default (Uri)/*Generate this later*/, columnResponse);
         }
         catch (Exception ex)
@@ -104,8 +101,7 @@ public class ColumnController : ArcController
             if (columnToUpdate is null)
                 return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Column)));
 
-            ColumnPatchRequest convertedColumnToUpdate = new ();
-            _columnMapper.MapColumnToColumnPatchRequest (columnToUpdate, convertedColumnToUpdate);
+            var convertedColumnToUpdate = _columnMapper.MapColumnToColumnPatchRequest (columnToUpdate);
             try { columnPatchRequest.ApplyTo (convertedColumnToUpdate); }
             catch (JsonPatchException)
                 { return BadRequest (ErrorResponseMessages.PatchRequestIsInvalidErrorResponse (nameof (Column))); }
@@ -113,8 +109,7 @@ public class ColumnController : ArcController
 
             var updatedColumn = await UpdateColumnAndUpdateEffectedColumnsAndCardPositions (boardID, columnToUpdate, convertedColumnToUpdate, columnsFromDatabase, cardPositionsFromDatabase, columnPatchRequest.Operations);
 
-            ColumnResponse columnResponse = new ();
-            _columnMapper.MapColumnToColumnResponse (updatedColumn, columnResponse);
+            var columnResponse = _columnMapper.MapColumnToColumnResponse (updatedColumn);
             return Ok (columnResponse);
         }
         catch (Exception ex)
@@ -250,8 +245,8 @@ public class ColumnController : ArcController
             updateColumnTransaction = _columnRepository.ApplyNewOrderForExistingColumns (columnToUpdate, convertedColumnToUpdate.Order.Value, columnsFromBoard, updateColumnTransaction);
 
         var originalColumn = DeepCopier.Copy (columnToUpdate);
-        //columnToUpdate = _columnMapper.MapColumnPatchRequestToColumn (convertedColumnToUpdate); // Make sure that the response object is preserved if not mapped to.
-        _columnMapper.MapColumnPatchRequestToColumn (convertedColumnToUpdate, columnToUpdate);
+        columnToUpdate = _columnMapper.MapColumnPatchRequestToColumn (convertedColumnToUpdate); // Make sure that the response object is preserved if not mapped to.
+        //_columnMapper.MapColumnPatchRequestToColumn (convertedColumnToUpdate, columnToUpdate);
 
         var allUpdatedColumns = updateColumnTransaction.GetTransactionEntities<Column> ().ToList ();
         allUpdatedColumns.Add (columnToUpdate);
