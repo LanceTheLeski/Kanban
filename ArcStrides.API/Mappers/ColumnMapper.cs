@@ -9,6 +9,8 @@ namespace ArcStrides.API.Mappers;
 [Mapper (AllowNullPropertyAssignment = false)]
 public partial class ColumnMapper
 {
+    public partial void MapFieldsFromSourceToTarget (Column source, Column target);
+
     /// <summary>
     /// <see cref="ColumnCreateRequest"/> --> <see cref="Column"/>
     /// </summary>

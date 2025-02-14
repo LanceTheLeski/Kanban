@@ -6,7 +6,6 @@ using ArcStrides.API.Models.Board;
 using ArcStrides.API.Repositories;
 using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Request.Patch;
-using ArcStrides.Contracts.Response;
 using Azure;
 using Azure.Data.Tables;
 using DeepCopy;
@@ -187,7 +186,7 @@ public class ColumnController : ArcController
             throw new RequestFailureWrapperException (nameof (BadRequest), ErrorResponseMessages.ValidationFailedErrorResponse (nameof (Column), ValidatorMessages.FieldOutOfRangeValdiatorMessage (nameof (Column.ColumnOrder))));
 
         var columnsWithoutColumnToUpdate = DeepCopier.Copy (columnsFromBoard.ToList ());
-        columnsWithoutColumnToUpdate.Remove (columnToUpdate);
+        columnsWithoutColumnToUpdate.RemoveAll (column => column.RowKey == columnToUpdate.RowKey);
         if (convertedColumnToUpdate.Title is not null 
             && columnsWithoutColumnToUpdate.Any (column => string.Equals (column.Title, convertedColumnToUpdate.Title, StringComparison.OrdinalIgnoreCase)))
             throw new RequestFailureWrapperException (nameof (BadRequest), ErrorResponseMessages.ValidationFailedErrorResponse (nameof (Column), ValidatorMessages.DuplicateFieldValidatorMessage (nameof (Column.Title))));
@@ -233,7 +232,7 @@ public class ColumnController : ArcController
     /// </summary>
     private async Task<Column> UpdateColumnAndUpdateEffectedColumnsAndCardPositions (Guid boardID,
                                                                                      Column columnToUpdate,
-                                                                                     ColumnPatchRequest convertedColumnToUpdate,
+                                                                                     ColumnPatchRequest convertedColumnPatchRequest,
                                                                                      IEnumerable<Column> columnsFromBoard,
                                                                                      IEnumerable<CardPosition> cardPositionsFromBoard,
                                                                                      IEnumerable<Microsoft.AspNetCore.JsonPatch.Operations.Operation<ColumnPatchRequest>> columnPatchRequest)
@@ -242,17 +241,17 @@ public class ColumnController : ArcController
 
         var orderIsUpdated = columnPatchRequest.Any (operation => string.Equals (operation.path, $"/{nameof (ColumnPatchRequest.Order)}", StringComparison.OrdinalIgnoreCase));
         if (orderIsUpdated)
-            updateColumnTransaction = _columnRepository.ApplyNewOrderForExistingColumns (columnToUpdate, convertedColumnToUpdate.Order.Value, columnsFromBoard, updateColumnTransaction);
+            updateColumnTransaction = _columnRepository.ApplyNewOrderForExistingColumns (columnToUpdate, convertedColumnPatchRequest.Order.Value, columnsFromBoard, updateColumnTransaction);
 
         var originalColumn = DeepCopier.Copy (columnToUpdate);
-        columnToUpdate = _columnMapper.MapColumnPatchRequestToColumn (convertedColumnToUpdate); // Make sure that the response object is preserved if not mapped to.
-        //_columnMapper.MapColumnPatchRequestToColumn (convertedColumnToUpdate, columnToUpdate);
+        var convertedColumnToUpdate = _columnMapper.MapColumnPatchRequestToColumn (convertedColumnPatchRequest); // Make sure that the response object is preserved if not mapped to.
+        _columnMapper.MapFieldsFromSourceToTarget (convertedColumnToUpdate, columnToUpdate);
 
         var allUpdatedColumns = updateColumnTransaction.GetTransactionEntities<Column> ().ToList ();
         allUpdatedColumns.Add (columnToUpdate);
 
         var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, columnToUpdate);
-        updateColumnTransaction.Add (transaction, originalColumn);//Update breaks around here.
+        updateColumnTransaction.Add (transaction, originalColumn);
 
         updateColumnTransaction = _columnRepository.ApplyNewOrderForExistingCardPositions (allUpdatedColumns!, cardPositionsFromBoard!, updateColumnTransaction);
 

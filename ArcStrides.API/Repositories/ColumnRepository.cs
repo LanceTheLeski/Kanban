@@ -78,7 +78,7 @@ public class ColumnRepository : IColumnRepository
             return arcTransaction;
 
         if (columnToUpdate.ColumnOrder < newColumnOrder)
-            for (int index = columnToUpdate.ColumnOrder + 1; index <= newColumnOrder; index ++)
+            for (int index = columnToUpdate.ColumnOrder.Value + 1; index <= newColumnOrder; index ++)
             {
                 var currentColumnToUpdate = boardColumnEnumerable.Single (column => column.ColumnOrder == index);
                 var newColumnToUpdate = DeepCopier.Copy (currentColumnToUpdate);
@@ -107,7 +107,7 @@ public class ColumnRepository : IColumnRepository
         foreach (var cardPosition in effectedCardPositionEnumerable)
         {
             var originalCardPosition = DeepCopier.Copy (cardPosition);
-            cardPosition.ColumnOrder = columnEnumerable.Single (column => column.Title == cardPosition.ColumnTitle).ColumnOrder;
+            cardPosition.ColumnOrder = columnEnumerable.Single (column => column.Title == cardPosition.ColumnTitle).ColumnOrder.Value;
 
             var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, cardPosition);
             arcTransaction.Add (transaction, originalCardPosition);
@@ -135,7 +135,7 @@ public class ColumnRepository : IColumnRepository
         {
             cardPosition.ColumnID = Guid.Parse (columnToTransfer.RowKey);
             cardPosition.ColumnTitle = columnToTransfer.Title;
-            cardPosition.ColumnOrder = columnToTransfer.ColumnOrder;
+            cardPosition.ColumnOrder = columnToTransfer.ColumnOrder.Value;
 
             var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, cardPosition);
             arcTransaction.Add (transaction, cardPosition);

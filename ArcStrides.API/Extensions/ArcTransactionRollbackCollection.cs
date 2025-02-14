@@ -34,8 +34,6 @@ public class ArcTransactionRollbackCollection : ICollection<TableTransactionActi
         var rollbackTableTransactionAction = ConvertTableEntityToTableTransactionAction (tableTransactionAction, tableEntity);
 
         _rollbackTransactionActions.Add (rollbackTableTransactionAction);
-
-        var hello = 0;
     }
 
     public void Add (TableTransactionAction tableTransactionAction)
@@ -49,8 +47,6 @@ public class ArcTransactionRollbackCollection : ICollection<TableTransactionActi
         var rollbackTableTransactionAction = ConvertTableEntityToTableTransactionAction (tableTransactionAction, tableTransactionAction.Entity);
 
         _rollbackTransactionActions.Add (rollbackTableTransactionAction);
-
-        var hello = 0;
     }
 
     public void Remove (TableTransactionAction rollbackTableTransactionAction)

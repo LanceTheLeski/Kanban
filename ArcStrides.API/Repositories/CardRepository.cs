@@ -12,7 +12,7 @@ namespace ArcStrides.API.Repositories;
 public class CardRepository : ICardRepository
 {
     private const string cards = "Cards";
-    private const string cardPositions = "CardPosition";
+    private const string cardPositions = "CardPositions";
 
     private readonly IAzureTableService<Card> _cardTable;
     private readonly IAzureTableService<CardPosition> _cardPositionTable;

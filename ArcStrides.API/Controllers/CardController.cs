@@ -79,7 +79,7 @@ public class CardController : ControllerBase
 
             ColumnID = cardCreateRequest.ColumnID.Value,
             ColumnTitle = columnFromTable.Title,
-            ColumnOrder = columnFromTable.ColumnOrder,
+            ColumnOrder = columnFromTable.ColumnOrder.Value,
 
             //CardTitle = cardCreateRequest.Title,
             //CardDescription = cardCreateRequest.Description,

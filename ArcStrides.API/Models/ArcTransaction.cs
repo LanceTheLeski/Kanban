@@ -27,7 +27,10 @@ public class ArcTransaction
 
     public IEnumerable<T> GetTransactionEntities<T> () where T : ITableEntity
     {
-        var transactionCollection = _transactionDictionary [typeof (T).GetArcTableName ()];
+        var isSuccessful = _transactionDictionary.TryGetValue (typeof (T).GetArcTableName (), out var transactionCollection);
+
+        if (isSuccessful is false)
+            return [];
 
         return transactionCollection.Select (transactionAction => (T) transactionAction.Entity);
     }
@@ -56,8 +59,6 @@ public class ArcTransaction
         else
             _transactionDictionary [tableTransactionActionEntityType!] = new ArcTransactionCollection (Guid.Parse (originalEntityForRollback.PartitionKey),
                                                                                                        (tableTransactionAction, originalEntityForRollback));
-
-        var hello = 0;
     }
 
     public void Remove (TableTransactionAction tableTransactionAction, ITableEntity originalEntityForRollback)
