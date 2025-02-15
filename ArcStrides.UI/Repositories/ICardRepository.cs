@@ -9,5 +9,5 @@ public interface ICardRepository
 
     Task<CardPositionResponse?> UpdateCardPositionAsync (Guid cardID, string boardCardPatchRequest);
 
-    Task DeleteCardPositionAsync (Guid cardID);
+    Task DeleteCardAsync (Guid cardID);
 }

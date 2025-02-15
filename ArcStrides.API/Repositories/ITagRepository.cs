@@ -29,9 +29,9 @@ public interface ITagRepository
 
     #region Tag Type
 
-    Task<TagType?> GetTagTypeAsync (int tagTypeID, Guid tagGroupID);
+    Task<TagType?> GetTagTypeAsync (Guid tagGroupID, int tagTypeID);
 
-    Task<Collection<TagType>> GetTagTypesAsync (int tagTypeID);
+    Task<Collection<TagType>> GetTagTypesAsync (Guid tagGroupID);
 
     Task<Collection<TagType>> QueryTagTypesAsync (Expression<Func<TagType, bool>> tagTypeQueryExpression);
 
@@ -51,7 +51,7 @@ public interface ITagRepository
 
     #region Tag Group Type
 
-    Task<TagGroupType?> GetTagGroupTypeAsync (int tagGroupTypeID, Guid tagGroupID);
+    Task<TagGroupType?> GetTagGroupTypeAsync (Guid tagGroupID, int tagGroupTypeID);
 
     Task<Collection<TagGroupType>> QueryTagGroupTypesAsync (Expression<Func<TagGroupType, bool>> tagGroupTypeQueryExpression);
 

@@ -59,6 +59,7 @@ public class BoardController : Controller
 
         var cardCollection = await _cardRepository.GetCardsAsync (ID);
         var cardPositionCollection = await _cardRepository.GetCardPositionsAsync (ID);
+        var taskCollection = await _taskRepository.GetTasksAsync (ID);
 
         var columnResponse = new Collection<ColumnResponse> ();
         foreach (var column in columnCollectionOrdered)
@@ -83,8 +84,13 @@ public class BoardController : Controller
             if (cardPosition is null) ;//??
             var mappedCardPosition = _cardMapper.MapCardPositionToCardPositionResponse (cardPosition!);
 
+            var cardTasks = taskCollection.Where (task => task.CardID.ToString () == card.RowKey);
+            var mappedCardTasks = cardTasks.Select (_taskMapper.MapTaskToTaskResponse);
+
             var mappedCard = _cardMapper.MapCardToCardResponse (card);
             mappedCard.Position = mappedCardPosition;
+            mappedCard.Tasks = mappedCardTasks;
+            
             cardResponse.Add (mappedCard);
         }
 
@@ -123,8 +129,8 @@ public class BoardController : Controller
         return StatusCode (StatusCodes.Status418ImATeapot);
     }
 
-    [HttpPatch ("{boardID:guid}/cards/{cardID:guid}")]
-    public async Task<ActionResult> UpdateCardPosition (Guid boardID, Guid cardID, [FromBody] JsonPatchDocument<CardPositionPatchRequest> cardPatchRequest)
+    [HttpPatch ("{boardID:guid}/cards/positions/{cardPositionID:guid}")]
+    public async Task<ActionResult> UpdateCardPosition (Guid boardID, Guid cardPositionID, [FromBody] JsonPatchDocument<CardPositionPatchRequest> cardPatchRequest)
     {
         if (cardPatchRequest is null)
         {
@@ -133,7 +139,7 @@ public class BoardController : Controller
 
         //var cardFromTable = await _boardTable.GetEntityAsync<BoardCard> (partitionKey: @"20a88077-10d4-4648-92cb-7dc7ba5b8df5", rowKey: cardID.ToString ());
 
-        var cardToUpdate = await _cardRepository.GetCardPositionAsync (boardID, cardID);
+        var cardToUpdate = await _cardRepository.GetCardPositionAsync (boardID, cardPositionID);
         //var cardToUpdate = cardFromTable.Value;
 
         var convertedCardToUpdate = new CardPositionPatchRequest

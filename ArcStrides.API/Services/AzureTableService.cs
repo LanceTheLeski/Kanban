@@ -32,9 +32,9 @@ public class AzureTableService<T> : IAzureTableService<T> where T : class, ITabl
             null;
     }
 
-    public async Task<T?> GetEntityAsync (int partitionKeyInt, Guid rowKeyGuid)
+    public async Task<T?> GetEntityAsync (Guid partitionKeyGuid, int rowKeyInt)
     {
-        var response = await _table.GetEntityAsync<T> (partitionKey: partitionKeyInt.ToString (), rowKey: rowKeyGuid.ToString ());
+        var response = await _table.GetEntityAsync<T> (partitionKey: partitionKeyGuid.ToString (), rowKey: rowKeyInt.ToString ());
 
         return response?.Value.GetType () == new T ().GetType () ?
             response.Value :

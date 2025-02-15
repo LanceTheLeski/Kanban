@@ -15,7 +15,7 @@ public partial class UpdateCardOverlay : IArcOverlay
 
     private async System.Threading.Tasks.Task DeleteCard ()
     {
-        await _cardRepository.DeleteCardPositionAsync (ActiveCard!.Id);
+        await _cardRepository.DeleteCardAsync (ActiveCard!.Id);
 
         Refresh.InvokeAsync (true);
 

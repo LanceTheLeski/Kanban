@@ -10,9 +10,9 @@ public class CardResponse
 
     public CardPositionResponse? Position { get; set; } = null; //This line differs
 
-    public IEnumerable<TaskResponse>? Tasks { get; init; } = null;
+    public IEnumerable<TaskResponse>? Tasks { get; set; } = null;
 
-    public TimelineResponse? Timeline { get; init; } = null;
+    public TimelineResponse? Timeline { get; set; } = null;
 
-    public IEnumerable<TagResponse>? Tags { get; init; } = null;
+    public IEnumerable<TagResponse>? Tags { get; set; } = null;
 }

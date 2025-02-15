@@ -5,6 +5,7 @@ using ArcStrides.API.Services;
 using Microsoft.Extensions.Options;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
+
 using Task = System.Threading.Tasks.Task;
 
 namespace ArcStrides.API.Repositories;
@@ -103,11 +104,11 @@ public class TagRepository : ITagRepository
 
     #region Tag Type
 
-    public async Task<TagType?> GetTagTypeAsync (int tagTypeID, Guid tagGroupID)
-        => await _tagTypeTable.GetEntityAsync (tagTypeID, tagGroupID);
+    public async Task<TagType?> GetTagTypeAsync (Guid tagGroupID, int tagTypeID)
+        => await _tagTypeTable.GetEntityAsync (tagGroupID, tagTypeID);
 
-    public async Task<Collection<TagType>> GetTagTypesAsync (int tagTypeID)
-        => await _tagTypeTable.GetEntitiesAsync (tagTypeID);
+    public async Task<Collection<TagType>> GetTagTypesAsync (Guid tagGroupID)
+        => await _tagTypeTable.GetEntitiesAsync (tagGroupID);
 
     public async Task<Collection<TagType>> QueryTagTypesAsync (Expression<Func<TagType, bool>> tagTypeQueryExpression)
         => await _tagTypeTable.QueryEntitiesAsync (tagTypeQueryExpression);
@@ -132,8 +133,8 @@ public class TagRepository : ITagRepository
 
     #region Tag Group Type
 
-    public async Task<TagGroupType?> GetTagGroupTypeAsync (int tagGroupTypeID, Guid tagGroupID)
-        => await _tagGroupTypeTable.GetEntityAsync (tagGroupTypeID, tagGroupID);
+    public async Task<TagGroupType?> GetTagGroupTypeAsync (Guid tagGroupID, int tagGroupTypeID)
+        => await _tagGroupTypeTable.GetEntityAsync (tagGroupID, tagGroupTypeID);
 
     public async Task<Collection<TagGroupType>> QueryTagGroupTypesAsync (Expression<Func<TagGroupType, bool>> tagGroupTypeQueryExpression)
         => await _tagGroupTypeTable.QueryEntitiesAsync (tagGroupTypeQueryExpression);

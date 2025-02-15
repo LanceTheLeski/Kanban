@@ -9,7 +9,7 @@ public interface IAzureTableService<T> where T : class, ITableEntity, new()
 {
     Task<T?> GetEntityAsync (Guid partitionKeyGuid, Guid rowKeyGuid);
 
-    Task<T?> GetEntityAsync (int partitionKeyInt, Guid rowKeyGuid);
+    Task<T?> GetEntityAsync (Guid partitionKeyGuid, int rowKeyInt);
 
     Task<Collection<T>> GetEntitiesAsync (Guid partitionKeyGuid);
 

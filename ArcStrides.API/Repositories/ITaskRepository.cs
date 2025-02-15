@@ -10,9 +10,9 @@ public interface ITaskRepository
 {
     #region Task
 
-    Task<Models.Board.Task?> GetTaskAsync (Guid timelineID, Guid tagGroupID);
+    Task<Models.Board.Task?> GetTaskAsync (Guid boardID, Guid taskID);
 
-    Task<Collection<Models.Board.Task>> GetTasksAsync (Guid taskID);
+    Task<Collection<Models.Board.Task>> GetTasksAsync (Guid boardID);
 
     Task<Collection<Models.Board.Task>> QueryTasksAsync (Expression<Func<Models.Board.Task, bool>> taskQueryExpression);
 
@@ -26,9 +26,9 @@ public interface ITaskRepository
 
     #region Task Type
 
-    Task<TaskType?> GetTaskTypeAsync (int taskTypeID, Guid tagGroupID);
+    Task<TaskType?> GetTaskTypeAsync (Guid tagGroupID, int taskTypeID);
 
-    Task<Collection<TaskType>> GetTaskTypesAsync (int taskTypeID);
+    Task<Collection<TaskType>> GetTaskTypesAsync (Guid tagGroupID);
 
     Task<Collection<TaskType>> QueryTaskTypesAsync (Expression<Func<TaskType, bool>> taskTypeQueryExpression);
 

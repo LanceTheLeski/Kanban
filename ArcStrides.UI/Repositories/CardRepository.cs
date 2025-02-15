@@ -18,8 +18,8 @@ public class CardRepository : ICardRepository
         => await _arcStridesBackend.CreateEntityAsync (@$"arcstrides/cards", JsonConvert.SerializeObject (cardPositionCreateRequest));
 
     public async Task<CardPositionResponse?> UpdateCardPositionAsync (Guid cardID, string cardPositionPatchRequest)
-        => await _arcStridesBackend.UpdateEntityAsync (@$"arcstrides/cards/{cardID}", cardPositionPatchRequest);
+        => await _arcStridesBackend.UpdateEntityAsync (@$"arcstrides/cards/positions/{cardID}", cardPositionPatchRequest);
 
-    public async Task DeleteCardPositionAsync (Guid cardID)
+    public async Task DeleteCardAsync (Guid cardID)
         => await _arcStridesBackend.DeleteEntityAsync (@$"arcstrides/boards/{cardID}");
 }

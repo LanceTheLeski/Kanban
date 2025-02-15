@@ -25,11 +25,11 @@ public class TaskRepository : ITaskRepository
 
     #region Task
 
-    public async Task<Models.Board.Task?> GetTaskAsync (Guid timelineID, Guid tagGroupID)
-        => await _taskTable.GetEntityAsync (timelineID, tagGroupID);
+    public async Task<Models.Board.Task?> GetTaskAsync (Guid boardID, Guid taskID)
+        => await _taskTable.GetEntityAsync (boardID, taskID);
 
-    public async Task<Collection<Models.Board.Task>> GetTasksAsync (Guid taskID)
-        => await _taskTable.GetEntitiesAsync (taskID);
+    public async Task<Collection<Models.Board.Task>> GetTasksAsync (Guid boardID)
+        => await _taskTable.GetEntitiesAsync (boardID);
 
     public async Task<Collection<Models.Board.Task>> QueryTasksAsync (Expression<Func<Models.Board.Task, bool>> taskQueryExpression)
         => await _taskTable.QueryEntitiesAsync (taskQueryExpression);
@@ -58,11 +58,11 @@ public class TaskRepository : ITaskRepository
 
     #region Task Type
 
-    public async Task<TaskType?> GetTaskTypeAsync (int taskTypeID, Guid tagGroupID)
-        => await _taskTypeTable.GetEntityAsync (taskTypeID, tagGroupID);
+    public async Task<TaskType?> GetTaskTypeAsync (Guid tagGroupID, int taskTypeID)
+        => await _taskTypeTable.GetEntityAsync (tagGroupID, taskTypeID);
 
-    public async Task<Collection<TaskType>> GetTaskTypesAsync (int taskTypeID)
-        => await _taskTypeTable.GetEntitiesAsync (taskTypeID);
+    public async Task<Collection<TaskType>> GetTaskTypesAsync (Guid tagGroupID)
+        => await _taskTypeTable.GetEntitiesAsync (tagGroupID);
 
     public async Task<Collection<TaskType>> QueryTaskTypesAsync (Expression<Func<TaskType, bool>> taskTypeQueryExpression)
         => await _taskTypeTable.QueryEntitiesAsync (taskTypeQueryExpression);

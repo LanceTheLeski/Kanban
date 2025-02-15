@@ -101,7 +101,7 @@ public partial class Board
                         SwimlaneNumber = swimlaneIndex,
                         SwimlaneID = swimlaneList [swimlaneIndex].ID.Value,
                         SwimlaneName = swimlaneList [swimlaneIndex].Title,
-                        //Tasks = card.Tasks,
+                        Tasks = card.Tasks?.ToList(),
                         CardArea = cardArea
                     });
                 }

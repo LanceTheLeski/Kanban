@@ -52,14 +52,15 @@ public partial class CreateCardOverlay : IArcOverlay
             SwimlaneID = Swimlanes [SwimlaneTitles.IndexOf (_swimlaneToAddCard)]
         };
 
-        var cardResponse = await _cardRepository.CreateCardPositionAsync (createRequest);
+        var cardPositionResponse = await _cardRepository.CreateCardPositionAsync (createRequest);
 
         //Do validation here..
-        
+
         //Add it to the DropCard list? And if we want to use the boardResponse as a source of truth then that too? But I don't think that should be the case
         var mapper = new CardMapper ();
-        var dropCard = (DropCard) mapper.MapCardPositionResponseToCard (cardResponse);
-        dropCard.CardArea = ConvertColumnAndSwimlaneToCardArea (cardResponse.SwimlaneOrder.Value, cardResponse.ColumnOrder.Value);
+        var card = mapper.MapCardPositionResponseToCard (cardPositionResponse);
+        var dropCard = (DropCard) card;
+        dropCard.CardArea = ConvertColumnAndSwimlaneToCardArea (cardPositionResponse.SwimlaneOrder.Value, cardPositionResponse.ColumnOrder.Value);
         Cards.Add (dropCard);
         /*Cards.Add (new DropCard
         {
