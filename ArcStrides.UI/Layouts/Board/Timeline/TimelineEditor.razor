@@ -1,0 +1,56 @@
+﻿@inherits LayoutComponentBase
+
+<!-- The name for this will likely need to change and this might need to be edited to fit multiple scenarios. This might be more of a component in a way? -->
+
+<MudButton OnClick="@(() => TimelineFragmentChanged (false))">
+    Deadline
+</MudButton>
+<MudButton OnClick="@(() => TimelineFragmentChanged (true))">
+    Timeline
+</MudButton>
+<MudPaper>
+    @_timelineFragment
+</MudPaper>
+
+@code 
+{
+    private DateRange _dateRangePreferred = new DateRange();
+    private TimeSpan? _timePreferredStart = new TimeSpan();
+    private TimeSpan? _timePreferredEnd = new TimeSpan();
+
+    private DateRange _dateRangeRequired = new DateRange();
+    private TimeSpan? _timeRequiredStart = new TimeSpan();
+    private TimeSpan? _timeRequiredEnd = new TimeSpan();
+
+    protected override void OnInitialized()
+    {
+        _timelineFragment = _deadlineRenderFragment();
+    }
+
+    private RenderFragment _timelineFragment;
+    private RenderFragment _timelineRenderFragment()
+    {
+        return __builder =>
+        {
+            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
+                <MudDateRangePicker Label="Preferrd" Editable="true" @bind-DateRange="_dateRangePreferred" />
+                <MudTimePicker Label="Preferred Start" Editable="true" AmPm="true" AnchorOrigin="Origin.CenterLeft" TransformOrigin="Origin.CenterRight" @bind-Time="_timePreferredStart" />
+                <MudTimePicker Label="Preferred End" Editable="true" AmPm="true" @bind-Time="_timePreferredEnd" />
+
+                <MudDateRangePicker Label="Deadlines" Editable="true" @bind-DateRange="_dateRangeRequired" />
+                <MudTimePicker Label="Required Start" Editable="true" AmPm="true" @bind-Time="_timeRequiredStart" />
+                <MudTimePicker Label="Required End" Editable="true" AmPm="true" @bind-Time="_timeRequiredEnd" />
+            </MudPaper>
+        };
+    }
+    private RenderFragment _deadlineRenderFragment()
+    {
+        return __builder =>
+        {
+            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
+                <MudDatePicker Label="EndDate" Editable="false" @bind-Date="_dateRangeRequired.End" />
+                <MudTimePicker Label="Required End" Editable="true" AmPm="true" @bind-Time="_timeRequiredEnd" />
+            </MudPaper>
+        };
+    }
+}
