@@ -27,7 +27,7 @@ public class ArcStridesService<TResp> : IArcStridesService<TResp> where TResp : 
 
     public async Task<TResp?> FetchEntityAsync (string urlPath)
     {
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, $"{_backendOptions.URL.TrimEnd ('/')}/{urlPath}");
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, $"{_backendOptions.URL.TrimEnd ('/')}/{urlPath}");
 
         var response = await _httpClient.SendAsync (httpRequestMessage);
         if (response.IsSuccessStatusCode is false)

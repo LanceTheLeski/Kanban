@@ -11,25 +11,25 @@ using Microsoft.AspNetCore.Mvc;
 namespace ArcStrides.API.Controllers;
 
 [ApiController]
-[Route ("arcstrides/tasks")]
-public class TaskController : Controller
+[Route ("arcstrides/boards/{boardID:guid}/cards/{cardID:guid}/tasks")]
+public class TaskController : ArcController
 {
-    private readonly IValidator<TaskQueryParameters> _taskQueryParametersValidator;
-    private readonly IValidator<TaskCreateRequest> _taskCreateRequestValidator;
+    //private readonly IValidator<TaskQueryParameters> _taskQueryParametersValidator; Validators are broken for now..
+    //private readonly IValidator<TaskCreateRequest> _taskCreateRequestValidator;
 
     private readonly ITaskRepository _taskRepository;
     private readonly ITimelineRepository _timelineRepository;
 
     private readonly TaskMapper _taskMapper;
 
-    public TaskController (IValidator<TaskQueryParameters> taskQueryParametersValidator,
-                           IValidator<TaskCreateRequest> taskCreateRequestValidator,
+    public TaskController (/*IValidator<TaskQueryParameters> taskQueryParametersValidator,*/
+                           /*IValidator<TaskCreateRequest> taskCreateRequestValidator,*/
                            ITaskRepository taskRepository,
                            ITimelineRepository timelineRepository,
                            TaskMapper taskMapper)
     {
-        _taskQueryParametersValidator = taskQueryParametersValidator;
-        _taskCreateRequestValidator = taskCreateRequestValidator;
+        //_taskQueryParametersValidator = taskQueryParametersValidator;
+        //_taskCreateRequestValidator = taskCreateRequestValidator;
 
         _taskRepository = taskRepository;
         _timelineRepository = timelineRepository;
@@ -38,11 +38,13 @@ public class TaskController : Controller
     }
 
     [HttpGet]
-    public async Task<ActionResult> FetchTasks ([FromQuery] TaskQueryParameters taskQueryParameters)
+    public async Task<ActionResult> FetchTask ([FromRoute] Guid boardGuid, 
+                                               [FromRoute] Guid cardGuid, 
+                                               [FromQuery] TaskQueryParameters taskQueryParameters)
     {
-        var validationResult = _taskQueryParametersValidator.Validate (taskQueryParameters);
+        /*var validationResult = _taskQueryParametersValidator.Validate (taskQueryParameters);
         if (validationResult.IsValid is false)
-            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TaskQueryParameters), ""));
+            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TaskQueryParameters), ""));*/
 
         Func<Models.Board.Task, bool> taskQuery = task => true;
         if (string.IsNullOrWhiteSpace (taskQueryParameters.CardIDs) is false)
@@ -63,13 +65,13 @@ public class TaskController : Controller
         return Ok (taskListReponse);
     }
 
-    [HttpPost ("arcstrides/cards/{cardID:guid}/tasks")]
+    [HttpPost]
     public async Task<ActionResult> CreateTask (Guid cardID, [FromBody] TaskCreateRequest taskCreateRequest)
     {
-        var validationResult = _taskCreateRequestValidator.Validate (taskCreateRequest);
+        /*var validationResult = _taskCreateRequestValidator.Validate (taskCreateRequest);
         if (validationResult.IsValid is false)
             return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TaskCreateRequest), "")
-                               + "\n" + validationResult.ToString ());
+                               + "\n" + validationResult.ToString ());*/
 
         var newTask = _taskMapper.MapTaskCreateRequestToTask (taskCreateRequest);
         newTask.PartitionKey = Guid.NewGuid ().ToString ();
@@ -89,16 +91,15 @@ public class TaskController : Controller
         return Created (default (Uri), taskResponse);
     }
 
-    //Redo this one day..
-    [HttpGet ("types")]
+    [HttpGet ("/arcstrides/tasks/types")]
     public async Task<ActionResult> FetchTaskTypes ()
     {
         var taskTypes = await _taskRepository.QueryTaskTypesAsync (taskType => true);
 
-        var taskTypeListReponse = new TaskTypeResponse { Title = /*new List<string> ()*/string.Empty };
-        //foreach (var taskType in taskTypes)
-        //    taskTypeListReponse.Title.Add (taskType.Title);
+        var taskTypeReponseList = new List<TaskTypeResponse> ();
+        foreach (var taskType in taskTypes)
+            taskTypeReponseList.Add (_taskMapper.MapTaskToTaskTypeResponse (taskType));
 
-        return Ok (taskTypeListReponse);
+        return Ok (taskTypeReponseList);
     }
 }

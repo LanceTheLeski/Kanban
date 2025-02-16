@@ -6,6 +6,9 @@ namespace ArcStrides.API.Models.TagGroup;
 [ArcTableName ("TagGroups")]
 public class TagGroup : ArcTagGroupsEntity
 {
+    /// <summary>
+    /// Tag ID in the form of a Guid.
+    /// </summary>
     public override string RowKey { get; set; }
 
     public string? Title { get; set; }

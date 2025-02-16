@@ -35,6 +35,7 @@ builder.Services.AddTransient<ISwimlaneRepository, SwimlaneRepository> ();
 builder.Services.AddTransient<IDateRepository, DateRepository> ();
 builder.Services.AddTransient<ICardRepository, CardRepository> ();
 builder.Services.AddTransient<ITaskRepository, TaskRepository> ();
+builder.Services.AddTransient<ITimelineRepository, TimelineRepository> ();
 builder.Services.AddTransient<ITagRepository, TagRepository> ();
 
 builder.Services.AddControllers()

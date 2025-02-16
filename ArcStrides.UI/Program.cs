@@ -37,6 +37,8 @@ builder.Services.AddTransient<IArcStridesService<CardPositionResponse>, ArcStrid
 builder.Services.AddTransient<IArcStridesService<BoardResponse>, ArcStridesService<BoardResponse>> (); 
 builder.Services.AddTransient<IArcStridesService<ColumnResponse>, ArcStridesService<ColumnResponse>> ();
 builder.Services.AddTransient<IArcStridesService<SwimlaneResponse>, ArcStridesService<SwimlaneResponse>> ();
+builder.Services.AddTransient<IArcStridesService<TaskResponse>, ArcStridesService<TaskResponse>> ();
+builder.Services.AddTransient<IArcStridesService<List<TaskTypeResponse>>, ArcStridesService<List<TaskTypeResponse>>> ();
 
 builder.Services.AddTransient<IBoardRepository, BoardRepository> ();
 builder.Services.AddTransient<IColumnRepository, ColumnRepository> ();

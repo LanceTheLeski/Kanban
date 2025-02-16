@@ -7,7 +7,7 @@ namespace ArcStrides.API.Validators;
 
 public class TaskValidators
 {
-    public class TaskQueryParametersValidator : AbstractValidator<TaskQueryParameters>
+    /*public class TaskQueryParametersValidator : AbstractValidator<TaskQueryParameters>
     {
         public TaskQueryParametersValidator ()
         {
@@ -31,7 +31,7 @@ public class TaskValidators
 
             return true;
         }
-    }
+    }*/
 
     public class TaskCreateRequestValidator : AbstractValidator<TaskCreateRequest>
     {

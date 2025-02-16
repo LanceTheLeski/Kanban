@@ -1,77 +1,38 @@
 ﻿using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Response;
-using ArcStrides.UI.Components.ArcErrorHandler;
-using ArcStrides.UI.Options;
-using Microsoft.Extensions.Options;
+using ArcStrides.UI.Services;
 using Newtonsoft.Json;
-using System.Net.Http.Headers;
 
 namespace ArcStrides.UI.Repositories;
 
 public class TaskRepository : ITaskRepository
 {
-    private readonly HttpClient _httpClient;
+    private readonly IArcStridesService<TaskResponse> _arcStridesTaskBackend;
+    private readonly IArcStridesService<List<TaskTypeResponse>> _arcStridesTaskTypeBackend;
 
-    private readonly ArcStridesServiceOptions _backendOptions;
-
-    private readonly IArcErrorHandler _arcErrorHandler;
-
-    public TaskRepository (IHttpClientFactory httpClientFactory,
-                           IOptions<ArcStridesServiceOptions> backendOptions,
-                           IArcErrorHandler arcErrorHandler)
+    public TaskRepository (IArcStridesService<TaskResponse> arcStridesTaskBackend,
+                           IArcStridesService<List<TaskTypeResponse>> arcStridesTaskTypeBackend)
     {
-        _httpClient = httpClientFactory.CreateClient ();
-
-        _backendOptions = backendOptions.Value;
-
-        _arcErrorHandler = arcErrorHandler;
+        _arcStridesTaskBackend = arcStridesTaskBackend;
+        _arcStridesTaskTypeBackend = arcStridesTaskTypeBackend;
     }
 
-    public async Task<TaskResponse?> CreateTask (Guid cardID, TaskCreateRequest boardTaskCreateRequest)
-    {
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{_backendOptions.URL}arcstrides/cards/{cardID}/tasks");
-        httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject (boardTaskCreateRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
+    public async Task<TaskResponse?> FetchTaskAsync (Guid boardID, Guid cardID)
+        => await _arcStridesTaskBackend.FetchEntityAsync ($"arcstrides/boards/{boardID}/cards/{cardID}/tasks");
 
-        var response = await _httpClient.SendAsync (httpRequestMessage);
-        if (response.IsSuccessStatusCode is false)
-        {
-            _arcErrorHandler.AddError (response.ReasonPhrase ?? string.Empty, response.StatusCode);
-            return null;
-        }
+    public async Task<TaskResponse?> CreateTaskAsync (Guid boardID, Guid cardID, TaskCreateRequest taskCreateRequest)
+        => await _arcStridesTaskBackend.CreateEntityAsync (@$"arcstrides/boards/{boardID}/cards/{cardID}/tasks", JsonConvert.SerializeObject (taskCreateRequest));
 
-        var responseBody = await response.Content.ReadAsStringAsync ();
-        var boardTaskResponse = JsonConvert.DeserializeObject<TaskResponse> (responseBody);
-        return boardTaskResponse;
-    }
+    public async Task<TaskResponse?> UpdateTask (Guid boardID, Guid cardID, Guid taskID, string taskPatchRequest)
+        => await _arcStridesTaskBackend.UpdateEntityAsync ($"arcstrides/boards/{boardID}/cards/{cardID}/tasks/{taskID}", taskPatchRequest);
 
-    public async Task<TaskResponse?> UpdateTask (Guid cardID, Guid taskID, string boardTaskPatchRequest)
-    {
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Patch, @$"{_backendOptions.URL}arcstrides/cards/{cardID}/tasks/{taskID}");
-        httpRequestMessage.Content = new StringContent (boardTaskPatchRequest, mediaType: new MediaTypeHeaderValue (@"application/json"));
+    public async Task DeleteTask (Guid boardID, Guid cardID, Guid taskID)
+        => await _arcStridesTaskBackend.DeleteEntityAsync ($"arcstrides/boards/{boardID}/cards/{cardID}/tasks/{taskID}");
 
-        var response = await _httpClient.SendAsync (httpRequestMessage);
-        if (response.IsSuccessStatusCode is false)
-        {
-            _arcErrorHandler.AddError (response.ReasonPhrase ?? string.Empty, response.StatusCode);
-            return null;
-        }
+    #region Task Type
 
-        var responseBody = await response.Content.ReadAsStringAsync ();
-        var boardTaskResponse = JsonConvert.DeserializeObject<TaskResponse> (responseBody);
-        return boardTaskResponse;
-    }
+    public async Task<List<TaskTypeResponse?>> FetchTaskTypeAsync (int taskTypeID)
+        => await _arcStridesTaskTypeBackend.FetchEntityAsync ("arcstrides/tasks/types");
 
-    public async Task<bool> DeleteTask (Guid cardID, Guid taskID)
-    {
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Delete, @$"{_backendOptions.URL}arcstrides/cards/{cardID}/tasks/{taskID}");
-
-        var response = await _httpClient.SendAsync (httpRequestMessage);
-        if (response.IsSuccessStatusCode is false)
-        {
-            _arcErrorHandler.AddError (response.ReasonPhrase ?? string.Empty, response.StatusCode);
-            return false;
-        }
-
-        return true;
-    }
+    #endregion Task Type
 }

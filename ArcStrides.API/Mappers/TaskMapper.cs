@@ -1,4 +1,5 @@
-﻿using ArcStrides.Contracts.Request.Create;
+﻿using ArcStrides.API.Models.TagGroup;
+using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Request.Patch;
 using ArcStrides.Contracts.Response;
 using Riok.Mapperly.Abstractions;
@@ -45,4 +46,13 @@ public partial class TaskMapper
     [MapProperty (nameof (Models.Board.Task.TaskTypeID), nameof (TaskResponse.TaskTypeID))]
     [MapProperty (nameof (Models.Board.Task.IsComplete), nameof (TaskResponse.isCompleted))]
     public partial TaskResponse MapTaskToTaskResponse (Models.Board.Task task);
+
+    #region Task Type
+
+    [MapProperty (nameof (TaskType.PartitionKey), nameof (TaskTypeResponse.GroupTagID))]
+    [MapProperty (nameof (TaskType.RowKey), nameof (TaskTypeResponse.ID))]
+    [MapProperty (nameof (TaskType.Title), nameof (TaskTypeResponse.Title))]
+    public partial TaskTypeResponse MapTaskToTaskTypeResponse (TaskType taskType);
+
+    #endregion Task Type
 }

@@ -2,6 +2,7 @@
 @using ArcStrides.Contracts.Response
 @using ArcStrides.UI.Models
 @using ArcStrides.UI.Options
+@using ArcStrides.UI.Repositories
 @using Microsoft.Extensions.Options
 @using Newtonsoft.Json
 @using System.Net.Http.Headers
@@ -16,11 +17,11 @@
 
 <MudPaper>
     <MudButton OnClick="@(() => tempOpen = true)">
-        @taskTitle
+        @TaskTitle
     </MudButton>
     <MudPopover Open="tempOpen" OverflowBehavior="OverflowBehavior.FlipAlways" AnchorOrigin="Origin.CenterLeft" TransformOrigin="Origin.CenterRight">
         <MudPaper Width="600px">
-            <MudTextField @bind-Value="taskTitle" T="string" Label="Title" Variant="Variant.Filled" HelperText="Task Title" />
+            <MudTextField @bind-Value="TaskTitle" T="string" Label="Title" Variant="Variant.Filled" HelperText="Task Title" />
 
             <MudGrid>
                 <MudItem>
@@ -56,6 +57,8 @@
     </MudPopover>
 </MudPaper>
 
+@inject ITaskRepository _taskRepository;
+
 @code
 {
     private bool tempOpen = false;
@@ -81,12 +84,16 @@
     public EventCallback<Guid?> CardIDChanged { get; set; }
 
     [Parameter]
+    public Guid BoardID { get; set; }
+    [Parameter]
+    public EventCallback<Guid> BoardIDChanged { get; set; }
+
+    [Parameter]
     public EventCallback<bool> Refresh { get; set; }
 
     private static List<string> _taskTypeTitles = new List<string> ();
     private static List<string> _cardTitles = new List<string> ();
 
-    public string taskTitle = "";
     public static string columnToAddCard = "";
     public static string parentCardID = "";
 
@@ -102,10 +109,9 @@
     //On page load. Not async.
     protected async override Task OnInitializedAsync ()
     {
-        taskTitle = TaskTitle;
         _timelineFragment = _deadlineRenderFragment ();
 
-        var taskTypesResponse = await FetchTaskTypesAsync ();
+        var taskTypesResponseList = await FetchTaskTypesAsync ();
 
         //_taskTypeTitles = taskTypesResponse.Title;
     }
@@ -194,50 +200,20 @@
         };
     }
 
-    public async Task<TaskTypeResponse?> FetchTaskTypesAsync ()
-    {
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, @$"{interfaceOptions.Value.URL}ArcStrides/tasks/types");
+    public async Task<List<TaskTypeResponse?>> FetchTaskTypesAsync ()
+        => await _taskRepository.FetchTaskTypeAsync (0/*placeholder arg*/);
 
-        var response = await http.SendAsync (httpRequestMessage);
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new Exception ("Could not fetch TaskTypes");
-        }
-
-        var responseBody = await response.Content.ReadAsStringAsync ();
-        return JsonConvert.DeserializeObject<TaskTypeResponse> (responseBody);
-    }
-
-    public async Task<TaskResponse> CreateTaskAsync ()
+    public async Task CreateTaskAsync ()
     {
         var createRequest = new TaskCreateRequest
         {
-            Title = taskTitle,
+            Title = TaskTitle,
             TaskTypeID = 0,//Replace later..
             //CardID = Guid.Empty//Replace later..
         };
 
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, @$"{interfaceOptions.Value.URL}ArcStrides/tasks");
-        httpRequestMessage.Content = new StringContent (JsonConvert.SerializeObject (createRequest), mediaType: new MediaTypeHeaderValue (@"application/json"));
+        await _taskRepository.CreateTaskAsync(BoardID, CardID.Value, createRequest);
 
-        var response = await http.SendAsync (httpRequestMessage);
-        if (response.IsSuccessStatusCode)
-        {
-            var responseBody = await response.Content.ReadAsStringAsync ();
-            var deserialized = JsonConvert.DeserializeObject<TaskResponse> (responseBody);
-
-            /*Day.Cards.First ().Tasks.Add (new TaskResponse //-----------------------------------------------This line is fucked up. This needs to be fixed ASAP
-            {
-                Title = deserialized.Title,
-                TaskTypeTitle = deserialized.TaskTypeTitle,
-                isCompleted = false//replace later..
-            });*/
-
-            Refresh.InvokeAsync (true);
-
-            return deserialized;
-        }
-
-        return null;
+        Refresh.InvokeAsync(true);
     }
 }
