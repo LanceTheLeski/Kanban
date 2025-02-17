@@ -1,36 +1,86 @@
 ﻿@using ArcStrides.Contracts.Response
 @using ArcStrides.UI.Components
+@using ArcStrides.UI.Components.ArcExpandingSelector
 @using ArcStrides.UI.Components.ArcOverlay
+@using ArcStrides.UI.Layouts.Board.Timeline
 @using ArcStrides.UI.Repositories
 
-<ArcOverlay @bind-Open="Open"
-            OnSubmitAsync="UpdateTaskAsync">
+<!--This should ideally be a component one day..-->
+<MudPaper>
+    <MudButton OnClick="@(() => tempOpen = true)">
+        @TaskTitle
+    </MudButton>
+    <MudPopover Open="tempOpen" OverflowBehavior="OverflowBehavior.FlipAlways" AnchorOrigin="Origin.CenterRight" TransformOrigin="Origin.CenterLeft">
+        <MudPaper Width="600px">
+            <MudTextField @bind-Value="TaskTitle" T="string" Label="Title" Variant="Variant.Filled" HelperText="Task Title" />
 
-    <MudText>@TaskData.Title</MudText>
+            <MudGrid>
+                <MudItem>
+                    <ArcExpandingSelector Options="new List<string> {bool.TrueString, bool.FalseString}"
+                    OptionSelected="((string selection) => IsComplete = bool.Parse (selection))" />
+                    <ArcExpandingSelector Options="_taskOrderRange"
+                    OptionSelected="SetTaskOrderOnTask" />
+                    <ArcExpandingSelector Options="_taskTypes.Select (taskType => taskType!.Title!).ToList ()"
+                    OptionSelected="SetTaskTypeOnTask" />
+                </MudItem>
+                <MudItem>
+                    <TimelineEditor />
+                </MudItem>
+            </MudGrid>
 
-    <MudText>Completed: @(TaskData.isCompleted)</MudText>
-
-    <!--<MudExpansionPanels>
-        <MudExpansionPanel Text="Column" MaxHeight="1000" ExpandedChanged="TaskTypeListExpandedChanged">
-            @_taskTypeList
-        </MudExpansionPanel>
-    </MudExpansionPanels>
-
-    <MudExpansionPanels>
-        <MudExpansionPanel Text="Swimlane" MaxHeight="1000" ExpandedChanged="SwimlaneListExpandedChanged">
-            @_swimlaneList
-        </MudExpansionPanel>
-    </MudExpansionPanels>-->
-</ArcOverlay>
+            <MudButtonGroup>
+                <MudButton OnClick="@(() => UpdateTaskAsync())">Submit</MudButton>
+                <MudButton OnClick="@(() => tempOpen = false)">Discard</MudButton>
+            </MudButtonGroup>
+        </MudPaper>
+    </MudPopover>
+</MudPaper>
 
 @inject ITaskRepository _taskRepository;
 
-@code 
+@code
 {
+    private bool tempOpen = false;
+
     [Parameter]
-    public bool Open { get; set; }
+    public Guid TaskID { get; set; }
     [Parameter]
-    public EventCallback<bool> OpenChanged { get; set; }
+    public EventCallback<Guid> TaskIDChanged { get; set; }
+
+    [Parameter]
+    public string TaskTitle { get; set; }
+    [Parameter]
+    public EventCallback<string> TaskTitleChanged { get; set; }
+
+    [Parameter]
+    public int TaskOrder { get; set; }
+    [Parameter]
+    public EventCallback<int> TaskOrderChanged { get; set; }
+
+    [Parameter]
+    public int TotalTasksForCard { get; set; }
+    [Parameter]
+    public EventCallback<int> TotalTasksForCardChanged { get; set; }
+
+    [Parameter]
+    public TaskTypeResponse TaskType { get; set; }
+    [Parameter]
+    public EventCallback<TaskTypeResponse> TaskTypeChanged { get; set; }
+
+    [Parameter]
+    public bool IsComplete { get; set; }
+    [Parameter]
+    public EventCallback<bool> IsCompleteChanged { get; set; }
+
+    /*[Parameter]
+    public Date.Day Day { get; set; }
+    [Parameter]
+    public EventCallback<Date.Day> DayChanged { get; set; }*/
+
+    [Parameter]
+    public Guid? CardID { get; set; }
+    [Parameter]
+    public EventCallback<Guid?> CardIDChanged { get; set; }
 
     [Parameter]
     public Guid BoardID { get; set; }
@@ -38,13 +88,37 @@
     public EventCallback<Guid> BoardIDChanged { get; set; }
 
     [Parameter]
-    public TaskResponse TaskData { get; set; }
-    [Parameter]
-    public EventCallback<TaskResponse> TaskDataChanged { get; set; }
-
-    [Parameter]
     public EventCallback<bool> Refresh { get; set; }
 
-    private static bool _taskViewIsOpen = false;
-    private static CardResponse _taskToView = null;
+    private string _initialTaskTitle = string.Empty;
+
+    private int _initialTaskOrder = -1;
+
+    private List<string> _taskOrderRange = new List<string> ();
+
+    private List<TaskTypeResponse> _taskTypes = new List<TaskTypeResponse> ();
+    private TaskTypeResponse taskTypeToAssign = default;
+
+    private bool? _initialIsComplete = null;
+
+    //On page load. Not async to this layout class loading.
+    protected async override Task OnInitializedAsync ()
+    {
+        _taskTypes = await FetchTaskTypesAsync ();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        _initialTaskTitle = TaskTitle;
+
+        _initialTaskOrder = TaskOrder;
+
+        _taskOrderRange = new List<string> ();
+        for (int index = 1; index <= TotalTasksForCard; index++)
+            _taskOrderRange.Add (index.ToString());
+
+        _initialIsComplete = IsComplete;
+
+        //base.OnAfterRender(firstRender);
+    }
 }

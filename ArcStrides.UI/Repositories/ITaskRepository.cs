@@ -1,5 +1,6 @@
 ﻿using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Response;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace ArcStrides.UI.Repositories;
 
@@ -9,9 +10,9 @@ public interface ITaskRepository
 
     Task<TaskResponse?> CreateTaskAsync (Guid boardID, Guid cardID, TaskCreateRequest taskCreateRequest);
 
-    Task<TaskResponse?> UpdateTask (Guid boardID, Guid cardID, Guid taskID, string taskPatchRequest);
+    Task<TaskResponse?> UpdateTaskAsync (Guid boardID, Guid cardID, Guid taskID, JsonPatchDocument taskPatchRequestDocument);
 
-    Task DeleteTask (Guid boardID, Guid cardID, Guid taskID);
+    Task DeleteTaskAsync (Guid boardID, Guid cardID, Guid taskID);
 
     #region Task Type
 

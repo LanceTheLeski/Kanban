@@ -100,12 +100,19 @@
                     <MudList T="string" ReadOnly="false">
                         @foreach (var task in ActiveCard.Tasks)
                         {
-                            <MudListItem><!-- I switched from bind-TaskTitle to just assigning TaskTitle for now due to response object not being bindable. Fix later.. -->
-                                <CreateTaskOverlay TaskTitle="@task.Title" @bind-CardID="CardID" @bind-BoardID="BoardID" />
+                            <MudListItem><!-- I switched from bind-TaskTitle to just assigning TaskTitle for now due to response object not being bindable. Fix later.. Also fix TaskOrder later.. -->
+                                <UpdateTaskOverlay TaskID="@task.ID!.Value"
+                                                   TaskTitle="@task.Title"
+                                                   TaskOrder="1"
+                                                   @bind-CardID="CardID" 
+                                                   @bind-BoardID="BoardID" />
                             </MudListItem>
                         }
                         <MudListItem>
-                            Add New Task
+                            <CreateTaskOverlay TaskTitle="Add New Task"
+                                               TaskOrder="1"
+                                               @bind-CardID="CardID"
+                                               @bind-BoardID="BoardID" />
                         </MudListItem>
                     </MudList>
                 </MudStack>

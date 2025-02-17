@@ -1,6 +1,7 @@
 ﻿using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Response;
 using ArcStrides.UI.Services;
+using Microsoft.AspNetCore.JsonPatch;
 using Newtonsoft.Json;
 
 namespace ArcStrides.UI.Repositories;
@@ -23,15 +24,15 @@ public class TaskRepository : ITaskRepository
     public async Task<TaskResponse?> CreateTaskAsync (Guid boardID, Guid cardID, TaskCreateRequest taskCreateRequest)
         => await _arcStridesTaskBackend.CreateEntityAsync (@$"arcstrides/boards/{boardID}/cards/{cardID}/tasks", JsonConvert.SerializeObject (taskCreateRequest));
 
-    public async Task<TaskResponse?> UpdateTask (Guid boardID, Guid cardID, Guid taskID, string taskPatchRequest)
-        => await _arcStridesTaskBackend.UpdateEntityAsync ($"arcstrides/boards/{boardID}/cards/{cardID}/tasks/{taskID}", taskPatchRequest);
+    public async Task<TaskResponse?> UpdateTaskAsync (Guid boardID, Guid cardID, Guid taskID, JsonPatchDocument taskPatchRequestDocument)
+        => await _arcStridesTaskBackend.UpdateEntityAsync ($"arcstrides/boards/{boardID}/cards/{cardID}/tasks/{taskID}", JsonConvert.SerializeObject (taskPatchRequestDocument));
 
-    public async Task DeleteTask (Guid boardID, Guid cardID, Guid taskID)
+    public async Task DeleteTaskAsync (Guid boardID, Guid cardID, Guid taskID)
         => await _arcStridesTaskBackend.DeleteEntityAsync ($"arcstrides/boards/{boardID}/cards/{cardID}/tasks/{taskID}");
 
     #region Task Type
 
-    public async Task<List<TaskTypeResponse?>> FetchTaskTypeAsync (int taskTypeID)
+    public async Task<List<TaskTypeResponse>> FetchTaskTypeAsync (int taskTypeID)
         => await _arcStridesTaskTypeBackend.FetchEntityAsync ("arcstrides/tasks/types");
 
     #endregion Task Type

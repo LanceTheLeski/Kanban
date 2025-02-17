@@ -30,23 +30,9 @@
                     </MudPaper>
                     <ArcExpandingSelector Options="_taskTypes.Select (taskType => taskType!.Title!).ToList ()"
                                           OptionSelected="SetTaskTypeOnTask" />
-                    <!--<MudExpansionPanels>
-                        <MudExpansionPanel Text="Task Type" MaxHeight="1000" ExpandedChanged="TaskTypeListExpandedChanged">
-                            @_taskTypeList
-                        </MudExpansionPanel>
-                    </MudExpansionPanels>-->
                 </MudItem>
                 <MudItem>
                     <TimelineEditor />
-                    <!--<MudButton OnClick="@(() => TimelineFragmentChanged (false))">
-                        Deadline
-                    </MudButton>
-                    <MudButton OnClick="@(() => TimelineFragmentChanged (true))">
-                        Timeline
-                    </MudButton>
-                    <MudPaper>
-                        @_timelineFragment
-                    </MudPaper>-->
                 </MudItem>
             </MudGrid>
 
@@ -95,66 +81,9 @@
     private List<TaskTypeResponse> _taskTypes = new List<TaskTypeResponse> ();
     private TaskTypeResponse taskTypeToAssign = default;
 
-    /*private DateRange _dateRangePreferred = new DateRange ();
-    private TimeSpan? _timePreferredStart = new TimeSpan();
-    private TimeSpan? _timePreferredEnd = new TimeSpan();
-
-    private DateRange _dateRangeRequired = new DateRange();
-    private TimeSpan? _timeRequiredStart = new TimeSpan();
-    private TimeSpan? _timeRequiredEnd = new TimeSpan();*/
-
     //On page load. Not async to this layout class loading.
     protected async override Task OnInitializedAsync ()
     {
-        //_timelineFragment = _deadlineRenderFragment ();
-
         _taskTypes = await FetchTaskTypesAsync ();
     }
-
-    //private RenderFragment _taskTypeList;
-    /*private RenderFragment _taskTypeListRenderFragment ()
-    {
-        return __builder =>
-        {
-            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
-                <MudStack Class="flex-grow-1" Width="100%" Height="100%">
-                    <MudList T="string" ReadOnly="false">
-                        @foreach (var taskTypeTitle in _taskTypeTitles)
-                        {
-                            <MudListItem OnClick="(() => SetTaskTypeOnTask(taskTypeTitle))">
-                                List Type Name: @(taskTypeTitle)
-                            </MudListItem>
-                        }
-                    </MudList>
-                </MudStack>
-            </MudPaper>
-        };
-    }*/
-
-    /*private RenderFragment _timelineFragment;
-    private RenderFragment _timelineRenderFragment ()
-    {
-        return __builder =>
-        {
-            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
-                <MudDateRangePicker Label="Preferrd" Editable="true" @bind-DateRange="_dateRangePreferred" />
-                <MudTimePicker Label="Preferred Start" Editable="true" AmPm="true" AnchorOrigin="Origin.CenterLeft" TransformOrigin="Origin.CenterRight" @bind-Time="_timePreferredStart" />
-                <MudTimePicker Label="Preferred End" Editable="true" AmPm="true" @bind-Time="_timePreferredEnd" />
-
-                <MudDateRangePicker Label="Deadlines" Editable="true" @bind-DateRange="_dateRangeRequired" />
-                <MudTimePicker Label="Required Start" Editable="true" AmPm="true" @bind-Time="_timeRequiredStart" />
-                <MudTimePicker Label="Required End" Editable="true" AmPm="true" @bind-Time="_timeRequiredEnd" />
-            </MudPaper>
-        };
-    }
-    private RenderFragment _deadlineRenderFragment ()
-    {
-        return __builder =>
-        {
-            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
-                <MudDatePicker Label="EndDate" Editable="false" @bind-Date="_dateRangeRequired.End"/>
-                <MudTimePicker Label="Required End" Editable="true" AmPm="true" @bind-Time="_timeRequiredEnd" />
-            </MudPaper>
-        };
-    }*/
 }

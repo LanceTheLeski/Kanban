@@ -5,19 +5,6 @@ namespace ArcStrides.UI.Layouts.Board.Task;
 
 public partial class CreateTaskOverlay
 {
-    /*private async System.Threading.Tasks.Task TaskTypeListExpandedChanged (bool isTimeline)
-    {
-        if (isTimeline)
-        {
-            _taskTypeList = _taskTypeListRenderFragment ();
-        }
-        else
-        {
-            // Reset after a while to prevent sudden collapse.
-            System.Threading.Tasks.Task.Delay (350).ContinueWith (t => _taskTypeList = null);
-        }
-    }*/
-
     private void SetTaskTypeOnTask (string taskTypeName)
     {
         var matchingTaskTypes = _taskTypes.FindAll (taskType => taskType.Title == taskTypeName);
@@ -30,18 +17,6 @@ public partial class CreateTaskOverlay
 
         taskTypeToAssign = matchingTaskTypes.Single ();
     }
-
-    /*private void TimelineFragmentChanged (bool isTimeline)
-    {
-        if (isTimeline)
-        {
-            _timelineFragment = _timelineRenderFragment ();
-        }
-        else
-        {
-            _timelineFragment = _deadlineRenderFragment ();
-        }
-    }*/
 
     private async Task<List<TaskTypeResponse?>> FetchTaskTypesAsync ()
         => await _taskRepository.FetchTaskTypeAsync (0/*placeholder arg*/);

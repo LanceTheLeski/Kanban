@@ -8,6 +8,8 @@ using ArcStrides.Contracts.Response;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
+using static ArcStrides.API.Validators.TaskValidators;
+
 namespace ArcStrides.API.Controllers;
 
 [ApiController]
@@ -15,7 +17,7 @@ namespace ArcStrides.API.Controllers;
 public class TaskController : ArcController
 {
     //private readonly IValidator<TaskQueryParameters> _taskQueryParametersValidator; Validators are broken for now..
-    //private readonly IValidator<TaskCreateRequest> _taskCreateRequestValidator;
+    private readonly IValidator<TaskCreateRequest> _taskCreateRequestValidator;
 
     private readonly ITaskRepository _taskRepository;
     private readonly ITimelineRepository _timelineRepository;
@@ -29,7 +31,7 @@ public class TaskController : ArcController
                            TaskMapper taskMapper)
     {
         //_taskQueryParametersValidator = taskQueryParametersValidator;
-        //_taskCreateRequestValidator = taskCreateRequestValidator;
+        _taskCreateRequestValidator = new TaskCreateRequestValidator ();
 
         _taskRepository = taskRepository;
         _timelineRepository = timelineRepository;
@@ -68,10 +70,10 @@ public class TaskController : ArcController
     [HttpPost]
     public async Task<ActionResult> CreateTask (Guid cardID, [FromBody] TaskCreateRequest taskCreateRequest)
     {
-        /*var validationResult = _taskCreateRequestValidator.Validate (taskCreateRequest);
+        var validationResult = _taskCreateRequestValidator.Validate (taskCreateRequest);
         if (validationResult.IsValid is false)
             return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TaskCreateRequest), "")
-                               + "\n" + validationResult.ToString ());*/
+                               + "\n" + validationResult.ToString ());
 
         var newTask = _taskMapper.MapTaskCreateRequestToTask (taskCreateRequest);
         newTask.PartitionKey = Guid.NewGuid ().ToString ();
