@@ -100,7 +100,7 @@ public class TaskController : ArcController
 
         var taskTypeReponseList = new List<TaskTypeResponse> ();
         foreach (var taskType in taskTypes)
-            taskTypeReponseList.Add (_taskMapper.MapTaskToTaskTypeResponse (taskType));
+            taskTypeReponseList.Add (_taskMapper.MapTaskTypeToTaskTypeResponse (taskType));
 
         return Ok (taskTypeReponseList);
     }

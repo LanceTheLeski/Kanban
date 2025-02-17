@@ -1,5 +1,5 @@
 ﻿using ArcStrides.Contracts.Response;
-using ArcStrides.UI.Models;
+using ArcStrides.UI.Models.Board;
 using Riok.Mapperly.Abstractions;
 
 namespace ArcStrides.UI.Mappers;

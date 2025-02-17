@@ -15,6 +15,8 @@ public partial class TaskMapper
     [MapProperty (nameof (TaskCreateRequest.Title), nameof (Models.Board.Task.Title))]
     [MapProperty (nameof (TaskCreateRequest.CardID), nameof (Models.Board.Task.CardID))]
     [MapProperty (nameof (TaskCreateRequest.TaskTypeID), nameof (Models.Board.Task.TaskTypeID))]
+    [MapProperty (nameof (TaskCreateRequest.TaskOrder), nameof (Models.Board.Task.TaskOrder))]
+    [MapProperty (nameof (TaskCreateRequest.IsComplete), nameof (Models.Board.Task.IsComplete))]
     public partial Models.Board.Task MapTaskCreateRequestToTask (TaskCreateRequest taskCreateRequest);
 
     /// <summary>
@@ -44,7 +46,8 @@ public partial class TaskMapper
     [MapProperty (nameof (Models.Board.Task.RowKey), nameof (TaskResponse.ID))]
     [MapProperty (nameof (Models.Board.Task.Title), nameof (TaskResponse.Title))]
     [MapProperty (nameof (Models.Board.Task.TaskTypeID), nameof (TaskResponse.TaskTypeID))]
-    [MapProperty (nameof (Models.Board.Task.IsComplete), nameof (TaskResponse.isCompleted))]
+    [MapProperty (nameof (Models.Board.Task.TaskOrder), nameof (TaskResponse.TaskOrder))]
+    [MapProperty (nameof (Models.Board.Task.IsComplete), nameof (TaskResponse.IsComplete))]
     public partial TaskResponse MapTaskToTaskResponse (Models.Board.Task task);
 
     #region Task Type
@@ -52,7 +55,7 @@ public partial class TaskMapper
     [MapProperty (nameof (TaskType.PartitionKey), nameof (TaskTypeResponse.GroupTagID))]
     [MapProperty (nameof (TaskType.RowKey), nameof (TaskTypeResponse.ID))]
     [MapProperty (nameof (TaskType.Title), nameof (TaskTypeResponse.Title))]
-    public partial TaskTypeResponse MapTaskToTaskTypeResponse (TaskType taskType);
+    public partial TaskTypeResponse MapTaskTypeToTaskTypeResponse (TaskType taskType);
 
     #endregion Task Type
 }

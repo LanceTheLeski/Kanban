@@ -1,5 +1,5 @@
 ﻿using ArcStrides.Contracts.Response;
-using ArcStrides.UI.Models;
+using ArcStrides.UI.Models.Board;
 using MudBlazor;
 
 namespace ArcStrides.UI.Pages;
@@ -15,7 +15,7 @@ public partial class Board
         editCardOverlayIsOpen = setEditCardOverlayIsOpen;
     }
 
-    public async Task Refresh (bool stateHasChanged)
+    public async System.Threading.Tasks.Task Refresh (bool stateHasChanged)
     {
         if (stateHasChanged)
         {
@@ -37,7 +37,7 @@ public partial class Board
         cardToUpdate.Item.SwimlaneName = _swimlaneTitles [newCardArea.swimlanePos];
         cardToUpdate.Item.SwimlaneNumber = newCardArea.swimlanePos;
 
-        var cardResponse = Task.Run (() =>
+        var cardResponse = System.Threading.Tasks.Task.Run (() =>
             SendCardPatchRequest (cardToUpdate.Item)).Result;
     }
 

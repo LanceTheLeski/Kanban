@@ -4,7 +4,7 @@
 @using ArcStrides.UI.Layouts.Board.Card
 @using ArcStrides.UI.Layouts.Board.Column
 @using ArcStrides.UI.Layouts.Board.Swimlane
-@using ArcStrides.UI.Models
+@using ArcStrides.UI.Models.Board
 @using ArcStrides.UI.Options
 @using ArcStrides.UI.Repositories
 @using ArcStrides.UI.Services
@@ -61,16 +61,16 @@
             </MudPaper>
         </MudItem>
         <MudDropContainer @ref="_dropContainer"
-        T="DropCard" 
-        Items="_cards" 
-        ItemDropped="UpdateCard"
-        ItemsSelector="@((card, dropzone) => card.CardArea == dropzone)">
+                          T="DropCard" 
+                          Items="_cards" 
+                          ItemDropped="UpdateCard"
+                          ItemsSelector="@((card, dropzone) => card.CardArea == dropzone)">
             <ChildContent>
                 @foreach (var rowIndex in Enumerable.Range(0, _swimlaneTitles.Count()))
                 {
                     <MudItem>
                         <MudPaper Height="250px" 
-                        Style="background-color: wheat">
+                                  Style="background-color: wheat">
                             <MudPaper Style="background-color: #C7EEE6; border: 25px, solid, wheat; border-left-width: 5px; border-right:width: 5px;" Elevation="0">
                                 <MudGrid Class="d-flex flex-nowrap">
                                     <MudItem Class="align-content-center">
@@ -147,7 +147,7 @@
 
     public bool editCardOverlayIsOpen = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override async System.Threading.Tasks.Task OnInitializedAsync()
     {
         _board = await _boardRepository.FetchBoard(Guid.Parse("1cb0ce6e-6145-4fe7-833a-0b7c0545c449"));//Change later to be dynamic..
         // todo: Validate Board Response here and throw an error if it is not what we want it to be...

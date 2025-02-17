@@ -10,5 +10,7 @@ public class TaskResponse
 
     public int? TaskTypeID { get; init; } = null;
 
-    public bool? isCompleted { get; init; } = null;
+    public int? TaskOrder { get; set; } = null;
+
+    public bool? IsComplete { get; init; } = null;
 }

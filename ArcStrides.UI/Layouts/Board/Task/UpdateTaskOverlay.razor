@@ -17,11 +17,11 @@
             <MudGrid>
                 <MudItem>
                     <ArcExpandingSelector Options="new List<string> {bool.TrueString, bool.FalseString}"
-                    OptionSelected="((string selection) => IsComplete = bool.Parse (selection))" />
+                                          OptionSelected="((string selection) => IsComplete = bool.Parse (selection))" />
                     <ArcExpandingSelector Options="_taskOrderRange"
-                    OptionSelected="SetTaskOrderOnTask" />
+                                          OptionSelected="SetTaskOrderOnTask" />
                     <ArcExpandingSelector Options="_taskTypes.Select (taskType => taskType!.Title!).ToList ()"
-                    OptionSelected="SetTaskTypeOnTask" />
+                                          OptionSelected="SetTaskTypeOnTask" />
                 </MudItem>
                 <MudItem>
                     <TimelineEditor />

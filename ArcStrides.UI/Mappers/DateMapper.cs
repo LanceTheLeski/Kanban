@@ -1,4 +1,4 @@
-﻿using ArcStrides.UI.Models;
+﻿using ArcStrides.UI.Models.Calendar;
 using Riok.Mapperly.Abstractions;
 
 namespace ArcStrides.UI.Mappers;

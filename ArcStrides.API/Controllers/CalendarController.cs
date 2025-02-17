@@ -79,7 +79,7 @@ public class CalendarController : Controller
                         Title = task.Title,
                         TaskTypeID = task.TaskTypeID,
                         //TaskTypeTitle = "Placeholder!",
-                        isCompleted = task.IsComplete
+                        IsComplete = task.IsComplete
                     });
 
                 cards.Add (new CardResponse

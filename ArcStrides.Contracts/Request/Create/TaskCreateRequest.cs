@@ -8,6 +8,10 @@ public class TaskCreateRequest
 
     public Guid? CardID { get; set; } = null;
 
+    public int? TaskOrder { get; set; } = null;
+
+    public bool? IsComplete { get; set; } = null;
+
     public Guid? StartDependencyTagGroupID { get; init; } = null;
 
     public DateTime? StartPreferenceUTC { get; init; } = null;

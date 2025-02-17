@@ -1,7 +1,7 @@
 ﻿using ArcStrides.Contracts.Request.Create;
 using ArcStrides.UI.Components.ArcOverlay;
 using ArcStrides.UI.Mappers;
-using ArcStrides.UI.Models;
+using ArcStrides.UI.Models.Board;
 
 namespace ArcStrides.UI.Layouts.Board.Card;
 

@@ -1,6 +1,6 @@
 ﻿using ArcStrides.Contracts.Response;
 using ArcStrides.UI.Mappers;
-using ArcStrides.UI.Models;
+using ArcStrides.UI.Models.Calendar;
 using MudBlazor;
 using System.Collections.ObjectModel;
 
@@ -48,7 +48,7 @@ public partial class CalendarLayout
             var tasksCompleted = new double [boardTypesList.Count ()];
             for (var tasksIndex = 0; tasksIndex < tasksCompleted.Length; tasksIndex++)
                 tasksCompleted [tasksIndex] = cards.Where (card => card.Position.BoardID == boardTypesList.ElementAt (tasksIndex))
-                                                   .Select (card => card.Tasks.Where (task => task.isCompleted == true))
+                                                   .Select (card => card.Tasks.Where (task => task.IsComplete == true))
                                                    .Count ();
 
             cardsCompletedList.Add (new ChartSeries { Data = tasksCompleted });

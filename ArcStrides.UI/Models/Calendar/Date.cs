@@ -1,7 +1,7 @@
 ﻿using ArcStrides.Contracts.Response;
 using MudBlazor;
 
-namespace ArcStrides.UI.Models;
+namespace ArcStrides.UI.Models.Calendar;
 
 public class Date : DateResponse
 {

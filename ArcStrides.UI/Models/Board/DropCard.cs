@@ -1,4 +1,4 @@
-﻿namespace ArcStrides.UI.Models;
+﻿namespace ArcStrides.UI.Models.Board;
 
 /// <summary>
 /// On principle I suppose these models should correspond to pages and ideally would be 

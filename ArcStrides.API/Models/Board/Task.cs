@@ -5,6 +5,9 @@ namespace ArcStrides.API.Models.Board;
 [ArcTableName ("Tasks")]
 public class Task : ArcBoardsEntity
 {
+    /// <summary>
+    /// Task ID (as Guid).
+    /// </summary>
     public override string RowKey { get; set; }
 
     public string Title { get; set; }
