@@ -1,4 +1,5 @@
-﻿using ArcStrides.API.Models.TagGroup;
+﻿using ArcStrides.API.Models;
+using ArcStrides.API.Models.TagGroup;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
@@ -32,5 +33,13 @@ public interface ITaskRepository
 
     Task<Collection<TaskType>> QueryTaskTypesAsync (Expression<Func<TaskType, bool>> taskTypeQueryExpression);
 
+    Task AddTaskTypeAsync (TaskType taskTypeToCreate);
+
+    Task UpdateTaskTypeAsync (TaskType taskTypeToUpdate);
+
     #endregion Task Type
+
+    Task<bool> SubmitArcTransactionAsync (ArcTransaction arcTransaction);
+
+    ArcTransaction ApplyNewOrderForExistingTasks (Models.Board.Task taskToUpdate, int newTaskOrder, IEnumerable<Models.Board.Task> taskEnumerable, ArcTransaction arcTransaction);
 }

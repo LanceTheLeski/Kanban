@@ -6,7 +6,7 @@ public class TaskPatchRequest
 
     public int? TypeID { get; init; } = null;
 
-    public int? TaskOrder { get; init; } = null;
+    public int? Order { get; init; } = null;
 
     public bool? IsComplete { get; init; } = null;
 

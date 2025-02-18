@@ -36,7 +36,7 @@ public partial class UpdateTaskOverlay
             patchDocument.Add (nameof (TaskPatchRequest.TypeID), taskTypeToAssign.ID);
 
         if (TaskOrder != _initialTaskOrder)
-            patchDocument.Add (nameof (TaskPatchRequest.TaskOrder), TaskOrder);
+            patchDocument.Add (nameof (TaskPatchRequest.Order), TaskOrder);
 
         if (IsComplete != _initialIsComplete.Value)
             patchDocument.Add (nameof (TaskPatchRequest.IsComplete), IsComplete);

@@ -8,7 +8,7 @@ public class TaskCreateRequest
 
     public Guid? CardID { get; set; } = null;
 
-    public int? TaskOrder { get; set; } = null;
+    public int? Order { get; set; } = null;
 
     public bool? IsComplete { get; set; } = null;
 

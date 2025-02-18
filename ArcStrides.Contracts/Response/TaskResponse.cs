@@ -10,7 +10,7 @@ public class TaskResponse
 
     public int? TaskTypeID { get; init; } = null;
 
-    public int? TaskOrder { get; set; } = null;
+    public int? Order { get; set; } = null;
 
     public bool? IsComplete { get; init; } = null;
 }

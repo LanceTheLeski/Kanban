@@ -1,6 +1,9 @@
-﻿using ArcStrides.API.Models.TagGroup;
+﻿using ArcStrides.API.Models;
+using ArcStrides.API.Models.TagGroup;
 using ArcStrides.API.Options;
 using ArcStrides.API.Services;
+using Azure.Data.Tables;
+using DeepCopy;
 using Microsoft.Extensions.Options;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
@@ -67,5 +70,43 @@ public class TaskRepository : ITaskRepository
     public async Task<Collection<TaskType>> QueryTaskTypesAsync (Expression<Func<TaskType, bool>> taskTypeQueryExpression)
         => await _taskTypeTable.QueryEntitiesAsync (taskTypeQueryExpression);
 
+    public async Task AddTaskTypeAsync (TaskType taskTypeToCreate)
+        => await _taskTypeTable.AddEntityAsync (taskTypeToCreate);
+
+    public async Task UpdateTaskTypeAsync (TaskType taskTypeToUpdate)
+        => await _taskTypeTable.UpdateEntityAsync (taskTypeToUpdate);
+
     #endregion Task Type
+
+    public async Task<bool> SubmitArcTransactionAsync (ArcTransaction arcTransaction)
+        => await _taskTable.SubmitArcTransactionAsync (arcTransaction);
+
+    public ArcTransaction ApplyNewOrderForExistingTasks (Models.Board.Task taskToUpdate, int newTaskOrder, IEnumerable<Models.Board.Task> taskEnumerable, ArcTransaction arcTransaction)
+    {
+        if (taskToUpdate.TaskOrder == newTaskOrder)
+            return arcTransaction;
+
+        if (taskToUpdate.TaskOrder < newTaskOrder)
+            for (int index = taskToUpdate.TaskOrder + 1; index <= newTaskOrder; index ++)
+            {
+                var currentTaskToUpdate = taskEnumerable.Single (task => task.TaskOrder == index);
+                var newTaskToUpdate = DeepCopier.Copy (currentTaskToUpdate);
+                newTaskToUpdate.TaskOrder = index - 1;
+
+                var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, newTaskToUpdate);
+                arcTransaction.Add (transaction, currentTaskToUpdate);
+            }
+        if (taskToUpdate.TaskOrder > newTaskOrder)
+            for (int index = newTaskOrder; index < taskToUpdate.TaskOrder; index ++)
+            {
+                var currentTaskToUpdate = taskEnumerable.Single (task => task.TaskOrder == index);
+                var newTaskToUpdate = DeepCopier.Copy (currentTaskToUpdate);
+                newTaskToUpdate.TaskOrder = index + 1;
+
+                var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, newTaskToUpdate);
+                arcTransaction.Add (transaction, newTaskToUpdate);
+            }
+
+        return arcTransaction;
+    }
 }
