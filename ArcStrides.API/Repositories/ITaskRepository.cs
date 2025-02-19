@@ -42,4 +42,6 @@ public interface ITaskRepository
     Task<bool> SubmitArcTransactionAsync (ArcTransaction arcTransaction);
 
     ArcTransaction ApplyNewOrderForExistingTasks (Models.Board.Task taskToUpdate, int newTaskOrder, IEnumerable<Models.Board.Task> taskEnumerable, ArcTransaction arcTransaction);
+
+    ArcTransaction DecrementExistingTasksOrder (IEnumerable<Models.Board.Task> taskEnumerableToUpdate, ArcTransaction arcTransaction);
 }

@@ -47,15 +47,15 @@
         UpdateOrDeleteCardChanged.InvokeAsync (_card);
         OpenCardOverlayChanged.InvokeAsync (true);
 
-        OpenUpdateColumnOverlay();
+        OpenUpdateCardOverlay();
     }
 
     public bool updateCardOverlayIsOpen = false;
-    public void OpenUpdateColumnOverlay ()
+    public void OpenUpdateCardOverlay ()
     {
         updateCardOverlayIsOpen = true;
     }
-    public void UpdateDeleteColumnOverlay (bool setEditCardOverlayIsOpen)
+    public void UpdateDeleteCardOverlay (bool setEditCardOverlayIsOpen)
     {
         updateCardOverlayIsOpen = setEditCardOverlayIsOpen;
         Refresh.InvokeAsync (true);

@@ -25,9 +25,10 @@
 
             <MudGrid>
                 <MudItem>
-                    <MudPaper>
-                        @TaskOrder
-                    </MudPaper>
+                    <ArcExpandingSelector Options="new List<string> {bool.TrueString, bool.FalseString}"
+                                          OptionSelected="((string selection) => IsComplete = bool.Parse (selection))" />
+                    <ArcExpandingSelector Options="_taskOrderRange"
+                                          OptionSelected="SetTaskOrderOnTask" />
                     <ArcExpandingSelector Options="_taskTypes.Select (taskType => taskType!.Title!).ToList ()"
                                           OptionSelected="SetTaskTypeOnTask" />
                 </MudItem>
@@ -60,6 +61,16 @@
     [Parameter]
     public EventCallback<int> TaskOrderChanged { get; set; }
 
+    [Parameter]
+    public int TotalTasksForCard { get; set; }
+    [Parameter]
+    public EventCallback<int> TotalTasksForCardChanged { get; set; }
+
+    [Parameter]
+    public bool IsComplete { get; set; }
+    [Parameter]
+    public EventCallback<bool> IsCompleteChanged { get; set; }
+
     /*[Parameter]
     public Date.Day Day { get; set; }
     [Parameter]
@@ -78,6 +89,8 @@
     [Parameter]
     public EventCallback<bool> Refresh { get; set; }
 
+    private List<string> _taskOrderRange = new List<string>();
+
     private List<TaskTypeResponse> _taskTypes = new List<TaskTypeResponse> ();
     private TaskTypeResponse taskTypeToAssign = default;
 
@@ -85,5 +98,9 @@
     protected async override Task OnInitializedAsync ()
     {
         _taskTypes = await FetchTaskTypesAsync ();
+
+        _taskOrderRange = new List<string>();
+        for (int index = 1; index <= TotalTasksForCard; index++)
+            _taskOrderRange.Add(index.ToString());
     }
 }

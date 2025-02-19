@@ -14,7 +14,7 @@
 @inherits LayoutComponentBase
 
 <ArcOverlay @bind-Open="Open"
-            OnSubmitAsync="UpdateCard">
+OnSubmitAsync="UpdateCardAsync">
     <MudPaper Width="900px" Height="500px" Class="mud-background">
         <MudStack>
             <MudItem>
@@ -53,6 +53,7 @@
 </ArcOverlay>
 
 @inject ICardRepository _cardRepository;
+@inject ITaskRepository _taskRepository;
 
 @code 
 {
@@ -76,8 +77,6 @@
 
     public string _cardTitle = string.Empty;
     public string _cardDescription = string.Empty;
-
-    private Guid? CardID = null;
 
     private bool editCardOverlayIsOpen = false;
 
@@ -104,28 +103,23 @@
                                 <UpdateTaskOverlay TaskID="@task.ID!.Value"
                                                    TaskTitle="@task.Title"
                                                    TaskOrder="1"
-                                                   @bind-CardID="CardID" 
-                                                   @bind-BoardID="BoardID" />
+                                                   TotalTasksForCard="ActiveCard.Tasks.Count ()"
+                                                   CardID="ActiveCard.Id"
+                                                   BoardID="BoardID" />
+                                <MudButton OnClick="(() => DeleteTaskAsync (task.ID.Value))">Delete</MudButton>
                             </MudListItem>
                         }
                         <MudListItem>
                             <CreateTaskOverlay TaskTitle="Add New Task"
                                                TaskOrder="1"
-                                               @bind-CardID="CardID"
-                                               @bind-BoardID="BoardID" />
+                                               CardID="ActiveCard.Id"
+                                               IsComplete="false"
+                                               TotalTasksForCard="ActiveCard.Tasks.Count ()"
+                                               BoardID="BoardID" />
                         </MudListItem>
                     </MudList>
                 </MudStack>
             </MudPaper>
         };
-    }
-
-    private void Fire (bool changed)
-    {
-        if (ActiveCard is not null)
-        {
-            _cardTitle = ActiveCard.Title;
-            _cardDescription = ActiveCard.Description;
-        }
     }
 }

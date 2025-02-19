@@ -18,6 +18,9 @@ public partial class CreateTaskOverlay
         taskTypeToAssign = matchingTaskTypes.Single ();
     }
 
+    private void SetTaskOrderOnTask (string taskOrder)
+        => TaskOrder = int.Parse (taskOrder);
+
     private async Task<List<TaskTypeResponse?>> FetchTaskTypesAsync ()
         => await _taskRepository.FetchTaskTypeAsync (0/*placeholder arg*/);
 
@@ -26,10 +29,10 @@ public partial class CreateTaskOverlay
         var createRequest = new TaskCreateRequest
         {
             Title = TaskTitle,
-            TaskTypeID = 0,//Replace later..
-            //CardID = Guid.Empty//Replace later..
-            
-            // More to fill in..
+            TaskTypeID = taskTypeToAssign?.ID ?? -1,
+            Order = TaskOrder,
+            IsComplete = IsComplete
+            //Get timeline stuff here
         };
 
         await _taskRepository.CreateTaskAsync (BoardID, CardID.Value, createRequest);

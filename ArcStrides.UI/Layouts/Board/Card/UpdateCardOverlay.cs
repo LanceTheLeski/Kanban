@@ -13,7 +13,7 @@ public partial class UpdateCardOverlay : IArcOverlay
         OpenChanged.InvokeAsync (Open);
     }
 
-    private async System.Threading.Tasks.Task DeleteCard ()
+    private async System.Threading.Tasks.Task DeleteCardAsync ()
     {
         await _cardRepository.DeleteCardAsync (ActiveCard!.Id);
 
@@ -22,7 +22,7 @@ public partial class UpdateCardOverlay : IArcOverlay
         CloseOverlay ();
     }
 
-    private async System.Threading.Tasks.Task UpdateCard ()
+    private async System.Threading.Tasks.Task UpdateCardAsync ()
     {
         var patchRequest = FormPatchRequestFromOverlay ();
 
@@ -32,6 +32,13 @@ public partial class UpdateCardOverlay : IArcOverlay
         Refresh.InvokeAsync (true);
 
         CloseOverlay ();
+    }
+
+    private async System.Threading.Tasks.Task DeleteTaskAsync (Guid taskID)
+    {
+        await _taskRepository.DeleteTaskAsync (BoardID, ActiveCard.Id, taskID);
+
+        ActiveCard.Tasks.RemoveAll (task => task.ID == taskID);
     }
 
     private string FormPatchRequestFromOverlay ()
@@ -51,5 +58,14 @@ public partial class UpdateCardOverlay : IArcOverlay
             {patchRequestForTitle}
             {patchRequestForDescription}
         ]";
+    }
+
+    private void Fire (bool changed)
+    {
+        if (ActiveCard is not null)
+        {
+            _cardTitle = ActiveCard.Title;
+            _cardDescription = ActiveCard.Description;
+        }
     }
 }

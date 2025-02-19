@@ -15,7 +15,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.Win32;
 using static ArcStrides.API.Validators.TaskValidators;
 
 namespace ArcStrides.API.Controllers;
@@ -91,12 +91,13 @@ public class TaskController : ArcController
         try
         {
             var newTask = _taskMapper.MapTaskCreateRequestToTask (taskCreateRequest);
-            newTask.PartitionKey = Guid.NewGuid ().ToString ();
-            newTask.RowKey = cardID.ToString ();
+            newTask.PartitionKey = boardID.ToString ();
+            newTask.RowKey = Guid.NewGuid ().ToString ();
+            newTask.CardID = cardID;
 
             await _taskRepository.AddTaskAsync (newTask);
 
-            var taskTypeCollection = await _taskRepository.QueryTaskTypesAsync (taskType => taskType.PartitionKey == taskCreateRequest.TaskTypeID.ToString ());
+            var taskTypeCollection = await _taskRepository.QueryTaskTypesAsync (taskType => taskType.RowKey == taskCreateRequest.TaskTypeID.ToString ());
             if (taskTypeCollection.Count is 0)
                 return BadRequest (ErrorResponseMessages.FieldDoesNotExistInDatabaseErrorResponse (nameof (Models.Board.Task.TaskTypeID)));
             if (taskTypeCollection.Count is not 1)
@@ -133,6 +134,22 @@ public class TaskController : ArcController
 
             var taskResponse = _taskMapper.MapTaskToTaskResponse (updatedTask);
             return Ok (taskResponse);
+        }
+        catch (Exception ex)
+            { return ArcErrorResponse (ex); }
+    }
+
+    [HttpDelete ("{taskID:guid}")]
+    public async Task<ActionResult> DeleteTask ([FromRoute] Guid boardID,
+                                                [FromRoute] Guid cardID,
+                                                [FromRoute] Guid taskID)
+    {
+        try
+        {
+            var taskToDelete = await FetchAndValidateTask (boardID, taskID);
+
+            await DeleteTaskAndUpdateEffectedTasks (boardID, taskToDelete);
+            return Ok ();
         }
         catch (Exception ex)
             { return ArcErrorResponse (ex); }
@@ -199,6 +216,23 @@ public class TaskController : ArcController
         }
         catch (Exception ex)
             { return ArcErrorResponse (ex); }
+    }
+
+    /// <summary>
+    /// Attempts to fetch a single column based on its ID. If a single column 
+    /// is not returned then the request fails.
+    /// </summary>
+    private async Task<Models.Board.Task> FetchAndValidateTask (Guid boardID, Guid taskID)
+    {
+        Models.Board.Task? taskFromDatabase = null;
+        try { taskFromDatabase = await _taskRepository.GetTaskAsync (boardID, taskID); }
+        catch (RequestFailedException reqFailedEx)
+            { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (Models.Board.Task), reqFailedEx.Status)); }
+
+        if (taskFromDatabase is null)
+            throw new RequestFailureWrapperException (nameof (NotFound), ErrorResponseMessages.NotFoundErrorResponse (nameof (Models.Board.Task)));
+
+        return taskFromDatabase!;
     }
 
     /// <summary>
@@ -280,5 +314,29 @@ public class TaskController : ArcController
         }
         catch (RequestFailedException reqFailedEx)
             { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (Models.Board.Task), reqFailedEx.Status)); }
+    }
+
+    /// <summary>
+    /// Executes a transaction to:
+    /// <list type="bullet">
+    ///     <item>Decrement any effected task order due to the removed task.</item>    
+    ///     <item>Delete the chosen task.</item>
+    /// </list>
+    /// </summary>
+    private async Task DeleteTaskAndUpdateEffectedTasks (Guid boardID,
+                                                         Models.Board.Task taskToDelete)
+    {
+        var deleteTaskTransaction = new ArcTransaction ();
+
+        var tasksToUpdateOrder = await _taskRepository.QueryTasksAsync (task => task.TaskOrder > taskToDelete.TaskOrder
+                                                                                && task.PartitionKey == taskToDelete.PartitionKey);
+        deleteTaskTransaction = _taskRepository.DecrementExistingTasksOrder (tasksToUpdateOrder, deleteTaskTransaction);
+
+        var transaction = new TableTransactionAction (TableTransactionActionType.Delete, taskToDelete);
+        deleteTaskTransaction.Add (transaction, taskToDelete);
+        
+        try { await _taskRepository.SubmitArcTransactionAsync (deleteTaskTransaction); }
+        catch (RequestFailedException reqFailedEx)
+            { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.RemoveFromDatabaseErrorResponse (nameof (Models.Board.Task), reqFailedEx.Status)); }
     }
 }

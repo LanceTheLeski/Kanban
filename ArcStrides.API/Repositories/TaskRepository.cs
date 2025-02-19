@@ -109,4 +109,17 @@ public class TaskRepository : ITaskRepository
 
         return arcTransaction;
     }
+
+    public ArcTransaction DecrementExistingTasksOrder (IEnumerable<Models.Board.Task> taskEnumerableToUpdate, ArcTransaction arcTransaction)
+    {
+        foreach (var task in taskEnumerableToUpdate)
+        {
+            task.TaskOrder  --;
+
+            var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, task);
+            arcTransaction.Add (transaction, task);
+        }
+
+        return arcTransaction;
+    }
 }

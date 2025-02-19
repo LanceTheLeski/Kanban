@@ -15,7 +15,6 @@ public partial class TaskMapper
     /// <see cref="TaskCreateRequest"/> --> <see cref="Task"/>
     /// </summary>
     [MapProperty (nameof (TaskCreateRequest.Title), nameof (Models.Board.Task.Title))]
-    [MapProperty (nameof (TaskCreateRequest.CardID), nameof (Models.Board.Task.CardID))]
     [MapProperty (nameof (TaskCreateRequest.TaskTypeID), nameof (Models.Board.Task.TaskTypeID))]
     [MapProperty (nameof (TaskCreateRequest.Order), nameof (Models.Board.Task.TaskOrder))]
     [MapProperty (nameof (TaskCreateRequest.IsComplete), nameof (Models.Board.Task.IsComplete))]

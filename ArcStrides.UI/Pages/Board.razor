@@ -122,6 +122,7 @@
 <!--Should move this to a different layout component which manages cards-->
 <UpdateCardOverlay @bind-Open="editCardOverlayIsOpen"
                    @bind-ActiveCard="_activeCard"
+                   BoardID="_boardID"
                    Refresh="Refresh" />
 
 @inject IBoardRepository _boardRepository
