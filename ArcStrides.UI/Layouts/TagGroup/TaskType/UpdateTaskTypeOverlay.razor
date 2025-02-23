@@ -1,0 +1,34 @@
+﻿@using ArcStrides.UI.Components.ArcOverlay
+@using ArcStrides.UI.Models.Board
+@using ArcStrides.UI.Repositories
+
+<ArcOverlay @bind-Open="Open" 
+            OnSubmitAsync="UpdateTaskTypeAsync">
+
+    <MudText>Update Task Type</MudText>
+
+    <MudTextField @bind-Value="TaskType!.Title"
+                  T="string" 
+                  Label="Title" 
+                  Variant="Variant.Filled" 
+                  HelperText="Task Type Title" />
+
+</ArcOverlay>
+
+@inject ITaskRepository _taskRepository;
+
+@code 
+{
+    [Parameter]
+    public bool Open { get; set; }
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public TaskType? TaskType { get; set; }
+    [Parameter]
+    public EventCallback<TaskType?> TaskTypeChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> Refresh { get; set; }
+}

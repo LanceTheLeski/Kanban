@@ -1,4 +1,5 @@
 ﻿using ArcStrides.Contracts.Request.Create;
+using ArcStrides.Contracts.Request.Patch;
 using ArcStrides.Contracts.Response;
 using ArcStrides.UI.Services;
 using Microsoft.AspNetCore.JsonPatch;
@@ -40,6 +41,10 @@ public class TaskRepository : ITaskRepository
 
     public async Task<TaskTypeResponse?> CreateTaskTypeAsync (Guid tagGroupID, TaskTypeCreateRequest taskTypeCreateRequest)
         => await _arcStridesTaskTypeBackend.CreateEntityAsync ($"arcstrides/taggroups/{tagGroupID}/tasks/types", JsonConvert.SerializeObject (taskTypeCreateRequest));
+
+    public async Task<TaskTypeResponse?> UpdateTaskTypeAsync (Guid tagGroupID, int taskTypeID, TaskTypePatchRequest taskTypePatchRequest)
+        => await _arcStridesTaskTypeBackend.UpdateEntityAsync ($"arcstrides/taggroups/{tagGroupID}/tasks/types/{taskTypeID}", JsonConvert.SerializeObject (taskTypePatchRequest));
+
 
     #endregion Task Type
 }
