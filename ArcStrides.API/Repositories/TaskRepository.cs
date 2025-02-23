@@ -87,7 +87,7 @@ public class TaskRepository : ITaskRepository
             return arcTransaction;
 
         if (taskToUpdate.TaskOrder < newTaskOrder)
-            for (int index = taskToUpdate.TaskOrder + 1; index <= newTaskOrder; index ++)
+            for (int index = taskToUpdate.TaskOrder.Value + 1; index <= newTaskOrder; index ++)
             {
                 var currentTaskToUpdate = taskEnumerable.Single (task => task.TaskOrder == index);
                 var newTaskToUpdate = DeepCopier.Copy (currentTaskToUpdate);

@@ -16,32 +16,32 @@ public partial class UpdateTaskOverlay
             throw new Exception ($"The task type selected does not correspond to a single column in our list of columns. Number of this task type found: {matchingTaskTypes}");
         }
 
-        taskTypeToAssign = matchingTaskTypes.Single ();
+        _taskTypeToAssign = matchingTaskTypes.Single ();
     }
 
     private void SetTaskOrderOnTask (string taskOrder)
-        => TaskOrder = int.Parse (taskOrder);
+        => Task.Order = int.Parse (taskOrder);
 
-    private async Task<List<TaskTypeResponse?>> FetchTaskTypesAsync ()
-        => await _taskRepository.FetchTaskTypeAsync (0/*placeholder arg*/);
+    private async Task<List<TaskTypeResponse>> FetchTaskTypesAsync (Guid tagGroupID)
+        => await _taskRepository.FetchTaskTypesAsync (new List<int> { 0 });
 
     private async System.Threading.Tasks.Task UpdateTaskAsync ()
     {
         var patchDocument = new JsonPatchDocument ();
 
-        if (TaskTitle != _initialTaskTitle)
-            patchDocument.Add (nameof (TaskPatchRequest.Title), TaskTitle);
+        if (Task.Title != _initialTaskTitle)
+            patchDocument.Add (nameof (TaskPatchRequest.Title), Task.Title);
 
-        if (TaskType.ID != taskTypeToAssign.ID)
-            patchDocument.Add (nameof (TaskPatchRequest.TypeID), taskTypeToAssign.ID);
+        if (Task.TaskType?.ID != _taskTypeToAssign?.ID)
+            patchDocument.Add (nameof (TaskPatchRequest.TypeID), _taskTypeToAssign.ID);
 
-        if (TaskOrder != _initialTaskOrder)
-            patchDocument.Add (nameof (TaskPatchRequest.Order), TaskOrder);
+        if (Task.Order != _initialTaskOrder)
+            patchDocument.Add (nameof (TaskPatchRequest.Order), Task.Order);
 
-        if (IsComplete != _initialIsComplete.Value)
-            patchDocument.Add (nameof (TaskPatchRequest.IsComplete), IsComplete);
+        if (Task.IsCompleted != _initialIsCompleted)
+            patchDocument.Add (nameof (TaskPatchRequest.IsComplete), Task.IsCompleted);
 
-        await _taskRepository.UpdateTaskAsync (BoardID, CardID.Value, TaskID, patchDocument);
+        await _taskRepository.UpdateTaskAsync (BoardID, CardID.Value, Task.ID!.Value, patchDocument);
 
         Refresh.InvokeAsync (true);
     }

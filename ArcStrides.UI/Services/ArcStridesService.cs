@@ -41,6 +41,22 @@ public class ArcStridesService<TResp> : IArcStridesService<TResp> where TResp : 
         return entityResponse;
     }
 
+    public async Task<List<TResp>> FetchEntitiesAsync (string urlPath)
+    {
+        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, $"{_backendOptions.URL.TrimEnd ('/')}/{urlPath}");
+
+        var response = await _httpClient.SendAsync (httpRequestMessage);
+        if (response.IsSuccessStatusCode is false)
+        {
+            _arcErrorHandler.AddError (response.ReasonPhrase ?? string.Empty, response.StatusCode);
+            return null;
+        }
+
+        var responseBody = await response.Content.ReadAsStringAsync ();
+        var entityResponse = JsonConvert.DeserializeObject<List<TResp>> (responseBody) ?? new ();
+        return entityResponse;
+    }
+
     public async Task<TResp?> CreateEntityAsync (string urlPath, string serializedEntityCreateRequest)
     {
         var httpRequestMessage = new HttpRequestMessage (HttpMethod.Post, $"{_backendOptions.URL.TrimEnd ('/')}/{urlPath}");

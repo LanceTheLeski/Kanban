@@ -9,10 +9,10 @@ namespace ArcStrides.UI.Repositories;
 public class TaskRepository : ITaskRepository
 {
     private readonly IArcStridesService<TaskResponse> _arcStridesTaskBackend;
-    private readonly IArcStridesService<List<TaskTypeResponse>> _arcStridesTaskTypeBackend;
+    private readonly IArcStridesService<TaskTypeResponse> _arcStridesTaskTypeBackend;
 
     public TaskRepository (IArcStridesService<TaskResponse> arcStridesTaskBackend,
-                           IArcStridesService<List<TaskTypeResponse>> arcStridesTaskTypeBackend)
+                           IArcStridesService<TaskTypeResponse> arcStridesTaskTypeBackend)
     {
         _arcStridesTaskBackend = arcStridesTaskBackend;
         _arcStridesTaskTypeBackend = arcStridesTaskTypeBackend;
@@ -22,7 +22,7 @@ public class TaskRepository : ITaskRepository
         => await _arcStridesTaskBackend.FetchEntityAsync ($"arcstrides/boards/{boardID}/cards/{cardID}/tasks");
 
     public async Task<TaskResponse?> CreateTaskAsync (Guid boardID, Guid cardID, TaskCreateRequest taskCreateRequest)
-        => await _arcStridesTaskBackend.CreateEntityAsync (@$"arcstrides/boards/{boardID}/cards/{cardID}/tasks", JsonConvert.SerializeObject (taskCreateRequest));
+        => await _arcStridesTaskBackend.CreateEntityAsync ($"arcstrides/boards/{boardID}/cards/{cardID}/tasks", JsonConvert.SerializeObject (taskCreateRequest));
 
     public async Task<TaskResponse?> UpdateTaskAsync (Guid boardID, Guid cardID, Guid taskID, JsonPatchDocument taskPatchRequestDocument)
         => await _arcStridesTaskBackend.UpdateEntityAsync ($"arcstrides/boards/{boardID}/cards/{cardID}/tasks/{taskID}", JsonConvert.SerializeObject (taskPatchRequestDocument));
@@ -32,8 +32,14 @@ public class TaskRepository : ITaskRepository
 
     #region Task Type
 
-    public async Task<List<TaskTypeResponse>> FetchTaskTypeAsync (int taskTypeID)
-        => await _arcStridesTaskTypeBackend.FetchEntityAsync ("arcstrides/tasks/types");
+    public async Task<TaskTypeResponse?> FetchTaskTypeAsync (Guid tagGroupID, int taskTypeID)
+        => await _arcStridesTaskTypeBackend.FetchEntityAsync ($"arcstrides/taggroups/{tagGroupID}/tasks/types?TaskTypeIDs={taskTypeID}");
+
+    public async Task<List<TaskTypeResponse>> FetchTaskTypesAsync (IEnumerable<int> taskTypeIDs)
+        => await _arcStridesTaskTypeBackend.FetchEntitiesAsync ($"arcstrides/tasks/types?TaskTypeIDs={string.Join (',', taskTypeIDs)}");
+
+    public async Task<TaskTypeResponse?> CreateTaskTypeAsync (Guid tagGroupID, TaskTypeCreateRequest taskTypeCreateRequest)
+        => await _arcStridesTaskTypeBackend.CreateEntityAsync ($"arcstrides/taggroups/{tagGroupID}/tasks/types", JsonConvert.SerializeObject (taskTypeCreateRequest));
 
     #endregion Task Type
 }

@@ -155,10 +155,27 @@ public class TaskController : ArcController
             { return ArcErrorResponse (ex); }
     }
 
-    [HttpGet ("/arcstrides/tasks/types")]
-    public async Task<ActionResult> FetchTaskType ()
+    [HttpGet ("/arcstrides/taggroups/{tagGroupID:guid}/tasks/types/{taskTypeID:int}")]
+    public async Task<ActionResult> FetchTaskType ([FromRoute] Guid tagGroupID,
+                                                   [FromRoute] int taskTypeID)
     {
         try 
+        {
+            var taskType = await _taskRepository.GetTaskTypeAsync (tagGroupID, taskTypeID);
+
+            var taskTypeResponse = _taskMapper.MapTaskTypeToTaskTypeResponse (taskType);
+
+            return Ok (taskTypeResponse);
+        }
+        catch (Exception ex)
+            { return ArcErrorResponse (ex); }
+    }
+
+    [HttpGet ("/arcstrides/tasks/types")]
+    public async Task<ActionResult> FetchTaskTypes ([FromRoute] Guid tagGroupID,
+                                                    [AsParameters] TaskTypeQueryParameters? taskTypeQueryParameters)//todo: Implement these parameters at some point
+    {
+        try
         {
             var taskTypes = await _taskRepository.QueryTaskTypesAsync (taskType => true);
 
@@ -169,10 +186,10 @@ public class TaskController : ArcController
             return Ok (taskTypeReponseList);
         }
         catch (Exception ex)
-            { return ArcErrorResponse (ex); }
+        { return ArcErrorResponse (ex); }
     }
 
-    [HttpPost ("/arcstrides/tasks/types")]
+    [HttpPost ("/arcstrides/taggroups/{tagGroupID:guid}/tasks/types")]
     public async Task<ActionResult> CreateTaskTypes ([FromBody] TaskTypeCreateRequest taskTypeCreateRequest)
     {
         try 

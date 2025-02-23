@@ -17,16 +17,16 @@
 <!--This should ideally be a component one day..-->
 <MudPaper>
     <MudButton OnClick="@(() => tempOpen = true)">
-        @TaskTitle
+        @Task.Title
     </MudButton>
     <MudPopover Open="tempOpen" OverflowBehavior="OverflowBehavior.FlipAlways" AnchorOrigin="Origin.CenterRight" TransformOrigin="Origin.CenterLeft">
         <MudPaper Width="600px">
-            <MudTextField @bind-Value="TaskTitle" T="string" Label="Title" Variant="Variant.Filled" HelperText="Task Title" />
+            <MudTextField @bind-Value="Task.Title" T="string" Label="Title" Variant="Variant.Filled" HelperText="Task Title" />
 
             <MudGrid>
                 <MudItem>
                     <ArcExpandingSelector Options="new List<string> {bool.TrueString, bool.FalseString}"
-                                          OptionSelected="((string selection) => IsComplete = bool.Parse (selection))" />
+                                          OptionSelected="((string selection) => Task.IsCompleted = bool.Parse (selection))" />
                     <ArcExpandingSelector Options="_taskOrderRange"
                                           OptionSelected="SetTaskOrderOnTask" />
                     <ArcExpandingSelector Options="_taskTypes.Select (taskType => taskType!.Title!).ToList ()"
@@ -52,24 +52,14 @@
     private bool tempOpen = false;
 
     [Parameter]
-    public string TaskTitle { get; set; } = "New Task";
+    public Models.Board.Task Task { get; set; }
     [Parameter]
-    public EventCallback<string> TaskTitleChanged { get; set; }
+    public EventCallback<Models.Board.Task> TaskChanged { get; set; }
 
     [Parameter]
-    public int TaskOrder { get; set; } = -1;
+    public IEnumerable<Models.Board.Task> Tasks { get; set; }
     [Parameter]
-    public EventCallback<int> TaskOrderChanged { get; set; }
-
-    [Parameter]
-    public int TotalTasksForCard { get; set; }
-    [Parameter]
-    public EventCallback<int> TotalTasksForCardChanged { get; set; }
-
-    [Parameter]
-    public bool IsComplete { get; set; }
-    [Parameter]
-    public EventCallback<bool> IsCompleteChanged { get; set; }
+    public EventCallback<IEnumerable<Models.Board.Task>> TasksChanged { get; set; }
 
     /*[Parameter]
     public Date.Day Day { get; set; }
@@ -97,10 +87,10 @@
     //On page load. Not async to this layout class loading.
     protected async override Task OnInitializedAsync ()
     {
-        _taskTypes = await FetchTaskTypesAsync ();
+        _taskTypes = await FetchTaskTypesAsync ("0");
 
         _taskOrderRange = new List<string>();
-        for (int index = 1; index <= TotalTasksForCard; index++)
+        for (int index = 1; index <= Tasks.Count (); index ++)
             _taskOrderRange.Add(index.ToString());
     }
 }

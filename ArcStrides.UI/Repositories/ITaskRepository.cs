@@ -16,7 +16,11 @@ public interface ITaskRepository
 
     #region Task Type
 
-    Task<List<TaskTypeResponse?>> FetchTaskTypeAsync (int taskTypeID);
+    Task<TaskTypeResponse?> FetchTaskTypeAsync (Guid tagGroupID, int taskTypeID);
+
+    Task<List<TaskTypeResponse>> FetchTaskTypesAsync (IEnumerable<int> taskTypeIDs);
+
+    Task<TaskTypeResponse?> CreateTaskTypeAsync (Guid tagGroupID, TaskTypeCreateRequest taskTypeCreateRequest);
 
     #endregion Task Type
 }

@@ -6,10 +6,10 @@ using Riok.Mapperly.Abstractions;
 
 namespace ArcStrides.API.Mappers;
 
-[Mapper]
+[Mapper (AllowNullPropertyAssignment = false)]
 public partial class TaskMapper
 {
-    public partial void MapFieldsFromSourceToTarget (Models.Board.Task sourse, Models.Board.Task target);
+    public partial void MapFieldsFromSourceToTarget (Models.Board.Task source, Models.Board.Task target);
 
     /// <summary>
     /// <see cref="TaskCreateRequest"/> --> <see cref="Task"/>

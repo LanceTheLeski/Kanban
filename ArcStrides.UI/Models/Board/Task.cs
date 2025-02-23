@@ -2,11 +2,15 @@
 
 public class Task
 {
-    public Guid? ID { get; init; } = null;
+    public Guid? ID { get; set; } = null;
 
-    public string? Title { get; init; } = null;
+    public Guid? TagGroupID { get; set; } = null;
 
-    public TaskType TaskType { get; init; } = null;
+    public string? Title { get; set; } = null;
 
-    public bool? isCompleted { get; init; } = null;
+    public int? Order { get; set; } = null;
+
+    public TaskType TaskType { get; set; } = null;
+
+    public bool? IsCompleted { get; set; } = null;
 }

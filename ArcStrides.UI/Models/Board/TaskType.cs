@@ -2,9 +2,9 @@
 
 public class TaskType
 {
-    public int? ID { get; init; } = null;
+    public int? ID { get; set; } = null;
 
-    public Guid? GroupTagID { get; init; } = null;
+    public Guid? GroupTagID { get; set; } = null;
 
-    public string? Title { get; init; } = null;
+    public string? Title { get; set; } = null;
 }

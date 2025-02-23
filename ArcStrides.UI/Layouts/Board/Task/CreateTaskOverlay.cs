@@ -19,19 +19,19 @@ public partial class CreateTaskOverlay
     }
 
     private void SetTaskOrderOnTask (string taskOrder)
-        => TaskOrder = int.Parse (taskOrder);
+        => Task.Order = int.Parse (taskOrder);
 
-    private async Task<List<TaskTypeResponse?>> FetchTaskTypesAsync ()
-        => await _taskRepository.FetchTaskTypeAsync (0/*placeholder arg*/);
+    private async Task<List<TaskTypeResponse>> FetchTaskTypesAsync (string taskTypeIDs)
+        => await _taskRepository.FetchTaskTypesAsync (taskTypeIDs.Split (',').Select (int.Parse));
 
     private async System.Threading.Tasks.Task CreateTaskAsync ()
     {
         var createRequest = new TaskCreateRequest
         {
-            Title = TaskTitle,
+            Title = Task.Title,
             TaskTypeID = taskTypeToAssign?.ID ?? -1,
-            Order = TaskOrder,
-            IsComplete = IsComplete
+            Order = Task.Order,
+            IsComplete = Task.IsCompleted
             //Get timeline stuff here
         };
 

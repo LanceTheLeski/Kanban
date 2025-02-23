@@ -38,7 +38,7 @@ builder.Services.AddTransient<IArcStridesService<BoardResponse>, ArcStridesServi
 builder.Services.AddTransient<IArcStridesService<ColumnResponse>, ArcStridesService<ColumnResponse>> ();
 builder.Services.AddTransient<IArcStridesService<SwimlaneResponse>, ArcStridesService<SwimlaneResponse>> ();
 builder.Services.AddTransient<IArcStridesService<TaskResponse>, ArcStridesService<TaskResponse>> ();
-builder.Services.AddTransient<IArcStridesService<List<TaskTypeResponse>>, ArcStridesService<List<TaskTypeResponse>>> ();
+builder.Services.AddTransient<IArcStridesService<TaskTypeResponse>, ArcStridesService<TaskTypeResponse>> ();
 
 builder.Services.AddTransient<IBoardRepository, BoardRepository> ();
 builder.Services.AddTransient<IColumnRepository, ColumnRepository> ();
