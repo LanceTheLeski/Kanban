@@ -7,5 +7,5 @@
 /// </summary>
 public class DropCard : Card
 {
-    public string CardArea { get; set; }
+    public string? CardArea { get; set; }
 }

@@ -26,14 +26,12 @@
     background: linear-gradient(
             140deg,
             rgba(202, 217, 229, .40),
-            rgba(98, 147, 185, .40), 50%,
-            rgba(98, 147, 185, .50), 100%
-        ) padding-box,
+            rgba(98, 147, 185, .40) 50%,
+            rgba(98, 147, 185, .50) 100%) padding-box,
         linear-gradient(
             140deg,
             rgba(255, 255, 255, .20),
-            rgba(58, 76, 111, .20), 50%
-        ) border-box;
+            rgba(58, 76, 111, .20) 50%) border-box;
     /*rgba(58, 76, 111, .60);*/
     box-shadow: 
         inset .3px .3px .2px 0 rgba(255, 255, 255, .30),

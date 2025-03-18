@@ -26,7 +26,8 @@
                     <MudButton OnClick="@(() => createTaskTypeOverlay.OpenOverlay())">Create New Task Type</MudButton>
                 </MudItem>
                 <MudItem>
-                    <TimelineEditor />
+                    <UpdateTimelinePanel BoardID="BoardID" 
+                                         @bind-Timeline="Task.Timeline" />
                 </MudItem>
             </MudGrid>
 
@@ -48,14 +49,14 @@
     private bool tempOpen = false;
 
     [Parameter]
-    public Models.Board.Task Task { get; set; }
+    public Models.Board.Task? Task { get; set; }
     [Parameter]
-    public EventCallback<Models.Board.Task> TaskChanged { get; set; }
+    public EventCallback<Models.Board.Task?> TaskChanged { get; set; }
 
     [Parameter]
-    public IEnumerable<Models.Board.Task> Tasks { get; set; }
+    public IEnumerable<Models.Board.Task>? Tasks { get; set; }
     [Parameter]
-    public EventCallback<IEnumerable<Models.Board.Task>> TasksChanged { get; set; }
+    public EventCallback<IEnumerable<Models.Board.Task>?> TasksChanged { get; set; }
 
     [Parameter]
     public Guid? CardID { get; set; }
@@ -82,9 +83,10 @@
     //On page load. Not async to this layout class loading.
     protected async override Task OnInitializedAsync ()
     {
-        if (Tasks.Any ())
+        if (Tasks is not null &&
+            Tasks.Any())
         {
-            _taskTypes = await FetchTaskTypesAsync (Tasks.First ().TagGroupID!.Value);
+            _taskTypes = await FetchTaskTypesAsync (Tasks.First ().TaskType.ID!.Value);
 
             _initialTaskTitle = Task.Title!;
             _initialTaskOrder = Task.Order!.Value;

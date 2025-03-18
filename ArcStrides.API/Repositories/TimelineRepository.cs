@@ -9,36 +9,39 @@ using Task = System.Threading.Tasks.Task;
 
 namespace ArcStrides.API.Repositories;
 
-public class TimelineRepository : AzureTableService<Timeline>, ITimelineRepository
+public class TimelineRepository : ITimelineRepository
 {
     private const string timelines = "Timelines";
 
     private readonly ICardRepository _cardRepository;
     private readonly ITaskRepository _taskRepository;
 
-    public TimelineRepository (IOptions<AzureTableOptions> cosmosOptions,
+    private readonly IAzureTableService<Timeline> _timelineTable;
+
+    public TimelineRepository (IOptions<AzureTableOptions> azureTableOptions,
                                ICardRepository cardRepository,
                                ITaskRepository taskRepository)
-        : base (timelines, cosmosOptions)
     { 
         _cardRepository = cardRepository;
         _taskRepository = taskRepository;
+
+        _timelineTable = new AzureTableService<Timeline> (timelines, azureTableOptions);
     }
 
-    public async Task<Timeline?> GetTimelineAsync (Guid timelineID, Guid parentID)
-        => await GetEntityAsync (timelineID, parentID);
+    public async Task<Timeline?> GetTimelineAsync (Guid boardID, Guid timelineID)
+        => await _timelineTable.GetEntityAsync (boardID, timelineID);
 
     public async Task AddTimelineAsync (Timeline timelineToAdd)
-        => await AddEntityAsync (timelineToAdd);
+        => await _timelineTable.AddEntityAsync (timelineToAdd);
 
     public async Task UpdateTimelineAsync (Timeline timelineToUpdate)
-        => await UpdateEntityAsync (timelineToUpdate);
+        => await _timelineTable.UpdateEntityAsync (timelineToUpdate);
 
     public async Task DeleteTimelineAsync (Timeline timelineToDelete)
-        => await DeleteEntityAsync (timelineToDelete);
+        => await _timelineTable.DeleteEntityAsync (timelineToDelete);
 
     public async Task<Collection<Timeline>> QueryTimelinesAsync (Expression<Func<Timeline, bool>> timelineQueryExpression)
-        => await QueryEntitiesAsync (timelineQueryExpression);
+        => await _timelineTable.QueryEntitiesAsync (timelineQueryExpression);
 
     public async Task<bool> ParentExistsAsync (Guid parentID, int timelineTypeID)
     {

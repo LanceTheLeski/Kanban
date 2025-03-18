@@ -33,7 +33,8 @@
                                           OptionSelected="SetTaskTypeOnTask" />
                 </MudItem>
                 <MudItem>
-                    <TimelineEditor />
+                    <UpdateTimelinePanel BoardID="BoardID"
+                                         @bind-Timeline="Task.Timeline" />
                 </MudItem>
             </MudGrid>
 
@@ -52,14 +53,15 @@
     private bool tempOpen = false;
 
     [Parameter]
-    public Models.Board.Task Task { get; set; }
+    public Models.Board.Task?
+    Task { get; set; }
     [Parameter]
-    public EventCallback<Models.Board.Task> TaskChanged { get; set; }
+    public EventCallback<Models.Board.Task>? TaskChanged { get; set; }
 
     [Parameter]
-    public IEnumerable<Models.Board.Task> Tasks { get; set; }
+    public IEnumerable<Models.Board.Task>? Tasks { get; set; }
     [Parameter]
-    public EventCallback<IEnumerable<Models.Board.Task>> TasksChanged { get; set; }
+    public EventCallback<IEnumerable<Models.Board.Task>?> TasksChanged { get; set; }
 
     /*[Parameter]
     public Date.Day Day { get; set; }
@@ -90,7 +92,8 @@
         _taskTypes = await FetchTaskTypesAsync ("0");
 
         _taskOrderRange = new List<string>();
-        for (int index = 1; index <= Tasks.Count (); index ++)
-            _taskOrderRange.Add(index.ToString());
+        if (Tasks is not null)
+            for (int index = 1; index <= Tasks.Count (); index ++)
+                _taskOrderRange.Add(index.ToString());
     }
 }

@@ -1,6 +1,6 @@
-﻿@inherits LayoutComponentBase
+﻿@using ArcStrides.UI.Repositories
 
-<!-- The name for this will likely need to change and this might need to be edited to fit multiple scenarios. This might be more of a component in a way? -->
+@inherits LayoutComponentBase
 
 <MudButton OnClick="@(() => TimelineFragmentChanged (false))">
     Deadline
@@ -8,12 +8,20 @@
 <MudButton OnClick="@(() => TimelineFragmentChanged (true))">
     Timeline
 </MudButton>
-<MudPaper>
-    @_timelineFragment
-</MudPaper>
+@_timelineFragment
+
+@inject ITimelineRepository _timelineRepository;
 
 @code 
 {
+    [Parameter]
+    public Guid? BoardID { get; set; }
+
+    [Parameter]
+    public Models.Board.Timeline? Timeline { get; set; }
+    [Parameter]
+    public EventCallback<Models.Board.Timeline> TimelineChanged { get; set; }
+
     private DateRange _dateRangePreferred = new DateRange();
     private TimeSpan? _timePreferredStart = new TimeSpan();
     private TimeSpan? _timePreferredEnd = new TimeSpan();

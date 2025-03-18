@@ -24,7 +24,12 @@ OnSubmitAsync="UpdateCardAsync">
                             <MudItem>
                                 <MudGrid>
                                     <MudItem>
-                                        <MudTextField @bind-Value="ActiveCard.Title" T="string" Label="Title" Variant="Variant.Filled" HelperText="Card Title" Class="mud-theme-secondary" />
+                                        <MudTextField @bind-Value="ActiveCard.Title" 
+                                                      T="string" 
+                                                      Label="Title" 
+                                                      Variant="Variant.Filled" 
+                                                      HelperText="Card Title" 
+                                                      Class="mud-theme-secondary" />
                                     </MudItem>
                                     <MudItem>
                                         Tags...
@@ -38,7 +43,14 @@ OnSubmitAsync="UpdateCardAsync">
                         </MudStack>
                     </MudItem>
                     <MudItem>
-                        <MudTextField @bind-Value="ActiveCard.Description" T="string" Label="Description" Variant="Variant.Filled" AutoGrow Lines="7" HelperText="Description" Class="mud-theme-secondary"/>
+                        <MudTextField @bind-Value="ActiveCard.Description" 
+                                      T="string" 
+                                      Label="Description" 
+                                      Variant="Variant.Filled" 
+                                      AutoGrow 
+                                      Lines="7" 
+                                      HelperText="Description" 
+                                      Class="mud-theme-secondary"/>
                     </MudItem>
                 </MudGrid>
             </MudItem>
@@ -80,12 +92,16 @@ OnSubmitAsync="UpdateCardAsync">
 
     private bool editCardOverlayIsOpen = false;
 
+    private IEnumerable<Models.Board.Task>? _cardTasks = null;
+    private Models.Board.Task? taskToCreate = null;
+
     protected override void OnInitialized ()
     {
+        _cardTasks = ActiveCard?.Tasks;
         _taskList = _taskListRenderFragment ();
     }
 
-    private RenderFragment _taskList = __builder => 
+    private RenderFragment _taskList = __builder =>
     { 
         <MudPaper>Loading...</MudPaper>
     };
@@ -97,24 +113,19 @@ OnSubmitAsync="UpdateCardAsync">
             <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 350px; height: 200px;">
                 <MudStack Class="flex-grow-1" Width="100%" Height="100%">
                     <MudList T="string" ReadOnly="false">
-                        @foreach (var task in ActiveCard.Tasks)
+                        @foreach (var taskIndex in Enumerable.Range (0, ActiveCard.Tasks.Count()))
                         {
                             <MudListItem><!-- I switched from bind-TaskTitle to just assigning TaskTitle for now due to response object not being bindable. Fix later.. Also fix TaskOrder later.. -->
-                                <UpdateTaskOverlay TaskID="@task.ID!.Value"
-                                                   TaskTitle="@task.Title"
-                                                   TaskOrder="1"
-                                                   TotalTasksForCard="ActiveCard.Tasks.Count ()"
+                                <UpdateTaskOverlay @bind-Task="ActiveCard.Tasks [taskIndex]"
+                                                   @bind-Tasks="_cardTasks"
                                                    CardID="ActiveCard.Id"
                                                    BoardID="BoardID" />
-                                <MudButton OnClick="(() => DeleteTaskAsync (task.ID.Value))">Delete</MudButton>
+                                <MudButton OnClick="(() => DeleteTaskAsync (ActiveCard.Tasks [taskIndex].ID.Value))">Delete</MudButton>
                             </MudListItem>
                         }
                         <MudListItem>
-                            <CreateTaskOverlay TaskTitle="Add New Task"
-                                               TaskOrder="1"
+                            <CreateTaskOverlay @bind-Task="taskToCreate"
                                                CardID="ActiveCard.Id"
-                                               IsComplete="false"
-                                               TotalTasksForCard="ActiveCard.Tasks.Count ()"
                                                BoardID="BoardID" />
                         </MudListItem>
                     </MudList>

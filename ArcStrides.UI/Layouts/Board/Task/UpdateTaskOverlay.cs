@@ -22,7 +22,7 @@ public partial class UpdateTaskOverlay
     private void SetTaskOrderOnTask (string taskOrder)
         => Task.Order = int.Parse (taskOrder);
 
-    private async Task<List<TaskTypeResponse>> FetchTaskTypesAsync (Guid tagGroupID)
+    private async Task<List<TaskTypeResponse>> FetchTaskTypesAsync (int taskTypeID)
         => await _taskRepository.FetchTaskTypesAsync (new List<int> { 0 });
 
     private async System.Threading.Tasks.Task UpdateTaskAsync ()

@@ -5,6 +5,7 @@ using ArcStrides.UI.Layouts.Board.Card;
 using ArcStrides.UI.Layouts.Board.Column;
 using ArcStrides.UI.Layouts.Board.Swimlane;
 using ArcStrides.UI.Layouts.Board.Task;
+using ArcStrides.UI.Mappers;
 using ArcStrides.UI.Options;
 using ArcStrides.UI.Repositories;
 using ArcStrides.UI.Services;
@@ -39,12 +40,18 @@ builder.Services.AddTransient<IArcStridesService<ColumnResponse>, ArcStridesServ
 builder.Services.AddTransient<IArcStridesService<SwimlaneResponse>, ArcStridesService<SwimlaneResponse>> ();
 builder.Services.AddTransient<IArcStridesService<TaskResponse>, ArcStridesService<TaskResponse>> ();
 builder.Services.AddTransient<IArcStridesService<TaskTypeResponse>, ArcStridesService<TaskTypeResponse>> ();
+builder.Services.AddTransient<IArcStridesService<TimelineResponse>, ArcStridesService<TimelineResponse>> ();
 
 builder.Services.AddTransient<IBoardRepository, BoardRepository> ();
 builder.Services.AddTransient<IColumnRepository, ColumnRepository> ();
 builder.Services.AddTransient<ISwimlaneRepository, SwimlaneRepository> ();
 builder.Services.AddTransient<ICardRepository, CardRepository> ();
 builder.Services.AddTransient<ITaskRepository, TaskRepository> ();
+builder.Services.AddTransient<ITimelineRepository, TimelineRepository> ();
+
+builder.Services.AddScoped<DateMapper> ();
+builder.Services.AddScoped<CardMapper> ();
+builder.Services.AddScoped<TaskMapper> ();
 
 var app = builder.Build ();
 

@@ -1,6 +1,4 @@
-﻿using ArcStrides.Contracts.Response;
-
-namespace ArcStrides.UI.Models.Board;
+﻿namespace ArcStrides.UI.Models.Board;
 
 /// <summary>
 /// On principle I suppose these models should correspond to pages and ideally would be 
@@ -15,8 +13,6 @@ public class Card
 
     public string Description { get; set; }
 
-    public Guid BoardID { get; set; }
-
     public int ColumnNumber { get; set; }
 
     public Guid ColumnID { get; set; }
@@ -29,7 +25,7 @@ public class Card
 
     public string SwimlaneName { get; set; }
 
-    public List<TaskResponse> Tasks { get; set; }
+    public List<Task> Tasks { get; set; }
 
     //Add tags and metadata-related stuff later
 }

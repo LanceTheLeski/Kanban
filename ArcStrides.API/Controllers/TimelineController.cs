@@ -12,7 +12,7 @@ using ArcStrides.API.Models.Board;
 namespace ArcStrides.API.Controllers;
 
 [ApiController]
-[Route ("ArcStrides/timelines")]
+[Route ("ArcStrides/boards/{boardID:guid}/timelines")]
 public class TimelineController : Controller
 {
     private readonly IValidator<TimelineCreateRequest> _timelineCreateRequestValidator;
@@ -38,22 +38,21 @@ public class TimelineController : Controller
         _timelineMapper = timelineMapper;
     }
 
-    [HttpGet ("{ID:Guid}")]
-    public async Task<ActionResult> FetchTimeline ([FromRoute] Guid ID)
+    [HttpGet ("{timelineID:Guid}")]
+    public async Task<ActionResult> FetchTimeline ([FromRoute] Guid boardID,
+                                                   [FromRoute] Guid timelineID)
     {
-        var timelineCollection = await _timelineRepository.QueryTimelinesAsync (timeline => timeline.PartitionKey == ID.ToString ());
-        if (timelineCollection.Count () is 0)
-            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Timeline)));
-        if (timelineCollection.Count () is not 1)
-            return Problem (ErrorResponseMessages.TooManyEntitiesErrorResponse (nameof (Timeline)));
+        var timeline = await _timelineRepository.GetTimelineAsync (boardID, timelineID);
+        if (timeline is null)
+            return BadRequest (ErrorResponseMessages.NotFoundErrorResponse (nameof (Timeline)));
 
-        var timelineToReturn = timelineCollection.Single ();
-        var timelineResponse = _timelineMapper.MapTimelineToTimelineResponse (timelineToReturn);
+        var timelineResponse = _timelineMapper.MapTimelineToTimelineResponse (timeline);
         return Ok (timelineResponse);
     }
 
     [HttpPost]
-    public async Task<ActionResult> CreateTimeline ([FromBody] TimelineCreateRequest timelineCreateRequest)
+    public async Task<ActionResult> CreateTimeline ([FromRoute] Guid boardID,
+                                                    [FromBody] TimelineCreateRequest timelineCreateRequest)
     {
         var validationResult = _timelineCreateRequestValidator.Validate (timelineCreateRequest);
         if (validationResult.IsValid is false)
@@ -75,15 +74,17 @@ public class TimelineController : Controller
         return Created (default (Uri), timelineResponse);
     }
 
-    [HttpPatch ("{ID:Guid}")]
-    public async Task<ActionResult> UpdateTimeline ([FromRoute] Guid ID, [FromBody] JsonPatchDocument<TimelinePatchRequest> timelinePatchRequest)
+    [HttpPatch ("{timelineID:Guid}")]
+    public async Task<ActionResult> UpdateTimeline ([FromRoute] Guid boardID, 
+                                                    [FromRoute] Guid timelineID,
+                                                    [FromBody] JsonPatchDocument<TimelinePatchRequest> timelinePatchRequest)
     {
         var validationResult = _timelinePatchRequestDocumentValidator.Validate (timelinePatchRequest);
         if (validationResult.IsValid is false)
             return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TagPatchRequest), validationResult.ToString ()));
 
-        var timelineToUpdateCollection = await _timelineRepository.QueryTimelinesAsync (timeline => timeline.PartitionKey == ID.ToString ());
-        if (timelineToUpdateCollection is null || timelineToUpdateCollection.Count is 0)
+        var timelineToUpdateCollection = await _timelineRepository.QueryTimelinesAsync (timeline => timeline.PartitionKey == timelineID.ToString ());
+        if (timelineToUpdateCollection is null || timelineToUpdateCollection.Count () is 0)
             return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Timeline)));
         if (timelineToUpdateCollection.Count is not 1)
             return Problem (ErrorResponseMessages.TooManyEntitiesErrorResponse (nameof (Timeline)));
@@ -107,19 +108,13 @@ public class TimelineController : Controller
         return Ok (timelineResponse);
     }
 
-    [HttpDelete ("{ID:guid}")]
-    public async Task<ActionResult> DeleteTimwlinw (Guid ID)
+    [HttpDelete ("{timelineID:guid}")]
+    public async Task<ActionResult> DeleteTimwlinw ([FromRoute] Guid boardID, 
+                                                    [FromRoute] Guid timelineID)
     {
-        var timelineCollection = await _timelineRepository.QueryTimelinesAsync (timeline => timeline.PartitionKey == ID.ToString ());
-        if (timelineCollection.Count is 0)
-            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Timeline)));
-        if (timelineCollection.Count is not 1)
-            return Problem (ErrorResponseMessages.TooManyEntitiesErrorResponse (nameof (Timeline)));
+        var timelineFromDatabase = await _timelineRepository.GetTimelineAsync (boardID, timelineID);
 
-        var timelineFromDatabase = timelineCollection.Single ();
         await _timelineRepository.DeleteTimelineAsync (timelineFromDatabase);
-        /*if (databaseResponse.IsError)
-            return Problem (ErrorResponseMessages.RemoveFromDatabaseErrorResponse (nameof (Timeline)));*/
 
         return Ok ();
     }

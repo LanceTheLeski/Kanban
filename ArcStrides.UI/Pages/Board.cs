@@ -85,25 +85,15 @@ public partial class Board
         {
             for (int swimlaneIndex = 0; swimlaneIndex < swimlaneList.Count (); swimlaneIndex ++)
             {
-                var cardList = boardResponse.Cards.Where (card => card.Position.ColumnOrder == columnIndex && card.Position.SwimlaneOrder == swimlaneIndex);
+                var cardResponseList = boardResponse.Cards.Where (card => card.Position.ColumnOrder == columnIndex && card.Position.SwimlaneOrder == swimlaneIndex);
 
                 var cardArea = ConvertColumnAndSwimlaneToCardArea (swimlaneList [swimlaneIndex].Order.Value, columnList [columnIndex].Order.Value);
-                foreach (var card in cardList)
+                foreach (var cardResponse in cardResponseList)
                 {
-                    dropCardList.Add (new DropCard
-                    {
-                        Id = card.ID.Value,
-                        Title = card.Title,
-                        Description = card.Description,
-                        ColumnNumber = columnIndex,
-                        ColumnID = columnList [columnIndex].ID.Value,
-                        ColumnName = columnList [columnIndex].Title,
-                        SwimlaneNumber = swimlaneIndex,
-                        SwimlaneID = swimlaneList [swimlaneIndex].ID.Value,
-                        SwimlaneName = swimlaneList [swimlaneIndex].Title,
-                        Tasks = card.Tasks?.ToList(),
-                        CardArea = cardArea
-                    });
+                    var card = _cardMapper.MapCardResponseToCard (cardResponse);
+                    var dropCard = _cardMapper.MapCardToDropCard(card);
+                    dropCard.CardArea = cardArea;
+                    dropCardList.Add (dropCard);
                 }
             }
 

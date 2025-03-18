@@ -1,4 +1,5 @@
 ﻿using ArcStrides.API.Calendars.Mappers;
+using ArcStrides.API.Mappers;
 using ArcStrides.API.Models.Board;
 using ArcStrides.API.Models.Calendar;
 using ArcStrides.API.Models.Tag;
@@ -22,12 +23,14 @@ public class CalendarController : Controller
     private readonly ITaskRepository _taskRepository;
 
     private readonly DateMapper _dateMapper;
+    private readonly TaskMapper _taskMapper;
 
     public CalendarController (IDateRepository dateRepository,
                                ITagRepository tagRepository,
                                ICardRepository cardRepository,
                                ITaskRepository taskRepository,
-                               DateMapper dateMapper)
+                               DateMapper dateMapper,
+                               TaskMapper taskMapper)
     {
         _dateRepository = dateRepository;
         _tagRepository = tagRepository;
@@ -35,6 +38,7 @@ public class CalendarController : Controller
         _taskRepository = taskRepository;
 
         _dateMapper = dateMapper;
+        _taskMapper = taskMapper;
     }
 
     [HttpGet ("months/{ID:guid}")]
@@ -70,14 +74,15 @@ public class CalendarController : Controller
             var cards = new List<CardResponse> ();
             foreach (var card in cardsForDay) 
             {
-                var tasks = await _taskRepository.QueryTasksAsync (task => task.RowKey == card.PartitionKey);
+                var tasks = await _taskRepository.QueryTasksAsync (task => task.CardID.ToString () == card.RowKey);
+                var taskTypes = await _taskRepository.QueryTaskTypesAsync (taskType => taskType.PartitionKey == card.PartitionKey);
 
                 var taskResponseList = new List<TaskResponse> ();
                 foreach (var task in tasks.ToList ())
                     taskResponseList.Add (new TaskResponse 
                     {
                         Title = task.Title,
-                        TaskTypeID = task.TaskTypeID,
+                        TaskType = _taskMapper.MapTaskTypeToTaskTypeResponse(taskTypes.FirstOrDefault (taskType => taskType.RowKey == task.TaskTypeID.Value.ToString ())),
                         //TaskTypeTitle = "Placeholder!",
                         IsComplete = task.IsComplete
                     });

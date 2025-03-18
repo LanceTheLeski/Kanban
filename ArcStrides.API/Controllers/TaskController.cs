@@ -15,7 +15,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Win32;
+
 using static ArcStrides.API.Validators.TaskValidators;
 
 namespace ArcStrides.API.Controllers;
@@ -71,6 +71,8 @@ public class TaskController : ArcController
             var taskListReponse = new List<TaskResponse> ();
             foreach (var task in taskCollection)
                 taskListReponse.Add (_taskMapper.MapTaskToTaskResponse (task));
+
+            //var t = await _taskRepository.QueryTaskTypesAsync (taskType => taskType.RowKey == );
 
             return Ok (taskListReponse);
         }

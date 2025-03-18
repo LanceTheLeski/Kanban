@@ -4,6 +4,7 @@
 @using ArcStrides.UI.Layouts.Board.Card
 @using ArcStrides.UI.Layouts.Board.Column
 @using ArcStrides.UI.Layouts.Board.Swimlane
+@using ArcStrides.UI.Mappers
 @using ArcStrides.UI.Models.Board
 @using ArcStrides.UI.Options
 @using ArcStrides.UI.Repositories
@@ -127,6 +128,8 @@
 
 @inject IBoardRepository _boardRepository
 @inject ICardRepository _cardRepository
+
+@inject CardMapper _cardMapper;
 
 @code 
 {

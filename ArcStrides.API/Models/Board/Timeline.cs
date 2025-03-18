@@ -5,6 +5,9 @@ namespace ArcStrides.API.Models.Board;
 [ArcTableName ("Timelines")]
 public class Timeline : ArcBoardsEntity
 {
+    /// <summary>
+    /// Timeline ID as Guid.
+    /// </summary>
     public override string RowKey { get; set; }
 
     public Guid ParentObjectID { get; set; } //Parent Object ID (Card/Task)

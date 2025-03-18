@@ -46,10 +46,20 @@ public partial class TaskMapper
     [MapProperty (nameof (Models.Board.Task.PartitionKey), nameof (TaskResponse.BoardID))]
     [MapProperty (nameof (Models.Board.Task.RowKey), nameof (TaskResponse.ID))]
     [MapProperty (nameof (Models.Board.Task.Title), nameof (TaskResponse.Title))]
-    [MapProperty (nameof (Models.Board.Task.TaskTypeID), nameof (TaskResponse.TaskTypeID))]
     [MapProperty (nameof (Models.Board.Task.TaskOrder), nameof (TaskResponse.Order))]
     [MapProperty (nameof (Models.Board.Task.IsComplete), nameof (TaskResponse.IsComplete))]
     public partial TaskResponse MapTaskToTaskResponse (Models.Board.Task task);
+
+    /// <summary>
+    /// <see cref="Task"/> + <see cref="TaskType"/> --> <see cref="TaskResponse"/>
+    /// </summary>
+    [MapProperty (nameof (Models.Board.Task.PartitionKey), nameof (TaskResponse.BoardID))]
+    [MapProperty (nameof (Models.Board.Task.RowKey), nameof (TaskResponse.ID))]
+    [MapProperty (nameof (TaskType), nameof (TaskResponse.TaskType))]
+    [MapProperty (nameof (Models.Board.Task.Title), nameof (TaskResponse.Title))]
+    [MapProperty (nameof (Models.Board.Task.TaskOrder), nameof (TaskResponse.Order))]
+    [MapProperty (nameof (Models.Board.Task.IsComplete), nameof (TaskResponse.IsComplete))]
+    public partial TaskResponse MapTaskToTaskResponse (Models.Board.Task task, TaskType taskType);
 
     #region Task Type
 
