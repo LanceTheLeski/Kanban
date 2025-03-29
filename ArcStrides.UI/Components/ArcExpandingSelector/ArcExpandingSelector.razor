@@ -15,7 +15,7 @@
     public Action<string> OptionSelected { get; set; }//This might be wrong??
     // As an alternative, we could make this a string and whenever it's set, update the calling component. Then that component will clear it when the action processes there.
 
-    private RenderFragment? selectionListRenderFragment = null;
+    private RenderFragment? selectionListRenderFragment = null;//Should this be null or loading??
     private void ListExpandedChanged (bool showSelectionList)
     {
         if (showSelectionList)

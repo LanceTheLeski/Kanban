@@ -14,7 +14,7 @@
 @inherits LayoutComponentBase
 
 <ArcOverlay @bind-Open="Open"
-OnSubmitAsync="UpdateCardAsync">
+            OnSubmitAsync="UpdateCardAsync">
     <MudPaper Width="900px" Height="500px" Class="mud-background">
         <MudStack>
             <MudItem>
@@ -113,19 +113,20 @@ OnSubmitAsync="UpdateCardAsync">
             <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 350px; height: 200px;">
                 <MudStack Class="flex-grow-1" Width="100%" Height="100%">
                     <MudList T="string" ReadOnly="false">
-                        @foreach (var taskIndex in Enumerable.Range (0, ActiveCard.Tasks.Count()))
-                        {
-                            <MudListItem><!-- I switched from bind-TaskTitle to just assigning TaskTitle for now due to response object not being bindable. Fix later.. Also fix TaskOrder later.. -->
-                                <UpdateTaskOverlay @bind-Task="ActiveCard.Tasks [taskIndex]"
-                                                   @bind-Tasks="_cardTasks"
-                                                   CardID="ActiveCard.Id"
-                                                   BoardID="BoardID" />
-                                <MudButton OnClick="(() => DeleteTaskAsync (ActiveCard.Tasks [taskIndex].ID.Value))">Delete</MudButton>
-                            </MudListItem>
-                        }
+                        @if (ActiveCard is not null)
+                            @foreach (var taskIndex in Enumerable.Range (0, ActiveCard?.Tasks.Count() ?? 0))
+                            {
+                                <MudListItem><!-- I switched from bind-TaskTitle to just assigning TaskTitle for now due to response object not being bindable. Fix later.. Also fix TaskOrder later.. -->
+                                    <UpdateTaskOverlay @bind-Task="ActiveCard!.Tasks [taskIndex]"
+                                                       @bind-Tasks="_cardTasks"
+                                                       CardID="ActiveCard!.Id"
+                                                       BoardID="BoardID" />
+                                    <!--<MudButton OnClick="(() => DeleteTaskAsync (ActiveCard!.Tasks [taskIndex].ID.Value))">Delete</MudButton>-->
+                                </MudListItem>
+                            }
                         <MudListItem>
                             <CreateTaskOverlay @bind-Task="taskToCreate"
-                                               CardID="ActiveCard.Id"
+                                               CardID="ActiveCard?.Id"
                                                BoardID="BoardID" />
                         </MudListItem>
                     </MudList>

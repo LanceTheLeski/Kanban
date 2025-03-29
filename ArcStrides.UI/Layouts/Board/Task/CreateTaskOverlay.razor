@@ -17,7 +17,7 @@
 <!--This should ideally be a component one day..-->
 <MudPaper>
     <MudButton OnClick="@(() => tempOpen = true)">
-        @Task.Title
+        @(Task?.Title)
     </MudButton>
     <MudPopover Open="tempOpen" OverflowBehavior="OverflowBehavior.FlipAlways" AnchorOrigin="Origin.CenterRight" TransformOrigin="Origin.CenterLeft">
         <MudPaper Width="600px">
@@ -53,8 +53,7 @@
     private bool tempOpen = false;
 
     [Parameter]
-    public Models.Board.Task?
-    Task { get; set; }
+    public Models.Board.Task? Task { get; set; }
     [Parameter]
     public EventCallback<Models.Board.Task>? TaskChanged { get; set; }
 
@@ -95,5 +94,15 @@
         if (Tasks is not null)
             for (int index = 1; index <= Tasks.Count (); index ++)
                 _taskOrderRange.Add(index.ToString());
+
+        Task = new Models.Board.Task
+        {
+            ID = null,
+            Title = "Create New Task",
+            Order = 0,
+            TaskType = null,
+            IsCompleted = false,
+            Timeline = null
+        };
     }
 }
