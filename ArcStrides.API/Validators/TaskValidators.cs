@@ -12,11 +12,11 @@ public class TaskValidators
         public TaskQueryParametersValidator ()
         {
             RuleFor (taskQueryParameters => taskQueryParameters.CardIDs)
-                .Must (HaveValidCommaSeparatedGuidList)
+                .Must (ValidateCommaSeparatedGuidList)
                 .WithMessage (ValidatorMessages.InvalidFieldValueFormatValidatorMessage (nameof (TaskQueryParameters.CardIDs)));
         }
 
-        private bool HaveValidCommaSeparatedGuidList (string cardIDs)
+        private bool ValidateCommaSeparatedGuidList (string cardIDs)
         {
             if (string.IsNullOrWhiteSpace (cardIDs))
                 return true;

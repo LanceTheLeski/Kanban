@@ -4,5 +4,5 @@ namespace ArcStrides.UI.Repositories;
 
 public interface IBoardRepository
 {
-    Task<BoardResponse> FetchBoard (Guid boardID);
+    Task<BoardResponse?> FetchBoardAsync (Guid boardID);
 }

@@ -13,7 +13,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.ObjectModel;
+
 using static ArcStrides.API.Validators.SwimlaneValidators;
 
 using Task = System.Threading.Tasks.Task;
@@ -45,7 +45,8 @@ public class SwimlaneController : ArcController
     }
 
     [HttpGet ("/arcstrides/boards/{boardID:guid}/swimlanes/{swimlaneID:guid}")]
-    public async Task<ActionResult> FetchSwimlane (Guid boardID, Guid swimlaneID)
+    public async Task<ActionResult> FetchSwimlane ([FromRoute] Guid boardID, 
+                                                   [FromRoute] Guid swimlaneID)
     {
         try
         {

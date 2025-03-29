@@ -153,7 +153,7 @@
 
     protected override async System.Threading.Tasks.Task OnInitializedAsync()
     {
-        _board = await _boardRepository.FetchBoard(Guid.Parse("1cb0ce6e-6145-4fe7-833a-0b7c0545c449"));//Change later to be dynamic..
+        _board = await _boardRepository.FetchBoardAsync(Guid.Parse("1cb0ce6e-6145-4fe7-833a-0b7c0545c449"));//Change later to be dynamic..
         // todo: Validate Board Response here and throw an error if it is not what we want it to be...
 
         _boardID = _board.ID!.Value;

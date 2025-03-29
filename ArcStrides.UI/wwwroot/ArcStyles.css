@@ -18,7 +18,7 @@
 
 .glass
 {
-    /*display: inline-block;*/
+    display: inline-block;
     border-radius: 2px;
 
     padding: 10px;

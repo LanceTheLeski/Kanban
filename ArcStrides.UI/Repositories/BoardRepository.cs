@@ -1,39 +1,17 @@
 ﻿using ArcStrides.Contracts.Response;
-using ArcStrides.UI.Components.ArcErrorHandler;
-using ArcStrides.UI.Options;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+using ArcStrides.UI.Services;
 
 namespace ArcStrides.UI.Repositories;
 
 public class BoardRepository : IBoardRepository
 {
-    private readonly HttpClient _httpClient;
-    private readonly ArcStridesServiceOptions _backendOptions;
-    private readonly IArcErrorHandler _arcErrorHandler;
+    private readonly IArcStridesService<BoardResponse> _arcStridesBackend;
 
-    public BoardRepository (IHttpClientFactory httpClientFactory,
-                            IOptions<ArcStridesServiceOptions> backendOptions,
-                            IArcErrorHandler arcErrorHandler)
+    public BoardRepository (IArcStridesService<BoardResponse> arcStridesBacken)
     {
-        _httpClient = httpClientFactory.CreateClient ();
-        _backendOptions = backendOptions.Value;
-        _arcErrorHandler = arcErrorHandler;
+        _arcStridesBackend = arcStridesBacken;
     }
 
-    public async Task<BoardResponse> FetchBoard (Guid boardID)
-    {
-        var httpRequestMessage = new HttpRequestMessage (HttpMethod.Get, @$"{_backendOptions.URL}arcstrides/boards/{boardID}");
-
-        var response = await _httpClient.SendAsync (httpRequestMessage);
-        if (response.IsSuccessStatusCode is false)
-        {
-            _arcErrorHandler.AddError (response.ReasonPhrase, response.StatusCode);
-            return null;
-        }
-
-        var responseBody = await response.Content.ReadAsStringAsync ();
-        var boardResponse = JsonConvert.DeserializeObject<BoardResponse> (responseBody);
-        return boardResponse!;
-    }
+    public async Task<BoardResponse?> FetchBoardAsync (Guid boardID)
+        => await _arcStridesBackend.FetchEntityAsync ($"arcstrides/boards/{boardID}");
 }

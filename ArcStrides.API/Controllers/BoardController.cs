@@ -4,9 +4,13 @@ using ArcStrides.API.Models.Board;
 using ArcStrides.API.Repositories;
 using ArcStrides.Contracts.Request.Patch;
 using ArcStrides.Contracts.Response;
+using FluentValidation;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.ObjectModel;
+
+using static ArcStrides.API.Validators.ColumnValidators;
+using static ArcStrides.API.Validators.SwimlaneValidators;
 
 namespace ArcStrides.API.Controllers;
 
@@ -14,6 +18,9 @@ namespace ArcStrides.API.Controllers;
 [Route ("arcstrides/boards")]
 public class BoardController : Controller
 {
+    private readonly IValidator<IEnumerable<Swimlane>> _boardSwimlaneEnumerableValidator;
+    private readonly IValidator<IEnumerable<Column>> _boardColumnEnumerableValidator;
+
     private readonly IColumnRepository _columnRepository;
     private readonly ISwimlaneRepository _swimlaneRepository;
     private readonly ICardRepository _cardRepository;
@@ -42,19 +49,24 @@ public class BoardController : Controller
         _columnMapper = columnMapper;
         _cardMapper = new CardMapper ();
         _taskMapper = taskMapper;
+
+        _boardColumnEnumerableValidator = new BoardColumnEnumerableValidator (); 
+        _boardSwimlaneEnumerableValidator = new BoardSwimlaneEnumerableValidator ();
     }
 
     [HttpGet ("{ID:guid}")]
-    public async Task<ActionResult> FetchBoard (Guid ID)
+    public async Task<ActionResult> FetchBoard ([FromRoute] Guid ID)
     {
-        //var cardPositionCollection = await _cardRepository.GetCardPositionsAsync (ID);
-
         var columnCollection = await _columnRepository.GetAllBoardColumns (ID);
-        // Validate that the colums have a distinct order and likely some unique names as well? Maybe also the same board name?
+        var columnValidationResult = _boardColumnEnumerableValidator.Validate (columnCollection);
+        if (columnValidationResult.IsValid is false)
+            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (Column), columnValidationResult.ToString ()));
         var columnCollectionOrdered = columnCollection.OrderBy (column => column.ColumnOrder);
 
         var swimlaneCollection = await _swimlaneRepository.GetAllBoardSwimlanes (ID);
-        // Validate that the swimlanes have a distinct order and likely some unique names as well? Maybe also the same board name?
+        var swimlaneValidationResult = _boardSwimlaneEnumerableValidator.Validate (swimlaneCollection);
+        if (swimlaneValidationResult.IsValid is false)
+            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (Swimlane), columnValidationResult.ToString ()));
         var swimlaneCollectionOrdered = swimlaneCollection.OrderBy (swimlane => swimlane.SwimlaneOrder);
 
         var cardCollection = await _cardRepository.GetCardsAsync (ID);

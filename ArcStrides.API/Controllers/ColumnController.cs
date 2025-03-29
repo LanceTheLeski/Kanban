@@ -46,7 +46,8 @@ public class ColumnController : ArcController
     }
 
     [HttpGet ("/arcstrides/boards/{boardID:guid}/columns/{columnID:guid}")]
-    public async Task<ActionResult> FetchColumn (Guid boardID, Guid columnID)
+    public async Task<ActionResult> FetchColumn ([FromRoute] Guid boardID, 
+                                                 [FromRoute] Guid columnID)
     {
         try
         {
