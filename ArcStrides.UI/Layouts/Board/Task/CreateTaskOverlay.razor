@@ -58,9 +58,9 @@
     public EventCallback<Models.Board.Task>? TaskChanged { get; set; }
 
     [Parameter]
-    public IEnumerable<Models.Board.Task>? Tasks { get; set; }
+    public int TasksCount { get; set; }
     [Parameter]
-    public EventCallback<IEnumerable<Models.Board.Task>?> TasksChanged { get; set; }
+    public EventCallback<int> TasksCountChanged { get; set; }
 
     /*[Parameter]
     public Date.Day Day { get; set; }
@@ -86,14 +86,11 @@
     private TaskTypeResponse taskTypeToAssign = default;
 
     //On page load. Not async to this layout class loading.
-    protected async override Task OnInitializedAsync ()
+    protected override void OnInitialized ()
     {
-        _taskTypes = await FetchTaskTypesAsync ("0");
-
         _taskOrderRange = new List<string>();
-        if (Tasks is not null)
-            for (int index = 1; index <= Tasks.Count (); index ++)
-                _taskOrderRange.Add(index.ToString());
+        for (int index = 1; index <= TasksCount; index ++)
+            _taskOrderRange.Add(index.ToString());
 
         Task = new Models.Board.Task
         {
@@ -104,5 +101,13 @@
             IsCompleted = false,
             Timeline = null
         };
+    }
+
+    protected async override Task OnAfterRenderAsync (bool firstRender)
+    {
+        if (firstRender)
+        {
+            _taskTypes = await FetchTaskTypesAsync ();
+        }
     }
 }

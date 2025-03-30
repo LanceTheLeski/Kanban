@@ -125,6 +125,7 @@
                         }
                         <MudListItem>
                             <CreateTaskOverlay @bind-Task="taskToCreate"
+                                               TasksCount="ActiveCard.Tasks.Count"
                                                CardID="ActiveCard?.Id"
                                                BoardID="BoardID" />
                         </MudListItem>
