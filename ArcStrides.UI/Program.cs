@@ -41,6 +41,8 @@ builder.Services.AddTransient<IArcStridesService<SwimlaneResponse>, ArcStridesSe
 builder.Services.AddTransient<IArcStridesService<TaskResponse>, ArcStridesService<TaskResponse>> ();
 builder.Services.AddTransient<IArcStridesService<TaskTypeResponse>, ArcStridesService<TaskTypeResponse>> ();
 builder.Services.AddTransient<IArcStridesService<TimelineResponse>, ArcStridesService<TimelineResponse>> ();
+builder.Services.AddTransient<IArcStridesService<TagResponse>, ArcStridesService<TagResponse>> ();
+builder.Services.AddTransient<IArcStridesService<TagGroupResponse>, ArcStridesService<TagGroupResponse>> ();
 
 builder.Services.AddTransient<IBoardRepository, BoardRepository> ();
 builder.Services.AddTransient<IColumnRepository, ColumnRepository> ();
@@ -48,6 +50,7 @@ builder.Services.AddTransient<ISwimlaneRepository, SwimlaneRepository> ();
 builder.Services.AddTransient<ICardRepository, CardRepository> ();
 builder.Services.AddTransient<ITaskRepository, TaskRepository> ();
 builder.Services.AddTransient<ITimelineRepository, TimelineRepository> ();
+builder.Services.AddTransient<ITagRepository, TagRepository> ();
 
 builder.Services.AddScoped<DateMapper> ();
 builder.Services.AddScoped<CardMapper> ();

@@ -23,7 +23,7 @@
                                           OptionSelected="SetTaskOrderOnTask" />
                     <ArcExpandingSelector Options="_taskTypes.Select (taskType => taskType!.Title!).ToList ()"
                                           OptionSelected="SetTaskTypeOnTask" />
-                    <MudButton OnClick="@(() => createTaskTypeOverlay.OpenOverlay())">Create New Task Type</MudButton>
+                    <MudButton OnClick="@(createTaskTypeOverlay.OpenOverlay)">Create New Task Type</MudButton>
                 </MudItem>
                 <MudItem>
                     <UpdateTimelinePanel BoardID="BoardID" 
@@ -39,8 +39,8 @@
     </MudPopover>
 </MudPaper>
 
-<CreateTaskTypeOverlay @ref="createTaskTypeOverlay" 
-                       Refresh="Refresh"/>
+<CreateTaskTypeOverlay @ref="createTaskTypeOverlay"
+                       Refresh="Refresh" /><!---This works now!!!! But I suspect it might be best to make it an edit screen where we can delete, update, and add TaskTypes--->
 
 @inject ITaskRepository _taskRepository;
 

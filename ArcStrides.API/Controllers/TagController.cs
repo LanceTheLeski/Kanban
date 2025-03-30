@@ -6,6 +6,7 @@ using ArcStrides.API.Repositories;
 using ArcStrides.API.Validators;
 using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Request.Patch;
+using ArcStrides.Contracts.Response;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Exceptions;
 using Microsoft.AspNetCore.Mvc;
@@ -124,7 +125,7 @@ public class TagController : Controller
     }
 
     [HttpGet ("groups/{ID:guid}")]
-    public async Task<ActionResult> FetchTagGroupAsync (Guid ID)
+    public async Task<ActionResult> FetchTagGroupAsync ([FromRoute] Guid ID)
     {
         var tagGroupCollection = await _tagRepository.QueryTagGroupsAsync (tagGroup => tagGroup.PartitionKey == ID.ToString ());
         if (tagGroupCollection.Count is 0)
@@ -135,6 +136,17 @@ public class TagController : Controller
         var tagGroupToReturn = tagGroupCollection.Single ();
         var tagGroupResponse = _tagMapper.MapTagGroupToTagGroupResponse (tagGroupToReturn);
         return Ok (tagGroupResponse);
+    }
+
+    [HttpGet ("groups")]
+    public async Task<ActionResult> FetchTagGroupAsync ()//Todo: make this better at some point. I.e. make it follow a pattern where we query for multiple or all TagGroups
+    {
+        var tagGroupCollection = await _tagRepository.QueryTagGroupsAsync (tagGroup => true);
+
+        var tagGroupCollectionResponse = new List<TagGroupResponse> ();
+        foreach (var tagGroup in tagGroupCollection)
+            tagGroupCollectionResponse.Add(_tagMapper.MapTagGroupToTagGroupResponse (tagGroup));
+        return Ok (tagGroupCollectionResponse);
     }
 
     [HttpGet ("groups/types/{ID:guid}")]

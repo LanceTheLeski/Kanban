@@ -1,6 +1,8 @@
-﻿namespace ArcStrides.UI.Repositories;
+﻿using ArcStrides.Contracts.Response;
 
-public class ITagRepository
+namespace ArcStrides.UI.Repositories;
+
+public interface ITagRepository
 {
-
+    Task<List<TagGroupResponse>?> FetchTagGroupsAsync ();
 }

@@ -1,22 +1,29 @@
-﻿@using ArcStrides.UI.Components.ArcExpandingSelector
+﻿@using ArcStrides.Contracts.Response
+@using ArcStrides.UI.Components.ArcExpandingSelector
 @using ArcStrides.UI.Components.ArcOverlay
 @using ArcStrides.UI.Models.Board
 @using ArcStrides.UI.Repositories
+
+@using Task = System.Threading.Tasks.Task;
 
 <ArcOverlay @bind-Open="Open" 
             OnSubmitAsync="CreateTaskTypeAsync">
 
     <MudText>Add a New Task Type</MudText>
 
-    <MudTextField @bind-Value="TaskType!.Title"
+    <MudTextField @bind-Value="TaskType.Title"
                   T="string" 
                   Label="Title" 
                   Variant="Variant.Filled" 
                   HelperText="Task Type Title" />
 
+    <ArcExpandingSelector Options="_tagGroups.Select (tagGroup => tagGroup!.Title!).ToList ()"
+                          OptionSelected="SetTagGroupOnTaskType" />
+
 </ArcOverlay>
 
 @inject ITaskRepository _taskRepository;
+@inject ITagRepository _tagRepository;
 
 @code 
 {
@@ -32,4 +39,22 @@
 
     [Parameter]
     public EventCallback<bool> Refresh { get; set; }
+
+    private List<TagGroupResponse> _tagGroups { get; set; }
+
+    protected override void OnInitialized ()
+    {
+        TaskType = new TaskType
+        {
+            Title = "New Task Type"
+        };
+    }
+
+    protected async override Task OnAfterRenderAsync (bool firstRender)
+    {
+        if (firstRender)
+        {
+            _tagGroups = await FetchTagGroupsAsync ();
+        }
+    }
 }

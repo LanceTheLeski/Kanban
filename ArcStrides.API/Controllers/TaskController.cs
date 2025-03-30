@@ -97,6 +97,8 @@ public class TaskController : ArcController
             newTask.RowKey = Guid.NewGuid ().ToString ();
             newTask.CardID = cardID;
 
+            // We need to update all tasks for new positions
+
             await _taskRepository.AddTaskAsync (newTask);
 
             var taskTypeCollection = await _taskRepository.QueryTaskTypesAsync (taskType => taskType.RowKey == taskCreateRequest.TaskTypeID.ToString ());
@@ -188,17 +190,22 @@ public class TaskController : ArcController
             return Ok (taskTypeReponseList);
         }
         catch (Exception ex)
-        { return ArcErrorResponse (ex); }
+            { return ArcErrorResponse (ex); }
     }
 
     [HttpPost ("/arcstrides/taggroups/{tagGroupID:guid}/tasks/types")]
-    public async Task<ActionResult> CreateTaskTypes ([FromBody] TaskTypeCreateRequest taskTypeCreateRequest)
+    public async Task<ActionResult> CreateTaskTypes ([FromRoute] Guid tagGroupID,
+                                                     [FromBody] TaskTypeCreateRequest taskTypeCreateRequest)
     {
         try 
         {
             // Validate..
 
+            var randomIntGenerator = new Random ();
+
             var taskTypeToAdd = _taskMapper.MapTaskTypeCreateRequestToTaskType (taskTypeCreateRequest);
+            taskTypeToAdd.PartitionKey = tagGroupID.ToString ();
+            taskTypeToAdd.RowKey = randomIntGenerator.Next ().ToString (); // This might be bad in practice, but I'm using it for now. One day we should validate this number doesn't exist in the database.
 
             await _taskRepository.AddTaskTypeAsync (taskTypeToAdd);
 
