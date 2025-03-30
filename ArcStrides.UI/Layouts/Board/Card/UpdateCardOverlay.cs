@@ -34,9 +34,9 @@ public partial class UpdateCardOverlay : IArcOverlay
         CloseOverlay ();
     }
 
-    private async System.Threading.Tasks.Task DeleteTaskAsync (Guid taskID)
+    private async System.Threading.Tasks.Task DeleteTaskAsync (Guid? taskID)
     {
-        await _taskRepository.DeleteTaskAsync (BoardID, ActiveCard.Id, taskID);
+        await _taskRepository.DeleteTaskAsync (BoardID, ActiveCard.Id, taskID.Value);
 
         ActiveCard.Tasks.RemoveAll (task => task.ID == taskID);
     }

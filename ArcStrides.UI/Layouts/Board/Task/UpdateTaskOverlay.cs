@@ -20,28 +20,28 @@ public partial class UpdateTaskOverlay
     }
 
     private void SetTaskOrderOnTask (string taskOrder)
-        => Task.Order = int.Parse (taskOrder);
+        => ActiveTask.Order = int.Parse (taskOrder);
 
-    private async Task<List<TaskTypeResponse>> FetchTaskTypesAsync (int taskTypeID)
+    private async Task<List<TaskTypeResponse>> FetchTaskTypesAsync ()
         => await _taskRepository.FetchTaskTypesAsync (new List<int> { 0 });
 
     private async System.Threading.Tasks.Task UpdateTaskAsync ()
     {
         var patchDocument = new JsonPatchDocument ();
 
-        if (Task.Title != _initialTaskTitle)
-            patchDocument.Add (nameof (TaskPatchRequest.Title), Task.Title);
+        if (ActiveTask.Title != _initialTaskTitle)
+            patchDocument.Add (nameof (TaskPatchRequest.Title), ActiveTask.Title);
 
-        if (Task.TaskType?.ID != _taskTypeToAssign?.ID)
+        if (ActiveTask.TaskType?.ID != _taskTypeToAssign?.ID)
             patchDocument.Add (nameof (TaskPatchRequest.TypeID), _taskTypeToAssign.ID);
 
-        if (Task.Order != _initialTaskOrder)
-            patchDocument.Add (nameof (TaskPatchRequest.Order), Task.Order);
+        if (ActiveTask.Order != _initialTaskOrder)
+            patchDocument.Add (nameof (TaskPatchRequest.Order), ActiveTask.Order);
 
-        if (Task.IsCompleted != _initialIsCompleted)
-            patchDocument.Add (nameof (TaskPatchRequest.IsComplete), Task.IsCompleted);
+        if (ActiveTask.IsCompleted != _initialIsCompleted)
+            patchDocument.Add (nameof (TaskPatchRequest.IsComplete), ActiveTask.IsCompleted);
 
-        await _taskRepository.UpdateTaskAsync (BoardID, CardID.Value, Task.ID!.Value, patchDocument);
+        await _taskRepository.UpdateTaskAsync (BoardID, CardID.Value, ActiveTask.ID!.Value, patchDocument);
 
         Refresh.InvokeAsync (true);
     }

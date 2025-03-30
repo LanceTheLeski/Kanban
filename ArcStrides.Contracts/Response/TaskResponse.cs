@@ -8,7 +8,7 @@ public class TaskResponse
 
     public string? Title { get; init; } = null;
 
-    public TaskTypeResponse? TaskType { get; init; } = null;
+    public TaskTypeResponse? TaskType { get; set; } = null;
 
     public int? Order { get; set; } = null;
 

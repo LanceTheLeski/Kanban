@@ -71,6 +71,7 @@ public class BoardController : Controller
 
         var cardCollection = await _cardRepository.GetCardsAsync (ID);
         var cardPositionCollection = await _cardRepository.GetCardPositionsAsync (ID);
+        
         var taskCollection = await _taskRepository.GetTasksAsync (ID);
 
         var columnResponse = new Collection<ColumnResponse> ();
@@ -88,20 +89,27 @@ public class BoardController : Controller
             swimlaneResponse.Add (mappedSwimlane);
         }
 
+        var taskTypeCollection = await _taskRepository.QueryTaskTypesAsync (taskType => true);
         var cardResponse = new Collection<CardResponse> ();
         foreach (var card in cardCollection)
         {
             var cardPosition = cardPositionCollection.SingleOrDefault (cardPosition => cardPosition.RowKey == card.CardPositionID.ToString ());
             
-            if (cardPosition is null) ;//??
             var mappedCardPosition = _cardMapper.MapCardPositionToCardPositionResponse (cardPosition!);
 
             var cardTasks = taskCollection.Where (task => task.CardID.ToString () == card.RowKey);
-            var mappedCardTasks = cardTasks.Select (_taskMapper.MapTaskToTaskResponse);
+            var mappedTasks = cardTasks.Select (_taskMapper.MapTaskToTaskResponse).ToList ();
+            foreach (var mappedTask in mappedTasks)
+            {
+                var cardTask = cardTasks.Single (task => Guid.Parse(task.RowKey!) == mappedTask.ID);
+                var taskType = taskTypeCollection.SingleOrDefault (taskType => int.Parse(taskType.RowKey) == cardTask.TaskTypeID);
+
+                mappedTask.TaskType = _taskMapper.MapTaskTypeToTaskTypeResponse (taskType);// Assumes TaskType is real
+            }
 
             var mappedCard = _cardMapper.MapCardToCardResponse (card);
             mappedCard.Position = mappedCardPosition;
-            mappedCard.Tasks = mappedCardTasks;
+            mappedCard.Tasks = mappedTasks;
             
             cardResponse.Add (mappedCard);
         }
