@@ -14,6 +14,11 @@ public partial class UpdateTimelinePanel
         }
     }
 
+    private async System.Threading.Tasks.Task CreateTimelineAsync ()
+    {
+
+    }
+
     private async System.Threading.Tasks.Task UpdateTimelineAsync ()
     {
         var timelinePatchRequest = new Contracts.Request.Patch.TimelinePatchRequest ();

@@ -35,6 +35,8 @@ public partial class CreateTaskTypeOverlay : IArcOverlay
 
     public async Task CreateTaskTypeAsync ()
     {
+
+
         var createRequest = new TaskTypeCreateRequest
         {
             Title = TaskType.Title,

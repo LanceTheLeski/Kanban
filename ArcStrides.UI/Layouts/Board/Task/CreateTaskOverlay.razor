@@ -2,6 +2,7 @@
 @using ArcStrides.Contracts.Response
 @using ArcStrides.UI.Components.ArcExpandingSelector
 @using ArcStrides.UI.Layouts.Board.Timeline
+@using ArcStrides.UI.Layouts.TagGroup.TaskType
 @using ArcStrides.UI.Models
 @using ArcStrides.UI.Options
 @using ArcStrides.UI.Repositories
@@ -31,6 +32,7 @@
                                           OptionSelected="SetTaskOrderOnTask" />
                     <ArcExpandingSelector Options="_taskTypes.Select (taskType => taskType!.Title!).ToList ()"
                                           OptionSelected="SetTaskTypeOnTask" />
+                    <MudButton OnClick="@(createTaskTypeOverlay.OpenOverlay)">Create New Task Type</MudButton>
                 </MudItem>
                 <MudItem>
                     <UpdateTimelinePanel BoardID="BoardID"
@@ -45,6 +47,9 @@
         </MudPaper>
     </MudPopover>
 </MudPaper>
+
+<CreateTaskTypeOverlay @ref="createTaskTypeOverlay"
+                       Refresh="Refresh"/>
 
 @inject ITaskRepository _taskRepository;
 
@@ -110,4 +115,6 @@
             _taskTypes = await FetchTaskTypesAsync ();
         }
     }
+
+    private CreateTaskTypeOverlay createTaskTypeOverlay;
 }
