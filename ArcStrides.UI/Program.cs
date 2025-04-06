@@ -33,6 +33,7 @@ builder.Services.AddTransient<UpdateCardOverlay> ();
 builder.Services.AddTransient<UpdateTaskOverlay> ();
 
 builder.Services.AddTransient<IArcErrorHandler, ArcErrorHandler> ();
+
 builder.Services.AddTransient<IArcStridesService<CardResponse>, ArcStridesService<CardResponse>> ();
 builder.Services.AddTransient<IArcStridesService<CardPositionResponse>, ArcStridesService<CardPositionResponse>> ();
 builder.Services.AddTransient<IArcStridesService<BoardResponse>, ArcStridesService<BoardResponse>> (); 
@@ -43,6 +44,8 @@ builder.Services.AddTransient<IArcStridesService<TaskTypeResponse>, ArcStridesSe
 builder.Services.AddTransient<IArcStridesService<TimelineResponse>, ArcStridesService<TimelineResponse>> ();
 builder.Services.AddTransient<IArcStridesService<TagResponse>, ArcStridesService<TagResponse>> ();
 builder.Services.AddTransient<IArcStridesService<TagGroupResponse>, ArcStridesService<TagGroupResponse>> ();
+builder.Services.AddTransient<IArcStridesService<MonthResponse>, ArcStridesService<MonthResponse>> ();
+builder.Services.AddTransient<IArcStridesService<DateResponse>, ArcStridesService<DateResponse>> ();
 
 builder.Services.AddTransient<IBoardRepository, BoardRepository> ();
 builder.Services.AddTransient<IColumnRepository, ColumnRepository> ();
@@ -51,6 +54,7 @@ builder.Services.AddTransient<ICardRepository, CardRepository> ();
 builder.Services.AddTransient<ITaskRepository, TaskRepository> ();
 builder.Services.AddTransient<ITimelineRepository, TimelineRepository> ();
 builder.Services.AddTransient<ITagRepository, TagRepository> ();
+builder.Services.AddTransient<ICalendarRepository, CalendarRepository> ();
 
 builder.Services.AddScoped<DateMapper> ();
 builder.Services.AddScoped<CardMapper> ();

@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace ArcStrides.UI.Repositories;
 
-public class CalendarRepository
+public class CalendarRepository : ICalendarRepository
 {
     private readonly IArcStridesService<MonthResponse> _arcStridesMonthBackend;
     private readonly IArcStridesService<DateResponse> _arcStridesDateBackend;
@@ -18,11 +18,11 @@ public class CalendarRepository
     }
 
     public async Task<MonthResponse?> FetchMonthAsync (Guid monthID)
-        => await _arcStridesMonthBackend.FetchEntityAsync ($@"arcstrides/calendar/months/{monthID}");
+        => await _arcStridesMonthBackend.FetchEntityAsync ($@"arcstrides/calendars/months/{monthID}");
 
     public async Task<DateResponse?> CreateDateAsync (Guid monthID, DateCreateRequest dateCreateRequest)
-        => await _arcStridesDateBackend.CreateEntityAsync ($@"arcstrides/calendar/months/{monthID}/dates", JsonConvert.SerializeObject (dateCreateRequest));
+        => await _arcStridesDateBackend.CreateEntityAsync ($@"arcstrides/calendars/months/{monthID}/dates", JsonConvert.SerializeObject (dateCreateRequest));
 
     public async Task<DateResponse?> UpdateDateAsync (Guid monthID, Guid dateID, string datePatchRequest)
-        => await _arcStridesDateBackend.UpdateEntityAsync ($@"arcstrides/calendar/months/{monthID}/dates/{dateID}", datePatchRequest);
+        => await _arcStridesDateBackend.UpdateEntityAsync ($@"arcstrides/calendars/months/{monthID}/dates/{dateID}", datePatchRequest);
 }

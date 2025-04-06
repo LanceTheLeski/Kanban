@@ -53,7 +53,7 @@ public partial class Board
             {{ ""op"": ""replace"", ""path"": ""/SwimlaneOrder"", ""value"": ""{cardToUpdate.SwimlaneNumber}"" }}
         ]";
 
-        return await _cardRepository.UpdateCardPositionAsync (cardToUpdate.Id, patchRequest);
+        return await _cardRepository.UpdateCardPositionAsync (_boardID, cardToUpdate., patchRequest);
     }
 
     private (int swimlanePos, int columnPos) ConvertCardAreaToColumnAndSwimlane (string cardAreaValue)

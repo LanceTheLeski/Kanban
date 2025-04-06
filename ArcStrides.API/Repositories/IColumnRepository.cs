@@ -9,7 +9,7 @@ namespace ArcStrides.API.Repositories;
 
 public interface IColumnRepository
 {
-    Task<Column?> GetColumnAsync (Guid columnID, Guid boardID);
+    Task<Column?> GetColumnAsync (Guid boardID, Guid columnID);
 
     Task<Collection<Column>> GetAllBoardColumns (Guid boardID);
 

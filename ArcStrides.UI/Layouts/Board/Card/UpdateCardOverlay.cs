@@ -26,7 +26,7 @@ public partial class UpdateCardOverlay : IArcOverlay
     {
         var patchRequest = FormPatchRequestFromOverlay ();
 
-        await _cardRepository.UpdateCardPositionAsync (ActiveCard!.Id, patchRequest);
+        await _cardRepository.UpdateCardPositionAsync (BoardID, ActiveCard!.Id, patchRequest);
 
         //Update Page
         Refresh.InvokeAsync (true);

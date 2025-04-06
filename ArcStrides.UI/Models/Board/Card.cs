@@ -13,6 +13,8 @@ public class Card
 
     public string Description { get; set; }
 
+    public Guid PositionID { get; set; }//Todo: add and implement this..
+
     public int ColumnNumber { get; set; }
 
     public Guid ColumnID { get; set; }

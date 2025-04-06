@@ -94,6 +94,7 @@ public class BoardController : Controller
         foreach (var card in cardCollection)
         {
             var cardPosition = cardPositionCollection.SingleOrDefault (cardPosition => cardPosition.RowKey == card.CardPositionID.ToString ());
+            if (cardPosition is null) continue;
             
             var mappedCardPosition = _cardMapper.MapCardPositionToCardPositionResponse (cardPosition!);
 

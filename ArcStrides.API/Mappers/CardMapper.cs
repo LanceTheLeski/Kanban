@@ -49,6 +49,7 @@ public partial class CardMapper
     /// <summary>
     /// <see cref="CardPosition"/> --> <see cref="CardPositionResponse"/>
     /// </summary>
+    [MapProperty (nameof (CardPosition.PartitionKey), nameof (CardPositionResponse.BoardID))]
     [MapProperty (nameof (CardPosition.RowKey), nameof (CardPositionResponse.ID))]
     [MapProperty (nameof (CardPosition.ColumnID), nameof (CardPositionResponse.ColumnID))]
     [MapProperty (nameof (CardPosition.ColumnTitle), nameof (CardPositionResponse.ColumnTitle))]

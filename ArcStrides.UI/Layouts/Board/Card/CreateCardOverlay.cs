@@ -52,29 +52,29 @@ public partial class CreateCardOverlay : IArcOverlay
             SwimlaneID = Swimlanes [SwimlaneTitles.IndexOf (_swimlaneToAddCard)]
         };
 
-        var cardPositionResponse = await _cardRepository.CreateCardPositionAsync (createRequest);
+        var cardPositionResponse = await _cardRepository.CreateCardPositionAsync (BoardID, createRequest);
 
         //Do validation here..
 
         //Add it to the DropCard list? And if we want to use the boardResponse as a source of truth then that too? But I don't think that should be the case
         var mapper = new CardMapper ();
-        var card = mapper.MapCardPositionResponseToCard (cardPositionResponse);
-        var dropCard = (DropCard) card;
-        dropCard.CardArea = ConvertColumnAndSwimlaneToCardArea (cardPositionResponse.SwimlaneOrder.Value, cardPositionResponse.ColumnOrder.Value);
-        Cards.Add (dropCard);
-        /*Cards.Add (new DropCard
+        //var deserialized = mapper.MapCardPositionResponseToCard (cardPositionResponse);
+        //var dropCard = (DropCard) card;
+        //dropCard.CardArea = ConvertColumnAndSwimlaneToCardArea (cardPositionResponse.SwimlaneOrder.Value, cardPositionResponse.ColumnOrder.Value);
+        //Cards.Add (dropCard);
+        Cards.Add (new DropCard
         {
-            Id = deserialized.ID,
-            Title = deserialized.Title,
-            Description = deserialized.Description,
-            ColumnNumber = deserialized.ColumnOrder,
-            ColumnID = Guid.Parse (deserialized.ColumnID),
-            ColumnName = deserialized.ColumnTitle,
-            SwimlaneNumber = deserialized.SwimlaneOrder,
-            SwimlaneID = Guid.Parse (deserialized.SwimlaneID),
-            SwimlaneName = deserialized.SwimlaneTitle,
-            CardArea = ConvertColumnAndSwimlaneToCardArea (deserialized.SwimlaneOrder, deserialized.ColumnOrder)
-            */
+            Id = cardPositionResponse.ID.Value,
+            Title = cardPositionResponse.Title,
+            Description = cardPositionResponse.Description,
+            ColumnNumber = cardPositionResponse.ColumnOrder.Value,
+            ColumnID = cardPositionResponse.ColumnID.Value,
+            ColumnName = cardPositionResponse.ColumnTitle,
+            SwimlaneNumber = cardPositionResponse.SwimlaneOrder.Value,
+            SwimlaneID = cardPositionResponse.SwimlaneID.Value,
+            SwimlaneName = cardPositionResponse.SwimlaneTitle,
+            CardArea = ConvertColumnAndSwimlaneToCardArea (cardPositionResponse.SwimlaneOrder.Value, cardPositionResponse.ColumnOrder.Value)
+        });
 
         Refresh.InvokeAsync (true);
     }
