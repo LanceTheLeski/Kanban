@@ -13,19 +13,20 @@ public partial class CardMapper
     [MapProperty (nameof (CardResponse.ID), nameof (Card.Id))]
     [MapProperty (nameof (CardResponse.Title), nameof (Card.Title))]
     [MapProperty (nameof (CardResponse.Description), nameof (Card.Description))]
-    [MapProperty (nameof (@CardResponse.Position.ColumnOrder), nameof (Card.ColumnNumber))]
-    [MapProperty (nameof (@CardResponse.Position.ColumnID), nameof (Card.ColumnID))]
-    [MapProperty (nameof (@CardResponse.Position.ColumnTitle), nameof (Card.ColumnName))]
-    [MapProperty (nameof (@CardResponse.Position.SwimlaneOrder), nameof (Card.SwimlaneNumber))]
-    [MapProperty (nameof (@CardResponse.Position.SwimlaneID), nameof (Card.SwimlaneID))]
-    [MapProperty (nameof (@CardResponse.Position.SwimlaneTitle), nameof (Card.SwimlaneName))]
-    [MapProperty (nameof (@CardResponse.Tasks), nameof (Card.Tasks))]
+    [MapProperty (nameof (CardResponse.Position.ID), nameof (Card.PositionID))]
+    [MapProperty (nameof (CardResponse.Position.ColumnOrder), nameof (Card.ColumnNumber))]
+    [MapProperty (nameof (CardResponse.Position.ColumnID), nameof (Card.ColumnID))]
+    [MapProperty (nameof (CardResponse.Position.ColumnTitle), nameof (Card.ColumnName))]
+    [MapProperty (nameof (CardResponse.Position.SwimlaneOrder), nameof (Card.SwimlaneNumber))]
+    [MapProperty (nameof (CardResponse.Position.SwimlaneID), nameof (Card.SwimlaneID))]
+    [MapProperty (nameof (CardResponse.Position.SwimlaneTitle), nameof (Card.SwimlaneName))]
+    [MapProperty (nameof (CardResponse.Tasks), nameof (Card.Tasks))]
     public partial Card MapCardResponseToCard (CardResponse cardResponse);
 
     /// <summary>
     /// <see cref="CardPositionResponse"/> --> <see cref="Card"/>
     /// </summary>
-    [MapProperty (nameof (CardPositionResponse.ID), nameof (Card.Id))]
+    [MapProperty (nameof (CardPositionResponse.ID), nameof (Card.PositionID))]
     [MapProperty (nameof (CardPositionResponse.Title), nameof (Card.Title))]
     [MapProperty (nameof (CardPositionResponse.Description), nameof (Card.Description))]
     [MapProperty (nameof (CardPositionResponse.ColumnOrder), nameof (Card.ColumnNumber))]
@@ -41,6 +42,7 @@ public partial class CardMapper
     /// </summary>
     [MapProperty (nameof (DropCard.Id), nameof (Card.Id))]
     [MapProperty (nameof (DropCard.Title), nameof (Card.Title))]
+    [MapProperty (nameof (DropCard.PositionID), nameof (Card.PositionID))]
     [MapProperty (nameof (DropCard.Description), nameof (Card.Description))]
     [MapProperty (nameof (DropCard.ColumnNumber), nameof (Card.ColumnNumber))]
     [MapProperty (nameof (DropCard.ColumnID), nameof (Card.ColumnID))]
