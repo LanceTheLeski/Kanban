@@ -64,7 +64,7 @@
 
                     <MudGrid Justify="Justify.Center" Spacing="0" Style="background-color:#5d5880;">
                         <MudItem Style="padding-left: 5px; padding-right: 5px">
-                            <CalendarDate @bind-Date="@()" />
+                            <CalendarDate @bind-Date="@(month.Weeks [week].Sunday)" />
                         </MudItem>
                         <MudItem Style="padding-left: 5px; padding-right: 5px">
                             <CalendarDate @bind-Date="@(month.Weeks [week].Monday)" />
@@ -114,7 +114,7 @@
         var monthResponse = await _calendarRepository.FetchMonthAsync (Guid.Parse ("6469d898-c468-4c84-82f9-6dcad60757a8")); // One day this GUId will be dynamic
         // Validation goes here..
 
-        var basicMonthDates = GetAllBasicMonthDatesFromSystem (2025, 2).ToList ();
+        var basicMonthDates = GetAllBasicMonthDatesFromSystem (2025, 1).ToList ();
 
         foreach (var dateResponse in monthResponse!.Dates!)
         {
@@ -122,17 +122,28 @@
             // Validation goes here to check for null. If there's a null then something terrible has happened with the data..
 
             monthDate = _dateMapper.MapDateResponseToDate (dateResponse);
-            monthDate.DonutChartData = CountBoardTypes(monthDate.Cards);
-            monthDate.LineChartData = GetBoardTypeData(monthDate.Cards);
+            monthDate.DonutChartData = CountBoardTypes (monthDate.Cards);
+            monthDate.LineChartData = GetBoardTypeData (monthDate.Cards);
             monthDate.Labels = new string [] { };//todo..
             monthDate.xAxisLabels = new string [] { };//todo..
 
-            var index = basicMonthDates.FindIndex (date => date.ID == monthDate.ID);
+            var index = basicMonthDates.FindIndex (date => date.DateOrder == monthDate.DateOrder);
             basicMonthDates [index] = monthDate;
         }
 
         // Fill in the surrounding dates from other months so the calendar grid can render correctly
-        
+        var previousBasicMonthDates = GetAllBasicMonthDatesFromSystem (2024, 12).ToList ();
+        for (int dayOfTheWeekOrder = (basicMonthDates [0].DayOfTheWeekOrder!.Value - 1); dayOfTheWeekOrder >= 0; dayOfTheWeekOrder --)
+        {
+            basicMonthDates.Insert (0, previousBasicMonthDates.Last (date => date.DayOfTheWeekOrder == dayOfTheWeekOrder));
+        }
+
+        var nextBasicMonthDates = GetAllBasicMonthDatesFromSystem (2025, 2).ToList ();
+        for (int dayOfTheWeekOrder = (basicMonthDates.Last().DayOfTheWeekOrder!.Value + 1); dayOfTheWeekOrder < 7; dayOfTheWeekOrder ++)
+        {
+            basicMonthDates.Add (nextBasicMonthDates.First (date => date.DayOfTheWeekOrder == dayOfTheWeekOrder));
+        }
+
         // Then validate
 
         _monthDates = basicMonthDates.AsEnumerable ();
