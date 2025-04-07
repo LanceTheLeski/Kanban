@@ -4,7 +4,7 @@
 
 @using static ArcStrides.UI.Models.Calendar.Date
 
-<MudPaper Width="200px;" 
+<MudPaper Width="170px;" 
           Height="170px">
     <MudStack Spacing="0" 
               Style="position: relative;">
@@ -35,12 +35,12 @@
                               Style="background-color:#c4001e;"></MudChart>
                 </MudPaper>
             </MudItem>
-            <MudItem Style="width: 80px">
+            <MudItem Style="width: 50px">
                 <MudPaper Elevation="0" 
                           Style="background-color: olive" 
-                          Width="80px">
+                          Width="50px">
                     <MudChart ChartType="ChartType.Line" 
-                              Width="80px" 
+                              Width="50px" 
                               Height="50px" 
                               XAxisLabels="@Date.xAxisLabels"
                               ChartSeries="@Date.LineChartData"
@@ -87,22 +87,25 @@
             </MudItem>
         </MudGrid>
         <MudCarousel TData="object" ShowArrows="false" ShowBullets="false" AutoCycle="@Cycle" SelectedIndex="@DateBodyIndex" Style="height: 120px;">
-            @foreach (var boardID in Date.Cards.Select (card => card.Position.BoardID).Distinct ())
+            @if (Date.Cards is not null)
             {
-                <MudCarouselItem Class="overflow-hidden overflow-y-scroll">
-                    @foreach (var card in Date.Cards.Where (card => card.Position.BoardID == boardID).Take (3).ToList ())
-                    {
-                        <MudPaper>
-                            <MudText Style="font-size: x-small">@card.Title</MudText>
-                            @foreach (var task in card.Tasks.Take (3).ToList ())
-                            {
-                                <MudPaper Width="90%" Style="background-color: greenyellow;">
-                                    <MudText Style="font-size: small">@task.Title</MudText>
-                                </MudPaper>
-                            }
-                        </MudPaper>
-                    }
-                </MudCarouselItem>
+                @foreach (var boardID in Date.Cards.Select (card => card.Position.BoardID).Distinct ())
+                {
+                    <MudCarouselItem Class="overflow-hidden overflow-y-scroll">
+                        @foreach (var card in Date.Cards.Where (card => card.Position.BoardID == boardID).Take (3).ToList ())
+                        {
+                            <MudPaper>
+                                <MudText Style="font-size: x-small">@card.Title</MudText>
+                                @foreach (var task in card.Tasks.Take (3).ToList ())
+                                {
+                                    <MudPaper Width="90%" Style="background-color: greenyellow;">
+                                        <MudText Style="font-size: small">@task.Title</MudText>
+                                    </MudPaper>
+                                }
+                            </MudPaper>
+                        }
+                    </MudCarouselItem>
+                }
             }
         </MudCarousel>
     </MudStack>

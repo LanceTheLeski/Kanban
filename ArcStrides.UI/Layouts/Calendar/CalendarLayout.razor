@@ -17,38 +17,38 @@
 
 <MudPaper Style="width: 100%; background-color: #2494E7">
     <MudGrid Justify="Justify.Center" Spacing="0">
-        <MudItem Style="padding-left: 5px; padding-right: 5px">
-            <MudPaper Width="200px;" Style="background-color: #2494E7; color:azure; text-align: center;">
+        <MudItem Style="padding-left: 2px; padding-right: 2px">
+            <MudPaper Width="170px;" Style="background-color: #2494E7; color:azure; text-align: center;">
                 Sunday
             </MudPaper>
         </MudItem>
-        <MudItem Style="padding-left: 5px; padding-right: 5px">
-            <MudPaper Width="200px;" Style="background-color: #2494E7; color:azure; text-align: center;">
+        <MudItem Style="padding-left: 2px; padding-right: 2px">
+            <MudPaper Width="170px;" Style="background-color: #2494E7; color:azure; text-align: center;">
                 Monday
             </MudPaper>
         </MudItem>
-        <MudItem Style="padding-left: 5px; padding-right: 5px">
-            <MudPaper Width="200px;" Style="background-color: #2494E7; color:azure; text-align: center;">
+        <MudItem Style="padding-left: 2px; padding-right: 2px">
+            <MudPaper Width="170px;" Style="background-color: #2494E7; color:azure; text-align: center;">
                 Tuesday
             </MudPaper>
         </MudItem>
-        <MudItem Style="padding-left: 5px; padding-right: 5px">
-            <MudPaper Width="200px;" Style="background-color: #2494E7; color:azure; text-align: center;">
+        <MudItem Style="padding-left: 2px; padding-right: 2px">
+            <MudPaper Width="170px;" Style="background-color: #2494E7; color:azure; text-align: center;">
                 Wednesday
             </MudPaper>
         </MudItem>
-        <MudItem Style="padding-left: 5px; padding-right: 5px">
-            <MudPaper Width="200px;" Style="background-color: #2494E7; color:azure; text-align: center;">
+        <MudItem Style="padding-left: 2px; padding-right: 2px">
+            <MudPaper Width="170px;" Style="background-color: #2494E7; color:azure; text-align: center;">
                 Thursday
             </MudPaper>
         </MudItem>
-        <MudItem Style="padding-left: 5px; padding-right: 5px">
-            <MudPaper Width="200px;" Style="background-color: #2494E7; color:azure; text-align: center;">
+        <MudItem Style="padding-left: 2px; padding-right: 2px">
+            <MudPaper Width="170px;" Style="background-color: #2494E7; color:azure; text-align: center;">
                 Friday
             </MudPaper>
         </MudItem>
-        <MudItem Style="padding-left: 5px; padding-right: 5px">
-            <MudPaper Width="200px;" Style="background-color: #2494E7; color:azure; text-align: center;">
+        <MudItem Style="padding-left: 2px; padding-right: 2px">
+            <MudPaper Width="170px;" Style="background-color: #2494E7; color:azure; text-align: center;">
                 Saturday
             </MudPaper>
         </MudItem>
@@ -56,40 +56,40 @@
 
 
     <!--@dateFragment-->
-    <!--<MudGrid Class="d-flex flex-column" Justify="Justify.Center" Spacing="0">
+    <MudGrid Class="d-flex flex-column" Justify="Justify.Center" Spacing="0">
         @foreach (var weekIndex in Enumerable.Range(0, _monthDates.Count () / 7))
         {
             <MudItem>
                 <MudPaper Outlined="true" Style="background-color: greenyellow" Height="100%">
 
                     <MudGrid Justify="Justify.Center" Spacing="0" Style="background-color:#5d5880;">
-                        <MudItem Style="padding-left: 5px; padding-right: 5px">
-                            <CalendarDate @bind-Date="@(month.Weeks [week].Sunday)" />
+                        <MudItem Style="padding-left: 2px; padding-right: 2px">
+                            <CalendarDate @bind-Date="@(_monthDates [weekIndex * 7])" />
                         </MudItem>
-                        <MudItem Style="padding-left: 5px; padding-right: 5px">
-                            <CalendarDate @bind-Date="@(month.Weeks [week].Monday)" />
+                        <MudItem Style="padding-left: 2px; padding-right: 2px">
+                            <CalendarDate @bind-Date="@(_monthDates [weekIndex * 7 + 1])" />
                         </MudItem>
-                        <MudItem Style="padding-left: 5px; padding-right: 5px">
-                            <CalendarDate @bind-Date="@(month.Weeks [week].Tuesday)" />
+                        <MudItem Style="padding-left: 2px; padding-right: 2px">
+                            <CalendarDate @bind-Date="@(_monthDates [weekIndex * 7 + 2])" />
                         </MudItem>
-                        <MudItem Style="padding-left: 5px; padding-right: 5px">
-                            <CalendarDate @bind-Date="@(month.Weeks [week].Wednesday)" />
+                        <MudItem Style="padding-left: 2px; padding-right: 2px">
+                            <CalendarDate @bind-Date="@(_monthDates [weekIndex * 7 + 3])" />
                         </MudItem>
-                        <MudItem Style="padding-left: 5px; padding-right: 5px">
-                            <CalendarDate @bind-Date="@(month.Weeks [week].Thursday)" />
+                        <MudItem Style="padding-left: 2px; padding-right: 2px">
+                            <CalendarDate @bind-Date="@(_monthDates [weekIndex * 7 + 4])" />
                         </MudItem>
-                        <MudItem Style="padding-left: 5px; padding-right: 5px">
-                            <CalendarDate @bind-Date="@(month.Weeks [week].Friday)" />
+                        <MudItem Style="padding-left: 2px; padding-right: 2px">
+                            <CalendarDate @bind-Date="@(_monthDates [weekIndex * 7 + 5])" />
                         </MudItem>
-                        <MudItem Style="padding-left: 5px; padding-right: 5px">
-                            <CalendarDate @bind-Date="@(month.Weeks [week].Saturday)" />
+                        <MudItem Style="padding-left: 2px; padding-right: 2px">
+                            <CalendarDate @bind-Date="@(_monthDates [weekIndex * 7 + 6])" />
                         </MudItem>
                     </MudGrid>
 
                 </MudPaper>
             </MudItem>
         }
-    </MudGrid>-->
+    </MudGrid>
 </MudPaper>
 
 @inject ICalendarRepository _calendarRepository;
@@ -104,7 +104,7 @@
         LineStrokeWidth = 10
     };
 
-    private IEnumerable<Date> _monthDates;
+    private List<Date> _monthDates = new List<Date> ();
 
     protected override async Task OnInitializedAsync ()
     {
@@ -143,9 +143,10 @@
         {
             basicMonthDates.Add (nextBasicMonthDates.First (date => date.DayOfTheWeekOrder == dayOfTheWeekOrder));
         }
+        // Need to assign blank values to charts and graphs..
 
         // Then validate
 
-        _monthDates = basicMonthDates.AsEnumerable ();
+        _monthDates = basicMonthDates;
     }
 }

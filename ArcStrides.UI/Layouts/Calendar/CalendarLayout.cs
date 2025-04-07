@@ -18,6 +18,13 @@ public partial class CalendarLayout
         for (var dayIndex = 1; dayIndex <= daysInMonth; dayIndex++)
         {
             var date = mapper.MapDateTimeToDate (new DateTime (year, month, dayIndex));
+            
+            date.Labels = new string [0];
+            date.DonutChartData = new double [0];
+            
+            date.xAxisLabels = new string [0];
+            date.LineChartData = new List<ChartSeries> ();
+
             dateCollection.Add (date);
         }
 
