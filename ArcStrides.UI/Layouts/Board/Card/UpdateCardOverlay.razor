@@ -15,42 +15,49 @@
 
 <ArcOverlay @bind-Open="Open"
             OnSubmitAsync="UpdateCardAsync">
-    <MudPaper Width="1100px" Height="500px" Class="mud-background">
+    <MudPaper Width="1100px" Height="500px" Style="background-color: transparent;">
         <MudStack>
             <MudItem>
                 <MudGrid>
-                    <MudItem Style="width:350px">
-                        <MudStack>
+                    <MudItem Style="width:400px">
+                        <MudStack Spacing="1">
                             <MudItem>
-                                <MudGrid>
-                                    <MudItem>
+                                <MudGrid Spacing="0" Style="height: 75px">
+                                    <MudItem Style="width: 240px;">
                                         <MudTextField @bind-Value="ActiveCard.Title" 
-                                                      T="string" 
-                                                      Label="Title" 
-                                                      Variant="Variant.Filled" 
-                                                      HelperText="Card Title" 
-                                                      Class="mud-theme-secondary" />
+                                                      T="string"
+                                                      Variant="Variant.Outlined"
+                                                      HelperText="Card Title"
+                                                      HelperTextOnFocus=true
+                                                      Style="background-color: rgba(255, 255, 255, 0.6);
+                                                             border-radius: 4px
+                                                             width: 260px" />
                                     </MudItem>
                                     <MudItem>
-                                        Tags...
+                                        <MudPaper Style="background-color: rgba(204, 255, 204, 0.6);
+                                                         border-radius: 4px"
+                                                  Width="120px"
+                                                  Height="60px">
+                                            Tags...
+                                        </MudPaper>
                                     </MudItem>
                                 </MudGrid>
                             </MudItem>
-                            <MudItem></MudItem>
                             <MudItem>
                                 @_taskList
                             </MudItem>
                         </MudStack>
                     </MudItem>
-                    <MudItem Style="width:750px">
+                    <MudItem Style="width: 700px; height: 400px">
                         <MudTextField @bind-Value="ActiveCard.Description" 
                                       T="string" 
-                                      Label="Description" 
-                                      Variant="Variant.Filled" 
-                                      AutoGrow 
-                                      Lines="7" 
-                                      HelperText="Description" 
-                                      Class="mud-theme-secondary"/>
+                                      Lines="13"
+                                      Variant="Variant.Outlined"
+                                      AdornmentColor="Color.Transparent"
+                                      HelperText="Card Description"
+                                      HelperTextOnFocus=true
+                                      Style="background-color: rgba(255, 255, 230, 0.8);
+                                             border-radius: 4px"/>
                     </MudItem>
                 </MudGrid>
             </MudItem>
@@ -110,17 +117,27 @@
     {
         return __builder =>
         {
-            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 350px; height: 200px;">
+            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto glass-inner-engraved" Style="width: 400px; height: 200px;">
                 <MudStack Class="flex-grow-1" Width="100%" Height="100%">
                     <MudList T="string" ReadOnly="false">
                         @foreach (var taskIndex in Enumerable.Range (0, ActiveCard?.Tasks.Count() ?? 0))
                         {
                             <MudListItem><!-- I switched from bind-TaskTitle to just assigning TaskTitle for now due to response object not being bindable. Fix later.. Also fix TaskOrder later.. -->
-                                <UpdateTaskOverlay @bind-ActiveTask="ActiveCard!.Tasks [taskIndex]"
-                                                   TasksCount="ActiveCard!.Tasks.Count"
-                                                   CardID="ActiveCard!.Id"
-                                                   BoardID="BoardID" />
-                                <MudButton OnClick="(() => DeleteTaskAsync (ActiveCard!.Tasks [taskIndex].ID))">Delete</MudButton>
+                                <MudGrid>
+                                    <MudItem Style="width: 350px;
+                                                    background-color: transparent;">
+                                        <UpdateTaskOverlay @bind-ActiveTask="ActiveCard!.Tasks [taskIndex]"
+                                                           TasksCount="ActiveCard!.Tasks.Count"
+                                                           CardID="ActiveCard!.Id"
+                                                           BoardID="BoardID"/>
+                                    </MudItem>
+                                    <MudItem Style="width: 20px">
+                                        <MudImage Width="20" 
+                                                  Height="20"
+                                                  Src="icons8-trashcan-50.png" 
+                                                  @onclick="(()=> DeleteTaskAsync (ActiveCard!.Tasks [taskIndex].ID))"/>
+                                    </MudItem>
+                                </MudGrid>
                             </MudListItem>
                         }
                         <MudListItem>

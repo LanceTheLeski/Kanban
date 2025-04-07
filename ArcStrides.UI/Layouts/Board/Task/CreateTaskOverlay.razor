@@ -16,12 +16,13 @@
 @inherits LayoutComponentBase
 
 <!--This should ideally be a component one day..-->
-<MudPaper>
-    <MudButton OnClick="@(() => tempOpen = true)">
+<MudPaper Style="background-color: transparent;">
+    <MudButton Style="background-color: rgba(153, 214, 255, 0.8);" OnClick="@(() => tempOpen = true)">
         @(Task?.Title)
     </MudButton>
     <MudPopover Open="tempOpen" OverflowBehavior="OverflowBehavior.FlipAlways" AnchorOrigin="Origin.CenterRight" TransformOrigin="Origin.CenterLeft">
-        <MudPaper Width="600px">
+        <MudPaper Width="600px"
+                  Class="glass">
             <MudTextField @bind-Value="Task.Title" T="string" Label="Title" Variant="Variant.Filled" HelperText="Task Title" />
 
             <MudGrid>

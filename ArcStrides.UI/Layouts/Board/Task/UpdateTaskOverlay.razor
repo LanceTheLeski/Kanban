@@ -7,12 +7,12 @@
 @using ArcStrides.UI.Repositories
 
 <!--This should ideally be a component one day..-->
-<MudPaper>
+<MudPaper Style="background-color: rgba(153, 214, 255, 0.8);">
     <MudButton OnClick="@(() => tempOpen = true)">
         @_initialTaskTitle
     </MudButton>
     <MudPopover Open="tempOpen" OverflowBehavior="OverflowBehavior.FlipAlways" AnchorOrigin="Origin.CenterRight" TransformOrigin="Origin.CenterLeft">
-        <MudPaper Width="600px">
+        <MudPaper Width="600px" Height="600px;">
             <MudTextField @bind-Value="_initialTaskTitle" T="string" Label="Title" Variant="Variant.Filled" HelperText="Task Title" />
 
             <MudGrid>
