@@ -21,7 +21,7 @@
 <PageTitle>Board</PageTitle>
 <MudThemeProvider Theme="@MyMudThemeProvider._ArcBoardDefaultTheme"/>
 
-<MudPaper Style="background-color: aqua;"> <!--Class="glass"--> <!--Class="mud-theme-backgroundgray"--->
+<MudPaper Class="glass"><!--Style="background-color: aqua;"--> <!--Class="mud-theme-backgroundgray"--->
     <MudPaper Height="50px" Width="100%" Class="d-inline mud-theme-primary">
         <BoardManagementNavigationBar @bind-BoardID="_boardID"
                                       @bind-Cards="@_cards"
@@ -32,16 +32,19 @@
                                       Refresh="Refresh"/>
     </MudPaper>
     <MudGrid Spacing="0" 
-    Class="d-flex flex-column">
+             Class="d-flex flex-column">
         <MudItem>
-            <MudPaper Height="70px"
-            Class="glass">
+            <MudPaper Height="70px">
                 <MudGrid Class="d-flex flex-nowrap">
                     <MudItem>
-                        <MudPaper Width="120px" Height="40px" Elevation="0" Style="background-color:transparent; padding-left: 12px;">
-                            <MudText Align="Align.Center" Style="font-family:'Freestyle Script';
-                                                                 font-weight:bold;
-                                                                 font-size:xx-large;
+                        <MudPaper Width="120px" 
+                                  Height="40px" 
+                                  Elevation="0" 
+                                  Style="background-color: transparent; 
+                                         padding-left: 12px;
+                                         font-family: 'Freestyle Script';">
+                            <MudText Align="Align.Center" Style="font-weight: bold;
+                                                                 font-size: xx-large;
                                                                  color:aquamarine;">Honu Boards</MudText>
                         </MudPaper>
                     </MudItem>
@@ -76,7 +79,7 @@
                                 <MudGrid Class="d-flex flex-nowrap">
                                     <MudItem Class="align-content-center">
                                         <MudPaper Width="110px"
-                                        Style="background-color: lightcoral; margin-left: 10px;">
+                                                  Style="background-color: lightcoral; margin-left: 10px;">
                                             <MudText Align="Align.Center" Style="font-family: 'calibri condensed', 'bodoni MT condensed', 'bahnschrift light condensed';
                                                                                  font-size: small;
                                                                                  font-weight: bold;

@@ -23,7 +23,8 @@
 
     padding: 10px;
 
-    background: linear-gradient(
+    background: 
+        linear-gradient(
             140deg,
             rgba(202, 217, 229, .40),
             rgba(98, 147, 185, .40) 50%,

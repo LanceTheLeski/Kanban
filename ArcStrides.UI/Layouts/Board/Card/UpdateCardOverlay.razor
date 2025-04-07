@@ -15,11 +15,11 @@
 
 <ArcOverlay @bind-Open="Open"
             OnSubmitAsync="UpdateCardAsync">
-    <MudPaper Width="900px" Height="500px" Class="mud-background">
+    <MudPaper Width="1100px" Height="500px" Class="mud-background">
         <MudStack>
             <MudItem>
                 <MudGrid>
-                    <MudItem>
+                    <MudItem Style="width:350px">
                         <MudStack>
                             <MudItem>
                                 <MudGrid>
@@ -42,7 +42,7 @@
                             </MudItem>
                         </MudStack>
                     </MudItem>
-                    <MudItem>
+                    <MudItem Style="width:750px">
                         <MudTextField @bind-Value="ActiveCard.Description" 
                                       T="string" 
                                       Label="Description" 

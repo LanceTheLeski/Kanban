@@ -3,19 +3,49 @@
 
 @rendermode RenderMode.InteractiveServer
 
-<MudPaper Class="rounded-lg gap-0" Style="width: 120px; height: 200px; text-align: center; background-color: lightyellow; overflow:hidden; text-overflow:clip">
-    <MudStack Class="d-inline-flex flex-grow-1" AlignItems="AlignItems.Center" Spacing="0" Style="width:110px; height:200px">
-        <MudPaper Width="100%" MinHeight="160px;">
+<MudPaper Class="rounded-lg gap-0" 
+          Style="width: 120px; 
+                 height: 200px; 
+                 text-align: center; 
+                 background-color: lightyellow; 
+                 overflow:hidden; 
+                 text-overflow:clip">
+    <MudStack Class="d-inline-flex flex-grow-1" 
+              AlignItems="AlignItems.Center" 
+              Spacing="0" 
+              Style="width:120px; height:200px">
+        <MudPaper Width="100%" 
+                  MinHeight="160px;"
+                  Style="background-color: lightyellow;">
             <MudListItem T="string" OnClick="(() => OpenOverlay(Card))">
-
-                <MudText Style="height: 20px; max-width: 110px; text-overflow:clip; overflow:hidden;" Align="Align.Center">@Card.Title</MudText>
+                <MudText Style="height: 20px; 
+                                max-width: 120px; 
+                                font-weight: 600;
+                                font-size: x-small;
+                                text-overflow:clip; 
+                                overflow:hidden;" 
+                         Align="Align.Center">@Card.Title</MudText>
                 <br />
-                <MudText Style="height: 100px; max-width: 110px; text-overflow:clip;">@Card.Description</MudText>
+                <MudText Style="height: 100px; 
+                                max-width: 120px;
+                                font-size: x-small;
+                                text-overflow:clip;">@Card.Description</MudText>
 
             </MudListItem>
         </MudPaper>
         <MudPaper Width="100%">
-            <MudButton Style="max-height: 50px; width: 110px; " Size="Size.Small">Edit</MudButton>
+            <MudGrid>
+                <MudItem Style="max-height: 50px; width: 50px;">
+                    <MudButton Style="font-size: x-small;" 
+                               Variant="Variant.Text" 
+                               Size="Size.Small">Actions</MudButton>
+                </MudItem>
+                <MudItem Style="max-height: 50px; width: 50px;">
+                    <MudButton Style="font-size: x-small;" 
+                               Variant="Variant.Text" 
+                               Size="Size.Small">Remove</MudButton>
+                </MudItem>
+            </MudGrid>
         </MudPaper>
     </MudStack>
 </MudPaper>
