@@ -23,6 +23,7 @@ public class CalendarController : Controller
     private readonly ITaskRepository _taskRepository;
 
     private readonly DateMapper _dateMapper;
+    private readonly CardMapper _cardMapper;
     private readonly TaskMapper _taskMapper;
 
     public CalendarController (IDateRepository dateRepository,
@@ -30,6 +31,7 @@ public class CalendarController : Controller
                                ICardRepository cardRepository,
                                ITaskRepository taskRepository,
                                DateMapper dateMapper,
+                               CardMapper cardMapper,
                                TaskMapper taskMapper)
     {
         _dateRepository = dateRepository;
@@ -38,6 +40,7 @@ public class CalendarController : Controller
         _taskRepository = taskRepository;
 
         _dateMapper = dateMapper;
+        _cardMapper = cardMapper;
         _taskMapper = taskMapper;
     }
 
@@ -60,7 +63,11 @@ public class CalendarController : Controller
         var cardIDsForMonth = tagsForMonth.Select (tag => tag.RowKey.ToString ());
         var cardsForMonth = new List<Card> ();
         foreach (var cardID in cardIDsForMonth)
-            cardsForMonth.AddRange (await _cardRepository.QueryCardsAsync (card => card.PartitionKey == cardID));
+            cardsForMonth.AddRange (await _cardRepository.QueryCardsAsync (card => card.RowKey == cardID));
+
+        var cardPositionsForMonth = new List<CardPosition> ();
+        foreach (var card in cardsForMonth)
+            cardPositionsForMonth.AddRange (await _cardRepository.QueryCardPositionsAsync (cardPosition => cardPosition.RowKey == card.CardPositionID.ToString()));
 
         var dateList = new List<DateResponse> ();
         foreach (var date in dates)
@@ -68,30 +75,32 @@ public class CalendarController : Controller
             var tagIDsForDay = tagGroupsForMonth.Where (tagGroup => tagGroup.PartitionKey == date.CardTagGroupID.ToString ())
                                                 .Select (tagGroup => tagGroup.RowKey);
             var cardIDsForDay = tagsForMonth.Where ((Func<Tag, bool>) (tag => Enumerable.Contains<string> (tagIDsForDay, tag.PartitionKey)))
-                                           .Select <Tag, string> (tagGroup => tagGroup.RowKey);
-            var cardsForDay = cardsForMonth.Where (card => cardIDsForDay.Contains (card.PartitionKey));
+                                            .Select <Tag, string> (tagGroup => tagGroup.RowKey);
+            var cardsForDay = cardsForMonth.Where (card => cardIDsForDay.Contains (card.RowKey));
 
             var cards = new List<CardResponse> ();
             foreach (var card in cardsForDay) 
             {
-                var tasks = await _taskRepository.QueryTasksAsync (task => task.CardID.ToString () == card.RowKey);
-                var taskTypes = await _taskRepository.QueryTaskTypesAsync (taskType => taskType.PartitionKey == card.PartitionKey);
+                var tasks = await _taskRepository.QueryTasksAsync (task => task.CardID == Guid.Parse(card.RowKey));
+                //var taskTypes = await _taskRepository.QueryTaskTypesAsync (taskType => taskType.PartitionKey == card.PartitionKey);
 
                 var taskResponseList = new List<TaskResponse> ();
                 foreach (var task in tasks.ToList ())
                     taskResponseList.Add (new TaskResponse 
                     {
                         Title = task.Title,
-                        TaskType = _taskMapper.MapTaskTypeToTaskTypeResponse(taskTypes.FirstOrDefault (taskType => taskType.RowKey == task.TaskTypeID.Value.ToString ())),
+                        //TaskType = _taskMapper.MapTaskTypeToTaskTypeResponse(taskTypes.FirstOrDefault (taskType => taskType.RowKey == task.TaskTypeID.Value.ToString ())),
                         //TaskTypeTitle = "Placeholder!",
                         IsComplete = task.IsComplete
                     });
 
+                // Next line could be a problem line
+                var cardPosition = _cardMapper.MapCardPositionToCardPositionResponse (cardPositionsForMonth.SingleOrDefault (cardPosition => cardPosition.RowKey == card.CardPositionID.ToString ()));
                 cards.Add (new CardResponse
                 {
                     Title = card.Title,
                     Tasks = taskResponseList,
-                    //Position.BoardID = Guid.Empty
+                    Position = cardPosition
                 });
             }
             dateList.Add (new DateResponse

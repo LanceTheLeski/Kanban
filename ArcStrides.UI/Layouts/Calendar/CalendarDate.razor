@@ -5,78 +5,87 @@
 @using static ArcStrides.UI.Models.Calendar.Date
 
 <MudPaper Width="170px;" 
-          Height="170px">
+          Height="170px"
+          Class="glass"
+          Style="padding: 0;">
     <MudStack Spacing="0" 
-              Style="position: relative;">
+              Style="position: relative">
         <MudPaper Style="background-color: rgba(0, 0, 0, 0); 
-                         position:absolute; z-index: 1; 
+                         position:absolute; 
+                         z-index: 1; 
                          text-align: center; 
                          padding-left: 13px; 
-                         padding-top: 13px;" 
+                         padding-top: 13px;"
                   Elevation="0" 
+                  Square=true
                   Height="25px;">
-            <MudText Align="Align.Center" Style="color: white">@(Date.DateOrder.ToString())</MudText>
+            <MudText Align="Align.Center"
+                     Class="gold-text"
+                     Style="font: 'Modern No. 20';
+                            font-weight: bold">@(Date.DateOrder.ToString ())</MudText>
         </MudPaper>
         <MudGrid Style="height: 50px; 
-                        background-color:crimson; 
                         flex-direction: row;" 
-                 Spacing="0" 
-                 Justify="Justify.FlexStart">
+                    Spacing="0" 
+                    Justify="Justify.FlexStart">
             <MudItem Style="width: 40px;">
-                <MudPaper Style="background-color: sandybrown;" 
-                          Width="40px" 
-                          Elevation="0">
+                <MudPaper Width="40px" 
+                          Elevation="0"
+                          Square=true>
                     <MudChart ChartType="ChartType.Donut" 
                               Width="40px" 
                               Height="50px" 
                               InputData="@Date.DonutChartData"
                               InputLabels="@Date.Labels"
-                              ChartOptions="@options" 
-                              Style="background-color:#c4001e;"></MudChart>
+                              ChartOptions="@options"></MudChart>
                 </MudPaper>
             </MudItem>
-            <MudItem Style="width: 50px">
-                <MudPaper Elevation="0" 
-                          Style="background-color: olive" 
-                          Width="50px">
+            <MudItem Style="width: 50px;
+                            background-color: white">
+                <MudPaper Elevation="0"
+                          Square=true
+                          Width="50px"
+                          Style="background-color: white">
                     <MudChart ChartType="ChartType.Line" 
-                              Width="50px" 
-                              Height="50px" 
-                              XAxisLabels="@Date.xAxisLabels"
-                              ChartSeries="@Date.LineChartData"
-                              ChartOptions="@options" 
-                              Style="background-color:#6b052a"></MudChart>
+                                Width="50px" 
+                                Height="50px" 
+                                XAxisLabels="@Date.xAxisLabels"
+                                ChartSeries="@Date.LineChartData"
+                                ChartOptions="@options" 
+                                Style="background: linear-gradient(322deg,rgba(134, 164, 184, 1) 0%, rgba(227, 227, 227, 1) 100%);
+                                       border-style: outset;
+                                       border-radius: 3px;"></MudChart>
                 </MudPaper>
             </MudItem>
             <MudItem>
-                <MudStack Spacing="0">   
-                    <MudPaper Width="80px" Height="32px" Style="background-color: #c4001e;">
-                        <MudGrid Spacing="0" Style="width: 80px; height: 32px;">
+                <MudStack Spacing="0"
+                          Style="background-color: transparent">   
+                    <MudPaper Width="80px" Height="32px" Style="background-color: transparent">
+                        <MudGrid Spacing="0" Style="width: 80px; height: 32px; background-color: transparent;">
                             <MudItem Style="width: 40px; height: 20px;">
                                 <MudImage Width="30" Height="32" Fluid="true" ObjectFit="ObjectFit.ScaleDown" ObjectPosition="ObjectPosition.Center" Src="icons8-menu-vertical-50.png" Style="filter: y" />
                             </MudItem>
-                            <MudItem Style="width: 40px; height: 20px;">
+                            <MudItem Style="width: 40px; height: 20px; background-color: transparent;">
                                 <MudButton OnClick="(() => UpdateDateIsOpen())">
                                     <MudImage Width="30" Height="32" Fluid="true" ObjectFit="ObjectFit.ScaleDown" ObjectPosition="ObjectPosition.Center" Src="icons8-expand-50.png" />
                                 </MudButton>
                             </MudItem>
                         </MudGrid>
                     </MudPaper>
-                    <MudPaper Width="80px" Height="18px">
+                    <MudPaper Width="80px" Height="18px" Style="background-color: transparent">
                         <MudGrid Spacing="0" Style="height: 18px;
-                                                    background-color:khaki;
                                                     flex-direction: row;">
-                            <MudPaper Width="15px" Height="18px" Style="background-color:#780002" Square="true">
-                                <MudListItem T="string" OnClick="@(() => DateBodyIndex -= 1)" Gutters="false" Dense="false" Style="height: 18px;">
-                                    <MudImage Width="15" Height="18" Fluid="true" ObjectFit="ObjectFit.ScaleDown" Src="icons8-left-arrow-50.png" />
+                            <MudPaper Width="15px" Height="18px" Class="glass-inner-engraved" Square="true">
+                                <MudListItem T="string" OnClick="@(() => DateBodyIndex -= 1)" Gutters="false" Dense="false" Style="height: 18px; background-color: transparent">
+                                    <MudImage Width="15" Height="18" Fluid="true" ObjectFit="ObjectFit.ScaleDown" Src="icons8-left-arrow-50.png" Style="background-color: transparent" />
                                 </MudListItem>
                             </MudPaper>
-                            <MudPaper Width="50px" Height="18px" Style="background-color:green;" Square="true">
+                            <MudPaper Width="50px" Height="18px" Style="background-color: maroon;" Square="true">
                                 <MudListItem T="string" OnClick="@(() => Cycle = !Cycle)" Gutters="false" Dense="false" Style="height: 18px;">
                                     <MudText Align="Align.Center" Style="height: 18px; font-weight:600; font-family: 'Times New Roman', Times, serif; color: white;">ALL</MudText>
                                 </MudListItem>
                             </MudPaper>
-                            <MudPaper Width="15px" Height="18px" Style="background-color:#780002" Square="true">
+                            <MudPaper Width="15px" Height="18px" Class="glass-inner-engraved" Square="true">
                                 <MudListItem T="string" OnClick="@(() => DateBodyIndex += 1)" Gutters="false" Dense="false" Style="height: 18px;">
                                     <MudImage Width="15" Height="18" Fluid="true" ObjectFit="ObjectFit.ScaleDown" Src="icons8-right-arrow-50.png" />
                                 </MudListItem>
@@ -86,28 +95,36 @@
                 </MudStack>
             </MudItem>
         </MudGrid>
-        <MudCarousel TData="object" ShowArrows="false" ShowBullets="false" AutoCycle="@Cycle" SelectedIndex="@DateBodyIndex" Style="height: 120px;">
-            @if (Date.Cards is not null)
-            {
-                @foreach (var boardID in Date.Cards.Select (card => card.Position.BoardID).Distinct ())
+        <MudPaper Class="glass-frosted"
+                  Square=true>
+            <MudCarousel TData="object" 
+                         ShowArrows="false" 
+                         ShowBullets="false" 
+                         AutoCycle="@Cycle" 
+                         SelectedIndex="@DateBodyIndex"
+                         Style="height: 120px;">
+                @if (Date.Cards is not null)
                 {
-                    <MudCarouselItem Class="overflow-hidden overflow-y-scroll">
-                        @foreach (var card in Date.Cards.Where (card => card.Position.BoardID == boardID).Take (3).ToList ())
-                        {
-                            <MudPaper>
-                                <MudText Style="font-size: x-small">@card.Title</MudText>
-                                @foreach (var task in card.Tasks.Take (3).ToList ())
-                                {
-                                    <MudPaper Width="90%" Style="background-color: greenyellow;">
-                                        <MudText Style="font-size: small">@task.Title</MudText>
-                                    </MudPaper>
-                                }
-                            </MudPaper>
-                        }
-                    </MudCarouselItem>
+                    @foreach (var boardID in Date.Cards.Select (card => card.Position.BoardID).Distinct ())
+                    {
+                        <MudCarouselItem Class="overflow-hidden overflow-y-scroll">
+                            @foreach (var card in Date.Cards.Where (card => card.Position.BoardID == boardID).Take (3).ToList ())
+                            {
+                                <MudPaper>
+                                    <MudText Style="font-size: x-small">@card.Title</MudText>
+                                    @foreach (var task in card.Tasks.Take (3).ToList ())
+                                    {
+                                        <MudPaper Width="90%" Style="background-color: greenyellow;">
+                                            <MudText Style="font-size: small">@task.Title</MudText>
+                                        </MudPaper>
+                                    }
+                                </MudPaper>
+                            }
+                        </MudCarouselItem>
+                    }
                 }
-            }
-        </MudCarousel>
+            </MudCarousel>
+        </MudPaper>
     </MudStack>
 </MudPaper>
 
@@ -123,20 +140,20 @@
     [Parameter]
     public EventCallback<Date> DateChanged { get; set; }
 
+    private ChartOptions options = new ChartOptions ()
+    {
+        ShowLegend = false,
+        YAxisTicks = 2,
+        LineStrokeWidth = 18,
+        ChartPalette = ["gray", "black", "blue"]
+    };
+
     // Change this possibly to have the overlay injected or something and call the open method directly.
     private bool open = false;
     private void UpdateDateIsOpen()
     {
         open = true;
     }
-
-
-    private ChartOptions options = new ChartOptions
-    {
-        ShowLegend = false,
-        YAxisTicks = 7,
-        LineStrokeWidth = 10
-    };
 
     private bool Cycle = true;
     private int DateBodyIndex = 0;

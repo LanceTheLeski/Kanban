@@ -37,7 +37,7 @@ public partial class TagMapper
     /// <summary>
     /// <see cref="Tag"/> --> <see cref="TagResponse"/>
     /// </summary>
-    [MapProperty (nameof (Tag.TagID), nameof (TagResponse.ID))]
+    [MapProperty (nameof (Tag.PartitionKey), nameof (TagResponse.ID))]
     [MapProperty (nameof (Tag.RowKey), nameof (TagResponse.ParentID))]
     [MapProperty (nameof (Tag.ParentObjectTypeName), nameof (TagResponse.ParentTypeName))]
     [MapProperty (nameof (Tag.Title), nameof (TagResponse.Title))]

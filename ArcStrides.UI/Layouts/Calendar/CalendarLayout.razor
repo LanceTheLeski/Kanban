@@ -15,8 +15,8 @@
 
 @rendermode RenderMode.InteractiveServer
 
-<MudPaper Style="width: 100%; background-color: #2494E7">
-    <MudGrid Justify="Justify.Center" Spacing="0">
+<MudPaper Style="width: 100%; background-color: transparent">
+    <MudGrid Justify="Justify.Center" Spacing="0" Style="background-color: transparent">
         <MudItem Style="padding-left: 2px; padding-right: 2px">
             <MudPaper Width="170px;" Style="background-color: #2494E7; color:azure; text-align: center;">
                 Sunday
@@ -56,13 +56,13 @@
 
 
     <!--@dateFragment-->
-    <MudGrid Class="d-flex flex-column" Justify="Justify.Center" Spacing="0">
+    <MudGrid Justify="Justify.Center" Spacing="0" Style="background-color: transparent;">
         @foreach (var weekIndex in Enumerable.Range(0, _monthDates.Count () / 7))
         {
             <MudItem>
-                <MudPaper Outlined="true" Style="background-color: greenyellow" Height="100%">
+                <MudPaper Outlined="true" Height="100%" Style="background-color: transparent;">
 
-                    <MudGrid Justify="Justify.Center" Spacing="0" Style="background-color:#5d5880;">
+                    <MudGrid Justify="Justify.Center" Spacing="0">
                         <MudItem Style="padding-left: 2px; padding-right: 2px">
                             <CalendarDate @bind-Date="@(_monthDates [weekIndex * 7])" />
                         </MudItem>
@@ -97,13 +97,6 @@
 
 @code
 {
-    private ChartOptions options = new ChartOptions ()
-    {
-        ShowLegend = false,
-        YAxisTicks = 7,
-        LineStrokeWidth = 10
-    };
-
     private List<Date> _monthDates = new List<Date> ();
 
     protected override async Task OnInitializedAsync ()
@@ -122,8 +115,11 @@
             // Validation goes here to check for null. If there's a null then something terrible has happened with the data..
 
             monthDate = _dateMapper.MapDateResponseToDate (dateResponse);
-            monthDate.DonutChartData = CountBoardTypes (monthDate.Cards);
-            monthDate.LineChartData = GetBoardTypeData (monthDate.Cards);
+            monthDate.DonutChartData = [ 1.4, 3.7, 7.9, 4.9 ]; //CountBoardTypes (monthDate.Cards);
+            monthDate.LineChartData = [ new ChartSeries { Data = [0, 0, 5, 5, 5, 5, 10, 10] },
+                                        new ChartSeries { Data = [0, 0, 2, 2, 2, 2, 2, 2] },
+                                        new ChartSeries { Data = [0, 0, 1, 2, 4, 5, 6, 6] }];
+                                        //GetBoardTypeData (monthDate.Cards);
             monthDate.Labels = new string [] { };//todo..
             monthDate.xAxisLabels = new string [] { };//todo..
 

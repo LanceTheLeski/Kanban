@@ -5,11 +5,12 @@ namespace ArcStrides.API.Models;
 
 public class ArcTagsEntity : ITableEntity
 {
-    public Guid TagID { get; set => PartitionKey = TagID!.ToString (); }
-    public string? PartitionKey { get; set => TagID = Guid.Parse (PartitionKey!); }
+    /// <summary>
+    /// Tag ID
+    /// </summary>
+    public string? PartitionKey { get; set; }
 
-    public string EntityID { get; set => RowKey = EntityID!; }
-    public string? RowKey { get; set => TagID = Guid.Parse (RowKey!); }
+    public virtual string? RowKey { get; set; }
 
     public DateTimeOffset? Timestamp { get; set; } = default!;
 

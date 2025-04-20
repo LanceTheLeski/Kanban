@@ -5,6 +5,9 @@ namespace ArcStrides.API.Models.Tag;
 [ArcTableName ("Tags")]
 public class Tag : ArcTagsEntity
 {
+    /// <summary>
+    /// Parent Object ID.
+    /// </summary>
     public string RowKey { get; set; }
 
     public string ParentObjectTypeName { get; set; }
