@@ -8,11 +8,11 @@ public class Timeline : ArcBoardsEntity
     /// <summary>
     /// Timeline ID as Guid.
     /// </summary>
-    public override string RowKey { get; set; }
+    public override string? RowKey { get; set; }
 
-    public Guid ParentObjectID { get; set; }
+    public Guid? ParentObjectID { get; set; }
 
-    public int TimelineTypeID { get; set; }
+    public int? TimelineTypeID { get; set; }
 
     // Everything that needs to be done prior to start. Should probably link to a TAG GROUP GUID with children being Tasks. This deadline would obviously be the parent of the group.
     public Guid? StartDependencyTagGroupID { get; set; }

@@ -25,30 +25,36 @@ public class BoardController : Controller
     private readonly ISwimlaneRepository _swimlaneRepository;
     private readonly ICardRepository _cardRepository;
     private readonly ITaskRepository _taskRepository;
+    private readonly ITimelineRepository _timelineRepository;
 
     private readonly SwimlaneMapper _swimlaneMapper;
     private readonly ColumnMapper _columnMapper;
     private readonly CardMapper _cardMapper;
     private readonly TaskMapper _taskMapper;
+    private readonly TimelineMapper _timelineMapper;
 
     public BoardController (IColumnRepository columnRepository,
                             ISwimlaneRepository swimlaneRepository,
                             ICardRepository cardRepository,
                             ITaskRepository taskRepository,
+                            ITimelineRepository timelineRepository,
                             SwimlaneMapper swimlaneMapper,
                             ColumnMapper columnMapper,
                             CardMapper cardMapper,
-                            TaskMapper taskMapper)
+                            TaskMapper taskMapper,
+                            TimelineMapper timelineMapper)
     {
         _columnRepository = columnRepository;
         _swimlaneRepository = swimlaneRepository;
         _cardRepository = cardRepository;
         _taskRepository = taskRepository;
+        _timelineRepository = timelineRepository;
 
         _swimlaneMapper = swimlaneMapper;
         _columnMapper = columnMapper;
         _cardMapper = new CardMapper ();
         _taskMapper = taskMapper;
+        _timelineMapper = timelineMapper;
 
         _boardColumnEnumerableValidator = new BoardColumnEnumerableValidator (); 
         _boardSwimlaneEnumerableValidator = new BoardSwimlaneEnumerableValidator ();
@@ -90,6 +96,7 @@ public class BoardController : Controller
         }
 
         var taskTypeCollection = await _taskRepository.QueryTaskTypesAsync (taskType => true);
+        var timelineCollection = await _timelineRepository.QueryTimelinesAsync (timeline => true);
         var cardResponse = new Collection<CardResponse> ();
         foreach (var card in cardCollection)
         {
@@ -104,8 +111,11 @@ public class BoardController : Controller
             {
                 var cardTask = cardTasks.Single (task => Guid.Parse(task.RowKey!) == mappedTask.ID);
                 var taskType = taskTypeCollection.SingleOrDefault (taskType => int.Parse(taskType.RowKey) == cardTask.TaskTypeID);
-
                 mappedTask.TaskType = _taskMapper.MapTaskTypeToTaskTypeResponse (taskType);// Assumes TaskType is real
+
+                var taskTimeline = timelineCollection.SingleOrDefault (timeline => Guid.Parse (timeline.RowKey) == cardTask.TimelineID);
+                if (taskTimeline is not null)
+                    mappedTask.Timeline = _timelineMapper.MapTimelineToTimelineResponse (taskTimeline);
             }
 
             var mappedCard = _cardMapper.MapCardToCardResponse (card);

@@ -4,6 +4,7 @@
 @using ArcStrides.UI.Components.ArcOverlay
 @using ArcStrides.UI.Layouts.Board.Timeline
 @using ArcStrides.UI.Layouts.TagGroup.TaskType;
+@using ArcStrides.UI.Models.Board
 @using ArcStrides.UI.Repositories
 
 <!--This should ideally be a component one day..-->
@@ -32,7 +33,8 @@
                 </MudItem>
                 <MudItem>
                     <UpdateTimelinePanel BoardID="BoardID" 
-                                         @bind-Timeline="ActiveTask.Timeline" />
+                                         @bind-Timeline="ActiveTask.Timeline" 
+                                         @ref="updateTimelinePanel" />
                 </MudItem>
             </MudGrid>
 
@@ -48,6 +50,8 @@
                        Refresh="Refresh" /><!---This works now!!!! But I suspect it might be best to make it an edit screen where we can delete, update, and add TaskTypes--->
 
 @inject ITaskRepository _taskRepository;
+
+@inject ITimelineRepository _timelineRepository;
 
 @code
 {
@@ -78,32 +82,37 @@
 
     private string _initialTaskTitle = string.Empty;
     private int _initialTaskOrder = -1;
+    private Timeline? _initialTimeline = null;
     private bool? _initialIsCompleted = null;
 
     private List<string> _taskOrderRange = new List<string> ();
 
     private List<TaskTypeResponse> _taskTypes = new List<TaskTypeResponse> ();
-    private TaskTypeResponse _taskTypeToAssign = default;
+    private int _taskTypeIdToAssign = 0;
 
     //On page load. Not async to this layout class loading.
     protected override void OnInitialized ()
     {
         _initialTaskTitle = ActiveTask.Title!;
         _initialTaskOrder = ActiveTask.Order!.Value;
+        _initialTimeline = ActiveTask.Timeline;
         _initialIsCompleted = ActiveTask.IsCompleted;
+        _taskTypeIdToAssign = ActiveTask.TaskType.ID!.Value;
 
         _taskOrderRange = new List<string>();
         for (int index = 1; index <= TasksCount; index ++)
             _taskOrderRange.Add(index.ToString());
     }
 
-    protected async override Task OnAfterRenderAsync (bool firstRender)
+    protected async override System.Threading.Tasks.Task OnAfterRenderAsync (bool firstRender)
     {
         if (firstRender)
         {
             _taskTypes = await FetchTaskTypesAsync ();
         }
     }
+
+    private UpdateTimelinePanel updateTimelinePanel;
 
     private CreateTaskTypeOverlay createTaskTypeOverlay;
 }

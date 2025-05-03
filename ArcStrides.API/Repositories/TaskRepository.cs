@@ -45,7 +45,7 @@ public class TaskRepository : ITaskRepository
 
     public Func<Models.Board.Task, bool> BuildTaskQuery (IEnumerable<Guid> cardIDCollection)
     {
-        //This all seems odd. I feel like it'll fail but we'll see.
+        // This all seems odd. I feel like it'll fail but we'll see.
         Func<Models.Board.Task, bool> taskQuery = task => false;
 
         foreach (var cardID in cardIDCollection)

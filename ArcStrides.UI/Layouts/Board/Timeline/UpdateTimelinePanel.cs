@@ -23,6 +23,6 @@ public partial class UpdateTimelinePanel
     {
         var timelinePatchRequest = new Contracts.Request.Patch.TimelinePatchRequest ();
 
-        await _timelineRepository.UpdateTimelineAsync (BoardID.Value, Timeline.ID.Value, timelinePatchRequest);
+        //await _timelineRepository.UpdateTimelineAsync (BoardID.Value, Timeline.ID.Value, timelinePatchRequest);
     }
 }

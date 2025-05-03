@@ -68,13 +68,13 @@ public class TaskController : ArcController
             var taskCollection = await _taskRepository.QueryTasksAsync (task => taskQuery (task));
 
             // Need a way to wrap a list of responses.
-            var taskListReponse = new List<TaskResponse> ();
+            var taskReponseList = new List<TaskResponse> ();
             foreach (var task in taskCollection)
-                taskListReponse.Add (_taskMapper.MapTaskToTaskResponse (task));
+                taskReponseList.Add (_taskMapper.MapTaskToTaskResponse (task));
 
             //var t = await _taskRepository.QueryTaskTypesAsync (taskType => taskType.RowKey == );
 
-            return Ok (taskListReponse);
+            return Ok (taskReponseList);
         }
         catch (Exception ex)
             { return ArcErrorResponse (ex); }
@@ -97,7 +97,9 @@ public class TaskController : ArcController
             newTask.RowKey = Guid.NewGuid ().ToString ();
             newTask.CardID = cardID;
 
-            // We need to update all tasks for new positions
+            // We need to update all tasks for new positions.
+
+            // We need to add a new timeline and then assign the ID to the task.
 
             await _taskRepository.AddTaskAsync (newTask);
 

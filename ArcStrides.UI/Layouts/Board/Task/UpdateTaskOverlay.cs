@@ -16,11 +16,11 @@ public partial class UpdateTaskOverlay
             throw new Exception ($"The task type selected does not correspond to a single column in our list of columns. Number of this task type found: {matchingTaskTypes}");
         }
 
-        _taskTypeToAssign = matchingTaskTypes.Single ();
+        _taskTypeIdToAssign = matchingTaskTypes.Single ().ID!.Value;
     }
 
     private void SetTaskOrderOnTask (string taskOrder)
-        => ActiveTask.Order = int.Parse (taskOrder);
+        => ActiveTask!.Order = int.Parse (taskOrder) - 1;
 
     private async Task<List<TaskTypeResponse>> FetchTaskTypesAsync ()
         => await _taskRepository.FetchTaskTypesAsync (new List<int> { 0 });
@@ -29,14 +29,16 @@ public partial class UpdateTaskOverlay
     {
         var patchDocument = new JsonPatchDocument ();
 
-        if (ActiveTask.Title != _initialTaskTitle)
+        if (ActiveTask!.Title != _initialTaskTitle)
             patchDocument.Add (nameof (TaskPatchRequest.Title), ActiveTask.Title);
 
-        if (ActiveTask.TaskType?.ID != _taskTypeToAssign?.ID)
-            patchDocument.Add (nameof (TaskPatchRequest.TypeID), _taskTypeToAssign.ID);
+        if (ActiveTask.TaskType?.ID != _taskTypeIdToAssign)
+            patchDocument.Add (nameof (TaskPatchRequest.TypeID), _taskTypeIdToAssign);
 
         if (ActiveTask.Order != _initialTaskOrder)
             patchDocument.Add (nameof (TaskPatchRequest.Order), ActiveTask.Order);
+
+        await UpdateTimelineAsync (ActiveTask.Timeline);
 
         if (ActiveTask.IsCompleted != _initialIsCompleted)
             patchDocument.Add (nameof (TaskPatchRequest.IsComplete), ActiveTask.IsCompleted);
@@ -44,5 +46,43 @@ public partial class UpdateTaskOverlay
         await _taskRepository.UpdateTaskAsync (BoardID, CardID.Value, ActiveTask.ID!.Value, patchDocument);
 
         Refresh.InvokeAsync (true);
+    }
+
+    private async System.Threading.Tasks.Task UpdateTimelineAsync (Models.Board.Timeline? timelineToUpdate)
+    {
+        var patchDocument = new JsonPatchDocument ();
+
+        if (ActiveTask!.Timeline?.StartDependencyTagGroupID != _initialTimeline?.StartDependencyTagGroupID)
+        {
+            patchDocument.Add (nameof (TimelinePatchRequest.StartDependencyTagGroupID), _initialTimeline?.StartDependencyTagGroupID);
+        }
+
+        if (ActiveTask!.Timeline?.StartPreferenceUTC != updateTimelinePanel._dateRangePreferred.Start)
+        {
+            patchDocument.Add (nameof (TimelinePatchRequest.StartPreferenceUTC), updateTimelinePanel._dateRangePreferred.Start);
+        }
+
+        if (ActiveTask!.Timeline?.StartDeadlineUTC != updateTimelinePanel._dateRangeRequired.Start)
+        {
+            patchDocument.Add (nameof (TimelinePatchRequest.StartDeadlineUTC), updateTimelinePanel._dateRangeRequired.Start);
+        }
+
+        if (ActiveTask!.Timeline?.EndDependencyTagGroupID != _initialTimeline?.EndDependencyTagGroupID)
+        {
+            patchDocument.Add (nameof (TimelinePatchRequest.EndDependencyTagGroupID), _initialTimeline?.EndDependencyTagGroupID);
+        }
+
+        if (ActiveTask!.Timeline?.EndPreferenceUTC != updateTimelinePanel._dateRangePreferred.End)
+        {
+            patchDocument.Add (nameof (TimelinePatchRequest.EndPreferenceUTC), updateTimelinePanel._dateRangePreferred.End);
+        }
+
+        if (ActiveTask!.Timeline?.EndDeadlineUTC != updateTimelinePanel._dateRangeRequired.End)
+        {
+            patchDocument.Add (nameof (TimelinePatchRequest.EndDeadlineUTC), updateTimelinePanel._dateRangeRequired.End);
+        }
+
+        if (patchDocument.Operations.Count is not 0)
+            await _timelineRepository.UpdateTimelineAsync (BoardID, timelineToUpdate!.ID!.Value, patchDocument);
     }
 }

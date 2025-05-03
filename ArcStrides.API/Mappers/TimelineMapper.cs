@@ -6,9 +6,11 @@ using Riok.Mapperly.Abstractions;
 
 namespace ArcStrides.API.Mappers;
 
-[Mapper]
+[Mapper (AllowNullPropertyAssignment = false)]
 public partial class TimelineMapper
 {
+    public partial void MapFieldsFromSourceToTarget (Timeline source, Timeline target);
+
     /// <summary>
     /// <see cref="TimelineCreateRequest"/> --> <see cref="Timeline"/>
     /// </summary>

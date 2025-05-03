@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.JsonPatch.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using ArcStrides.API.Messages;
 using ArcStrides.API.Models.Board;
+using ArcStrides.API.Validators;
 
 namespace ArcStrides.API.Controllers;
 
@@ -23,15 +24,12 @@ public class TimelineController : Controller
 
     private readonly TimelineMapper _timelineMapper;
 
-    public TimelineController (IValidator<TimelineCreateRequest> timelineCreateRequestValidator,
-                               IValidator<JsonPatchDocument<TimelinePatchRequest>> timelinePatchRequestDocumentValidator,
-                               IValidator<TimelinePatchRequest> timelinePatchRequestValidator,
-                               ITimelineRepository timelineRepository,
+    public TimelineController (ITimelineRepository timelineRepository,
                                TimelineMapper timelineMapper)
     {
-        _timelineCreateRequestValidator = timelineCreateRequestValidator;
-        _timelinePatchRequestDocumentValidator = timelinePatchRequestDocumentValidator;
-        _timelinePatchRequestValidator = timelinePatchRequestValidator;
+        _timelineCreateRequestValidator = new TimelineValidators.TimelineCreateRequestValidator ();
+        _timelinePatchRequestDocumentValidator = new TimelineValidators.TimelinePatchRequestDocumentValidator ();
+        _timelinePatchRequestValidator = new TimelineValidators.TimelinePatchRequestValidator ();
 
         _timelineRepository = timelineRepository;
 
@@ -77,29 +75,41 @@ public class TimelineController : Controller
     [HttpPatch ("{timelineID:Guid}")]
     public async Task<ActionResult> UpdateTimeline ([FromRoute] Guid boardID, 
                                                     [FromRoute] Guid timelineID,
-                                                    [FromBody] JsonPatchDocument<TimelinePatchRequest> timelinePatchRequest)
+                                                    [FromBody] JsonPatchDocument<TimelinePatchRequest> timelinePatchRequestDocument)
     {
-        var validationResult = _timelinePatchRequestDocumentValidator.Validate (timelinePatchRequest);
+        var validationResult = _timelinePatchRequestDocumentValidator.Validate (timelinePatchRequestDocument);
         if (validationResult.IsValid is false)
             return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TagPatchRequest), validationResult.ToString ()));
 
-        var timelineToUpdateCollection = await _timelineRepository.QueryTimelinesAsync (timeline => timeline.PartitionKey == timelineID.ToString ());
+        var timelineToUpdateCollection = await _timelineRepository.QueryTimelinesAsync (timeline => timeline.RowKey == timelineID.ToString ());
         if (timelineToUpdateCollection is null || timelineToUpdateCollection.Count () is 0)
             return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Timeline)));
         if (timelineToUpdateCollection.Count is not 1)
             return Problem (ErrorResponseMessages.TooManyEntitiesErrorResponse (nameof (Timeline)));
 
         var timelineToUpdate = timelineToUpdateCollection.Single ();
-        var convertedTimelineToUpdate = _timelineMapper.MapTimelineToTimelinePatchRequest (timelineToUpdate);
-        try { timelinePatchRequest.ApplyTo (convertedTimelineToUpdate); }
+        var timelinePatchRequest = _timelineMapper.MapTimelineToTimelinePatchRequest (timelineToUpdate);
+        try { timelinePatchRequestDocument.ApplyTo (timelinePatchRequest); }
         catch (JsonPatchException jsonPatchEx)
-        { return BadRequest (ErrorResponseMessages.PatchRequestIsInvalidErrorResponse (nameof (Timeline)) + "\nDetails:\n" + jsonPatchEx.Message); }
+            { return BadRequest (ErrorResponseMessages.PatchRequestIsInvalidErrorResponse (nameof (Timeline)) + "\nDetails:\n" + jsonPatchEx.Message); }
 
-        validationResult = _timelinePatchRequestValidator.Validate (convertedTimelineToUpdate);
+        validationResult = _timelinePatchRequestValidator.Validate (timelinePatchRequest);
         if (validationResult.IsValid is false)
             return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TagPatchRequest), validationResult.ToString ()));
 
-        timelineToUpdate = _timelineMapper.MapTimelinePatchRequestToTimeline (convertedTimelineToUpdate); // Make sure that the response object is preserved if not mapped to
+        var convertedTimelineToUpdate = _timelineMapper.MapTimelinePatchRequestToTimeline (timelinePatchRequest); // Make sure that the response object is preserved if not mapped to
+        _timelineMapper.MapFieldsFromSourceToTarget (convertedTimelineToUpdate, timelineToUpdate);
+
+        // Error is thrown otherwise..
+        if (timelineToUpdate.StartPreferenceUTC.HasValue)
+            timelineToUpdate.StartPreferenceUTC = DateTime.SpecifyKind (timelineToUpdate.StartPreferenceUTC.Value, DateTimeKind.Utc);
+        if (timelineToUpdate.StartDeadlineUTC.HasValue)
+            timelineToUpdate.StartDeadlineUTC = DateTime.SpecifyKind (timelineToUpdate.StartDeadlineUTC.Value, DateTimeKind.Utc);
+        if (timelineToUpdate.EndPreferenceUTC.HasValue)
+            timelineToUpdate.EndPreferenceUTC = DateTime.SpecifyKind (timelineToUpdate.EndPreferenceUTC.Value, DateTimeKind.Utc);
+        if (timelineToUpdate.EndDeadlineUTC.HasValue)
+            timelineToUpdate.EndDeadlineUTC = DateTime.SpecifyKind (timelineToUpdate.EndDeadlineUTC.Value, DateTimeKind.Utc);
+
         await _timelineRepository.UpdateTimelineAsync (timelineToUpdate);
         /*if (databaseResponse.IsError)
             return Problem (ErrorResponseMessages.UpdateInDatabaseErrorResponse (nameof (Timeline), databaseResponse.Status));*/

@@ -37,17 +37,27 @@
     [Parameter]
     public EventCallback<Models.Board.Timeline> TimelineChanged { get; set; }
 
-    private DateRange _dateRangePreferred = new DateRange();
-    private TimeSpan? _timePreferredStart = new TimeSpan();
-    private TimeSpan? _timePreferredEnd = new TimeSpan();
+    public DateRange _dateRangePreferred = new DateRange();
+    public TimeSpan? _timePreferredStart = new TimeSpan();
+    public TimeSpan? _timePreferredEnd = new TimeSpan();
 
-    private DateRange _dateRangeRequired = new DateRange();
-    private TimeSpan? _timeRequiredStart = new TimeSpan();
-    private TimeSpan? _timeRequiredEnd = new TimeSpan();
+    public DateRange _dateRangeRequired = new DateRange();
+    public TimeSpan? _timeRequiredStart = new TimeSpan();
+    public TimeSpan? _timeRequiredEnd = new TimeSpan();
 
     protected override void OnInitialized()
     {
-        _timelineFragment = _deadlineRenderFragment();
+        if (Timeline is null || isDeadline() is true)
+            _timelineFragment = _deadlineRenderFragment();
+        else
+            _timelineFragment = _timelineRenderFragment();
+
+        _dateRangePreferred.Start = Timeline?.StartPreferenceUTC;
+        //_timePreferredStart = Timeline.StartPreferenceUTC.Value.; //todo..
+        _dateRangePreferred.End = Timeline?.EndPreferenceUTC;
+
+        _dateRangeRequired.Start = Timeline?.StartDeadlineUTC;
+        _dateRangeRequired.End = Timeline?.EndDeadlineUTC;
     }
 
     private RenderFragment _timelineFragment;
@@ -109,5 +119,14 @@
                                @bind-Time="_timeRequiredEnd" />
             </MudPaper>
         };
+    }
+
+    private bool isDeadline ()
+    {
+        return Timeline.StartDependencyTagGroupID is not null
+               || Timeline.StartDeadlineUTC is not null
+               || Timeline.StartDeadlineUTC is not null
+               || Timeline.EndDependencyTagGroupID is not null
+               || Timeline.EndPreferenceUTC is not null;
     }
 }

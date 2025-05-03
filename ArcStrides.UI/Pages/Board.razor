@@ -162,5 +162,11 @@
         _boardID = _board.ID!.Value;
 
         _cards = ConvertBoardResponseToDropCardList(_board);
+
+        foreach (var card in _cards)
+        {
+            card.Tasks = card.Tasks.OrderBy(t => t.Order)
+                                   .ToList();
+        }
     }
 }

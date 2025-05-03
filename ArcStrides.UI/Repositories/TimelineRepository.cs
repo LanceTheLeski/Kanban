@@ -1,7 +1,7 @@
 ﻿using ArcStrides.Contracts.Request.Create;
-using ArcStrides.Contracts.Request.Patch;
 using ArcStrides.Contracts.Response;
 using ArcStrides.UI.Services;
+using Microsoft.AspNetCore.JsonPatch;
 using Newtonsoft.Json;
 
 namespace ArcStrides.UI.Repositories;
@@ -18,6 +18,6 @@ public class TimelineRepository : ITimelineRepository
     public async Task<TimelineResponse?> CreateTimelineAsync (Guid boardID, TimelineCreateRequest timelineCreateRequest)
         => await _arcStridesTimelineBackend.CreateEntityAsync ($"arcstrides/boards/{boardID}/timelines", JsonConvert.SerializeObject (timelineCreateRequest));
 
-    public async Task<TimelineResponse?> UpdateTimelineAsync (Guid boardID, Guid timelineID, TimelinePatchRequest timelinePatchRequest)
-        => await _arcStridesTimelineBackend.UpdateEntityAsync ($"arcstrides/boards/{boardID}/timelines/{timelineID}", JsonConvert.SerializeObject (timelinePatchRequest));
+    public async Task<TimelineResponse?> UpdateTimelineAsync (Guid boardID, Guid timelineID, JsonPatchDocument timelinePatchRequestDocument)
+        => await _arcStridesTimelineBackend.UpdateEntityAsync ($"arcstrides/boards/{boardID}/timelines/{timelineID}", JsonConvert.SerializeObject (timelinePatchRequestDocument));
 }

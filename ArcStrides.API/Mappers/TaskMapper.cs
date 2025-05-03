@@ -59,7 +59,7 @@ public partial class TaskMapper
     [MapProperty (nameof (Models.Board.Task.Title), nameof (TaskResponse.Title))]
     [MapProperty (nameof (Models.Board.Task.TaskOrder), nameof (TaskResponse.Order))]
     [MapProperty (nameof (Models.Board.Task.IsComplete), nameof (TaskResponse.IsComplete))]
-    public partial TaskResponse MapTaskToTaskResponse (Models.Board.Task task, TaskType taskType);
+    public partial TaskResponse MapTaskTypeToTask (Models.Board.Task task, TaskType taskType);
 
     #region Task Type
 

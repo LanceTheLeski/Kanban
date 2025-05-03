@@ -12,5 +12,7 @@ public class TaskResponse
 
     public int? Order { get; set; } = null;
 
+    public TimelineResponse? Timeline { get; set; } = new TimelineResponse ();
+
     public bool? IsComplete { get; init; } = null;
 }
