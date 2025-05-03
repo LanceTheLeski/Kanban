@@ -1,5 +1,6 @@
 ﻿using ArcStrides.Contracts.Request.Patch;
 using ArcStrides.Contracts.Response;
+using ArcStrides.UI.Layouts.Board.Timeline;
 using Microsoft.AspNetCore.JsonPatch;
 
 namespace ArcStrides.UI.Layouts.Board.Task;
@@ -61,10 +62,20 @@ public partial class UpdateTaskOverlay
         {
             patchDocument.Add (nameof (TimelinePatchRequest.StartPreferenceUTC), updateTimelinePanel._dateRangePreferred.Start);
         }
+        if (ActiveTask!.Timeline?.StartPreferenceUTC?.TimeOfDay != updateTimelinePanel._timePreferredStart)
+        {
+            var dayWithUpdatedTime = new DateTime ((long) ActiveTask!.Timeline?.StartDeadlineUTC.Value.Date.Ticks + updateTimelinePanel._timePreferredStart.Value.Ticks);
+            patchDocument.Add (nameof (TimelinePatchRequest.StartPreferenceUTC), dayWithUpdatedTime);
+        }
 
         if (ActiveTask!.Timeline?.StartDeadlineUTC != updateTimelinePanel._dateRangeRequired.Start)
         {
             patchDocument.Add (nameof (TimelinePatchRequest.StartDeadlineUTC), updateTimelinePanel._dateRangeRequired.Start);
+        }
+        if (ActiveTask!.Timeline?.StartDeadlineUTC?.TimeOfDay != updateTimelinePanel._timeRequiredStart)
+        {
+            var dayWithUpdatedTime = new DateTime ((long) ActiveTask!.Timeline?.StartDeadlineUTC.Value.Date.Ticks + updateTimelinePanel._timeRequiredStart.Value.Ticks);
+            patchDocument.Add (nameof (TimelinePatchRequest.StartDeadlineUTC), dayWithUpdatedTime);
         }
 
         if (ActiveTask!.Timeline?.EndDependencyTagGroupID != _initialTimeline?.EndDependencyTagGroupID)
@@ -76,10 +87,20 @@ public partial class UpdateTaskOverlay
         {
             patchDocument.Add (nameof (TimelinePatchRequest.EndPreferenceUTC), updateTimelinePanel._dateRangePreferred.End);
         }
+        if (ActiveTask!.Timeline?.EndPreferenceUTC?.TimeOfDay != updateTimelinePanel._timePreferredEnd)
+        {
+            var dayWithUpdatedTime = new DateTime ((long) ActiveTask!.Timeline?.EndPreferenceUTC.Value.Date.Ticks + updateTimelinePanel._timePreferredEnd.Value.Ticks);
+            patchDocument.Add (nameof (TimelinePatchRequest.EndPreferenceUTC), dayWithUpdatedTime);
+        }
 
         if (ActiveTask!.Timeline?.EndDeadlineUTC != updateTimelinePanel._dateRangeRequired.End)
         {
             patchDocument.Add (nameof (TimelinePatchRequest.EndDeadlineUTC), updateTimelinePanel._dateRangeRequired.End);
+        }
+        if (ActiveTask!.Timeline?.EndDeadlineUTC?.TimeOfDay != updateTimelinePanel._timeRequiredEnd)
+        {
+            var dayWithUpdatedTime = new DateTime ((long) ActiveTask!.Timeline?.EndDeadlineUTC.Value.Date.Ticks + updateTimelinePanel._timeRequiredEnd.Value.Ticks);
+            patchDocument.Add (nameof (TimelinePatchRequest.EndDeadlineUTC), dayWithUpdatedTime);
         }
 
         if (patchDocument.Operations.Count is not 0)

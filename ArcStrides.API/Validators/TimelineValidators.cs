@@ -46,11 +46,12 @@ public class TimelineValidators
     {
         public TimelinePatchRequestValidator ()
         {
-            RuleFor (timelinePatchRequest => timelinePatchRequest)
-                .Must (HaveValidStartTimeSequence);
+            //RuleFor (timelinePatchRequest => timelinePatchRequest)
+                //.Must (HaveValidStartTimeSequence);
         }
 
-        private bool HaveValidStartTimeSequence (TimelinePatchRequest timelinePatchRequest)
+        //Something is wrong here. Re-analyze this.
+        /*private bool HaveValidStartTimeSequence (TimelinePatchRequest timelinePatchRequest)
         {
             if (timelinePatchRequest.StartPreferenceUTC > timelinePatchRequest.StartDeadlineUTC
                 || timelinePatchRequest.StartPreferenceUTC > timelinePatchRequest.EndPreferenceUTC
@@ -63,6 +64,6 @@ public class TimelineValidators
                 return false;
 
             return true;
-        }
+        }*/
     }
 }

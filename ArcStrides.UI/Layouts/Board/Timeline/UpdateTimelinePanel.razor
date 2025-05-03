@@ -53,11 +53,17 @@
             _timelineFragment = _timelineRenderFragment();
 
         _dateRangePreferred.Start = Timeline?.StartPreferenceUTC;
-        //_timePreferredStart = Timeline.StartPreferenceUTC.Value.; //todo..
+        _timePreferredStart = Timeline.StartPreferenceUTC.Value.TimeOfDay;
+        
         _dateRangePreferred.End = Timeline?.EndPreferenceUTC;
+        _timePreferredEnd = Timeline.EndPreferenceUTC.Value.TimeOfDay;
 
         _dateRangeRequired.Start = Timeline?.StartDeadlineUTC;
+        _timeRequiredStart = Timeline.StartDeadlineUTC.Value.TimeOfDay;
+
         _dateRangeRequired.End = Timeline?.EndDeadlineUTC;
+        _timeRequiredEnd = Timeline.EndDeadlineUTC.Value.TimeOfDay;
+
     }
 
     private RenderFragment _timelineFragment;
