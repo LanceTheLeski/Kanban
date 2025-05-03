@@ -59,29 +59,29 @@
     <MudGrid Justify="Justify.Center" Spacing="0" Style="background-color: transparent;">
         @foreach (var weekIndex in Enumerable.Range(0, _monthDates.Count () / 7))
         {
-            <MudItem>
-                <MudPaper Outlined="true" Height="100%" Style="background-color: transparent;">
+            <MudItem Style="height: 170px;">
+                <MudPaper Outlined="true" Height="170px" Style="background-color: transparent;">
 
                     <MudGrid Justify="Justify.Center" Spacing="0">
-                        <MudItem Style="padding-left: 2px; padding-right: 2px">
+                        <MudItem Style="padding-left: 2px; padding-right: 2px; height: 170px;">
                             <CalendarDate @bind-Date="@(_monthDates [weekIndex * 7])" />
                         </MudItem>
-                        <MudItem Style="padding-left: 2px; padding-right: 2px">
+                        <MudItem Style="padding-left: 2px; padding-right: 2px; height: 170px;">
                             <CalendarDate @bind-Date="@(_monthDates [weekIndex * 7 + 1])" />
                         </MudItem>
-                        <MudItem Style="padding-left: 2px; padding-right: 2px">
+                        <MudItem Style="padding-left: 2px; padding-right: 2px; height: 170px;">
                             <CalendarDate @bind-Date="@(_monthDates [weekIndex * 7 + 2])" />
                         </MudItem>
-                        <MudItem Style="padding-left: 2px; padding-right: 2px">
+                        <MudItem Style="padding-left: 2px; padding-right: 2px; height: 170px;">
                             <CalendarDate @bind-Date="@(_monthDates [weekIndex * 7 + 3])" />
                         </MudItem>
-                        <MudItem Style="padding-left: 2px; padding-right: 2px">
+                        <MudItem Style="padding-left: 2px; padding-right: 2px; height: 170px;">
                             <CalendarDate @bind-Date="@(_monthDates [weekIndex * 7 + 4])" />
                         </MudItem>
-                        <MudItem Style="padding-left: 2px; padding-right: 2px">
+                        <MudItem Style="padding-left: 2px; padding-right: 2px; height: 170px;">
                             <CalendarDate @bind-Date="@(_monthDates [weekIndex * 7 + 5])" />
                         </MudItem>
-                        <MudItem Style="padding-left: 2px; padding-right: 2px">
+                        <MudItem Style="padding-left: 2px; padding-right: 2px; height: 170px;">
                             <CalendarDate @bind-Date="@(_monthDates [weekIndex * 7 + 6])" />
                         </MudItem>
                     </MudGrid>

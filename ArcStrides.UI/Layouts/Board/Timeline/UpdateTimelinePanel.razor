@@ -2,13 +2,28 @@
 
 @inherits LayoutComponentBase
 
-<MudButton OnClick="@(() => TimelineFragmentChanged (false))">
-    Deadline
-</MudButton>
-<MudButton OnClick="@(() => TimelineFragmentChanged (true))">
-    Timeline
-</MudButton>
-@_timelineFragment
+<MudGrid>
+    <MudItem>
+        <MudStack>
+            <MudItem Style="background-color: lightgoldenrodyellow">
+                <MudButton Size="Size.Small" 
+                           OnClick="@(() => TimelineFragmentChanged (false))">
+                    Deadline
+                </MudButton>
+            </MudItem>
+            <MudItem Style="background-color: aquamarine">
+                <MudButton Size="Size.Small" 
+                           OnClick="@(() => TimelineFragmentChanged (true))">
+                    Timeline
+                </MudButton>
+            </MudItem>
+        </MudStack>
+    </MudItem>
+
+    <MudItem>
+        @_timelineFragment
+    </MudItem>
+</MudGrid>
 
 @inject ITimelineRepository _timelineRepository;
 
@@ -40,14 +55,40 @@
     {
         return __builder =>
         {
-            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
-                <MudDateRangePicker Label="Preferrd" Editable="true" @bind-DateRange="_dateRangePreferred" />
-                <MudTimePicker Label="Preferred Start" Editable="true" AmPm="true" AnchorOrigin="Origin.CenterLeft" TransformOrigin="Origin.CenterRight" @bind-Time="_timePreferredStart" />
-                <MudTimePicker Label="Preferred End" Editable="true" AmPm="true" @bind-Time="_timePreferredEnd" />
-
-                <MudDateRangePicker Label="Deadlines" Editable="true" @bind-DateRange="_dateRangeRequired" />
-                <MudTimePicker Label="Required Start" Editable="true" AmPm="true" @bind-Time="_timeRequiredStart" />
-                <MudTimePicker Label="Required End" Editable="true" AmPm="true" @bind-Time="_timeRequiredEnd" />
+            <MudPaper Class="d-flex flex-column" 
+                      Style="width: 460px; 
+                             height: 120px;
+                             background-color: aquamarine;">
+                <MudPaper Class="d-flex flex-row"
+                          Style="background-color: aquamarine">
+                    <MudDateRangePicker Label="Preferrd" 
+                                        Editable="true"
+                                        @bind-DateRange="_dateRangePreferred" />    
+                    <MudTimePicker Label="Preferred Start" 
+                                   Editable="true" 
+                                   AmPm="true" 
+                                   AnchorOrigin="Origin.CenterLeft" 
+                                   TransformOrigin="Origin.CenterRight"
+                                   @bind-Time="_timePreferredStart" />
+                    <MudTimePicker Label="Preferred End" 
+                                   Editable="true" 
+                                   AmPm="true"
+                                   @bind-Time="_timePreferredEnd" />
+                </MudPaper>
+                <MudPaper Class="d-flex flex-row"
+                          Style="background-color: aquamarine">
+                    <MudDateRangePicker Label="Deadlines" 
+                                        Editable="true" 
+                                        @bind-DateRange="_dateRangeRequired"/>                     
+                    <MudTimePicker Label="Required Start" 
+                                   Editable="true" 
+                                   AmPm="true" 
+                                   @bind-Time="_timeRequiredStart" />                   
+                    <MudTimePicker Label="Required End" 
+                                   Editable="true" 
+                                   AmPm="true" 
+                                   @bind-Time="_timeRequiredEnd" />
+                </MudPaper>
             </MudPaper>
         };
     }
@@ -55,9 +96,17 @@
     {
         return __builder =>
         {
-            <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
-                <MudDatePicker Label="EndDate" Editable="false" @bind-Date="_dateRangeRequired.End" />
-                <MudTimePicker Label="Required End" Editable="true" AmPm="true" @bind-Time="_timeRequiredEnd" />
+            <MudPaper Class="d-inline-flex flex-grow-1" 
+                      Style="width: 460px; 
+                             height: 120px;
+                             background-color: lightgoldenrodyellow;">
+                <MudDatePicker Label="EndDate" 
+                               Editable="false" 
+                               @bind-Date="_dateRangeRequired.End" />
+                <MudTimePicker Label="Required End" 
+                               Editable="true" 
+                               AmPm="true" 
+                               @bind-Time="_timeRequiredEnd" />
             </MudPaper>
         };
     }

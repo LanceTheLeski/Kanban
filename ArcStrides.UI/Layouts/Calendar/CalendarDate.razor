@@ -4,7 +4,7 @@
 
 @using static ArcStrides.UI.Models.Calendar.Date
 
-<MudPaper Width="170px;" 
+<MudPaper Width="170px" 
           Height="170px"
           Class="glass"
           Style="padding: 0;">
@@ -20,8 +20,8 @@
                   Square=true
                   Height="25px;">
             <MudText Align="Align.Center"
-                     Class="gold-text"
-                     Style="font: 'Modern No. 20';
+                     Style="font-family: 'Modern No. 20';
+                            color: black;
                             font-weight: bold">@(Date.DateOrder.ToString ())</MudText>
         </MudPaper>
         <MudGrid Style="height: 50px; 
@@ -52,7 +52,9 @@
                                 XAxisLabels="@Date.xAxisLabels"
                                 ChartSeries="@Date.LineChartData"
                                 ChartOptions="@options" 
-                                Style="background: linear-gradient(322deg,rgba(134, 164, 184, 1) 0%, rgba(227, 227, 227, 1) 100%);
+                                Style="background: linear-gradient(322deg,
+                                                                   rgba(134, 164, 184, 1) 0%, 
+                                                                   rgba(227, 227, 227, 1) 100%);
                                        border-style: outset;
                                        border-radius: 3px;"></MudChart>
                 </MudPaper>
@@ -102,7 +104,7 @@
                          ShowBullets="false" 
                          AutoCycle="@Cycle" 
                          SelectedIndex="@DateBodyIndex"
-                         Style="height: 120px;">
+                         Style="height: 100px;">
                 @if (Date.Cards is not null)
                 {
                     @foreach (var boardID in Date.Cards.Select (card => card.Position.BoardID).Distinct ())
@@ -110,11 +112,15 @@
                         <MudCarouselItem Class="overflow-hidden overflow-y-scroll">
                             @foreach (var card in Date.Cards.Where (card => card.Position.BoardID == boardID).Take (3).ToList ())
                             {
-                                <MudPaper>
+                                <MudPaper Width="100%"
+                                          Style="background-color: #0F83DB;
+                                                 margin-bottom: 2px;">
                                     <MudText Style="font-size: x-small">@card.Title</MudText>
                                     @foreach (var task in card.Tasks.Take (3).ToList ())
                                     {
-                                        <MudPaper Width="90%" Style="background-color: greenyellow;">
+                                        <MudPaper Width="95%" Style="background-color: sandybrown; 
+                                                                     justify-self: center;
+                                                                     margin-bottom: 2px;">
                                             <MudText Style="font-size: small">@task.Title</MudText>
                                         </MudPaper>
                                     }
