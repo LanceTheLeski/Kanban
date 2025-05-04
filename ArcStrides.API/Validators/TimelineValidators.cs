@@ -21,7 +21,7 @@ public class TimelineValidators
                 || timelineCreateRequest.StartPreferenceUTC > timelineCreateRequest.EndPreferenceUTC
                 || timelineCreateRequest.StartPreferenceUTC > timelineCreateRequest.EndDeadlineUTC
 
-                || timelineCreateRequest.StartDeadlineUTC > timelineCreateRequest.EndPreferenceUTC
+                //|| timelineCreateRequest.StartDeadlineUTC > timelineCreateRequest.EndPreferenceUTC
                 || timelineCreateRequest.StartDeadlineUTC > timelineCreateRequest.EndDeadlineUTC
 
                 || timelineCreateRequest.EndPreferenceUTC > timelineCreateRequest.EndDeadlineUTC)
@@ -46,24 +46,24 @@ public class TimelineValidators
     {
         public TimelinePatchRequestValidator ()
         {
-            //RuleFor (timelinePatchRequest => timelinePatchRequest)
-                //.Must (HaveValidStartTimeSequence);
+            RuleFor (timelinePatchRequest => timelinePatchRequest)
+                .Must (HaveValidStartTimeSequence);
         }
 
         //Something is wrong here. Re-analyze this.
-        /*private bool HaveValidStartTimeSequence (TimelinePatchRequest timelinePatchRequest)
+        private bool HaveValidStartTimeSequence (TimelinePatchRequest timelinePatchRequest)
         {
             if (timelinePatchRequest.StartPreferenceUTC > timelinePatchRequest.StartDeadlineUTC
                 || timelinePatchRequest.StartPreferenceUTC > timelinePatchRequest.EndPreferenceUTC
                 || timelinePatchRequest.StartPreferenceUTC > timelinePatchRequest.EndDeadlineUTC
 
-                || timelinePatchRequest.StartDeadlineUTC > timelinePatchRequest.EndPreferenceUTC
+                //|| timelinePatchRequest.StartDeadlineUTC > timelinePatchRequest.EndPreferenceUTC
                 || timelinePatchRequest.StartDeadlineUTC > timelinePatchRequest.EndDeadlineUTC
 
                 || timelinePatchRequest.EndPreferenceUTC > timelinePatchRequest.EndDeadlineUTC)
                 return false;
 
             return true;
-        }*/
+        }
     }
 }

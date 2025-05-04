@@ -62,7 +62,9 @@ public class TimelineController : Controller
             return BadRequest (ErrorResponseMessages.NotFoundErrorResponse ("Parent"));
 
         var newTimeline = _timelineMapper.MapTimelineCreateRequestToTimeline (timelineCreateRequest);
-        newTimeline.PartitionKey = Guid.NewGuid ().ToString ();
+        newTimeline.PartitionKey = boardID.ToString();
+        newTimeline.RowKey = Guid.NewGuid ().ToString ();
+        newTimeline = TimelineSpecifyKind (newTimeline);
 
         await _timelineRepository.AddTimelineAsync (newTimeline);
         /*if (databaseResponse.IsError)
@@ -100,15 +102,7 @@ public class TimelineController : Controller
         var convertedTimelineToUpdate = _timelineMapper.MapTimelinePatchRequestToTimeline (timelinePatchRequest); // Make sure that the response object is preserved if not mapped to
         _timelineMapper.MapFieldsFromSourceToTarget (convertedTimelineToUpdate, timelineToUpdate);
 
-        // Error is thrown otherwise..
-        if (timelineToUpdate.StartPreferenceUTC.HasValue)
-            timelineToUpdate.StartPreferenceUTC = DateTime.SpecifyKind (timelineToUpdate.StartPreferenceUTC.Value, DateTimeKind.Utc);
-        if (timelineToUpdate.StartDeadlineUTC.HasValue)
-            timelineToUpdate.StartDeadlineUTC = DateTime.SpecifyKind (timelineToUpdate.StartDeadlineUTC.Value, DateTimeKind.Utc);
-        if (timelineToUpdate.EndPreferenceUTC.HasValue)
-            timelineToUpdate.EndPreferenceUTC = DateTime.SpecifyKind (timelineToUpdate.EndPreferenceUTC.Value, DateTimeKind.Utc);
-        if (timelineToUpdate.EndDeadlineUTC.HasValue)
-            timelineToUpdate.EndDeadlineUTC = DateTime.SpecifyKind (timelineToUpdate.EndDeadlineUTC.Value, DateTimeKind.Utc);
+        timelineToUpdate = TimelineSpecifyKind (timelineToUpdate);
 
         await _timelineRepository.UpdateTimelineAsync (timelineToUpdate);
         /*if (databaseResponse.IsError)
@@ -127,5 +121,18 @@ public class TimelineController : Controller
         await _timelineRepository.DeleteTimelineAsync (timelineFromDatabase);
 
         return Ok ();
+    }
+
+    private Timeline TimelineSpecifyKind (Timeline timeline)
+    {
+        if (timeline.StartPreferenceUTC.HasValue)
+            timeline.StartPreferenceUTC = DateTime.SpecifyKind (timeline.StartPreferenceUTC.Value, DateTimeKind.Utc);
+        if (timeline.StartDeadlineUTC.HasValue)
+            timeline.StartDeadlineUTC = DateTime.SpecifyKind (timeline.StartDeadlineUTC.Value, DateTimeKind.Utc);
+        if (timeline.EndPreferenceUTC.HasValue)
+            timeline.EndPreferenceUTC = DateTime.SpecifyKind (timeline.EndPreferenceUTC.Value, DateTimeKind.Utc);
+        if (timeline.EndDeadlineUTC.HasValue)
+            timeline.EndDeadlineUTC = DateTime.SpecifyKind (timeline.EndDeadlineUTC.Value, DateTimeKind.Utc);
+        return timeline;
     }
 }

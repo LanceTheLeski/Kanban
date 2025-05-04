@@ -81,6 +81,7 @@
     public EventCallback<bool> Refresh { get; set; }
 
     private string _initialTaskTitle = string.Empty;
+    private int _initialTaskTypeId = 0;
     private int _initialTaskOrder = -1;
     private Timeline? _initialTimeline = null;
     private bool? _initialIsCompleted = null;
@@ -88,16 +89,15 @@
     private List<string> _taskOrderRange = new List<string> ();
 
     private List<TaskTypeResponse> _taskTypes = new List<TaskTypeResponse> ();
-    private int _taskTypeIdToAssign = 0;
 
     //On page load. Not async to this layout class loading.
     protected override void OnInitialized ()
     {
         _initialTaskTitle = ActiveTask.Title!;
+        _initialTaskTypeId = ActiveTask.TaskType.ID!.Value;
         _initialTaskOrder = ActiveTask.Order!.Value;
         _initialTimeline = ActiveTask.Timeline;
         _initialIsCompleted = ActiveTask.IsCompleted;
-        _taskTypeIdToAssign = ActiveTask.TaskType.ID!.Value;
 
         _taskOrderRange = new List<string>();
         for (int index = 1; index <= TasksCount; index ++)

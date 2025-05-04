@@ -17,6 +17,12 @@
                     Timeline
                 </MudButton>
             </MudItem>
+            <MudItem Style="background-color: indianred">
+                <MudButton Size="Size.Small"
+                           OnClick="@(() => TimelineFragmentChanged (null))">
+                    Timeless
+                </MudButton>
+            </MudItem>
         </MudStack>
     </MudItem>
 
@@ -45,24 +51,28 @@
     public TimeSpan? _timeRequiredStart = new TimeSpan();
     public TimeSpan? _timeRequiredEnd = new TimeSpan();
 
+    public bool isTimeless = false;
+
     protected override void OnInitialized()
     {
-        if (Timeline is null || isDeadline() is true)
+        isTimeless = Timeline is null;
+
+        if (isTimeless || isDeadline () is true)
             _timelineFragment = _deadlineRenderFragment();
         else
             _timelineFragment = _timelineRenderFragment();
 
         _dateRangePreferred.Start = Timeline?.StartPreferenceUTC;
-        _timePreferredStart = Timeline.StartPreferenceUTC.Value.TimeOfDay;
+        _timePreferredStart = Timeline?.StartPreferenceUTC?.TimeOfDay;
         
         _dateRangePreferred.End = Timeline?.EndPreferenceUTC;
-        _timePreferredEnd = Timeline.EndPreferenceUTC.Value.TimeOfDay;
+        _timePreferredEnd = Timeline?.EndPreferenceUTC?.TimeOfDay;
 
         _dateRangeRequired.Start = Timeline?.StartDeadlineUTC;
-        _timeRequiredStart = Timeline.StartDeadlineUTC.Value.TimeOfDay;
+        _timeRequiredStart = Timeline?.StartDeadlineUTC?.TimeOfDay;
 
         _dateRangeRequired.End = Timeline?.EndDeadlineUTC;
-        _timeRequiredEnd = Timeline.EndDeadlineUTC.Value.TimeOfDay;
+        _timeRequiredEnd = Timeline?.EndDeadlineUTC?.TimeOfDay;
 
     }
 
@@ -123,6 +133,17 @@
                                Editable="true" 
                                AmPm="true" 
                                @bind-Time="_timeRequiredEnd" />
+            </MudPaper>
+        };
+    }
+    private RenderFragment _timelessRenderFragment ()
+    {
+        return __builder =>
+        {
+            <MudPaper Style="width: 460px;
+                             eight: 120px;
+                             background-color: indianred;">
+                You have opted not to give a deadline/timeline for this. As a result, it may not show up in most places.
             </MudPaper>
         };
     }

@@ -1,7 +1,9 @@
-﻿using ArcStrides.Contracts.Request.Patch;
+﻿using ArcStrides.Contracts.Request.Create;
+using ArcStrides.Contracts.Request.Patch;
 using ArcStrides.Contracts.Response;
 using ArcStrides.UI.Layouts.Board.Timeline;
 using Microsoft.AspNetCore.JsonPatch;
+using System.Xml.XPath;
 
 namespace ArcStrides.UI.Layouts.Board.Task;
 
@@ -17,7 +19,7 @@ public partial class UpdateTaskOverlay
             throw new Exception ($"The task type selected does not correspond to a single column in our list of columns. Number of this task type found: {matchingTaskTypes}");
         }
 
-        _taskTypeIdToAssign = matchingTaskTypes.Single ().ID!.Value;
+        _initialTaskTypeId = matchingTaskTypes.Single ().ID!.Value;
     }
 
     private void SetTaskOrderOnTask (string taskOrder)
@@ -33,13 +35,22 @@ public partial class UpdateTaskOverlay
         if (ActiveTask!.Title != _initialTaskTitle)
             patchDocument.Add (nameof (TaskPatchRequest.Title), ActiveTask.Title);
 
-        if (ActiveTask.TaskType?.ID != _taskTypeIdToAssign)
-            patchDocument.Add (nameof (TaskPatchRequest.TypeID), _taskTypeIdToAssign);
+        if (ActiveTask.TaskType?.ID != _initialTaskTypeId)
+            patchDocument.Add (nameof (TaskPatchRequest.TypeID), _initialTaskTypeId);
 
         if (ActiveTask.Order != _initialTaskOrder)
             patchDocument.Add (nameof (TaskPatchRequest.Order), ActiveTask.Order);
 
-        await UpdateTimelineAsync (ActiveTask.Timeline);
+        if (updateTimelinePanel.isTimeless is false && ActiveTask.Timeline?.ID is null)
+        {
+            var newTimelineID = await CreateTimelineAsync ();
+            if (newTimelineID is not null)
+                patchDocument.Add (nameof (TaskPatchRequest.TimelineID), newTimelineID);
+        }
+        else // Might want a condidition for isTimeless is true BUT the timeline ID is populated - e.g. We switch from having a timeline to not having one..
+        { 
+            await UpdateTimelineAsync (); 
+        }
 
         if (ActiveTask.IsCompleted != _initialIsCompleted)
             patchDocument.Add (nameof (TaskPatchRequest.IsComplete), ActiveTask.IsCompleted);
@@ -49,7 +60,42 @@ public partial class UpdateTaskOverlay
         Refresh.InvokeAsync (true);
     }
 
-    private async System.Threading.Tasks.Task UpdateTimelineAsync (Models.Board.Timeline? timelineToUpdate)
+    private async System.Threading.Tasks.Task<Guid?> CreateTimelineAsync ()
+    {
+        var startPreferenceUTC = updateTimelinePanel._dateRangePreferred.Start.HasValue
+                                 || updateTimelinePanel._timePreferredStart.HasValue
+                                    ? new DateTime ((updateTimelinePanel._dateRangePreferred.Start?.Date.Ticks ?? DateTime.Now.Date.Ticks) + (updateTimelinePanel._timePreferredStart?.Ticks ?? 0))
+                                    : null as DateTime?;
+        var startDeadlineUTC = updateTimelinePanel._dateRangeRequired.Start.HasValue
+                                 || updateTimelinePanel._timeRequiredStart.HasValue
+                                    ? new DateTime ((updateTimelinePanel._dateRangeRequired.Start?.Date.Ticks ?? DateTime.Now.Date.Ticks) + (updateTimelinePanel._timeRequiredStart?.Ticks ?? 0))
+                                    : null as DateTime?;
+        var endPreferenceUTC = updateTimelinePanel._dateRangePreferred.End.HasValue
+                               || updateTimelinePanel._timePreferredEnd.HasValue
+                                    ? new DateTime ((updateTimelinePanel._dateRangePreferred.End?.Date.Ticks ?? DateTime.Now.Date.Ticks) + (updateTimelinePanel._timePreferredEnd?.Ticks ?? 0))
+                                    : null as DateTime?;
+        var endDeadlineUTC = updateTimelinePanel._dateRangeRequired.End.HasValue
+                             || updateTimelinePanel._timeRequiredEnd.HasValue
+                                    ? new DateTime ((updateTimelinePanel._dateRangeRequired.End?.Date.Ticks ?? DateTime.Now.Date.Ticks) + (updateTimelinePanel._timeRequiredEnd?.Ticks ?? 0))
+                                    : null as DateTime?;
+        
+        var timelineCreateRequest = new TimelineCreateRequest
+        {
+            ParentID = ActiveTask.ID,
+            TimelineTypeID = 2, //Temp value for now..
+            StartDependencyTagGroupID = null, // Change very soon..
+            StartPreferenceUTC = startPreferenceUTC,
+            StartDeadlineUTC = startDeadlineUTC,
+            EndDependencyTagGroupID = null, // Change very soon..
+            EndPreferenceUTC = endPreferenceUTC,
+            EndDeadlineUTC = endDeadlineUTC
+        };
+
+        var timelineResponse = await _timelineRepository.CreateTimelineAsync(BoardID, timelineCreateRequest);
+        return timelineResponse!.ID;
+    }
+
+    private async System.Threading.Tasks.Task UpdateTimelineAsync ()
     {
         var patchDocument = new JsonPatchDocument ();
 
@@ -64,7 +110,7 @@ public partial class UpdateTaskOverlay
         }
         if (ActiveTask!.Timeline?.StartPreferenceUTC?.TimeOfDay != updateTimelinePanel._timePreferredStart)
         {
-            var dayWithUpdatedTime = new DateTime ((long) ActiveTask!.Timeline?.StartDeadlineUTC.Value.Date.Ticks + updateTimelinePanel._timePreferredStart.Value.Ticks);
+            var dayWithUpdatedTime = new DateTime ((long) ActiveTask!.Timeline?.StartPreferenceUTC.Value.Date.Ticks + updateTimelinePanel._timePreferredStart.Value.Ticks);
             patchDocument.Add (nameof (TimelinePatchRequest.StartPreferenceUTC), dayWithUpdatedTime);
         }
 
@@ -104,6 +150,8 @@ public partial class UpdateTaskOverlay
         }
 
         if (patchDocument.Operations.Count is not 0)
-            await _timelineRepository.UpdateTimelineAsync (BoardID, timelineToUpdate!.ID!.Value, patchDocument);
+        {
+            await _timelineRepository.UpdateTimelineAsync (BoardID, ActiveTask!.Timeline!.ID!.Value, patchDocument); 
+        }
     }
 }

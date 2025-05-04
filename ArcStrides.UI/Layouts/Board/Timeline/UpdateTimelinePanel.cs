@@ -2,15 +2,19 @@
 
 public partial class UpdateTimelinePanel
 {
-    private void TimelineFragmentChanged (bool isTimeline)
+    private void TimelineFragmentChanged (bool? isTimeline)
     {
-        if (isTimeline)
+        if (isTimeline is true)
         {
             _timelineFragment = _timelineRenderFragment ();
         }
-        else
+        else if (isTimeline is false)
         {
             _timelineFragment = _deadlineRenderFragment ();
+        }
+        else
+        {
+            _timelineFragment = _timelessRenderFragment ();
         }
     }
 
