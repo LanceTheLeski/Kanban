@@ -109,10 +109,10 @@
                          Style="height: 100px;">
                 @if (Date.Cards is not null)
                 {
-                    @foreach (var boardID in Date.Cards.Select (card => card.PositionID).Distinct ())
+                    @foreach (var positionID in Date.Cards.Select (card => card.PositionID).Distinct ())
                     {
                         <MudCarouselItem Class="overflow-hidden overflow-y-scroll">
-                            @foreach (var card in Date.Cards.Where (card => card.BoardID == boardID).Take (3).ToList ())
+                            @foreach (var card in Date.Cards.Where (card => card.PositionID == positionID).Take (3).ToList ())
                             {
                                 <MudPaper Width="100%"
                                           Style="background-color: #0F83DB;
@@ -125,10 +125,10 @@
                                                                      margin-bottom: 2px;">
 
                                             <MudText Style="font-size: small">@task.Title</MudText>
-                                            <UpdateTaskOverlay @bind-ActiveTask="ActiveTask"
+                                            <!--<UpdateTaskOverlay @bind-ActiveTask="ActiveTask"
                                                                CardID="card.Id"
                                                                BoardID="card.BoardID"
-                                                               TasksCount="card.Tasks.Count()"/>
+                                                               TasksCount="card.Tasks.Count()"/>-->
 
                                         </MudPaper>
                                     }
