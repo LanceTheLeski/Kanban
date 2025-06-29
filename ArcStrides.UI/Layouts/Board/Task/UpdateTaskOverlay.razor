@@ -2,13 +2,14 @@
 @using ArcStrides.UI.Components
 @using ArcStrides.UI.Components.ArcExpandingSelector
 @using ArcStrides.UI.Components.ArcOverlay
+@using ArcStrides.UI.Components.ArcPopover
 @using ArcStrides.UI.Layouts.Board.Timeline
 @using ArcStrides.UI.Layouts.TagGroup.TaskType;
 @using ArcStrides.UI.Models.Board
 @using ArcStrides.UI.Repositories
 
 <!--This should ideally be a component one day..-->
-<MudPaper Style="background-color: rgba(153, 214, 255, 0.8);">
+<!--<MudPaper Style="background-color: rgba(153, 214, 255, 0.8);">
     <MudButton OnClick="@(() => tempOpen = true)">
         @_initialTaskTitle
     </MudButton>
@@ -44,7 +45,32 @@
             </MudButtonGroup>
         </MudPaper>
     </MudPopover>
-</MudPaper>
+</MudPaper>-->
+
+<ArcPopover PopoverText="@ActiveTask!.Title"
+            OnSubmitAsync="UpdateTaskAsync">
+    <MudPaper Class="glass" 
+              Width="600px">
+        <MudTextField @bind-Value="ActiveTask!.Title" T="string" Label="Title" Variant="Variant.Filled" HelperText="Task Title" />
+
+        <MudGrid>
+            <MudItem>
+                <ArcExpandingSelector Options="new List<string> {bool.TrueString, bool.FalseString}"
+                                      OptionSelected="((string selection) => _initialIsCompleted = bool.Parse (selection))" />
+                <ArcExpandingSelector Options="_taskOrderRange"
+                                      OptionSelected="SetTaskOrderOnTask" />
+                <ArcExpandingSelector Options="_taskTypes.Select (taskType => taskType!.Title!).ToList ()"
+                                      OptionSelected="SetTaskTypeOnTask" />
+                <MudButton OnClick="@(createTaskTypeOverlay.OpenOverlay)">Create New Task Type</MudButton>
+            </MudItem>
+            <MudItem>
+                <UpdateTimelinePanel BoardID="BoardID" 
+                                     @bind-Timeline="ActiveTask!.Timeline" 
+                                     @ref="updateTimelinePanel" />
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</ArcPopover>
 
 <CreateTaskTypeOverlay @ref="createTaskTypeOverlay"
                        Refresh="Refresh" /><!---This works now!!!! But I suspect it might be best to make it an edit screen where we can delete, update, and add TaskTypes--->
@@ -58,7 +84,7 @@
     private bool tempOpen = false;
 
     [Parameter]
-    public Models.Board.Task? ActiveTask { get; set; }//This binds incorrectly because of the structure to this. We need to bale able to customize the input logic for the Task text
+    public Models.Board.Task? ActiveTask { get; set; }
     [Parameter]
     public EventCallback<Models.Board.Task?> ActiveTaskChanged { get; set; }
 
@@ -80,7 +106,8 @@
     [Parameter]
     public EventCallback<bool> Refresh { get; set; }
 
-    private string _initialTaskTitle = string.Empty;
+    // I think all of the below fields can be removed now. We should ideally just use the ActiveTask instead.
+    // private string _initialTaskTitle = string.Empty;
     private int _initialTaskTypeId = 0;
     private int _initialTaskOrder = -1;
     private Timeline? _initialTimeline = null;
@@ -93,6 +120,19 @@
     //On page load. Not async to this layout class loading.
     protected override void OnInitialized ()
     {
+        if (ActiveTask is null)
+        {
+            ActiveTask = new Models.Board.Task
+            {
+                ID = Guid.Empty,
+                Title = "TempTitle (FIX)",
+                Order = -1,
+                TaskType = new TaskType { ID = -1, GroupTagID = Guid.Empty, Title = "TempTitle (FIX here too)" },
+                IsCompleted = null,
+                Timeline = null
+            };
+        }
+
         _initialTaskTitle = ActiveTask?.Title! ?? "Temp Title (FIX)";
         _initialTaskTypeId = ActiveTask?.TaskType.ID!.Value ?? -1;
         _initialTaskOrder = ActiveTask?.Order!.Value ?? -1;
