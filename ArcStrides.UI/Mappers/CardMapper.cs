@@ -14,6 +14,7 @@ public partial class CardMapper
     [MapProperty (nameof (CardResponse.Title), nameof (Card.Title))]
     [MapProperty (nameof (CardResponse.Description), nameof (Card.Description))]
     [MapProperty (nameof (CardResponse.Position.ID), nameof (Card.PositionID))]
+    [MapProperty (nameof (CardResponse.Position.BoardID), nameof (Card.BoardID))]
     [MapProperty (nameof (CardResponse.Position.ColumnOrder), nameof (Card.ColumnNumber))]
     [MapProperty (nameof (CardResponse.Position.ColumnID), nameof (Card.ColumnID))]
     [MapProperty (nameof (CardResponse.Position.ColumnTitle), nameof (Card.ColumnName))]

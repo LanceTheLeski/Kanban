@@ -2,6 +2,7 @@
 @using ArcStrides.UI.Components
 @using ArcStrides.UI.Components.ArcOverlay
 @using ArcStrides.UI.Layouts.Board.Task
+@using ArcStrides.UI.Models.Board
 @using ArcStrides.UI.Models.Calendar
 @using Microsoft.Extensions.Options
 
@@ -22,10 +23,10 @@
             <MudList T="string" ReadOnly="false">
                 @if (Date.Cards is not null)
                 {
-                    @foreach (var task in Date.Cards)
+                    @foreach (var card in Date.Cards)
                     {
-                        <MudListItem OnClick="(() => ExpandTaskView(task))">
-                            Task Name: @(task.Title)
+                        <MudListItem OnClick="(() => ExpandTaskView(card))">
+                            Task Name: @(card.Title)
                         </MudListItem>
                     }
                 }
@@ -67,11 +68,11 @@
 
     private static bool _taskViewIsOpen = false;
     private static bool _addTaskIsOpen = false;
-    private static CardResponse _cardToView = null;
+    private static Card _cardToView = null;
     private static Guid _boardIdToFilter = Guid.Empty;
 
     private RenderFragment _taskTypeList;
-    private async Task TaskTypeListExpandedChanged (bool showTasks)
+    private async System.Threading.Tasks.Task TaskTypeListExpandedChanged (bool showTasks)
     {
         //_columns = Columns;
         //_columnTitles = ColumnTitles;
@@ -83,15 +84,15 @@
         else
         {
             // Reset after a while to prevent sudden collapse.
-            Task.Delay (350).ContinueWith (t => _taskTypeList = null);
+            System.Threading.Tasks.Task.Delay (350).ContinueWith (t => _taskTypeList = null);
         }
     }
 
     private RenderFragment _taskTypeListRenderFragment ()
     {
-        var boardIDs = Date.Cards?.Select(card => card.Position.BoardID)
+        var boardIDs = Date.Cards?.Select(card => card.BoardID)
                                   .Distinct()
-                                  .ToList() ?? new List<Guid?> { };
+                                  .ToList() ?? new List<Guid> { };
 
         return __builder =>
         {
@@ -103,7 +104,7 @@
                         </MudListItem>
                         @foreach (var boardID in boardIDs)
                         {
-                            <MudListItem OnClick="(() => ChooseTaskTypeToFilter(boardID.Value))">
+                            <MudListItem OnClick="(() => ChooseTaskTypeToFilter(boardID))">
                                 Task Type Name: @(boardID.ToString ())
                             </MudListItem>
                         }
@@ -117,13 +118,13 @@
         _boardIdToFilter = boardID;
     }
 
-    private static async Task ExpandTaskView (CardResponse card)
+    private static async System.Threading.Tasks.Task ExpandTaskView (Card card)
     {
         _cardToView = card;
         _taskViewIsOpen = true;
     }
 
-    private static async Task ExpandCreateNewTaskView ()
+    private static async System.Threading.Tasks.Task ExpandCreateNewTaskView ()
     {
         _addTaskIsOpen = true;
     }

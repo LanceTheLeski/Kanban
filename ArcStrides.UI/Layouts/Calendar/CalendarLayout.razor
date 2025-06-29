@@ -1,4 +1,6 @@
 ﻿@using ArcStrides.Contracts.Response
+@using ArcStrides.UI.Layouts.Board.Card
+@using ArcStrides.UI.Layouts.Board.Task;
 @using ArcStrides.UI.Layouts.Calendar
 @using ArcStrides.UI.Mappers
 @using ArcStrides.UI.Models.Calendar
@@ -92,11 +94,22 @@
     </MudGrid>
 </MudPaper>
 
+<UpdateCardOverlay @ref="updateCardOverlay"
+                   Refresh="Refresh" />
+
+<UpdateTaskOverlay @ref="updateTaskOverlay"
+                   Refresh="Refresh"/>
+
 @inject ICalendarRepository _calendarRepository;
 @inject DateMapper _dateMapper;
 
 @code
 {
+    public EventCallback<bool> Refresh { get; set; }
+
+    private UpdateCardOverlay updateCardOverlay;
+    private UpdateTaskOverlay updateTaskOverlay;
+
     private List<Date> _monthDates = new List<Date> ();
 
     protected override async Task OnInitializedAsync ()

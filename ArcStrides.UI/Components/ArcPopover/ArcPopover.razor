@@ -1,23 +1,46 @@
-﻿@using ArcStrides.Contracts.Response
-@using ArcStrides.UI.Components
-@using ArcStrides.UI.Components.ArcExpandingSelector
-@using ArcStrides.UI.Components.ArcOverlay
-@using ArcStrides.UI.Layouts.Board.Timeline
-@using ArcStrides.UI.Layouts.TagGroup.TaskType;
-@using ArcStrides.UI.Models.Board
-@using ArcStrides.UI.Repositories
+﻿@rendermode RenderMode.InteractiveServer
 
-<!--This should ideally be a component one day..-->
-<MudPaper Style="background-color: rgba(153, 214, 255, 0.8);">
-    <MudButton OnClick="@(() => tempOpen = true)">
-        @_initialTaskTitle
+@inherits LayoutComponentBase
+
+<MudPaper Class="glass">
+
+    <MudButton OnClick="@(() => Open = true)">
+        @_buttonText
     </MudButton>
-    <MudPopover Open="tempOpen" 
-                OverflowBehavior="OverflowBehavior.FlipAlways" 
-                AnchorOrigin="Origin.CenterRight" 
+
+    <MudPopover Open="Open"
+                OverflowBehavior="OverflowBehavior.FlipAlways"
+                AnchorOrigin="Origin.CenterRight"
                 TransformOrigin="Origin.CenterLeft"
                 Style="height:550px">
-        <MudPaper Class="glass" 
+
+        @ChildContent
+
+        <MudButtonGroup Class="glass-inner-engraved">
+            @if (OnSubmit is not null)
+            {
+                <MudButton OnClick="OnSubmit.Value">Submit</MudButton>
+            }
+            @if (OnSubmitAsync is not null)
+            {
+                <MudButton OnClick="OnSubmitAsync.Invoke">Submit</MudButton>
+            }
+            <MudButton OnClick="CloseOverlay">Discard</MudButton>
+        </MudButtonGroup>
+    </MudPopover>
+</MudPaper>
+
+<!--
+<MudPaper Style="background-color: rgba(153, 214, 255, 0.8);">
+    <MudButton OnClick="@(() => tempOpen = true)">
+@_initialTaskTitle
+    </MudButton>
+    <MudPopover Open="tempOpen"
+                OverflowBehavior="OverflowBehavior.FlipAlways"
+                AnchorOrigin="Origin.CenterRight"
+                TransformOrigin="Origin.CenterLeft"
+                Style="height:550px">
+        <MudPaper Class="glass"
                   Width="600px">
             <MudTextField @bind-Value="_initialTaskTitle" T="string" Label="Title" Variant="Variant.Filled" HelperText="Task Title" />
 
@@ -32,9 +55,9 @@
                     <MudButton OnClick="@(createTaskTypeOverlay.OpenOverlay)">Create New Task Type</MudButton>
                 </MudItem>
                 <MudItem>
-                    <UpdateTimelinePanel BoardID="BoardID" 
-                                         @bind-Timeline="ActiveTask.Timeline" 
-                                         @ref="updateTimelinePanel" />
+                    <UpdateTimelinePanel BoardID="BoardID"
+@bind-Timeline="ActiveTask.Timeline"
+@ref="updateTimelinePanel" />
                 </MudItem>
             </MudGrid>
 
@@ -45,13 +68,6 @@
         </MudPaper>
     </MudPopover>
 </MudPaper>
-
-<CreateTaskTypeOverlay @ref="createTaskTypeOverlay"
-                       Refresh="Refresh" /><!---This works now!!!! But I suspect it might be best to make it an edit screen where we can delete, update, and add TaskTypes--->
-
-@inject ITaskRepository _taskRepository;
-
-@inject ITimelineRepository _timelineRepository;
 
 @code
 {
@@ -93,26 +109,46 @@
     //On page load. Not async to this layout class loading.
     protected override void OnInitialized ()
     {
-        _initialTaskTitle = ActiveTask?.Title! ?? "Temp Title (FIX)";
-        _initialTaskTypeId = ActiveTask?.TaskType.ID!.Value ?? -1;
-        _initialTaskOrder = ActiveTask?.Order!.Value ?? -1;
-        _initialTimeline = ActiveTask?.Timeline;
-        _initialIsCompleted = ActiveTask?.IsCompleted;
+    _initialTaskTitle = ActiveTask?.Title! ?? "Temp Title (FIX)";
+    _initialTaskTypeId = ActiveTask?.TaskType.ID!.Value ?? -1;
+    _initialTaskOrder = ActiveTask?.Order!.Value ?? -1;
+    _initialTimeline = ActiveTask?.Timeline;
+    _initialIsCompleted = ActiveTask?.IsCompleted;
 
-        _taskOrderRange = new List<string>();
-        for (int index = 1; index <= TasksCount; index ++)
-            _taskOrderRange.Add(index.ToString());
+    _taskOrderRange = new List<string>();
+    for (int index = 1; index <= TasksCount; index ++)
+    _taskOrderRange.Add(index.ToString());
     }
 
     protected async override System.Threading.Tasks.Task OnAfterRenderAsync (bool firstRender)
     {
-        if (firstRender)
-        {
-            _taskTypes = await FetchTaskTypesAsync ();
-        }
+    if (firstRender)
+    {
+    _taskTypes = await FetchTaskTypesAsync ();
+    }
     }
 
     private UpdateTimelinePanel updateTimelinePanel;
 
     private CreateTaskTypeOverlay createTaskTypeOverlay;
+}
+-->
+
+@code
+{
+    [Parameter]
+    public bool Open { get; set; } = false;
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; } = null;
+
+    [Parameter]
+    public EventCallback? OnSubmit { get; set; } = null;
+
+    [Parameter]
+    public Func<Task>? OnSubmitAsync { get; set; } = null;
+
+    private string _buttonText = string.Empty;
 }

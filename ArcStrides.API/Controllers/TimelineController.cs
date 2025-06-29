@@ -113,7 +113,7 @@ public class TimelineController : Controller
     }
 
     [HttpDelete ("{timelineID:guid}")]
-    public async Task<ActionResult> DeleteTimwlinw ([FromRoute] Guid boardID, 
+    public async Task<ActionResult> DeleteTimwline ([FromRoute] Guid boardID, 
                                                     [FromRoute] Guid timelineID)
     {
         var timelineFromDatabase = await _timelineRepository.GetTimelineAsync (boardID, timelineID);

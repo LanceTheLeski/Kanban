@@ -1,10 +1,20 @@
-﻿using ArcStrides.Contracts.Response;
+﻿using ArcStrides.UI.Models.Board;
 using MudBlazor;
 
 namespace ArcStrides.UI.Models.Calendar;
 
-public class Date : DateResponse
+public class Date
 {
+    public Guid? ID { get; set; }
+
+    public int? DateOrder { get; set; }
+
+    public int? WeekOrder { get; set; }
+
+    public int? DayOfTheWeekOrder { get; set; }
+
+    public IEnumerable<Card>? Cards { get; set; }
+
     /// <summary>
     /// The sum of all the different task types for the day.
     /// </summary>

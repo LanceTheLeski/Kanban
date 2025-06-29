@@ -20,4 +20,7 @@ public class TimelineRepository : ITimelineRepository
 
     public async Task<TimelineResponse?> UpdateTimelineAsync (Guid boardID, Guid timelineID, JsonPatchDocument timelinePatchRequestDocument)
         => await _arcStridesTimelineBackend.UpdateEntityAsync ($"arcstrides/boards/{boardID}/timelines/{timelineID}", JsonConvert.SerializeObject (timelinePatchRequestDocument));
+
+    public async Task DeleteTimelineAsync (Guid boardID, Guid timelineID)
+        => await _arcStridesTimelineBackend.DeleteEntityAsync ($"arcstrides/boards/{boardID}/timelines/{timelineID}");
 }
