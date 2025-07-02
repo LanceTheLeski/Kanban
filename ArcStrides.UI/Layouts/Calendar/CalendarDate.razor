@@ -118,17 +118,17 @@
                                           Style="background-color: #0F83DB;
                                                  margin-bottom: 2px;">
                                     <MudText Style="font-size: x-small">@card.Title</MudText>
-                                    @foreach (var task in card.Tasks.Take (3).ToList ())
+                                    @foreach (var taskIndex in Enumerable.Range(0, card.Tasks.Count()))
                                     {
                                         <MudPaper Width="95%" Style="background-color: sandybrown; 
                                                                      justify-self: center;
                                                                      margin-bottom: 2px;">
 
-                                            <MudText Style="font-size: small">@task.Title</MudText>
-                                            <!--<UpdateTaskOverlay @bind-ActiveTask="ActiveTask"
+                                            <!--<MudText Style="font-size: small">@task.Title</MudText>-->
+                                            <UpdateTaskOverlay @bind-ActiveTask="card.Tasks[taskIndex]"
                                                                CardID="card.Id"
                                                                BoardID="card.BoardID"
-                                                               TasksCount="card.Tasks.Count()"/>-->
+                                                               TasksCount="card.Tasks.Count()"/>
 
                                         </MudPaper>
                                     }

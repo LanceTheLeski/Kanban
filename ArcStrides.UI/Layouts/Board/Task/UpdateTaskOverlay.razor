@@ -94,8 +94,8 @@
             };
         }
 
-        _initialTaskTypeId = ActiveTask?.TaskType.ID!.Value ?? -1;
-        _initialTaskOrder = ActiveTask?.Order!.Value ?? -1;
+        _initialTaskTypeId = ActiveTask?.TaskType?.ID ?? -1;
+        _initialTaskOrder = ActiveTask?.Order ?? -1;
         _initialTimeline = ActiveTask?.Timeline;
         _initialIsCompleted = ActiveTask?.IsCompleted;
 
