@@ -68,14 +68,18 @@
                           T="DropCard" 
                           Items="_cards" 
                           ItemDropped="UpdateCard"
-                          ItemsSelector="@((card, dropzone) => card.CardArea == dropzone)">
+                          ItemsSelector="@((card, dropzone) => card.DropArea == dropzone)">
             <ChildContent>
                 @foreach (var rowIndex in Enumerable.Range(0, _swimlaneTitles.Count()))
                 {
                     <MudItem>
                         <MudPaper Height="250px" 
                                   Style="background-color: wheat">
-                            <MudPaper Style="background-color: #C7EEE6; border: 25px, solid, wheat; border-left-width: 5px; border-right:width: 5px;" Elevation="0">
+                            <MudPaper Style="background-color: #C7EEE6; 
+                                             border: 25px, solid, wheat; 
+                                             border-left-width: 5px; 
+                                             border-right-width: 5px;" 
+                                      Elevation="0">
                                 <MudGrid Class="d-flex flex-nowrap">
                                     <MudItem Class="align-content-center">
                                         <MudPaper Width="110px"
@@ -115,7 +119,7 @@
 
             <!--The ItemRenderer is a component of the MudDropZone and is in charge of rendering individual DropCards within it-->
             <ItemRenderer>
-                <BoardCard @bind-Card="context" 
+                <BoardCard @bind-DropCard="context" 
                            @bind-OpenCardOverlay="editCardOverlayIsOpen" 
                            @bind-UpdateOrDeleteCard="_activeCard" />
             </ItemRenderer>
@@ -125,17 +129,19 @@
 
 <!--Should move this to a different layout component which manages cards-->
 <UpdateCardOverlay @bind-Open="editCardOverlayIsOpen"
-                   @bind-ActiveCard="_activeCard"
+                   @bind-ActiveCard="_activeCard.Card"
                    BoardID="_boardID"
                    Refresh="Refresh" />
 
-@inject IBoardRepository _boardRepository
-@inject ICardRepository _cardRepository
+@inject IBoardRepository _boardRepository;
+@inject ICardRepository _cardRepository;
 
 @inject CardMapper _cardMapper;
 
 @code 
 {
+    //Redo DropCards to be an object containing Card and the DropCard field??
+
     private BoardResponse _board;
 
     private Guid _boardID = Guid.Empty;
@@ -156,6 +162,18 @@
 
     protected override async System.Threading.Tasks.Task OnInitializedAsync()
     {
+        _activeCard = new DropCard
+        {
+            Card = new Card
+            {
+                Id = Guid.Empty,
+                Title = "[Placeholder Title]",
+                Description = "[Placeholder Description]",
+                Tasks = []
+            },
+            DropArea = "_"
+        };
+
         _board = await _boardRepository.FetchBoardAsync(Guid.Parse("1cb0ce6e-6145-4fe7-833a-0b7c0545c449"));//Change later to be dynamic..
         // todo: Validate Board Response here and throw an error if it is not what we want it to be...
 
@@ -165,8 +183,8 @@
 
         foreach (var card in _cards)
         {
-            card.Tasks = card.Tasks.OrderBy(t => t.Order)
-                                   .ToList();
+            card.Card.Tasks = card.Card.Tasks.OrderBy(t => t.Order)
+                                             .ToList();
         }
     }
 }

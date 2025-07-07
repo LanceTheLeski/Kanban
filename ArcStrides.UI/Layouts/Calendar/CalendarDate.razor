@@ -117,24 +117,27 @@
                                 <MudPaper Width="100%"
                                           Style="background-color: #0F83DB;
                                                  margin-bottom: 2px;">
-                                    <MudText Style="font-size: x-small">@card.Title</MudText>
-                                    @foreach (var taskIndex in Enumerable.Range(0, card.Tasks.Count()))
-                                    {
-                                        <MudPaper Width="95%" Style="background-color: sandybrown; 
-                                                                     justify-self: center;
-                                                                     margin-bottom: 2px;">
+                                    <MudListItem T="string" OnClick="@(() => 
+                                                                       {
+                                                                            ActiveCard = card;
+                                                                            openCardOverlay = true;
+                                                                       })">
+                                        <MudText Style="font-size: x-small">@card.Title</MudText>
+                                        @foreach (var taskIndex in Enumerable.Range(0, card.Tasks.Count()))
+                                        {
+                                            <MudPaper Width="95%" Style="background-color: sandybrown; 
+                                                                         justify-self: center;
+                                                                         margin-bottom: 2px;">
 
-                                            <!--<MudText Style="font-size: small">@task.Title</MudText>-->
-                                            <UpdateTaskOverlay @bind-ActiveTask="card.Tasks[taskIndex]"
-                                                               CardID="card.Id"
-                                                               BoardID="card.BoardID"
-                                                               TasksCount="card.Tasks.Count()"/>
+                                                <!--<MudText Style="font-size: small">@task.Title</MudText>-->
+                                                <UpdateTaskOverlay @bind-ActiveTask="card.Tasks[taskIndex]"
+                                                                   CardID="card.Id"
+                                                                   BoardID="card.BoardID"
+                                                                   TasksCount="card.Tasks.Count()"/>
 
-                                        </MudPaper>
-                                    }
-
-                                    <!--<UpdateCardOverlay @bind-ActiveCard="ActiveCard" 
-                                                       />-->
+                                            </MudPaper>
+                                        }
+                                    </MudListItem>
                                 </MudPaper>
                             }
                         </MudCarouselItem>
@@ -144,6 +147,10 @@
         </MudPaper>
     </MudStack>
 </MudPaper>
+
+<UpdateCardOverlay @bind-Open="openCardOverlay"
+                   @bind-ActiveCard="ActiveCard"
+                   @bind-BoardID="ActiveCard.BoardID"/>
 
 <!--<MudOverlay @bind-Visible="open" DarkBackground="true" ZIndex="10">
     <UpdateDateOverlay @bind-Open="open"
@@ -165,9 +172,16 @@
         ChartPalette = ["gray", "black", "blue"]
     };
 
-    private Models.Board.DropCard ActiveCard { get; set; }
+    private Models.Board.Card ActiveCard = new Models.Board.Card
+    {
+        Id = Guid.Empty,
+        Title = "[Placeholder Title]",
+        Description = "[Placeholder Description]"
+    };
 
     private Models.Board.Task ActiveTask { get; set; }
+
+    private bool openCardOverlay = false;
 
     // Change this possibly to have the overlay injected or something and call the open method directly.
     private bool open = false;

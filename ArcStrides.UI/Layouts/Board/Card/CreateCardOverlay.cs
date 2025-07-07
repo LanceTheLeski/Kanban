@@ -64,16 +64,19 @@ public partial class CreateCardOverlay : IArcOverlay
         //Cards.Add (dropCard);
         Cards.Add (new DropCard
         {
-            Id = cardPositionResponse.ID.Value,
-            Title = cardPositionResponse.Title,
-            Description = cardPositionResponse.Description,
-            ColumnNumber = cardPositionResponse.ColumnOrder.Value,
-            ColumnID = cardPositionResponse.ColumnID.Value,
-            ColumnName = cardPositionResponse.ColumnTitle,
-            SwimlaneNumber = cardPositionResponse.SwimlaneOrder.Value,
-            SwimlaneID = cardPositionResponse.SwimlaneID.Value,
-            SwimlaneName = cardPositionResponse.SwimlaneTitle,
-            CardArea = ConvertColumnAndSwimlaneToCardArea (cardPositionResponse.SwimlaneOrder.Value, cardPositionResponse.ColumnOrder.Value)
+            Card = new Models.Board.Card
+            {
+                Id = cardPositionResponse.ID.Value,
+                Title = cardPositionResponse.Title,
+                Description = cardPositionResponse.Description,
+                ColumnNumber = cardPositionResponse.ColumnOrder.Value,
+                ColumnID = cardPositionResponse.ColumnID.Value,
+                ColumnName = cardPositionResponse.ColumnTitle,
+                SwimlaneNumber = cardPositionResponse.SwimlaneOrder.Value,
+                SwimlaneID = cardPositionResponse.SwimlaneID.Value,
+                SwimlaneName = cardPositionResponse.SwimlaneTitle,
+            },
+            DropArea = ConvertColumnAndSwimlaneToCardArea (cardPositionResponse.SwimlaneOrder.Value, cardPositionResponse.ColumnOrder.Value)
         });
 
         Refresh.InvokeAsync (true);

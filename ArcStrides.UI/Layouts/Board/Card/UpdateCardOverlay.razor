@@ -87,9 +87,9 @@
     public EventCallback<Guid> BoardIDChanged { get; set; }
 
     [Parameter]
-    public DropCard? ActiveCard { get; set; }
+    public Card ActiveCard { get; set; }
     [Parameter]
-    public EventCallback<DropCard?> ActiveCardChanged { get; set; }
+    public EventCallback<Card?> ActiveCardChanged { get; set; }
 
     [Parameter]
     public EventCallback<bool> Refresh { get; set; }
@@ -99,12 +99,19 @@
 
     //private bool editCardOverlayIsOpen = false;
 
-    private IEnumerable<Models.Board.Task>? _cardTasks = null;
+    //private IEnumerable<Models.Board.Task>? _cardTasks = null;
     private Models.Board.Task? taskToCreate = null;
 
     protected override void OnInitialized ()
     {
-        _cardTasks = ActiveCard?.Tasks;
+        ActiveCard = new Card 
+        {
+            Id = Guid.Empty,
+            Title = "[Placeholder Title]",
+            Description = "[Placeholder Description]",
+            Tasks = []
+        };
+        //_cardTasks = ActiveCard?.Tasks ?? [];
         _taskList = _taskListRenderFragment ();
     }
 

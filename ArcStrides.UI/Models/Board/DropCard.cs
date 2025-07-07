@@ -1,11 +1,8 @@
 ﻿namespace ArcStrides.UI.Models.Board;
 
-/// <summary>
-/// On principle I suppose these models should correspond to pages and ideally would be 
-/// propogated backwards to overlays so specific parts can be changed. Therefore we should 
-/// map response objects to these.
-/// </summary>
-public class DropCard : Card
+public class DropCard
 {
-    public string? CardArea { get; set; }
+    public Card? Card { get; set; } = null;
+
+    public string? DropArea { get; set; } = null;
 }

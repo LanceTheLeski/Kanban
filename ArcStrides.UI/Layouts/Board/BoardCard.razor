@@ -17,18 +17,18 @@
         <MudPaper Width="100%" 
                   MinHeight="160px;"
                   Style="background-color: lightyellow;">
-            <MudListItem T="string" OnClick="(() => OpenOverlay(Card))">
+            <MudListItem T="string" OnClick="(() => OpenOverlay(DropCard))">
                 <MudText Style="height: 20px; 
                                 max-width: 120px; 
                                 font-weight: 600;
                                 font-size: x-small;
                                 text-overflow:clip; 
                                 overflow:hidden;" 
-                         Align="Align.Center">@Card.Title</MudText>
+                         Align="Align.Center">@DropCard.Card.Title</MudText>
                 <MudText Style="height: 100px; 
                                 max-width: 120px;
                                 font-size: x-small;
-                                text-overflow:clip;">@Card.Description</MudText>
+                                text-overflow:clip;">@DropCard.Card.Description</MudText>
 
             </MudListItem>
         </MudPaper>
@@ -57,9 +57,9 @@
     public EventCallback<bool> OpenCardOverlayChanged { get; set; }
 
     [Parameter]
-    public DropCard Card { get; set; }
+    public DropCard DropCard { get; set; }
     [Parameter]
-    public EventCallback<DropCard> CardChanged { get; set; }
+    public EventCallback<DropCard> DropCardChanged { get; set; }
 
     [Parameter]
     public DropCard? UpdateOrDeleteCard { get; set; }
@@ -72,7 +72,7 @@
     private static DropCard _card = new DropCard ();
     public void OpenOverlay (DropCard cardToOverlay)
     {
-        _card = Card;
+        _card = DropCard;
         UpdateOrDeleteCardChanged.InvokeAsync (_card);
         OpenCardOverlayChanged.InvokeAsync (true);
 

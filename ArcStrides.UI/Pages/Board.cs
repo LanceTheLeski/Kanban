@@ -27,15 +27,15 @@ public partial class Board
 
     public void UpdateCard (MudItemDropInfo<DropCard> cardToUpdate)
     {
-        cardToUpdate.Item.CardArea = cardToUpdate.DropzoneIdentifier;
+        cardToUpdate.Item.DropArea = cardToUpdate.DropzoneIdentifier;
 
-        var newCardArea = ConvertCardAreaToColumnAndSwimlane (cardToUpdate.Item.CardArea);
-        cardToUpdate.Item.ColumnID = _columns [newCardArea.columnPos];
-        cardToUpdate.Item.ColumnName = _columnTitles [newCardArea.columnPos];
-        cardToUpdate.Item.ColumnNumber = newCardArea.columnPos;
-        cardToUpdate.Item.SwimlaneID = _swimlanes [newCardArea.swimlanePos];
-        cardToUpdate.Item.SwimlaneName = _swimlaneTitles [newCardArea.swimlanePos];
-        cardToUpdate.Item.SwimlaneNumber = newCardArea.swimlanePos;
+        var newCardArea = ConvertCardAreaToColumnAndSwimlane (cardToUpdate.Item.DropArea);
+        cardToUpdate.Item.Card.ColumnID = _columns [newCardArea.columnPos];
+        cardToUpdate.Item.Card.ColumnName = _columnTitles [newCardArea.columnPos];
+        cardToUpdate.Item.Card.ColumnNumber = newCardArea.columnPos;
+        cardToUpdate.Item.Card.SwimlaneID = _swimlanes [newCardArea.swimlanePos];
+        cardToUpdate.Item.Card.SwimlaneName = _swimlaneTitles [newCardArea.swimlanePos];
+        cardToUpdate.Item.Card.SwimlaneNumber = newCardArea.swimlanePos;
 
         var cardResponse = System.Threading.Tasks.Task.Run (() =>
             SendCardPatchRequest (cardToUpdate.Item)).Result;
@@ -45,15 +45,15 @@ public partial class Board
     {
         var patchRequest =
         $@"[
-            {{ ""op"": ""replace"", ""path"": ""/ColumnID"", ""value"": ""{cardToUpdate.ColumnID}"" }},
-            {{ ""op"": ""replace"", ""path"": ""/ColumnTitle"", ""value"": ""{cardToUpdate.ColumnName}"" }},
-            {{ ""op"": ""replace"", ""path"": ""/ColumnOrder"", ""value"": ""{cardToUpdate.ColumnNumber}"" }},
-            {{ ""op"": ""replace"", ""path"": ""/SwimlaneID"", ""value"": ""{cardToUpdate.SwimlaneID}"" }},
-            {{ ""op"": ""replace"", ""path"": ""/SwimlaneTitle"", ""value"": ""{cardToUpdate.SwimlaneName}"" }},
-            {{ ""op"": ""replace"", ""path"": ""/SwimlaneOrder"", ""value"": ""{cardToUpdate.SwimlaneNumber}"" }}
+            {{ ""op"": ""replace"", ""path"": ""/ColumnID"", ""value"": ""{cardToUpdate.Card.ColumnID}"" }},
+            {{ ""op"": ""replace"", ""path"": ""/ColumnTitle"", ""value"": ""{cardToUpdate.Card.ColumnName}"" }},
+            {{ ""op"": ""replace"", ""path"": ""/ColumnOrder"", ""value"": ""{cardToUpdate.Card.ColumnNumber}"" }},
+            {{ ""op"": ""replace"", ""path"": ""/SwimlaneID"", ""value"": ""{cardToUpdate.Card.SwimlaneID}"" }},
+            {{ ""op"": ""replace"", ""path"": ""/SwimlaneTitle"", ""value"": ""{cardToUpdate.Card.SwimlaneName}"" }},
+            {{ ""op"": ""replace"", ""path"": ""/SwimlaneOrder"", ""value"": ""{cardToUpdate.Card.SwimlaneNumber}"" }}
         ]";
 
-        return await _cardRepository.UpdateCardPositionAsync (_boardID, cardToUpdate.PositionID, patchRequest);
+        return await _cardRepository.UpdateCardPositionAsync (_boardID, cardToUpdate.Card.PositionID, patchRequest);
     }
 
     private (int swimlanePos, int columnPos) ConvertCardAreaToColumnAndSwimlane (string cardAreaValue)
@@ -92,7 +92,7 @@ public partial class Board
                 {
                     var card = _cardMapper.MapCardResponseToCard (cardResponse);
                     var dropCard = _cardMapper.MapCardToDropCard(card);
-                    dropCard.CardArea = cardArea;
+                    dropCard.DropArea = cardArea;
                     dropCardList.Add (dropCard);
                 }
             }

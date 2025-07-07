@@ -41,16 +41,16 @@ public partial class CardMapper
     /// <summary>
     /// <see cref="Card"/> --> <see cref="DropCard"/>
     /// </summary>
-    [MapProperty (nameof (DropCard.Id), nameof (Card.Id))]
-    [MapProperty (nameof (DropCard.Title), nameof (Card.Title))]
-    [MapProperty (nameof (DropCard.PositionID), nameof (Card.PositionID))]
-    [MapProperty (nameof (DropCard.Description), nameof (Card.Description))]
-    [MapProperty (nameof (DropCard.ColumnNumber), nameof (Card.ColumnNumber))]
-    [MapProperty (nameof (DropCard.ColumnID), nameof (Card.ColumnID))]
-    [MapProperty (nameof (DropCard.ColumnName), nameof (Card.ColumnName))]
-    [MapProperty (nameof (DropCard.SwimlaneNumber), nameof (Card.SwimlaneNumber))]
-    [MapProperty (nameof (DropCard.SwimlaneID), nameof (Card.SwimlaneID))]
-    [MapProperty (nameof (DropCard.SwimlaneName), nameof (Card.SwimlaneName))]
-    [MapProperty (nameof (DropCard.Tasks), nameof (Card.Tasks))]
+    [MapProperty (nameof (Card.Id), nameof (DropCard.Card.Id))]
+    [MapProperty (nameof (Card.Title), nameof (DropCard.Card.Title))]
+    [MapProperty (nameof (Card.PositionID), nameof (DropCard.Card.PositionID))]
+    [MapProperty (nameof (Card.Description), nameof (DropCard.Card.Description))]
+    [MapProperty (nameof (Card.ColumnNumber), nameof (DropCard.Card.ColumnNumber))]
+    [MapProperty (nameof (Card.ColumnID), nameof (DropCard.Card.ColumnID))]
+    [MapProperty (nameof (Card.ColumnName), nameof (DropCard.Card.ColumnName))]
+    [MapProperty (nameof (Card.SwimlaneNumber), nameof (DropCard.Card.SwimlaneNumber))]
+    [MapProperty (nameof (Card.SwimlaneID), nameof (DropCard.Card.SwimlaneID))]
+    [MapProperty (nameof (Card.SwimlaneName), nameof (DropCard.Card.SwimlaneName))]
+    [MapProperty (nameof (Card.Tasks), nameof (DropCard.Card.Tasks))]
     public partial DropCard MapCardToDropCard (Card card);
 }
