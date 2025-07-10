@@ -1,13 +1,11 @@
 ﻿using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Request.Patch;
 using ArcStrides.Contracts.Response;
-using ArcStrides.UI.Layouts.Board.Timeline;
 using Microsoft.AspNetCore.JsonPatch;
-using System.Xml.XPath;
 
 namespace ArcStrides.UI.Layouts.Board.Task;
 
-public partial class UpdateTaskOverlay
+public partial class UpdateTaskPopover
 {
     private void SetTaskTypeOnTask (string taskTypeName)
     {

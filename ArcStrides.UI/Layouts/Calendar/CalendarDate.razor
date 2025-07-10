@@ -67,11 +67,21 @@
                     <MudPaper Width="80px" Height="32px" Style="background-color: transparent">
                         <MudGrid Spacing="0" Style="width: 80px; height: 32px; background-color: transparent;">
                             <MudItem Style="width: 40px; height: 20px;">
-                                <MudImage Width="30" Height="32" Fluid="true" ObjectFit="ObjectFit.ScaleDown" ObjectPosition="ObjectPosition.Center" Src="icons8-menu-vertical-50.png" Style="filter: y" />
+                                <MudImage Width="30" 
+                                          Height="32" 
+                                          Fluid="true" 
+                                          ObjectFit="ObjectFit.ScaleDown" 
+                                          ObjectPosition="ObjectPosition.Center" 
+                                          Src="icons8-menu-vertical-50.png"/>
                             </MudItem>
                             <MudItem Style="width: 40px; height: 20px; background-color: transparent;">
                                 <MudButton OnClick="(() => UpdateDateIsOpen())">
-                                    <MudImage Width="30" Height="32" Fluid="true" ObjectFit="ObjectFit.ScaleDown" ObjectPosition="ObjectPosition.Center" Src="icons8-expand-50.png" />
+                                    <MudImage Width="30" 
+                                              Height="32" 
+                                              Fluid="true" 
+                                              ObjectFit="ObjectFit.ScaleDown" 
+                                              ObjectPosition="ObjectPosition.Center" 
+                                              Src="icons8-expand-50.png" />
                                 </MudButton>
                             </MudItem>
                         </MudGrid>
@@ -81,12 +91,23 @@
                                                     flex-direction: row;">
                             <MudPaper Width="15px" Height="18px" Class="glass-inner-engraved" Square="true">
                                 <MudListItem T="string" OnClick="@(() => DateBodyIndex -= 1)" Gutters="false" Dense="false" Style="height: 18px; background-color: transparent">
-                                    <MudImage Width="15" Height="18" Fluid="true" ObjectFit="ObjectFit.ScaleDown" Src="icons8-left-arrow-50.png" Style="background-color: transparent" />
+                                    <MudImage Width="15" 
+                                              Height="18" 
+                                              Fluid="true" 
+                                              ObjectFit="ObjectFit.ScaleDown" 
+                                              Src="icons8-left-arrow-50.png" 
+                                              Style="background-color: transparent" />
                                 </MudListItem>
                             </MudPaper>
                             <MudPaper Width="50px" Height="18px" Style="background-color: maroon;" Square="true">
                                 <MudListItem T="string" OnClick="@(() => Cycle = !Cycle)" Gutters="false" Dense="false" Style="height: 18px;">
-                                    <MudText Align="Align.Center" Style="height: 18px; font-weight:600; font-family: 'Times New Roman', Times, serif; color: white;">ALL</MudText>
+                                    <MudText Align="Align.Center" 
+                                             Style="height: 18px; 
+                                                    font-weight:600; 
+                                                    font-family: 'Times New Roman', Times, serif; 
+                                                    color: white;">
+                                                        ALL
+                                    </MudText>
                                 </MudListItem>
                             </MudPaper>
                             <MudPaper Width="15px" Height="18px" Class="glass-inner-engraved" Square="true">
@@ -130,10 +151,16 @@
                                                                          margin-bottom: 2px;">
 
                                                 <!--<MudText Style="font-size: small">@task.Title</MudText>-->
-                                                <UpdateTaskOverlay @bind-ActiveTask="card.Tasks[taskIndex]"
+                                                <UpdateTaskPopover @bind-ActiveTask="card.Tasks[taskIndex]"
                                                                    CardID="card.Id"
                                                                    BoardID="card.BoardID"
-                                                                   TasksCount="card.Tasks.Count()"/>
+                                                                   TasksCount="card.Tasks.Count()"
+                                                                   PopoverBaseMudSize="Size.Small"
+                                                                   PopoverBaseMudStyle="font-size:x-small;
+                                                                                        padding: 0px;
+                                                                                        margin: 0px;
+                                                                                        max-height: 20px;
+                                                                                        max-width: 20px;"/>
 
                                             </MudPaper>
                                         }

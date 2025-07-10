@@ -95,15 +95,6 @@
     </MudGrid>
 </MudPaper>
 
-<!--<UpdateCardOverlay @ref="updateCardOverlay"
-                   @bind-Open="true"
-                   @bind-ActiveCard="_activeCard"
-                   @bind-BoardID="_activeCard!.BoardID"
-                   Refresh="Refresh" />-->
-
-<!--<UpdateTaskOverlay @ref="updateTaskOverlay"
-                   Refresh="Refresh"/>-->
-
 @inject ICalendarRepository _calendarRepository;
 @inject DateMapper _dateMapper;
 
@@ -112,26 +103,12 @@
     public EventCallback<bool> Refresh { get; set; }
 
     private UpdateCardOverlay updateCardOverlay;
-    private UpdateTaskOverlay updateTaskOverlay;
+    private UpdateTaskPopover updateTaskOverlay;
 
     private List<Date> _monthDates = new List<Date> ();
 
-    private Card? _activeCard = null;
-
     protected override async System.Threading.Tasks.Task OnInitializedAsync ()
     {
-        //Test call here:
-        //var month = GetAllMonthDates (2024, 8);
-
-        _activeCard = new Card
-        {
-            Id = Guid.Empty,
-            BoardID = Guid.Empty,
-            Title = "[Placeholder Title]",
-            Description = "[Placeholder Description]",
-            Tasks = []
-        };
-
         var monthResponse = await _calendarRepository.FetchMonthAsync (Guid.Parse ("6469d898-c468-4c84-82f9-6dcad60757a8")); // One day this GUId will be dynamic
         // Validation goes here..
 

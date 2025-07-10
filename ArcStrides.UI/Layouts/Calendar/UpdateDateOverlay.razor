@@ -42,9 +42,9 @@
 
 </ArcOverlay>
 
-<UpdateTaskOverlay @bind-Open="_taskViewIsOpen"
+<!--<UpdateTaskPopover @bind-Open="_taskViewIsOpen"
                    @bind-TaskData="@(_cardToView.Tasks.ToList() [0])"
-                   Refresh="Refresh" />
+                   Refresh="Refresh" />-->
 
 <MudOverlay @bind-Visible="_addTaskIsOpen" DarkBackground="true" ZIndex="20">
     <CreateTaskOverlay @bind-Open="_addTaskIsOpen"

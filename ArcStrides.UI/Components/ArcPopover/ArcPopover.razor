@@ -2,10 +2,12 @@
 
 @inherits LayoutComponentBase
 
-<MudPaper Class="glass">
-
-    <MudButton OnClick="@(() => Open = true)">
-        @PopoverText
+<div>
+    <MudButton OnClick="@(() => Open = true)"
+               Class="glass"
+               Style="@PopoverBaseMudStyle"
+               Size="@PopoverBaseMudSize">
+        @PopoverBaseText
     </MudButton>
 
     <MudPopover Open="Open"
@@ -28,111 +30,7 @@
             <MudButton OnClick="CloseOverlay">Discard</MudButton>
         </MudButtonGroup>
     </MudPopover>
-</MudPaper>
-
-<!--
-<MudPaper Style="background-color: rgba(153, 214, 255, 0.8);">
-    <MudButton OnClick="@(() => tempOpen = true)">
-@_initialTaskTitle
-    </MudButton>
-    <MudPopover Open="tempOpen"
-                OverflowBehavior="OverflowBehavior.FlipAlways"
-                AnchorOrigin="Origin.CenterRight"
-                TransformOrigin="Origin.CenterLeft"
-                Style="height:550px">
-        <MudPaper Class="glass"
-                  Width="600px">
-            <MudTextField @bind-Value="_initialTaskTitle" T="string" Label="Title" Variant="Variant.Filled" HelperText="Task Title" />
-
-            <MudGrid>
-                <MudItem>
-                    <ArcExpandingSelector Options="new List<string> {bool.TrueString, bool.FalseString}"
-                                          OptionSelected="((string selection) => _initialIsCompleted = bool.Parse (selection))" />
-                    <ArcExpandingSelector Options="_taskOrderRange"
-                                          OptionSelected="SetTaskOrderOnTask" />
-                    <ArcExpandingSelector Options="_taskTypes.Select (taskType => taskType!.Title!).ToList ()"
-                                          OptionSelected="SetTaskTypeOnTask" />
-                    <MudButton OnClick="@(createTaskTypeOverlay.OpenOverlay)">Create New Task Type</MudButton>
-                </MudItem>
-                <MudItem>
-                    <UpdateTimelinePanel BoardID="BoardID"
-@bind-Timeline="ActiveTask.Timeline"
-@ref="updateTimelinePanel" />
-                </MudItem>
-            </MudGrid>
-
-            <MudButtonGroup>
-                <MudButton OnClick="@(() => UpdateTaskAsync ())">Submit</MudButton>
-                <MudButton OnClick="@(() => tempOpen = false)">Discard</MudButton>
-            </MudButtonGroup>
-        </MudPaper>
-    </MudPopover>
-</MudPaper>
-
-@code
-{
-    private bool tempOpen = false;
-
-    [Parameter]
-    public Models.Board.Task? ActiveTask { get; set; }//This binds incorrectly because of the structure to this. We need to bale able to customize the input logic for the Task text
-    [Parameter]
-    public EventCallback<Models.Board.Task?> ActiveTaskChanged { get; set; }
-
-    [Parameter]
-    public int TasksCount { get; set; }
-    //[Parameter]
-    //public EventCallback<int> TaskCountsChanged { get; set; }
-
-    [Parameter]
-    public Guid? CardID { get; set; }
-    [Parameter]
-    public EventCallback<Guid?> CardIDChanged { get; set; }
-
-    [Parameter]
-    public Guid BoardID { get; set; }
-    [Parameter]
-    public EventCallback<Guid> BoardIDChanged { get; set; }
-
-    [Parameter]
-    public EventCallback<bool> Refresh { get; set; }
-
-    private string _initialTaskTitle = string.Empty;
-    private int _initialTaskTypeId = 0;
-    private int _initialTaskOrder = -1;
-    private Timeline? _initialTimeline = null;
-    private bool? _initialIsCompleted = null;
-
-    private List<string> _taskOrderRange = new List<string> ();
-
-    private List<TaskTypeResponse> _taskTypes = new List<TaskTypeResponse> ();
-
-    //On page load. Not async to this layout class loading.
-    protected override void OnInitialized ()
-    {
-    _initialTaskTitle = ActiveTask?.Title! ?? "Temp Title (FIX)";
-    _initialTaskTypeId = ActiveTask?.TaskType.ID!.Value ?? -1;
-    _initialTaskOrder = ActiveTask?.Order!.Value ?? -1;
-    _initialTimeline = ActiveTask?.Timeline;
-    _initialIsCompleted = ActiveTask?.IsCompleted;
-
-    _taskOrderRange = new List<string>();
-    for (int index = 1; index <= TasksCount; index ++)
-    _taskOrderRange.Add(index.ToString());
-    }
-
-    protected async override System.Threading.Tasks.Task OnAfterRenderAsync (bool firstRender)
-    {
-    if (firstRender)
-    {
-    _taskTypes = await FetchTaskTypesAsync ();
-    }
-    }
-
-    private UpdateTimelinePanel updateTimelinePanel;
-
-    private CreateTaskTypeOverlay createTaskTypeOverlay;
-}
--->
+</div>
 
 @code
 {
@@ -142,7 +40,13 @@
     public EventCallback<bool> OpenChanged { get; set; }
 
     [Parameter]
-    public string PopoverText { get; set; } = string.Empty;
+    public string PopoverBaseText { get; set; } = string.Empty;
+
+    [Parameter]
+    public string PopoverBaseMudStyle { get; set; } = string.Empty;
+
+    [Parameter]
+    public Size PopoverBaseMudSize { get; set; } = Size.Medium;
 
     //[Parameter]
     //public RendarFragment? PopoverFragment { get; set; }

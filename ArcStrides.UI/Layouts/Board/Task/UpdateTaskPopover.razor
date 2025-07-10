@@ -8,8 +8,10 @@
 @using ArcStrides.UI.Models.Board
 @using ArcStrides.UI.Repositories
 
-<ArcPopover PopoverText="@ActiveTask!.Title"
-            OnSubmitAsync="UpdateTaskAsync">
+<ArcPopover PopoverBaseText="@ActiveTask!.Title"
+            OnSubmitAsync="UpdateTaskAsync"
+            PopoverBaseMudSize="@PopoverBaseMudSize"
+            PopoverBaseMudStyle="@PopoverBaseMudStyle">
     <MudPaper Class="glass" 
               Width="600px">
         <MudTextField @bind-Value="ActiveTask!.Title" T="string" Label="Title" Variant="Variant.Filled" HelperText="Task Title" />
@@ -63,6 +65,12 @@
     public Guid BoardID { get; set; }
     [Parameter]
     public EventCallback<Guid> BoardIDChanged { get; set; }
+
+    [Parameter]
+    public Size PopoverBaseMudSize { get; set; } = Size.Medium;
+
+    [Parameter]
+    public string PopoverBaseMudStyle { get; set; } = string.Empty;
 
     [Parameter]
     public EventCallback<bool> Refresh { get; set; }

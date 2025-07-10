@@ -140,10 +140,6 @@
 
 @code 
 {
-    //Redo DropCards to be an object containing Card and the DropCard field??
-
-    private BoardResponse _board;
-
     private Guid _boardID = Guid.Empty;
 
     public List<DropCard> _cards = new List<DropCard> ();
@@ -174,16 +170,16 @@
             DropArea = "_"
         };
 
-        _board = await _boardRepository.FetchBoardAsync(Guid.Parse("1cb0ce6e-6145-4fe7-833a-0b7c0545c449"));//Change later to be dynamic..
+        var boardResponse = await _boardRepository.FetchBoardAsync(Guid.Parse("1cb0ce6e-6145-4fe7-833a-0b7c0545c449"));//Change later to be dynamic..
         // todo: Validate Board Response here and throw an error if it is not what we want it to be...
 
-        _boardID = _board.ID!.Value;
+        _boardID = boardResponse.ID!.Value;
 
-        _cards = ConvertBoardResponseToDropCardList(_board);
+        _cards = ConvertBoardResponseToDropCardList(boardResponse);
 
         foreach (var card in _cards)
         {
-            card.Card.Tasks = card.Card.Tasks.OrderBy(t => t.Order)
+            card.Card.Tasks = card.Card.Tasks.OrderBy(task => task.Order)
                                              .ToList();
         }
     }

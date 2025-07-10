@@ -30,7 +30,7 @@ builder.Services.AddTransient<UpdateSwimlaneOverlay> ();
 builder.Services.AddTransient<DeleteSwimlaneOverlay> ();
 builder.Services.AddTransient<CreateCardOverlay> ();
 builder.Services.AddTransient<UpdateCardOverlay> ();
-builder.Services.AddTransient<UpdateTaskOverlay> ();
+builder.Services.AddTransient<UpdateTaskPopover> ();
 
 builder.Services.AddTransient<IArcErrorHandler, ArcErrorHandler> ();
 
