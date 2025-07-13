@@ -62,8 +62,10 @@
     <MudGrid Justify="Justify.Center" Spacing="0" Style="background-color: transparent;">
         @foreach (var weekIndex in Enumerable.Range(0, _monthDates.Count () / 7))
         {
-            <MudItem Style="height: 170px;">
-                <MudPaper Outlined="true" Height="170px" Style="background-color: transparent;">
+            <MudItem Style="height: 170px;
+                            margin-bottom: 8px;">
+                <MudPaper Height="170px" 
+                          Style="background-color: transparent;">
 
                     <MudGrid Justify="Justify.Center" Spacing="0">
                         <MudItem Style="padding-left: 2px; padding-right: 2px; height: 170px;">

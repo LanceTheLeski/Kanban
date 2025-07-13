@@ -11,7 +11,8 @@
 <ArcPopover PopoverBaseText="@ActiveTask!.Title"
             OnSubmitAsync="UpdateTaskAsync"
             PopoverBaseMudSize="@PopoverBaseMudSize"
-            PopoverBaseMudStyle="@PopoverBaseMudStyle">
+            PopoverBaseMudStyle="@PopoverBaseMudStyle"
+            PopoverBaseMudTextStyle="@PopoverBaseMudTextStyle">
     <MudPaper Class="glass" 
               Width="600px">
         <MudTextField @bind-Value="ActiveTask!.Title" T="string" Label="Title" Variant="Variant.Filled" HelperText="Task Title" />
@@ -71,6 +72,9 @@
 
     [Parameter]
     public string PopoverBaseMudStyle { get; set; } = string.Empty;
+
+    [Parameter]
+    public string PopoverBaseMudTextStyle { get; set; } = string.Empty;
 
     [Parameter]
     public EventCallback<bool> Refresh { get; set; }

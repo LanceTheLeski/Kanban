@@ -10,7 +10,7 @@
           Height="170px"
           Class="glass"
           Style="padding: 0;">
-    <MudStack Spacing="0" 
+    <MudStack Spacing="0"
               Style="position: relative">
         <MudPaper Style="background-color: rgba(0, 0, 0, 0); 
                          position:absolute; 
@@ -65,24 +65,38 @@
                 <MudStack Spacing="0"
                           Style="background-color: transparent">   
                     <MudPaper Width="80px" Height="32px" Style="background-color: transparent">
-                        <MudGrid Spacing="0" Style="width: 80px; height: 32px; background-color: transparent;">
-                            <MudItem Style="width: 40px; height: 20px;">
+                        <MudGrid Spacing="0" 
+                                 Style="width: 80px;
+                                        height: 32px;">
+                            <MudItem Style="text-align: center;
+                                            width: 40px; 
+                                            height: 32px;">
                                 <MudImage Width="30" 
                                           Height="32" 
                                           Fluid="true" 
                                           ObjectFit="ObjectFit.ScaleDown" 
                                           ObjectPosition="ObjectPosition.Center" 
-                                          Src="icons8-menu-vertical-50.png"/>
+                                          Src="icons8-menu-vertical-50.png"
+                                          Alt="Date Settings"/>
                             </MudItem>
-                            <MudItem Style="width: 40px; height: 20px; background-color: transparent;">
-                                <MudButton OnClick="(() => UpdateDateIsOpen())">
+                            <MudItem Style="width: 40px;
+                                            height: 32px;">
+                                <MudListItem T="object"
+                                             OnClick="(() => UpdateDateIsOpen())"
+                                             Gutters="false" 
+                                             Dense="false"
+                                             Style="text-align: center;
+                                                    height: 32px;
+                                                    width: 40px;
+                                                    padding-top: 15px;">
                                     <MudImage Width="30" 
-                                              Height="32" 
-                                              Fluid="true" 
-                                              ObjectFit="ObjectFit.ScaleDown" 
-                                              ObjectPosition="ObjectPosition.Center" 
-                                              Src="icons8-expand-50.png" />
-                                </MudButton>
+                                                Height="32" 
+                                                Fluid="true" 
+                                                ObjectFit="ObjectFit.ScaleDown" 
+                                                ObjectPosition="ObjectPosition.Center" 
+                                                Src="icons8-expand-50.png"
+                                                Alt="Expand Date"/>
+                                </MudListItem>
                             </MudItem>
                         </MudGrid>
                     </MudPaper>
@@ -90,7 +104,11 @@
                         <MudGrid Spacing="0" Style="height: 18px;
                                                     flex-direction: row;">
                             <MudPaper Width="15px" Height="18px" Class="glass-inner-engraved" Square="true">
-                                <MudListItem T="string" OnClick="@(() => DateBodyIndex -= 1)" Gutters="false" Dense="false" Style="height: 18px; background-color: transparent">
+                                <MudListItem T="string" 
+                                             OnClick="@(() => DateBodyIndex -= 1)" 
+                                             Gutters="false" 
+                                             Dense="false" 
+                                             Style="height: 18px; background-color: transparent">
                                     <MudImage Width="15" 
                                               Height="18" 
                                               Fluid="true" 
@@ -121,13 +139,19 @@
             </MudItem>
         </MudGrid>
         <MudPaper Class="glass-frosted"
+                  Style="padding-top: 0px;
+                         padding-bottom: 5px;
+                         padding-left: 2px;
+                         padding-right: 2px;"
+                  Width="100%"
                   Square=true>
             <MudCarousel TData="object" 
                          ShowArrows="false" 
                          ShowBullets="false" 
-                         AutoCycle="@Cycle" 
+                         AutoCycle="@Cycle"
                          SelectedIndex="@DateBodyIndex"
-                         Style="height: 100px;">
+                         Style="height: 120px;
+                                width: 100%;">
                 @if (Date.Cards is not null)
                 {
                     @foreach (var positionID in Date.Cards.Select (card => card.PositionID).Distinct ())
@@ -137,30 +161,44 @@
                             {
                                 <MudPaper Width="100%"
                                           Style="background-color: #0F83DB;
+                                                 color: #E0E8EF;
                                                  margin-bottom: 2px;">
-                                    <MudListItem T="string" OnClick="@(() => 
-                                                                       {
-                                                                            ActiveCard = card;
-                                                                            openCardOverlay = true;
-                                                                       })">
-                                        <MudText Style="font-size: x-small">@card.Title</MudText>
+                                    <MudListItem T="string"
+                                                 OnClick="@(() => 
+                                                            {
+                                                                ActiveCard = card;
+                                                                openCardOverlay = true;
+                                                            })"
+                                                 Dense="true"
+                                                 Gutters="false">
+
+                                        <MudText Style="font-size: x-small;
+                                                        padding-left: 10px;
+                                                        padding-right: 10px;">
+                                            @card.Title
+                                        </MudText>
+
                                         @foreach (var taskIndex in Enumerable.Range(0, card.Tasks.Count()))
                                         {
-                                            <MudPaper Width="95%" Style="background-color: sandybrown; 
+                                            <MudPaper Width="98%" Style="background-color: #FEECA5;
                                                                          justify-self: center;
-                                                                         margin-bottom: 2px;">
+                                                                         margin-bottom: 1px;
+                                                                         margin-top: 1px;">
 
-                                                <!--<MudText Style="font-size: small">@task.Title</MudText>-->
                                                 <UpdateTaskPopover @bind-ActiveTask="card.Tasks[taskIndex]"
                                                                    CardID="card.Id"
                                                                    BoardID="card.BoardID"
                                                                    TasksCount="card.Tasks.Count()"
                                                                    PopoverBaseMudSize="Size.Small"
-                                                                   PopoverBaseMudStyle="font-size:x-small;
-                                                                                        padding: 0px;
-                                                                                        margin: 0px;
-                                                                                        max-height: 20px;
-                                                                                        max-width: 20px;"/>
+                                                                   PopoverBaseMudStyle="padding-left: 2px;
+                                                                                        padding-right: 2px;
+                                                                                        max-height: 25px;
+                                                                                        width: 100%;
+                                                                                        font-size: xx-small;
+                                                                                        font-weight: 600;
+                                                                                        text-align: left;
+                                                                                        line-height: 7px;
+                                                                                        justify-content: flex-start;" />
 
                                             </MudPaper>
                                         }

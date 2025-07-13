@@ -2,11 +2,22 @@
 
 @inherits LayoutComponentBase
 
+<!--Popovers are going to require a lot more thought and logic. 
+
+    Responsilibities outside of this component:
+    - Knowing when to close an ArcPopover (if another opens)
+    - 
+
+    Responsilibities of this component: 
+    - To know it's position on screen and adjust the anchor if needed
+    - 
+-->
+
 <div>
     <MudButton OnClick="@(() => Open = true)"
-               Class="glass"
-               Style="@PopoverBaseMudStyle"
-               Size="@PopoverBaseMudSize">
+               Size="@PopoverBaseMudSize"
+               Class="@PopoverBaseMudClass"
+               Style="@PopoverBaseMudStyle">
         @PopoverBaseText
     </MudButton>
 
@@ -43,10 +54,19 @@
     public string PopoverBaseText { get; set; } = string.Empty;
 
     [Parameter]
+    public Size PopoverBaseMudSize { get; set; } = Size.Medium;
+
+    [Parameter]
     public string PopoverBaseMudStyle { get; set; } = string.Empty;
 
     [Parameter]
-    public Size PopoverBaseMudSize { get; set; } = Size.Medium;
+    public string PopoverBaseMudTextStyle { get; set; } = string.Empty;
+
+    [Parameter]
+    public string PopoverBaseMudClass { get; set; } = string.Empty;
+
+    //[Parameter]
+    //public object 
 
     //[Parameter]
     //public RendarFragment? PopoverFragment { get; set; }
