@@ -11,19 +11,18 @@
           Class="glass"
           Style="padding: 0;">
     <MudStack Spacing="0"
-              Style="position: relative">
-        <MudPaper Style="background-color: rgba(0, 0, 0, 0); 
+              Style="position: relative;">
+        <MudPaper Style="background-color: transparent;
                          position:absolute; 
-                         z-index: 1; 
-                         text-align: center; 
-                         padding-left: 13px; 
-                         padding-top: 13px;"
+                         z-index: 1;"
                   Elevation="0" 
                   Square=true
-                  Height="25px;">
+                  Height="50px;"
+                  Width="42px;">
             <MudText Align="Align.Center"
+                     class="gold-text"
                      Style="font-family: 'Modern No. 20';
-                            color: black;
+                            line-height: 50px;
                             font-weight: bold">@(Date.DateOrder.ToString ())</MudText>
         </MudPaper>
         <MudGrid Style="height: 50px; 
@@ -33,7 +32,8 @@
             <MudItem Style="width: 40px;">
                 <MudPaper Width="40px" 
                           Elevation="0"
-                          Square=true>
+                          Square=true
+                          Style="background-color: #630000;">
                     <MudChart ChartType="ChartType.Donut" 
                               Width="40px" 
                               Height="50px" 
@@ -117,13 +117,13 @@
                                               Style="background-color: transparent" />
                                 </MudListItem>
                             </MudPaper>
-                            <MudPaper Width="50px" Height="18px" Style="background-color: maroon;" Square="true">
+                            <MudPaper Width="50px" Height="18px" Style="background-color: #630000;" Square="true">
                                 <MudListItem T="string" OnClick="@(() => Cycle = !Cycle)" Gutters="false" Dense="false" Style="height: 18px;">
                                     <MudText Align="Align.Center" 
+                                             class="gold-text"
                                              Style="height: 18px; 
                                                     font-weight:600; 
-                                                    font-family: 'Times New Roman', Times, serif; 
-                                                    color: white;">
+                                                    font-family: 'Times New Roman', Times, serif;">
                                                         ALL
                                     </MudText>
                                 </MudListItem>

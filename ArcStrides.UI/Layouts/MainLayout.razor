@@ -2,15 +2,19 @@
 
 @inherits LayoutComponentBase
 
+@inject NavigationManager NavigationManager
+
 <MudThemeProvider />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 <div class="page mud-layout"
-     style="background-image: url('DefaultBackground5.jpg')"><!--So far 3 is best-->
+     style="background-image: url('@_backgroundUrl');
+            transition: background-image 0.5s ease-in-out;">
      <main>
-        <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="my-2 pt-2">
+        <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" 
+                      Class="my-2 pt-2">
             @Body
         </MudContainer>
     </main>
@@ -21,3 +25,39 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code
+{
+    private string _backgroundUrl = "DefaultBackground5.jpg";
+
+    protected override void OnInitialized ()
+    {
+        // initial set
+        UpdateBackground (NavigationManager.Uri);
+
+        // watch for every navigation
+        NavigationManager.LocationChanged += (_, args) =>
+        {
+            UpdateBackground (args.Location);
+            StateHasChanged ();
+        };
+    }
+
+    private void UpdateBackground (string absoluteUri)
+    {
+        // turn "https://.../dashboard?foo=bar" into "dashboard"
+        var relative = NavigationManager.ToBaseRelativePath (absoluteUri)
+                                        //.Split ('?', StringSplitOptions.RemoveEmptyEntries) [0]
+                                        .TrimEnd ('/');
+
+        // map the route to your image
+        _backgroundUrl = relative switch
+        {
+            "" or "/" => "DefaultBackground5.jpg",
+            "board" => "DefaultBackground5.jpg",
+            "calendar" => "CalendarBackground3.jpg",//Maybe 1 is better?
+            // add more routes here...
+            _ => "/images/DefaultBackground5.jpg"
+        };
+    }
+}
