@@ -82,8 +82,8 @@
                             <MudItem Style="width: 40px;
                                             height: 32px;">
                                 <MudListItem T="object"
-                                             OnClick="(() => UpdateDateIsOpen())"
-                                             Gutters="false" 
+                                             OnClick="(() => openDateOverlay = true)"
+                                             Gutters="false"
                                              Dense="false"
                                              Style="text-align: center;
                                                     height: 32px;
@@ -217,10 +217,8 @@
                    @bind-ActiveCard="ActiveCard"
                    @bind-BoardID="ActiveCard.BoardID"/>
 
-<!--<MudOverlay @bind-Visible="open" DarkBackground="true" ZIndex="10">
-    <UpdateDateOverlay @bind-Open="open"
-                       @bind-DayData="Date" />
-</MudOverlay>-->
+<UpdateDateOverlay @bind-Open="openDateOverlay"
+                   @bind-Date="Date"/>
 
 @code 
 {
@@ -248,12 +246,7 @@
 
     private bool openCardOverlay = false;
 
-    // Change this possibly to have the overlay injected or something and call the open method directly.
-    private bool open = false;
-    private void UpdateDateIsOpen()
-    {
-        open = true;
-    }
+    private bool openDateOverlay = false;
 
     private bool Cycle = true;
     private int DateBodyIndex = 0;

@@ -34,9 +34,11 @@ public partial class DateMapper
     /// <summary>
     /// <see cref="Date"/> --> <see cref="DateResponse"/>
     /// </summary>
-    [MapProperty (nameof (Date.RowKey), nameof (DateResponse.ID))]
+    [MapProperty (nameof (Date.PartitionKey), nameof (DateResponse.ID))]
     [MapProperty (nameof (Date.DateOrder), nameof (DateResponse.DateOrder))]
     [MapProperty (nameof (Date.WeekOrder), nameof (DateResponse.WeekOrder))]
     [MapProperty (nameof (Date.DayOfTheWeekOrder), nameof (DateResponse.DayOfTheWeekOrder))]
+    [MapProperty (nameof (Date.MonthName), nameof (DateResponse.MonthName))]
+    [MapProperty (nameof (Date.Year), nameof (DateResponse.YearOrder))]
     public partial DateResponse MapDateToDateResponse (Date date);
 }

@@ -8,6 +8,9 @@ namespace ArcStrides.API.Models.Calendar;
 [ArcTableName ("Dates")]
 public class Date : ArcCalendarsEntity
 {
+    /// <summary>
+    /// IDK???
+    /// </summary>
     public override string RowKey { get; set; }
 
     /// <summary>

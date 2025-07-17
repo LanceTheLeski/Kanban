@@ -13,6 +13,10 @@ public class Date
 
     public int? DayOfTheWeekOrder { get; set; }
 
+    public string? Month { get; set; }
+
+    public int? Year { get; set; }
+
     public IEnumerable<Card>? Cards { get; set; }
 
     /// <summary>

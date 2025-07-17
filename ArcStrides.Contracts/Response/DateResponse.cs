@@ -10,5 +10,9 @@ public class DateResponse
 
     public int? DayOfTheWeekOrder { get; init; } = null;
 
+    public string? MonthName { get; init; } = null;
+
+    public int? YearOrder { get; init; } = null;
+
     public IEnumerable<CardResponse>? Cards { get; init; } = null;
 }

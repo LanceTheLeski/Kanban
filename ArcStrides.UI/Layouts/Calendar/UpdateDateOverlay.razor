@@ -11,45 +11,47 @@
 @inherits LayoutComponentBase
 
 <ArcOverlay @bind-Open="Open">
-    <MudText>@(Date.DateOrder)</MudText>
-    <MudExpansionPanels>
-        <MudExpansionPanel Text="Column" MaxHeight="1000" ExpandedChanged="TaskTypeListExpandedChanged">
-            @_taskTypeList
-        </MudExpansionPanel>
-    </MudExpansionPanels>
+    <MudPaper Width="300px" Height="300px">
+        <MudText>@($"{Date.Month} {Date.DateOrder}th {Date.Year}")</MudText>
 
-    <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
-        <MudStack Class="flex-grow-1" Width="100%" Height="100%">
-            <MudList T="string" ReadOnly="false">
-                @if (Date.Cards is not null)
-                {
-                    @foreach (var card in Date.Cards)
+
+        <MudExpansionPanels>
+            <MudExpansionPanel Text="Column" MaxHeight="1000" ExpandedChanged="TaskTypeListExpandedChanged">
+                @_taskTypeList
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+
+        <MudPaper Class="d-inline-flex flex-grow-1 overflow-auto" Style="width: 300px; height: 200px;">
+            <MudStack Class="flex-grow-1" 
+                      Style="width: 100%; height: 100%">
+                <MudList T="string" ReadOnly="false">
+                    @if (Date.Cards is not null)
                     {
-                        <MudListItem OnClick="(() => ExpandTaskView(card))">
-                            Task Name: @(card.Title)
-                        </MudListItem>
+                        @foreach (var card in Date.Cards)
+                        {
+                            <MudListItem OnClick="(() => ExpandTaskView(card))">
+                                Task Name: @(card.Title)
+                            </MudListItem>
+                        }
                     }
-                }
-            </MudList>
-        </MudStack>
-    </MudPaper>
+                </MudList>
+            </MudStack>
+        </MudPaper>
 
-    <MudPaper>
-        <MudButton OnClick="ExpandCreateNewTaskView">
-            Add New Task
-        </MudButton>
+        <MudPaper>
+            <MudButton OnClick="ExpandCreateNewTaskView">
+                Add New Task
+            </MudButton>
+        </MudPaper>
     </MudPaper>
-
 </ArcOverlay>
 
 <!--<UpdateTaskPopover @bind-Open="_taskViewIsOpen"
                    @bind-TaskData="@(_cardToView.Tasks.ToList() [0])"
                    Refresh="Refresh" />-->
 
-<MudOverlay @bind-Visible="_addTaskIsOpen" DarkBackground="true" ZIndex="20">
-    <CreateTaskOverlay @bind-Open="_addTaskIsOpen"
-                       Refresh="Refresh" />
-</MudOverlay>
+<!--<UpdateTaskOverlay @bind-Open="_addTaskIsOpen"
+                    Refresh="Refresh" />-->
 
 @code 
 {
@@ -113,6 +115,7 @@
             </MudPaper>
         };
     }
+
     private static void ChooseTaskTypeToFilter (Guid boardID)
     {
         _boardIdToFilter = boardID;
