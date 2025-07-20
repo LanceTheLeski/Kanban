@@ -3,7 +3,9 @@
 @using ArcStrides.UI.Components
 @using ArcStrides.UI.Components.ArcOverlay
 @using ArcStrides.UI.Layouts
+@using ArcStrides.UI.Layouts.Board.Commands
 @using ArcStrides.UI.Layouts.Board.Task
+@using ArcStrides.UI.Layouts.Board.Timeline
 @using ArcStrides.UI.Models.Board
 @using ArcStrides.UI.Options
 @using ArcStrides.UI.Repositories
@@ -63,8 +65,13 @@
             </MudItem>
             <MudItem>
                 <MudGrid>
-                    <MudItem>Timeline</MudItem>  
-                    <MudItem>Notification</MudItem>
+                    <MudItem>
+                        <UpdateTimelinePanel BoardID="BoardID" 
+                                             @bind-Timeline="ActiveCard!.Timeline"/>
+                    </MudItem>  
+                    <MudItem>
+                        <CommandPanel/>
+                    </MudItem>
                 </MudGrid>
             </MudItem>
         </MudStack>

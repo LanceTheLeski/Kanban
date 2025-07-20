@@ -31,5 +31,7 @@ public class Card
 
     public List<Task> Tasks { get; set; }
 
+    public Timeline Timeline { get; set; }
+
     //Add tags and metadata-related stuff later
 }

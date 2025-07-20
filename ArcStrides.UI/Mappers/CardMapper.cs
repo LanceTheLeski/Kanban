@@ -22,6 +22,7 @@ public partial class CardMapper
     [MapProperty (nameof (CardResponse.Position.SwimlaneID), nameof (Card.SwimlaneID))]
     [MapProperty (nameof (CardResponse.Position.SwimlaneTitle), nameof (Card.SwimlaneName))]
     [MapProperty (nameof (CardResponse.Tasks), nameof (Card.Tasks))]
+    [MapProperty (nameof (CardResponse.Timeline), nameof (Card.Timeline))]
     public partial Card MapCardResponseToCard (CardResponse cardResponse);
 
     /// <summary>
@@ -52,5 +53,6 @@ public partial class CardMapper
     [MapProperty (nameof (Card.SwimlaneID), nameof (DropCard.Card.SwimlaneID))]
     [MapProperty (nameof (Card.SwimlaneName), nameof (DropCard.Card.SwimlaneName))]
     [MapProperty (nameof (Card.Tasks), nameof (DropCard.Card.Tasks))]
+    [MapProperty (nameof (Card.Timeline), nameof (DropCard.Card.Timeline))]
     public partial DropCard MapCardToDropCard (Card card);
 }
