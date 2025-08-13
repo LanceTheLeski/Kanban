@@ -21,113 +21,118 @@
 <PageTitle>Board</PageTitle>
 <MudThemeProvider Theme="@MyMudThemeProvider._ArcBoardDefaultTheme"/>
 
-<MudPaper Class="glass"
-          style="width: 100%"><!--Style="background-color: aqua;"--> <!--Class="mud-theme-backgroundgray"--->
-    <MudPaper Height="50px" Width="100%" Class="d-inline mud-theme-primary">
-        <BoardManagementNavigationBar @bind-BoardID="_boardID"
-                                      @bind-Cards="@_cards"
-                                      @bind-Swimlanes="_swimlanes"
-                                      @bind-SwimlaneTitles="_swimlaneTitles"
-                                      @bind-Columns="_columns"
-                                      @bind-ColumnTitles="_columnTitles"
-                                      Refresh="Refresh"/>
-    </MudPaper>
-    <MudGrid Spacing="0" 
-             Class="d-flex flex-column">
-        <MudItem>
-            <MudPaper Height="70px">
-                <MudGrid Class="d-flex flex-nowrap">
-                    <MudItem>
-                        <MudPaper Width="120px" 
-                                  Height="40px" 
-                                  Elevation="0" 
-                                  Style="background-color: transparent; 
-                                         padding-left: 12px;
-                                         font-family: 'Freestyle Script';">
-                            <MudText Align="Align.Center" Style="font-weight: bold;
-                                                                 font-size: xx-large;
-                                                                 color:aquamarine;">Honu Boards</MudText>
-                        </MudPaper>
-                    </MudItem>
-                    @foreach (var columnIndex in Enumerable.Range (0, _columnTitles.Count ()))
+<MudPaper Style="background-color: transparent;
+                 text-align: center;"
+          Elevation="0"
+          Width="100%"
+          Height="100%">
+    <MudPaper Class="glass"
+              Width="92%"><!--Style="background-color: aqua;"--> <!--Class="mud-theme-backgroundgray"--->
+        <MudPaper Height="50px" Width="100%" Class="d-inline mud-theme-primary">
+            <BoardManagementNavigationBar @bind-BoardID="_boardID"
+                                          @bind-Cards="@_cards"
+                                          @bind-Swimlanes="_swimlanes"
+                                          @bind-SwimlaneTitles="_swimlaneTitles"
+                                          @bind-Columns="_columns"
+                                          @bind-ColumnTitles="_columnTitles"
+                                          Refresh="Refresh"/>
+        </MudPaper>
+        <MudGrid Spacing="0" 
+                 Class="d-flex flex-column">
+            <MudItem>
+                <MudPaper Height="70px">
+                    <MudGrid Class="d-flex flex-nowrap">
+                        <MudItem>
+                            <MudPaper Width="120px" 
+                                      Height="40px" 
+                                      Elevation="0" 
+                                      Style="background-color: transparent; 
+                                             padding-left: 12px;
+                                             font-family: 'Freestyle Script';">
+                                <MudText Align="Align.Center" Style="font-weight: bold;
+                                                                     font-size: xx-large;
+                                                                     color:aquamarine;">Honu Boards</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        @foreach (var columnIndex in Enumerable.Range (0, _columnTitles.Count ()))
+                        {
+                            <MudItem>
+                                <MudPaper Width="300px" Height="55px;" Class="align-content-center">
+                                    <MudText Align="Align.Center" Style="font-family: 'calibri condensed', 'bodoni MT condensed', 'bahnschrift light condensed';
+                                                                         font-size: small;
+                                                                         font-weight: bold;
+                                                                         color: black;">
+                                        @(_columnTitles [columnIndex])
+                                    </MudText>
+                                </MudPaper>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                </MudPaper>
+            </MudItem>
+            <MudDropContainer @ref="_dropContainer"
+                              T="DropCard" 
+                              Items="_cards" 
+                              ItemDropped="UpdateCard"
+                              ItemsSelector="@((card, dropzone) => card.DropArea == dropzone)">
+                <ChildContent>
+                    @foreach (var rowIndex in Enumerable.Range(0, _swimlaneTitles.Count()))
                     {
                         <MudItem>
-                            <MudPaper Width="300px" Height="55px;" Class="align-content-center">
-                                <MudText Align="Align.Center" Style="font-family: 'calibri condensed', 'bodoni MT condensed', 'bahnschrift light condensed';
-                                                                     font-size: small;
-                                                                     font-weight: bold;
-                                                                     color: black;">
-                                    @(_columnTitles [columnIndex])
-                                </MudText>
+                            <MudPaper Height="100%" 
+                                      Style="background-color: wheat">
+                                <MudPaper Style="background-color: #C7EEE6; 
+                                                 border: 25px, solid, wheat; 
+                                                 border-left-width: 5px; 
+                                                 border-right-width: 5px;" 
+                                          Elevation="0">
+                                    <MudGrid Class="d-flex flex-nowrap">
+                                        <MudItem Class="align-content-center">
+                                            <MudPaper Width="110px"
+                                                      Style="background-color: lightcoral; margin-left: 10px;">
+                                                <MudText Align="Align.Center" Style="font-family: 'calibri condensed', 'bodoni MT condensed', 'bahnschrift light condensed';
+                                                                                     font-size: small;
+                                                                                     font-weight: bold;
+                                                                                     color: black;">
+                                                    @(_swimlaneTitles [rowIndex])
+                                                </MudText>
+                                            </MudPaper>
+                                        </MudItem>
+
+                                        @foreach (var columnIndex in Enumerable.Range (0, _columnTitles.Count ()))
+                                        {
+                                            var identifier = rowIndex + "_" + columnIndex;
+                                            <MudItem Style="height: 250px;">
+                                                <!--We want columns to have a set width-->
+                                                <MudList T="MudDropZone<DropCard>"
+                                                         ReadOnly="false"
+                                                         Class="d-flex flex-column mud-height-full" 
+                                                         Style="height: 250px;">
+                                                    <MudDropZone T="DropCard" 
+                                                                 Identifier="@identifier" 
+                                                                 CanDropClass="mud-border-success"
+                                                                 Class="d-flex flex-wrap flex-grow-1 justify-space-around gap-4 pa-2 overflow-auto"
+                                                                 Style="background-color: #ECED7b; width: 300px; height: 200px;"/>
+                                                </MudList>
+                                            </MudItem>
+                                        }
+                                    </MudGrid>
+                                </MudPaper>
                             </MudPaper>
                         </MudItem>
                     }
-                </MudGrid>
-            </MudPaper>
-        </MudItem>
-        <MudDropContainer @ref="_dropContainer"
-                          T="DropCard" 
-                          Items="_cards" 
-                          ItemDropped="UpdateCard"
-                          ItemsSelector="@((card, dropzone) => card.DropArea == dropzone)">
-            <ChildContent>
-                @foreach (var rowIndex in Enumerable.Range(0, _swimlaneTitles.Count()))
-                {
-                    <MudItem>
-                        <MudPaper Height="250px" 
-                                  Style="background-color: wheat">
-                            <MudPaper Style="background-color: #C7EEE6; 
-                                             border: 25px, solid, wheat; 
-                                             border-left-width: 5px; 
-                                             border-right-width: 5px;" 
-                                      Elevation="0">
-                                <MudGrid Class="d-flex flex-nowrap">
-                                    <MudItem Class="align-content-center">
-                                        <MudPaper Width="110px"
-                                                  Style="background-color: lightcoral; margin-left: 10px;">
-                                            <MudText Align="Align.Center" Style="font-family: 'calibri condensed', 'bodoni MT condensed', 'bahnschrift light condensed';
-                                                                                 font-size: small;
-                                                                                 font-weight: bold;
-                                                                                 color: black;">
-                                                @(_swimlaneTitles [rowIndex])
-                                            </MudText>
-                                        </MudPaper>
-                                    </MudItem>
+                </ChildContent>
 
-                                    @foreach (var columnIndex in Enumerable.Range (0, _columnTitles.Count ()))
-                                    {
-                                        var identifier = rowIndex + "_" + columnIndex;
-                                        <MudItem Style="height: 250px;">
-                                            <!--We want columns to have a set width-->
-                                            <MudList T="MudDropZone<DropCard>"
-                                                     ReadOnly="false"
-                                                     Class="d-flex flex-column mud-height-full" 
-                                                     Style="height: 250px;">
-                                                <MudDropZone T="DropCard" 
-                                                             Identifier="@identifier" 
-                                                             CanDropClass="mud-border-success"
-                                                             Class="d-flex flex-wrap flex-grow-1 justify-space-around gap-4 pa-2 overflow-auto"
-                                                             Style="background-color: #ECED7b; width: 300px; height: 200px;"/>
-                                            </MudList>
-                                        </MudItem>
-                                    }
-                                </MudGrid>
-                            </MudPaper>
-                        </MudPaper>
-                    </MudItem>
-                }
-            </ChildContent>
-
-            <!--The ItemRenderer is a component of the MudDropZone and is in charge of rendering individual DropCards within it-->
-            <ItemRenderer>
-                <BoardCard @bind-DropCard="context" 
-                           @bind-OpenCardOverlay="editCardOverlayIsOpen" 
-                           @bind-UpdateOrDeleteCard="_activeCard" />
-            </ItemRenderer>
-        </MudDropContainer>
-    </MudGrid>
+                <!--The ItemRenderer is a component of the MudDropZone and is in charge of rendering individual DropCards within it-->
+                <ItemRenderer>
+                    <BoardCard @bind-DropCard="context" 
+                               @bind-OpenCardOverlay="editCardOverlayIsOpen" 
+                               @bind-UpdateOrDeleteCard="_activeCard" />
+                </ItemRenderer>
+            </MudDropContainer>
+        </MudGrid>
+    </MudPaper>
 </MudPaper>
-
 <!--Should move this to a different layout component which manages cards-->
 <UpdateCardOverlay @bind-Open="editCardOverlayIsOpen"
                    @bind-ActiveCard="_activeCard.Card"
