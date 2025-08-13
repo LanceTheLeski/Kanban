@@ -18,7 +18,7 @@
                   Elevation="0" 
                   Square=true
                   Height="50px;"
-                  Width="42px;">
+                  Width="41px;">
             <MudText Align="Align.Center"
                      class="gold-text"
                      Style="font-family: 'Modern No. 20';
@@ -33,13 +33,27 @@
                 <MudPaper Width="40px" 
                           Elevation="0"
                           Square=true
-                          Style="background-color: #630000;">
+                          Style="background-color: #FAB2AC;
+                                 border-radius: 100%;">
                     <MudChart ChartType="ChartType.Donut" 
                               Width="40px" 
-                              Height="50px" 
+                              Height="40px" 
                               InputData="@Date.DonutChartData"
                               InputLabels="@Date.Labels"
-                              ChartOptions="@options"></MudChart>
+                              ChartOptions="@options"
+                              Style="background-color: #630000;
+                                     border-radius: 50%;
+                                     position: absolute;
+                                     margin-top: 5px;">
+                        <!--<CustomGraphics>
+                            <text x="50%" 
+                                  y="50%" 
+                                  dominant-baseline="middle" 
+                                  text-anchor="middle"
+                                  font-size="14"
+                                  class="gold-text">@(Date.DateOrder.ToString ())</text>    The class doesn't work for some reason..?
+                        </CustomGraphics>-->
+                    </MudChart>
                 </MudPaper>
             </MudItem>
             <MudItem Style="width: 50px;

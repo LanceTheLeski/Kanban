@@ -21,7 +21,8 @@
 <PageTitle>Board</PageTitle>
 <MudThemeProvider Theme="@MyMudThemeProvider._ArcBoardDefaultTheme"/>
 
-<MudPaper Class="glass"><!--Style="background-color: aqua;"--> <!--Class="mud-theme-backgroundgray"--->
+<MudPaper Class="glass"
+          style="width: 100%"><!--Style="background-color: aqua;"--> <!--Class="mud-theme-backgroundgray"--->
     <MudPaper Height="50px" Width="100%" Class="d-inline mud-theme-primary">
         <BoardManagementNavigationBar @bind-BoardID="_boardID"
                                       @bind-Cards="@_cards"

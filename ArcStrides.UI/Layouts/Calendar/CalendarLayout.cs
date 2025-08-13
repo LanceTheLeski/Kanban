@@ -1,5 +1,6 @@
 ﻿using ArcStrides.Contracts.Response;
 using ArcStrides.UI.Mappers;
+using ArcStrides.UI.Models.Board;
 using ArcStrides.UI.Models.Calendar;
 using MudBlazor;
 using System.Collections.ObjectModel;
@@ -31,38 +32,53 @@ public partial class CalendarLayout
         return dateCollection;
     }
 
-    private double [] CountBoardTypes (IEnumerable<CardResponse> cards)
+    private double [] CountTasksForEachBoardType (IEnumerable<Card> cards)
     {
-        var cardsDistinctByType = cards.Select (card => card.Position.BoardID)
+        var cardsDistinctByType = cards.Select (card => card.BoardID)
                                        .Distinct ();
 
         var cardCounts = new double [cardsDistinctByType.Count ()];
         for (var cardCountIndex = 0; cardCountIndex < cardCounts.Length; cardCountIndex++)
-            cardCounts [cardCountIndex] = cards.Where (card => card.Position.BoardID == cardsDistinctByType.ElementAt (cardCountIndex))
+            cardCounts [cardCountIndex] = cards.Where (card => card.BoardID == cardsDistinctByType.ElementAt (cardCountIndex))
+                                               .SelectMany (card => card.Tasks)
                                                .Count ();
 
         return cardCounts;
     }
 
-    private List<ChartSeries> GetBoardTypeData (IEnumerable<CardResponse> cards)
+    private List<ChartSeries> GetFormattedBoardTypeData (IEnumerable<Card> cards)
     {
-        var boardTypesList = cards.Select (card => card.Position.BoardID)
-                                  .Distinct ();
+        var boardTypesList = cards?.Select (card => card.BoardID)
+                                  ?.Distinct ()
+                                  ?? [];
 
         var cardsCompletedList = new List<ChartSeries> ();
+
         foreach (var boardType in boardTypesList)
         {
-            var tasksCompleted = new double [boardTypesList.Count ()];
-            for (var tasksIndex = 0; tasksIndex < tasksCompleted.Length; tasksIndex++)
-                tasksCompleted [tasksIndex] = cards.Where (card => card.Position.BoardID == boardTypesList.ElementAt (tasksIndex))
-                                                   .Select (card => card.Tasks.Where (task => task.IsComplete == true))
-                                                   .Count ();
+            var tasksCompleted = new double [6]; // One for along the y-axis and two for along the x-axis
+            for (var tasksIndex = 0; tasksIndex < tasksCompleted.Length - 2; tasksIndex ++)
+            {
+                var completedTasks = cards?.Where (card => card.BoardID == boardType)
+                                          ?.SelectMany (card => card.Tasks.Where (task => task.IsCompleted == true))
+                                          ?.Count ()
+                                          ?? 0;
+                var totalTasks = cards?.Where (card => card.BoardID == boardType)
+                                      ?.SelectMany (card => card.Tasks)
+                                      ?.Count ()
+                                      ?? 10;
+
+                tasksCompleted [tasksIndex + 2] = (completedTasks / totalTasks) * 10;
+            }
+
+            tasksCompleted [0] = 0;
+            tasksCompleted [1] = 0;
 
             cardsCompletedList.Add (new ChartSeries { Data = tasksCompleted });
         }
 
+        cardsCompletedList.Add (new ChartSeries { Data = [12, 12, 12, 12, 12, 12] }); // Adds a left + top edge 
+
         return cardsCompletedList;
     }
-
-    //private void 
 }

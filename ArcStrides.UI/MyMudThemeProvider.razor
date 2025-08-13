@@ -1,5 +1,9 @@
-﻿<CascadingValue Value=true Name="UsePopoverProvider">
-    <MudThemeProvider Theme="_ArcBoardDefaultTheme"></MudThemeProvider>
+﻿<CascadingValue IsFixed=true 
+                Value=true 
+                Name="UsePopoverProvider">
+    <MudThemeProvider DefaultScrollbar=true
+                      Theme="_ArcBoardDefaultTheme">
+    </MudThemeProvider>
 </CascadingValue>
 
 @code 
@@ -34,6 +38,10 @@
             PaletteLight = new PaletteLight
             {
                 //Doesnt work..
+            },
+            LayoutProperties = new LayoutProperties
+            {
+                
             }
         };
 }

@@ -122,11 +122,11 @@
             // Validation goes here to check for null. If there's a null then something terrible has happened with the data..
 
             monthDate = _dateMapper.MapDateResponseToDate (dateResponse);
-            monthDate.DonutChartData = [ 1.4, 3.7, 7.9, 4.9 ]; //CountBoardTypes (monthDate.Cards);
-            monthDate.LineChartData = [ new ChartSeries { Data = [0, 0, 5, 5, 5, 5, 10, 10] },
+            monthDate.DonutChartData = /*[ 1.4, 3.7, 7.9, 4.9 ];*/ CountTasksForEachBoardType (monthDate.Cards);
+            monthDate.LineChartData = /*[ new ChartSeries { Data = [0, 0, 5, 5, 5, 5, 10, 10] },
                                         new ChartSeries { Data = [0, 0, 2, 2, 2, 2, 2, 2] },
-                                        new ChartSeries { Data = [0, 0, 1, 2, 4, 5, 6, 6] }];
-                                        //GetBoardTypeData (monthDate.Cards);
+                                        new ChartSeries { Data = [0, 0, 1, 2, 4, 5, 6, 6] }];*/
+                                        GetFormattedBoardTypeData (monthDate.Cards);
             monthDate.Labels = new string [] { };//todo..
             monthDate.xAxisLabels = new string [] { };//todo..
 
