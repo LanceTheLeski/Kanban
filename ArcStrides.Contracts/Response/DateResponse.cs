@@ -14,5 +14,5 @@ public class DateResponse
 
     public int? YearOrder { get; init; } = null;
 
-    public IEnumerable<CardResponse>? Cards { get; init; } = null;
+    public IEnumerable<CardResponse>? Cards { get; set; } = null;
 }

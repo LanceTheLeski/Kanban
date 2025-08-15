@@ -60,16 +60,16 @@
 
     <!--@dateFragment-->
     <MudGrid Justify="Justify.Center" Spacing="0" Style="background-color: transparent;">
-        @foreach (var weekIndex in Enumerable.Range(0, _monthDates.Count () / 7))
+        @foreach (var weekIndex in Enumerable.Range (0, _monthDates.Count () / 7))
         {
             <MudItem Style="height: 170px;
-                            margin-bottom: 8px;">
-                <MudPaper Height="170px" 
+                                margin-bottom: 8px;">
+                <MudPaper Height="170px"
                           Style="background-color: transparent;">
 
                     <MudGrid Justify="Justify.Center" Spacing="0">
                         <MudItem Style="padding-left: 2px; padding-right: 2px; height: 170px;">
-                            <CalendarDate @bind-Date="@(_monthDates [weekIndex * 7])"/>
+                            <CalendarDate @bind-Date="@(_monthDates [weekIndex * 7])" />
                         </MudItem>
                         <MudItem Style="padding-left: 2px; padding-right: 2px; height: 170px;">
                             <CalendarDate @bind-Date="@(_monthDates [weekIndex * 7 + 1])" />
@@ -99,6 +99,8 @@
 
 @inject ICalendarRepository _calendarRepository;
 @inject DateMapper _dateMapper;
+@inject CardMapper _cardMapper;
+@inject TaskMapper _taskMapper;
 
 @code
 {
@@ -118,15 +120,31 @@
 
         foreach (var dateResponse in monthResponse!.Dates!)
         {
-            var monthDate = basicMonthDates.SingleOrDefault(basicMonthDate => basicMonthDate.DateOrder! == dateResponse.DateOrder!);
+            var monthDate = basicMonthDates.SingleOrDefault (basicMonthDate => basicMonthDate.DateOrder! == dateResponse.DateOrder!);
             // Validation goes here to check for null. If there's a null then something terrible has happened with the data..
+            //monthDate.Cards = 
 
             monthDate = _dateMapper.MapDateResponseToDate (dateResponse);
-            monthDate.DonutChartData = /*[ 1.4, 3.7, 7.9, 4.9 ];*/ CountTasksForEachBoardType (monthDate.Cards);
-            monthDate.LineChartData = /*[ new ChartSeries { Data = [0, 0, 5, 5, 5, 5, 10, 10] },
-                                        new ChartSeries { Data = [0, 0, 2, 2, 2, 2, 2, 2] },
-                                        new ChartSeries { Data = [0, 0, 1, 2, 4, 5, 6, 6] }];*/
-                                        GetFormattedBoardTypeData (monthDate.Cards);
+
+            var cardList = new List<Card> ();
+            foreach (var cardResponse in dateResponse.Cards ?? [])
+            {
+                var card = _cardMapper.MapCardResponseToCard (cardResponse);
+                
+                var taskList = new List<Models.Board.Task>();
+                foreach (var taskResponse in cardResponse.Tasks)
+                {
+                    var task = _taskMapper.MapTaskResponsetoTask (taskResponse);
+                    taskList.Add (task);
+                }
+                card.Tasks = taskList;
+
+                cardList.Add (card);
+            }
+
+            monthDate.Cards = cardList;
+            monthDate.DonutChartData = CountTasksForEachBoardType (monthDate.Cards);
+            monthDate.LineChartData = GetFormattedBoardTypeData (monthDate.Cards);
             monthDate.Labels = new string [] { };//todo..
             monthDate.xAxisLabels = new string [] { };//todo..
 
@@ -136,13 +154,13 @@
 
         // Fill in the surrounding dates from other months so the calendar grid can render correctly
         var previousBasicMonthDates = GetAllBasicMonthDatesFromSystem (2024, 12).ToList ();
-        for (int dayOfTheWeekOrder = (basicMonthDates [0].DayOfTheWeekOrder!.Value - 1); dayOfTheWeekOrder >= 0; dayOfTheWeekOrder --)
+        for (int dayOfTheWeekOrder = (basicMonthDates [0].DayOfTheWeekOrder!.Value - 1); dayOfTheWeekOrder >= 0; dayOfTheWeekOrder--)
         {
             basicMonthDates.Insert (0, previousBasicMonthDates.Last (date => date.DayOfTheWeekOrder == dayOfTheWeekOrder));
         }
 
         var nextBasicMonthDates = GetAllBasicMonthDatesFromSystem (2025, 2).ToList ();
-        for (int dayOfTheWeekOrder = (basicMonthDates.Last().DayOfTheWeekOrder!.Value + 1); dayOfTheWeekOrder < 7; dayOfTheWeekOrder ++)
+        for (int dayOfTheWeekOrder = (basicMonthDates.Last ().DayOfTheWeekOrder!.Value + 1); dayOfTheWeekOrder < 7; dayOfTheWeekOrder++)
         {
             basicMonthDates.Add (nextBasicMonthDates.First (date => date.DayOfTheWeekOrder == dayOfTheWeekOrder));
         }

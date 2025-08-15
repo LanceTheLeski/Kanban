@@ -1,5 +1,4 @@
-﻿using ArcStrides.Contracts.Response;
-using ArcStrides.UI.Mappers;
+﻿using ArcStrides.UI.Mappers;
 using ArcStrides.UI.Models.Board;
 using ArcStrides.UI.Models.Calendar;
 using MudBlazor;
@@ -56,7 +55,7 @@ public partial class CalendarLayout
 
         foreach (var boardType in boardTypesList)
         {
-            var tasksCompleted = new double [6]; // One for along the y-axis and two for along the x-axis
+            var tasksCompleted = new double [6];
             for (var tasksIndex = 0; tasksIndex < tasksCompleted.Length - 2; tasksIndex ++)
             {
                 var completedTasks = cards?.Where (card => card.BoardID == boardType)
@@ -68,7 +67,7 @@ public partial class CalendarLayout
                                       ?.Count ()
                                       ?? 10;
 
-                tasksCompleted [tasksIndex + 2] = (completedTasks / totalTasks) * 10;
+                tasksCompleted [tasksIndex + 2] = ((double) completedTasks / totalTasks) * 10;
             }
 
             tasksCompleted [0] = 0;
@@ -77,7 +76,7 @@ public partial class CalendarLayout
             cardsCompletedList.Add (new ChartSeries { Data = tasksCompleted });
         }
 
-        cardsCompletedList.Add (new ChartSeries { Data = [12, 12, 12, 12, 12, 12] }); // Adds a left + top edge 
+        cardsCompletedList.Add (new ChartSeries { Data = [ 10, 10, 10, 10, 10, 10 ], Visible = false });
 
         return cardsCompletedList;
     }

@@ -78,39 +78,36 @@ public class CalendarController : Controller
                                             .Select <Tag, string> (tagGroup => tagGroup.RowKey);
             var cardsForDay = cardsForMonth.Where (card => cardIDsForDay.Contains (card.RowKey));
 
-            var cards = new List<CardResponse> ();
+            var cardResponses = new List<CardResponse> ();
             foreach (var card in cardsForDay) 
             {
                 var tasks = await _taskRepository.QueryTasksAsync (task => task.CardID == Guid.Parse(card.RowKey));
-                //var taskTypes = await _taskRepository.QueryTaskTypesAsync (taskType => taskType.PartitionKey == card.PartitionKey);
+                var taskTypes = await _taskRepository.QueryTaskTypesAsync (taskType => taskType.PartitionKey == card.PartitionKey);
 
                 var taskResponseList = new List<TaskResponse> ();
                 foreach (var task in tasks.ToList ())
-                    taskResponseList.Add (new TaskResponse 
-                    {
-                        Title = task.Title,
-                        //TaskType = _taskMapper.MapTaskTypeToTaskTypeResponse(taskTypes.FirstOrDefault (taskType => taskType.RowKey == task.TaskTypeID.Value.ToString ())),
-                        //TaskTypeTitle = "Placeholder!",
-                        IsComplete = task.IsComplete
-                    });
-
-                // Next line could be a problem line
-                var cardPosition = _cardMapper.MapCardPositionToCardPositionResponse (cardPositionsForMonth.SingleOrDefault (cardPosition => cardPosition.RowKey == card.CardPositionID.ToString ()));
-                cards.Add (new CardResponse
                 {
-                    Title = card.Title,
-                    Tasks = taskResponseList,
-                    Position = cardPosition
-                });
+                    var taskResponse = _taskMapper.MapTaskToTaskResponse (task);
+                    var taskType = taskTypes.SingleOrDefault (taskType => int.Parse (taskType.RowKey) == task.TaskTypeID);
+                    if (taskType is not null)
+                        taskResponse.TaskType = _taskMapper.MapTaskTypeToTaskTypeResponse (taskType);
+
+                    taskResponseList.Add (taskResponse);
+                }
+
+                var cardResponse = _cardMapper.MapCardToCardResponse (card);
+                cardResponse.Tasks = taskResponseList;
+
+                var cardPosition = _cardMapper.MapCardPositionToCardPositionResponse (cardPositionsForMonth.SingleOrDefault (cardPosition => cardPosition.RowKey == card.CardPositionID.ToString ()));
+                cardResponse.Position = cardPosition;
+
+                cardResponses.Add (cardResponse);
             }
-            dateList.Add (new DateResponse
-            {
-                ID = Guid.Parse(date.PartitionKey),
-                DateOrder = date.DateOrder,
-                WeekOrder = date.WeekOrder,
-                DayOfTheWeekOrder = date.DayOfTheWeekOrder,
-                Cards = cards
-            });
+
+            var dateResponse = _dateMapper.MapDateToDateResponse (date);
+            dateResponse.Cards = cardResponses;
+
+            dateList.Add (dateResponse);
         }
         var monthResponse = new MonthResponse 
         { 

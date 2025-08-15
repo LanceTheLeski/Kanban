@@ -23,6 +23,6 @@ public partial class DateMapper
     [MapProperty (nameof (DateResponse.DayOfTheWeekOrder), nameof (Date.DayOfTheWeekOrder))]
     [MapProperty (nameof (DateResponse.MonthName), nameof (Date.Month))]
     [MapProperty (nameof (DateResponse.YearOrder), nameof (Date.Year))]
-    [MapProperty (nameof (DateResponse.Cards), nameof (Date.Cards))]
+    [MapProperty (nameof (DateResponse.Cards), nameof (Date.Cards))] // Doesn't work..
     public partial Date MapDateResponseToDate (DateResponse dateResponse);
 }
