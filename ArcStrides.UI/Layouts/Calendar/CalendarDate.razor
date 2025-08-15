@@ -119,7 +119,7 @@
                                                     flex-direction: row;">
                             <MudPaper Width="15px" Height="18px" Class="glass-inner-engraved" Square="true">
                                 <MudListItem T="string" 
-                                             OnClick="@(() => DateBodyIndex -= 1)" 
+                                             OnClick="@(() => moveLeft(DateBodyIndex))" 
                                              Gutters="false" 
                                              Dense="false" 
                                              Style="height: 18px; background-color: transparent">
@@ -143,7 +143,7 @@
                                 </MudListItem>
                             </MudPaper>
                             <MudPaper Width="15px" Height="18px" Class="glass-inner-engraved" Square="true">
-                                <MudListItem T="string" OnClick="@(() => DateBodyIndex += 1)" Gutters="false" Dense="false" Style="height: 18px;">
+                                <MudListItem T="string" OnClick="@(() => moveRight(DateBodyIndex))" Gutters="false" Dense="false" Style="height: 18px;">
                                     <MudImage Width="15" Height="18" Fluid="true" ObjectFit="ObjectFit.ScaleDown" Src="icons8-right-arrow-50.png" />
                                 </MudListItem>
                             </MudPaper>
@@ -264,4 +264,18 @@
 
     private bool Cycle = true;
     private int DateBodyIndex = 0;
+
+    private void moveLeft (int currentIndex)
+    {
+        currentIndex = currentIndex is 0
+            ? Date.Cards?.DistinctBy (card => card.BoardID).Count () ?? 0
+            : currentIndex - 1;
+    }
+
+    private void moveRight (int currentIndex)
+    {
+        currentIndex = (currentIndex + 1) == Date.Cards?.DistinctBy (card => card.BoardID).Count ()
+            ? 0
+            : currentIndex + 1;
+    }
 }
