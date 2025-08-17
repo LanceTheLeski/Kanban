@@ -143,8 +143,16 @@
                                 </MudListItem>
                             </MudPaper>
                             <MudPaper Width="15px" Height="18px" Class="glass-inner-engraved" Square="true">
-                                <MudListItem T="string" OnClick="@(() => moveRight(DateBodyIndex))" Gutters="false" Dense="false" Style="height: 18px;">
-                                    <MudImage Width="15" Height="18" Fluid="true" ObjectFit="ObjectFit.ScaleDown" Src="icons8-right-arrow-50.png" />
+                                <MudListItem T="string" 
+                                             OnClick="@(() => moveRight(DateBodyIndex))" 
+                                             Gutters="false" 
+                                             Dense="false" 
+                                             Style="height: 18px;">
+                                    <MudImage Width="15" 
+                                              Height="18" 
+                                              Fluid="true" 
+                                              ObjectFit="ObjectFit.ScaleDown" 
+                                              Src="icons8-right-arrow-50.png" />
                                 </MudListItem>
                             </MudPaper>
                         </MudGrid>
@@ -168,10 +176,10 @@
                                 width: 100%;">
                 @if (Date.Cards is not null)
                 {
-                    @foreach (var positionID in Date.Cards.Select (card => card.PositionID).Distinct ())
+                    @foreach (var boardID in Date.Cards.Select (card => card.BoardID).Distinct ())
                     {
                         <MudCarouselItem Class="overflow-hidden overflow-y-scroll">
-                            @foreach (var card in Date.Cards.Where (card => card.PositionID == positionID).Take (3).ToList ())
+                            @foreach (var card in Date.Cards.Where (card => card.BoardID == boardID).Take (3).ToList ())
                             {
                                 <MudPaper Width="100%"
                                           Style="background-color: #0F83DB;
