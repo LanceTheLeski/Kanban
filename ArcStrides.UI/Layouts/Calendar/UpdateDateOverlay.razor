@@ -13,95 +13,100 @@
 @inherits LayoutComponentBase
 
 <ArcOverlay @bind-Open="Open">
-    <MudPaper Width="850px"
-              Height="500px"
+    <MudPaper Width="950px"
+              Height="650px"
               Elevation="0">
-        <MudGrid Spacing="0"
-                 Style="height: 500px;">
-            <MudItem Style="width: 80%;">
-                <MudPaper Class="glass-frosted"
-                          Width="100%" 
-                          Height="500px">
-                    <MudStack Spacing="0"
-                              Style="height: 500px;">
-                        <MudPaper>
+        <MudGrid Style="height: 100%; background-color: pink;"
+                 Class="flex-row-reverse object-fill mud-width-full"
+                 Spacing="0">
+            <MudItem Style="height: 100%">
+                <MudStack>
+                    <CalendarDate @bind-Date="Date" />
+                    @foreach (var card in Date.Cards ?? [])
+                    {
+                        <MudPaper>@card.Title</MudPaper>
+                    }
+                </MudStack>
+            </MudItem>
+            <MudItem Style="height: 100%" 
+                     Class="flex-grow-1">
+                <MudPaper Class="glass-frosted" Width="100%">
+                    <MudStack Spacing="0">
+                        <MudPaper Width="100%">
                             <MudGrid Spacing="0"
-                                     Style="height: 100px;">
+                                     Style="height: 80px;">
                                 <MudItem>
-                                    <MudText>@($"{Date.Month} {Date.DateOrder}th {Date.Year}")</MudText>
+                                    <MudText Style="font: 'EB Garamond';
+                                                    font-size: 30px;
+                                                    height: 100%">@($"{Date.Month} {Date.DateOrder}th {Date.Year}")</MudText><!--Good date font + Larger-->
                                 </MudItem>
                                 <MudItem>
                                     <ArcExpandingSelector @bind-Options='_dateTypeList'
                                                           OptionSelected="@((dateTypeSelected) => _dateTypeSelected = int.Parse(dateTypeSelected))" />
                                 </MudItem>
                                 <MudItem>
-                                    <MudColorPicker ShowToolbar="true" 
-                                                    Label="Dialog Picker" 
-                                                    PickerVariant="PickerVariant.Dialog" />
+                                    <MudListItem T="string"
+                                                 Gutters="false" 
+                                                 Dense="false"><!--OnClick should activate pallette picker..-->
+                                        <MudPaper Style="background: 
+                                                            radial-gradient(ellipse at top, #e66465, #0022bb),
+                                                            radial-gradient(ellipse at bottom, #4d9f0c, #0022bb);"
+                                                  Height="50px"
+                                                  Width="50px">
+                                        </MudPaper>
+                                    </MudListItem>
                                 </MudItem>
                                 <MudItem>
                                     <MudPaper>
-
+                                        Tag Canvas Placeholder :)
                                     </MudPaper>
                                 </MudItem>
                             </MudGrid>
                         </MudPaper>
 
-                        <MudPaper Height="300px">
-                            <MudGrid Spacing="0"
-                                     Style="height: 300px;
-                                            background-color: red;">
+                        <MudPaper MaxWidth="100%">
+                            <MudGrid Spacing="0">
                                 <MudItem>
-                                    <MudTimeline Style="height: 200px;
-                                                        width: 300px;">
-                                        <MudTimelineItem Size="Size.Small">
-                                            <MudText>Event 1</MudText>
-                                        </MudTimelineItem>
-                                        <MudTimelineItem Size="Size.Small">
-                                            <MudText>Event 2</MudText>
-                                        </MudTimelineItem>
-                                        <MudTimelineItem Size="Size.Small">
-                                            <MudText>Event 3</MudText>
-                                        </MudTimelineItem>
-                                        <MudTimelineItem Size="Size.Small">
-                                            <MudText>Event 4</MudText>
-                                        </MudTimelineItem>
-                                        <MudTimelineItem Size="Size.Small">
-                                            <MudText>Event 5</MudText>
-                                        </MudTimelineItem>
-                                        <MudTimelineItem Size="Size.Small">
-                                            <MudText>Event 6</MudText>
-                                        </MudTimelineItem>
-                                        <MudTimelineItem Size="Size.Small">
-                                            <MudText>Event 7</MudText>
-                                        </MudTimelineItem>
-                                    </MudTimeline>
+                                    <MudPaper MaxHeight="400px" Style="overflow: scroll">
+                                        <MudTimeline Style="width: 300px;">
+                                            <MudTimelineItem Size="Size.Small">
+                                                @foreach (var task in (Date.Cards?.SelectMany(card => card.Tasks.Where (task => task.Timeline is not null)) ?? [])
+                                                                                  .OrderBy(task => task.Timeline!.EndDeadlineUTC))
+                                                {
+                                                    <MudText Style="font-weight: 700; 
+                                                                    font-size: small;" 
+                                                             Align="Align.Left" 
+                                                             GutterBottom="false">
+                                                        @(task.Timeline!.EndDeadlineUTC.ToString()): @(task.Title)
+                                                    </MudText>
+                                                }
+                                            </MudTimelineItem>
+                                        </MudTimeline>
+                                    </MudPaper>
                                 </MudItem>
                                 <MudItem>
-                                    <MudTimeline Style="height: 200px;
-                                                        width: 300px;">
-                                        <MudTimelineItem Size="Size.Small">
-                                            <MudText>Event 1</MudText>
-                                        </MudTimelineItem>
-                                        <MudTimelineItem Size="Size.Small">
-                                            <MudText>Event 2</MudText>
-                                        </MudTimelineItem>
-                                        <MudTimelineItem Size="Size.Small">
-                                            <MudText>Event 3</MudText>
-                                        </MudTimelineItem>
-                                        <MudTimelineItem Size="Size.Small">
-                                            <MudText>Event 4</MudText>
-                                        </MudTimelineItem>
-                                        <MudTimelineItem Size="Size.Small">
-                                            <MudText>Event 5</MudText>
-                                        </MudTimelineItem>
-                                        <MudTimelineItem Size="Size.Small">
-                                            <MudText>Event 6</MudText>
-                                        </MudTimelineItem>
-                                        <MudTimelineItem Size="Size.Small">
-                                            <MudText>Event 7</MudText>
-                                        </MudTimelineItem>
-                                    </MudTimeline>
+                                    <MudPaper MaxHeight="400px" Style="overflow: scroll">
+                                        <MudTimeline Style="width: 300px;">
+                                            <MudTimelineItem Size="Size.Small">
+                                                <MudText>Event 1</MudText>
+                                            </MudTimelineItem>
+                                            <MudTimelineItem Size="Size.Small">
+                                                <MudText>Event 2</MudText>
+                                            </MudTimelineItem>
+                                            <MudTimelineItem Size="Size.Small">
+                                                <MudText>Event 3</MudText>
+                                            </MudTimelineItem>
+                                            <MudTimelineItem Size="Size.Small">
+                                                <MudText>Event 4</MudText>
+                                            </MudTimelineItem>
+                                            <MudTimelineItem Size="Size.Small">
+                                                <MudText>Event 5</MudText>
+                                            </MudTimelineItem>
+                                            <MudTimelineItem Size="Size.Small">
+                                                <MudText>Event 6</MudText>
+                                            </MudTimelineItem>
+                                        </MudTimeline>
+                                    </MudPaper>
                                 </MudItem>
                             </MudGrid>
                         </MudPaper>
@@ -125,15 +130,6 @@
                         </MudPaper>-->
                     </MudStack>
                 </MudPaper>
-            </MudItem>
-            <MudItem>
-                <MudStack>
-                    <CalendarDate @bind-Date="Date" />
-                    @foreach (var card in Date.Cards ?? [])
-                    {
-                        <MudPaper>@card.Title</MudPaper>
-                    }
-                </MudStack>
             </MudItem>
         </MudGrid>
     </MudPaper>

@@ -13,7 +13,7 @@
     - 
 -->
 
-<div>
+<!--<div>
     <MudButton OnClick="@(() => Open = true)"
                Size="@PopoverBaseMudSize"
                Class="@PopoverBaseMudClass"
@@ -25,11 +25,18 @@
                 OverflowBehavior="OverflowBehavior.FlipAlways"
                 AnchorOrigin="Origin.CenterRight"
                 TransformOrigin="Origin.CenterLeft"
-                Style="height:550px">
+                Style="height:550px">-->
+<MudMenu PopoverClass="glass"
+         Label="@PopoverBaseText" 
+         AnchorOrigin="Origin.CenterRight"
+         TransformOrigin="Origin.BottomLeft"
+         DropdownSettings="@(new DropdownSettings { OverflowBehavior = OverflowBehavior.FlipAlways })"><!--New thing I'm trying-->
+    <!--<MudPaper Elevation="0" Class="d-flex flex-column" Style="background-color: transparent;">-->
+    <MudStack Spacing="0">
 
         @ChildContent
 
-        <MudButtonGroup Class="glass-inner-engraved">
+        <MudButtonGroup Class="glass-inner-engraved" FullWidth="false">
             @if (OnSubmit is not null)
             {
                 <MudButton OnClick="OnSubmit.Value">Submit</MudButton>
@@ -40,8 +47,11 @@
             }
             <MudButton OnClick="CloseOverlay">Discard</MudButton>
         </MudButtonGroup>
-    </MudPopover>
-</div>
+    </MudStack>
+    <!--</MudPaper>-->
+</MudMenu>
+    <!--</MudPopover>
+</div>-->
 
 @code
 {
