@@ -1,13 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.5.33530.505
+# Visual Studio Version 18
+VisualStudioVersion = 18.3.11520.95 d18.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArcStrides.API", "ArcStrides.API\ArcStrides.API.csproj", "{3FC6071E-EBF5-4481-B74B-6F21C50CCE4E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArcStrides.Contracts", "ArcStrides.Contracts\ArcStrides.Contracts.csproj", "{44D58289-0134-4AE3-98F0-BB48452F28C1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArcStrides.UI", "ArcStrides.UI\ArcStrides.UI.csproj", "{AD1F6C96-0329-473A-BB8A-3800EE33E94F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArcStrides.UI.Legacy", "ArcStrides.UI.Legacy\ArcStrides.UI.Legacy.csproj", "{AD1F6C96-0329-473A-BB8A-3800EE33E94F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
