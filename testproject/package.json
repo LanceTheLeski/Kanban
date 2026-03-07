@@ -1,5 +1,5 @@
 {
-  "name": "arcstrides.ui",
+  "name": "testproject",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,12 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@emotion/react": "^11.13.0",
-    "@emotion/styled": "^11.13.0",
-    "@mui/icons-material": "^5.16.0",
-    "@mui/material": "^5.16.0",
-    "@mui/x-date-pickers": "^7.14.0",
-    "notistack": "^3.0.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

@@ -1,0 +1,222 @@
+/* =============================================================================
+   arc.css
+   Merged from two source files in the original Blazor project:
+
+     1. ArcStyles.css          — shared glass utility classes (verbatim)
+     2. MainLayout.razor.css   — layout scaffold (verbatim, scoping removed)
+
+   A third section at the bottom contains classes added only for the React
+   demo page that have no equivalent in the original project. They are clearly
+   marked so they can be removed or replaced when real pages are built.
+   =============================================================================
+
+
+/* ── Section 1: ArcStyles.css (verbatim) ─────────────────────────────────────
+   Source: ArcStrides.UI/ArcStyles.css
+   No changes made. The commented-out first variant of .glass is preserved
+   below as a comment, exactly as it appears in the original file.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/*
+.glass
+{
+    padding: 35px;
+    background-color: rgba(98, 147, 185, .45);
+    border-radius: 2px;
+    border: 1px solid rgba(202, 217, 229, .75);
+    backdrop-filter: blur(18px) saturate(200%) opacity(75%);
+    box-shadow: inset 4px 4px 5px 0 rgba(98, 147, 185, .25),
+                inset -2px -2px 5px 0 rgba(202, 217, 229, 0.125),
+                0 0 10px 5px rgba(0, 0, 0, 0.25);
+}
+*/
+
+.glass {
+    display: inline-block;
+    border-radius: 2px;
+    padding: 10px;
+    background: linear-gradient( 140deg, rgba(202, 217, 229, .40), rgba(98, 147, 185, .40) 50%, rgba(98, 147, 185, .50) 100%) padding-box, linear-gradient( 140deg, rgba(255, 255, 255, .20), rgba(58, 76, 111, .20) 50%) border-box;
+    box-shadow: inset .3px .3px .2px 0 rgba(255, 255, 255, .30), inset .4px .4px .4px 0 rgba(0, 0, 0, .15), inset -.3px -.3px .2px 0 rgba(255, 255, 255, .30), inset -.4px -.4px .4px 0 rgba(0, 0, 0, .15), 0px 0px 1.5px 1px rgba(0, 0, 0, .50), 0px 0px 0px .2px rgba(58, 76, 111, .60);
+}
+
+.glass-inner-engraved {
+    display: inline-block;
+    border-radius: 4px;
+    background: rgba(58, 76, 111, .25);
+    box-shadow: rgba(0, 0, 0, .50) 0px 2px 5px 0px inset;
+    backdrop-filter: saturate(250%) blur(1px);
+}
+
+.glass-frosted {
+    padding: 10px;
+    background-color: rgba(98, 147, 185, .45);
+    background: linear-gradient( 140deg, rgba(202, 217, 229, .55), rgba(98, 147, 185, .55) 50%, rgba(98, 147, 185, .35) 100%);
+    border-radius: 3px;
+    box-shadow: inset 2px 2px 2px 0 rgba(255, 255, 255, .25), inset -2px -2px 2px 0 rgba(0, 0, 0, .125), 0 0 1px 1px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(4px) saturate(200%);
+}
+
+.gold-text {
+    font-weight: bold;
+    font-family: Georgia, serif;
+    position: relative;
+    background: linear-gradient( -45deg, #fff8dc, #ffd700 20%, #b8860b 40%, #ffd700 60%, #fff8dc 80%, #ffec8b );
+    background-size: 50% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+}
+
+
+/* ── Section 2: MainLayout.razor.css (verbatim, scoping adapted) ─────────────
+   Source: ArcStrides.UI/Layouts/MainLayout.razor.css
+   Blazor scoped CSS uses ::deep to pierce child component boundaries.
+   In React that concept doesn't exist — ::deep is removed and selectors are
+   left as standard CSS, which is equivalent behaviour in a global stylesheet.
+   All other values are unchanged.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.page {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+.navbar-brand {
+    font-size: 1.1rem;
+    color: white;
+}
+
+.top-row {
+    border-bottom: 1px solid #d6d5d5;
+    justify-content: flex-end;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+    background: var(--mud-palette-appbar-background);
+}
+
+    /* ::deep removed — standard descendant selector used instead */
+    .top-row a,
+    .top-row .btn-link {
+        white-space: nowrap;
+        margin-left: 1.5rem;
+        text-decoration: none;
+    }
+
+        .top-row a:hover,
+        .top-row .btn-link:hover {
+            text-decoration: underline;
+        }
+
+        .top-row a:first-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+@media (max-width: 640.98px) {
+    .top-row {
+        justify-content: space-between;
+    }
+
+        .top-row a,
+        .top-row .btn-link {
+            margin-left: 0;
+        }
+}
+
+@media (min-width: 641px) {
+    .page {
+        flex-direction: row;
+    }
+
+    .sidebar {
+        width: 250px;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+    }
+
+    .top-row {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+        .top-row.auth a:first-child {
+            flex: 1;
+            text-align: right;
+            width: 0;
+        }
+}
+
+.navbar-toggler {
+    appearance: none;
+    cursor: pointer;
+    width: 3.5rem;
+    height: 2.5rem;
+    color: white;
+    position: absolute;
+    top: 0.5rem;
+    right: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.55%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") no-repeat center/1.75rem rgba(255, 255, 255, 0.1);
+}
+
+    .navbar-toggler:checked {
+        background-color: rgba(255, 255, 255, 0.5);
+    }
+
+.nav-scrollable {
+    display: none;
+}
+
+.navbar-toggler:checked ~ .nav-scrollable {
+    display: block;
+}
+
+@media (min-width: 641px) {
+    .navbar-toggler {
+        display: none;
+    }
+
+    .nav-scrollable {
+        display: block;
+        height: calc(100vh - 3.5rem);
+        overflow-y: auto;
+    }
+}
+
+
+/* ── Section 3: React demo additions (not from original project) ─────────────
+   These classes exist only to support ComponentDemo.tsx.
+   They have no equivalent in the Blazor source and can be removed
+   when real page layouts replace the demo.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+.demo-root {
+    min-height: 100vh;
+    padding: 48px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+}
