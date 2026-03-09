@@ -46,6 +46,16 @@ builder.Services.AddHttpClient ();
 
 builder.Services.Configure<AzureTableOptions> (builder.Configuration.GetSection ("AzureTables"));
 
+builder.Services.AddCors (options =>
+{
+    options.AddPolicy ("DevCors", policy =>
+    {
+        policy.WithOrigins ("http://localhost:54671", "https://localhost:54671")
+              .AllowAnyHeader ()
+              .AllowAnyMethod ();
+    });
+});
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -53,6 +63,8 @@ if (!app.Environment.IsDevelopment())
 	// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
 	app.UseHsts();
 };
+
+app.UseCors ("DevCors");
 
 app.UseHttpsRedirection ();
 app.UseAuthorization ();

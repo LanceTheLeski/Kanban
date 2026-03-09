@@ -1,0 +1,79 @@
+/**
+ * DeleteColumnOverlay
+ *
+ * Mirrors: DeleteColumnOverlay.razor + DeleteColumnOverlay.cs
+ *
+ * Blazor used index-aligned List<Guid> + List<string> to find the column by title,
+ * then called RemoveAt() on both lists in lockstep. This was fragile — a mismatch
+ * between the two lists would silently delete the wrong column.
+ *
+ * Here we work with Column objects directly. Selection gives us the column ID,
+ * and we pass that to both the API and the store. No index alignment needed.
+ *
+ * The uniqueness validation (matchingColumnNameCount !== 1) is preserved:
+ * duplicate column titles on the same board are treated as an error.
+ */
+
+import React, { useState } from 'react'
+import { Stack, Typography } from '@mui/material'
+import { ArcOverlay } from '../../../Components/ArcOverlay'
+import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
+import { deleteColumn } from '../../../APIs/Board.APIs'
+import { useShallow } from 'zustand/react/shallow'
+import { useBoardStore } from '../../../Stores/BoardStores'
+
+interface DeleteColumnOverlayProps {
+    open: boolean
+    onClose: () => void
+}
+
+export const DeleteColumnOverlay: React.FC<DeleteColumnOverlayProps> = ({ open, onClose }) => {
+    const { boardId, columns, deleteColumnFromStore } = useBoardStore(useShallow(s => ({
+        boardId: s.boardId,
+        columns: s.columns,
+        deleteColumnFromStore: s.deleteColumn,
+    })))
+
+    const [selectedTitle, setSelectedTitle] = useState<string | null>(null)
+
+    const handleSelect = (title: string) => {
+        // Preserve Blazor's uniqueness guard
+        const matches = columns.filter(c => c.title === title)
+        if (matches.length !== 1) {
+            console.error(`Expected exactly 1 column with title "${title}", found ${matches.length}`)
+            return
+        }
+        setSelectedTitle(title)
+    }
+
+    const handleSubmit = async () => {
+        if (!boardId || !selectedTitle) return
+
+        const column = columns.find(c => c.title === selectedTitle)
+        if (!column) return
+
+        await deleteColumn(boardId, column.id)
+
+        // Store handles shifting remaining orders down
+        deleteColumnFromStore(column.id)
+
+        setSelectedTitle(null)
+        onClose()
+    }
+
+    return (
+        <ArcOverlay open={open} onClose={onClose} onSubmit={handleSubmit}>
+            <Stack spacing={2}>
+                <Typography variant="h6">Delete Column</Typography>
+
+                <ArcExpandingSelector
+                    options={columns.map(c => c.title)}
+                    onSelect={handleSelect}
+                    placeholder="Select column to delete"
+                />
+            </Stack>
+        </ArcOverlay>
+    )
+}
+
+export default DeleteColumnOverlay
