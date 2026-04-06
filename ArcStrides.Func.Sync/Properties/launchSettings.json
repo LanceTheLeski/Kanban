@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "ArcStrides.Func.Sync": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7123",
+      "launchBrowser": false
+    }
+  }
+}
