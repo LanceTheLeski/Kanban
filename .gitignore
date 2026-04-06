@@ -365,3 +365,4 @@ FodyWeavers.xsd
 /ArcStrides.API.Boards/appsettings.json
 /ArcStrides.API.Calendars/Properties
 /ArcStrides.API.Calendars/appsettings.json
+local.settings.json
