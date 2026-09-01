@@ -10,9 +10,7 @@ public enum ExportOutcome
     Failed
 }
 
-public record ExportResult(
-    string        FileId,
-    string        FileName,
-    ExportOutcome Outcome,
-    string?       ErrorMessage = null
-);
+public record ExportResult(string FileId,
+                           string FileName,
+                           ExportOutcome Outcome,
+                           string? ErrorMessage = null);

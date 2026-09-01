@@ -12,29 +12,27 @@ namespace ArcStrides.Func.Sync.Functions;
 
 public class DriveExportFunction
 {
-    private readonly IGoogleDriveService          _driveService;
-    private readonly SyncOptions                  _syncOptions;
+    private readonly IGoogleDriveService _driveService;
+    private readonly SyncOptions _syncOptions;
     private readonly ILogger<DriveExportFunction> _logger;
 
-    private static readonly JsonSerializerOptions JsonOpts = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 
-    private const string GoogleAppsMimePrefix = "application/vnd.google-apps.";
+    private const string _googleAppsMimeHeaderPrefix = "application/vnd.google-apps.";
 
-    public DriveExportFunction(
-        IGoogleDriveService          driveService,
-        IOptions<SyncOptions>        syncOptions,
-        ILogger<DriveExportFunction> logger)
+    public DriveExportFunction(IGoogleDriveService driveService,
+                               IOptions<SyncOptions> syncOptions,
+                               ILogger<DriveExportFunction> logger)
     {
         _driveService = driveService;
-        _syncOptions  = syncOptions.Value;
-        _logger       = logger;
+        _syncOptions = syncOptions.Value;
+        _logger = logger;
     }
 
     [Function("DriveExport")]
-    public async Task<HttpResponseData> RunAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "drive/export")]
-        HttpRequestData   req,
-        CancellationToken cancellationToken)
+    public async Task<HttpResponseData> RunAsync([HttpTrigger(AuthorizationLevel.Function, "post", Route = "drive/export")]
+                                                 HttpRequestData req,
+                                                 CancellationToken cancellationToken)
     {
         _logger.LogInformation("Drive export started. Output path: {Path}", _syncOptions.LocalOutputPath);
 
@@ -74,24 +72,23 @@ public class DriveExportFunction
 
         var response = req.CreateResponse(HttpStatusCode.OK);
         response.Headers.Add("Content-Type", "application/json");
-        await response.WriteStringAsync(JsonSerializer.Serialize(summary, JsonOpts), cancellationToken);
+        await response.WriteStringAsync(JsonSerializer.Serialize(summary, _jsonOptions), cancellationToken);
         return response;
     }
 
-    private async Task ProcessFileAsync(
-        DriveFileInfo    file,
-        SyncSummary      summary,
-        SemaphoreSlim    semaphore,
-        CancellationToken ct)
+    private async Task ProcessFileAsync(DriveFileInfo file,
+                                        SyncSummary summary,
+                                        SemaphoreSlim semaphore,
+                                        CancellationToken cancellationToken)
     {
-        await semaphore.WaitAsync(ct);
+        await semaphore.WaitAsync(cancellationToken);
         try
         {
-            var isWorkspace = file.MimeType.StartsWith(GoogleAppsMimePrefix, StringComparison.Ordinal);
+            var isWorkspace = file.MimeType.StartsWith(_googleAppsMimeHeaderPrefix, StringComparison.Ordinal);
 
             if (isWorkspace)
             {
-                var exported = await _driveService.ExportFileAsync(file, ct);
+                var exported = await _driveService.ExportFileAsync(file, cancellationToken);
 
                 if (!exported)
                 {
@@ -104,12 +101,12 @@ public class DriveExportFunction
             }
             else
             {
-                await _driveService.DownloadFileAsync(file, ct);
+                await _driveService.DownloadFileAsync(file, cancellationToken);
                 summary.IncrementDownloaded();
             }
 
             // Delete from Drive only after a confirmed local save.
-            var deleted = await _driveService.DeleteFileAsync(file.Id, ct);
+            var deleted = await _driveService.DeleteFileAsync(file.Id, cancellationToken);
             if (!deleted)
             {
                 summary.IncrementDeletesForbidden();

@@ -37,23 +37,22 @@ public sealed class GoogleDriveService : IGoogleDriveService
         "application/vnd.google-apps.shortcut",
     ];
 
-    private readonly DriveService            _drive;
-    private readonly SyncOptions             _syncOptions;
+    private readonly DriveService _drive;
+    private readonly SyncOptions _syncOptions;
     private readonly ILogger<GoogleDriveService> _logger;
-    private readonly ResiliencePipeline      _retry;
+    private readonly ResiliencePipeline _retry;
 
     // Populated once per ListAllFilesAsync call; maps Drive folder ID → relative local path.
     private readonly Dictionary<string, string> _folderPathCache = new();
 
-    public GoogleDriveService(
-        IOptions<GoogleDriveOptions> driveOptions,
-        IOptions<SyncOptions>        syncOptions,
-        ILogger<GoogleDriveService>  logger)
+    public GoogleDriveService(IOptions<GoogleDriveOptions> driveOptions,
+                              IOptions<SyncOptions> syncOptions,
+                              ILogger<GoogleDriveService> logger)
     {
         _syncOptions = syncOptions.Value;
-        _logger      = logger;
-        _drive       = BuildDriveService(driveOptions.Value);
-        _retry       = BuildRetryPipeline();
+        _logger = logger;
+        _drive = BuildDriveService(driveOptions.Value);
+        _retry = BuildRetryPipeline();
     }
 
     // -------------------------------------------------------------------------
