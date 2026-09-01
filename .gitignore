@@ -361,7 +361,14 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/ArcStrides.API.Boards/Properties
-/ArcStrides.API.Boards/appsettings.json
-/ArcStrides.API.Calendars/Properties
-/ArcStrides.API.Calendars/appsettings.json
+# Local API configuration. appsettings.json holds the Azure Tables connection
+# string, so it stays out of the repo — copy appsettings.Example.json over it and
+# fill in your own, or use `dotnet user-secrets`.
+#
+# This path was previously /ArcStrides.API.Boards/appsettings.json and
+# /ArcStrides.API.Calendars/appsettings.json, which stopped matching anything when
+# those projects became ArcStrides.API — which is how the file ended up tracked again.
+#
+# Properties/launchSettings.json stays tracked on purpose: arcstrides.ui/.env points
+# at the https profile's port, so the two need to agree.
+/ArcStrides.API/appsettings.json
