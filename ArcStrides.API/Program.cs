@@ -1,4 +1,4 @@
-using ArcStrides.API.Calendars.Mappers;
+﻿using ArcStrides.API.Calendars.Mappers;
 using ArcStrides.API.Mappers;
 using ArcStrides.API.Options;
 using ArcStrides.API.Repositories;
@@ -8,6 +8,7 @@ using ArcStrides.Contracts.Request.Patch;
 using ArcStrides.Contracts.Request.Query;
 using FluentValidation;
 using Microsoft.AspNetCore.JsonPatch;
+using Newtonsoft.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder (args);
 
@@ -39,7 +40,15 @@ builder.Services.AddTransient<ITimelineRepository, TimelineRepository> ();
 builder.Services.AddTransient<ITagRepository, TagRepository> ();
 
 builder.Services.AddControllers()
-                .AddNewtonsoftJson ();
+                .AddNewtonsoftJson (options =>
+                {
+                    // Serialize responses as camelCase so JavaScript clients (arcstrides.ui)
+                    // get idiomatic property names. Json.NET matches members
+                    // case-insensitively when deserializing, and JsonPatchDocument resolves
+                    // patch paths case-insensitively too, so the legacy Blazor UI and existing
+                    // "/Title"-style patch documents keep working unchanged.
+                    options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver ();
+                });
 
 builder.Services.AddAntiforgery ();
 builder.Services.AddHttpClient ();

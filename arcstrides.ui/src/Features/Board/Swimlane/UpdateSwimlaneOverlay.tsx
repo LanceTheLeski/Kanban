@@ -3,10 +3,8 @@
  *
  * Mirrors: UpdateSwimlaneOverlay.razor + UpdateSwimlaneOverlay.cs
  *
- * Structurally identical to UpdateColumnOverlay � same bug fix applies.
- * The Blazor version also called RemoveAt() without re-inserting. Fixed here.
- *
- * See UpdateColumnOverlay.tsx for full pattern notes.
+ * Structurally identical to UpdateColumnOverlay — same RemoveAt() bug in the
+ * Blazor original, same fix here. See that file for the pattern notes.
  */
 
 import React, { useState } from 'react'
@@ -14,6 +12,7 @@ import { Stack, TextField, Typography } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
 import { updateSwimlane } from '../../../APIs/Board.APIs'
+import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
 import { useBoardStore } from '../../../Stores/BoardStores'
 
@@ -23,32 +22,34 @@ interface UpdateSwimlaneOverlayProps {
 }
 
 export const UpdateSwimlaneOverlay: React.FC<UpdateSwimlaneOverlayProps> = ({ open, onClose }) => {
-    const { boardId, swimlanes, updateSwimlaneInStore } = useBoardStore(useShallow(s => ({
-        boardId: s.boardId,
-        swimlanes: s.swimlanes,
-        updateSwimlaneInStore: s.updateSwimlane,
+    const { boardId, swimlanes } = useBoardStore(useShallow(state => ({
+        boardId: state.boardId,
+        swimlanes: state.swimlanes,
     })))
+    const { run } = useBoardActions()
 
     const [selectedTitle, setSelectedTitle] = useState<string | null>(null)
     const [replacementTitle, setReplacementTitle] = useState('')
     const [selectedOrder, setSelectedOrder] = useState<number | null>(null)
 
-    const orderOptions = swimlanes.map((_, i) => String(i))
+    // Derived from store — mirrors Blazor's GetSwimlaneIndexList() / OnParametersSet()
+    // but reactive: always reflects current swimlane count
+    const orderOptions = swimlanes.map((_, index) => String(index))
 
     const handleSelectSwimlane = (title: string) => {
-        const matches = swimlanes.filter(s => s.title === title)
+        const matches = swimlanes.filter(swimlane => swimlane.title === title)
         if (matches.length !== 1) {
             console.error(`Expected exactly 1 swimlane with title "${title}", found ${matches.length}`)
             return
         }
         setSelectedTitle(title)
-        setReplacementTitle(title)
+        setReplacementTitle(title) // Pre-fill with current title, mirrors Blazor
     }
 
     const handleSubmit = async () => {
         if (!boardId || !selectedTitle) return
 
-        const swimlane = swimlanes.find(s => s.title === selectedTitle)
+        const swimlane = swimlanes.find(candidate => candidate.title === selectedTitle)
         if (!swimlane) return
 
         const patch: { title?: string; order?: number } = {}
@@ -64,12 +65,8 @@ export const UpdateSwimlaneOverlay: React.FC<UpdateSwimlaneOverlayProps> = ({ op
             return
         }
 
-        await updateSwimlane(boardId, swimlane.id, patch)
-
-        updateSwimlaneInStore(swimlane.id, {
-            title: patch.title,
-            newOrder: patch.order,
-        })
+        const updated = await run('Updating swimlane', () => updateSwimlane(boardId, swimlane.id, patch))
+        if (!updated) return
 
         setSelectedTitle(null)
         setReplacementTitle('')
@@ -83,7 +80,7 @@ export const UpdateSwimlaneOverlay: React.FC<UpdateSwimlaneOverlayProps> = ({ op
                 <Typography variant="h6">Edit Swimlane</Typography>
 
                 <ArcExpandingSelector
-                    options={swimlanes.map(s => s.title)}
+                    options={swimlanes.map(swimlane => swimlane.title)}
                     onSelect={handleSelectSwimlane}
                     placeholder="Select swimlane to edit"
                 />
@@ -99,7 +96,7 @@ export const UpdateSwimlaneOverlay: React.FC<UpdateSwimlaneOverlayProps> = ({ op
 
                 <ArcExpandingSelector
                     options={orderOptions}
-                    onSelect={v => setSelectedOrder(parseInt(v, 10))}
+                    onSelect={value => setSelectedOrder(parseInt(value, 10))}
                     placeholder="Select new order position"
                 />
             </Stack>

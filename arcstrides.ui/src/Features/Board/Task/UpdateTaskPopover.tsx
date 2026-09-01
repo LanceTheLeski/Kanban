@@ -1,4 +1,4 @@
-﻿/**
+/**
  * UpdateTaskPopover
  *
  * Mirrors: Task/UpdateTaskPopover.razor + UpdateTaskPopover.cs
@@ -27,8 +27,15 @@ import { ArcPopover } from '../../../Components/ArcPopover'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
 import { UpdateTimelinePanel, type TimelineDraft } from '../Timeline/UpdateTimelinePanel'
 import { CreateTaskTypeOverlay } from '../../TagGroup/TaskType/CreateTaskTypeOverlay'
-import { fetchTaskTypes, updateTask } from '../../../APIs/Board.APIs'
-import type { Task, TaskTypeResponse, Timeline } from '../../../Types/Board.Types'
+import { useBoardActions } from '../useBoardActions'
+import { createTimeline, fetchTaskTypes, updateTask, updateTimeline } from '../../../APIs/Board.APIs'
+import {
+    draftToTimelineDates,
+    hasTimeline,
+    timelineOperations,
+    timelineTypeIdFor,
+} from '../Timeline/timelineDraft'
+import type { Task, TaskType, Timeline } from '../../../Types/Board.Types'
 
 interface UpdateTaskPopoverProps {
     task: Task
@@ -65,19 +72,23 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
     const initialIsCompleted = useRef(task.isCompleted)
 
     const [timelineDraft, setTimelineDraft] = useState<TimelineDraft | null>(null)
-    const [taskTypes, setTaskTypes] = useState<TaskTypeResponse[]>([])
+    const [taskTypes, setTaskTypes] = useState<TaskType[]>([])
     const [createTaskTypeOpen, setCreateTaskTypeOpen] = useState(false)
 
     // Order range 1..N — mirrors Blazor's _taskOrderRange
     const orderOptions = Array.from({ length: tasksCount }, (_, i) => String(i + 1))
 
+    const { run } = useBoardActions()
+
     // Mirrors Blazor's OnAfterRenderAsync(firstRender)
     useEffect(() => {
-        fetchTaskTypes([0]).then(setTaskTypes)
+        fetchTaskTypes([0])
+            .then(setTaskTypes)
+            .catch(error => console.error('Could not load task types', error))
     }, [])
 
     const handleSetTaskType = (typeName: string) => {
-        const matches = taskTypes.filter(t => t.title === typeName)
+        const matches = taskTypes.filter(taskType => taskType.title === typeName)
         if (matches.length !== 1) return
         setSelectedTaskTypeId(matches[0].id)
     }
@@ -92,23 +103,56 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
         if (order !== initialOrder.current) patch.order = order
         if (isCompleted !== initialIsCompleted.current) patch.isComplete = isCompleted
 
-        // Timeline handling mirrors Blazor's create-vs-update branch:
-        //   - task has no existing timeline + mode != timeless → create
-        //   - task has existing timeline → update
-        // TODO: wire up createTimeline / updateTimeline API calls using timelineDraft
+        const existingTimeline = initialTimeline.current
+        const timelineChanged = hasTimeline(timelineDraft)
 
-        if (Object.keys(patch).length > 0 || timelineDraft) {
-            await updateTask(boardId, cardId, task.id!, patch)
-        }
+        if (Object.keys(patch).length === 0 && !timelineChanged) return
+
+        let savedTimeline: Timeline | null = existingTimeline
+
+        const saved = await run(
+            'Saving task',
+            async () => {
+                if (Object.keys(patch).length > 0)
+                    await updateTask(boardId, cardId, task.id, patch)
+
+                // Timeline handling mirrors Blazor's create-vs-update branch:
+                //   - task has no existing timeline + mode != timeless → create
+                //   - task already has one → patch it in place
+                if (!timelineChanged) return
+
+                const dates = draftToTimelineDates(timelineDraft)
+
+                if (existingTimeline?.id) {
+                    await updateTimeline(boardId, existingTimeline.id, timelineOperations(dates))
+                    savedTimeline = { ...existingTimeline, ...dates }
+                } else {
+                    savedTimeline = await createTimeline(boardId, {
+                        parentId: task.id,
+                        timelineTypeId: timelineTypeIdFor(timelineDraft),
+                        ...dates,
+                    })
+                }
+            },
+            // The parent updates its own task list from onUpdated below.
+            { refresh: false }
+        )
+        if (!saved) return
+
+        initialTitle.current = title
+        initialTypeId.current = selectedTaskTypeId
+        initialOrder.current = order
+        initialIsCompleted.current = isCompleted
+        initialTimeline.current = savedTimeline
 
         onUpdated?.({
             ...task,
             title,
             order,
             isCompleted,
-            taskType: task.taskType
-                ? { ...task.taskType, id: selectedTaskTypeId }
-                : null,
+            timeline: savedTimeline,
+            taskType: taskTypes.find(taskType => taskType.id === selectedTaskTypeId)
+                ?? task.taskType,
         })
     }
 

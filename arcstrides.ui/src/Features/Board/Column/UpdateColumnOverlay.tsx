@@ -8,14 +8,12 @@
  *   after an update but never re-inserted, leaving the UI with one fewer column.
  *   The comment literally said "This is not actually what we want."
  *
- *   Here, updateColumn() in the store correctly:
- *     1. Updates the title in-place if it changed
- *     2. Runs the full reorder algorithm if the order changed
- *   No items are lost.
- *
  * The Blazor version used OnParametersSet() to regenerate the order list whenever
- * columns changed. Here we derive it from the store directly in render — no lifecycle
+ * columns changed. Here we derive it from the store directly in render â€” no lifecycle
  * hook needed because store subscriptions are reactive.
+ *
+ * Reordering rewrites sibling column orders and card positions server-side, so the
+ * board is re-read afterwards rather than recomputed locally. See useBoardActions.
  */
 
 import React, { useState } from 'react'
@@ -23,6 +21,7 @@ import { Stack, TextField, Typography } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
 import { updateColumn } from '../../../APIs/Board.APIs'
+import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
 import { useBoardStore } from '../../../Stores/BoardStores'
 
@@ -32,22 +31,22 @@ interface UpdateColumnOverlayProps {
 }
 
 export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, onClose }) => {
-    const { boardId, columns, updateColumnInStore } = useBoardStore(useShallow(s => ({
-        boardId: s.boardId,
-        columns: s.columns,
-        updateColumnInStore: s.updateColumn,
+    const { boardId, columns } = useBoardStore(useShallow(state => ({
+        boardId: state.boardId,
+        columns: state.columns,
     })))
+    const { run } = useBoardActions()
 
     const [selectedTitle, setSelectedTitle] = useState<string | null>(null)
     const [replacementTitle, setReplacementTitle] = useState('')
     const [selectedOrder, setSelectedOrder] = useState<number | null>(null)
 
-    // Derived from store — mirrors Blazor's GetColumnIndexList() / OnParametersSet()
+    // Derived from store â€” mirrors Blazor's GetColumnIndexList() / OnParametersSet()
     // but reactive: always reflects current column count
-    const orderOptions = columns.map((_, i) => String(i))
+    const orderOptions = columns.map((_, index) => String(index))
 
     const handleSelectColumn = (title: string) => {
-        const matches = columns.filter(c => c.title === title)
+        const matches = columns.filter(column => column.title === title)
         if (matches.length !== 1) {
             console.error(`Expected exactly 1 column with title "${title}", found ${matches.length}`)
             return
@@ -59,7 +58,7 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
     const handleSubmit = async () => {
         if (!boardId || !selectedTitle) return
 
-        const column = columns.find(c => c.title === selectedTitle)
+        const column = columns.find(candidate => candidate.title === selectedTitle)
         if (!column) return
 
         const patch: { title?: string; order?: number } = {}
@@ -75,13 +74,8 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
             return
         }
 
-        await updateColumn(boardId, column.id, patch)
-
-        // Store mirrors server reorder exactly — no extra GET needed
-        updateColumnInStore(column.id, {
-            title: patch.title,
-            newOrder: patch.order,
-        })
+        const updated = await run('Updating column', () => updateColumn(boardId, column.id, patch))
+        if (!updated) return
 
         setSelectedTitle(null)
         setReplacementTitle('')
@@ -95,7 +89,7 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
                 <Typography variant="h6">Edit Column</Typography>
 
                 <ArcExpandingSelector
-                    options={columns.map(c => c.title)}
+                    options={columns.map(column => column.title)}
                     onSelect={handleSelectColumn}
                     placeholder="Select column to edit"
                 />
@@ -111,7 +105,7 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
 
                 <ArcExpandingSelector
                     options={orderOptions}
-                    onSelect={v => setSelectedOrder(parseInt(v, 10))}
+                    onSelect={value => setSelectedOrder(parseInt(value, 10))}
                     placeholder="Select new order position"
                 />
             </Stack>

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * UpdateCardOverlay
  *
  * Mirrors: Card/UpdateCardOverlay.razor + UpdateCardOverlay.cs
@@ -17,16 +17,22 @@
  * component re-render. React's JSX array map is the native solution — no factory
  * pattern needed.
  *
- * ── Task list mutations ───────────────────────────────────────────────────────
- * Rather than having a separate Refresh() callback refetch the whole board,
- * we manage the task list locally inside this overlay (it's only visible here).
- * The parent (BoardPage) would re-sync on overlay close if needed.
+ * ── Editable state and the card prop ────────────────────────────────────────
+ * BoardCard mounts this only while it is open, so the useState initialisers below
+ * re-run on every open and the draft always starts from the current card. That
+ * replaces Blazor's Fire() callback, which re-seeded the fields by hand.
  *
- * ── Patch request ────────────────────────────────────────────────────────────
- * Blazor built a raw JSON Patch string in FormPatchRequestFromOverlay().
- * We use a plain object; the API layer handles serialization.
+ * Mounting on demand also matters for the board as a whole: this overlay pulls in
+ * the timeline pickers, the task popovers and a task-types fetch, and an earlier
+ * version kept one instance alive for every card on the board.
  *
- * ── Width ─────────────────────────────────────────────────────────────────────
+ * ── Patch request ────────────────────────────────────────────────────
+ * Blazor built a raw JSON Patch string in FormPatchRequestFromOverlay() and sent
+ * it to the card *position* endpoint, which ignores Title and Description — card
+ * edits never actually persisted. This now patches the card itself through
+ * CardController.UpdateCard.
+ *
+ * ── Width ──────────────────────────────────────────────────────────
  * The Blazor overlay was 1100px wide. We pass this to ArcOverlay via the
  * width prop.
  */
@@ -49,7 +55,9 @@ import { UpdateTimelinePanel } from '../Timeline/UpdateTimelinePanel'
 import { UpdateTaskPopover } from '../Task/UpdateTaskPopover'
 import { CreateTaskOverlay } from '../Task/CreateTaskOverlay'
 import { CommandPanel } from '../Commands/CommandPanel'
+import { useBoardActions } from '../useBoardActions'
 import { deleteCard, deleteTask, updateCard } from '../../../APIs/Board.APIs'
+import { useBoardStore } from '../../../Stores/BoardStores'
 import type { Card, Task } from '../../../Types/Board.Types'
 
 interface UpdateCardOverlayProps {
@@ -57,9 +65,6 @@ interface UpdateCardOverlayProps {
     onClose: () => void
     card: Card
     boardId: string
-    /** Called after the card is updated or deleted so the parent can re-sync */
-    onUpdated?: (updated: Card) => void
-    onDeleted?: (cardId: string) => void
 }
 
 export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
@@ -67,15 +72,17 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
     onClose,
     card,
     boardId,
-    onUpdated,
-    onDeleted,
 }) => {
+    const { run } = useBoardActions()
+    const replaceCard = useBoardStore(state => state.replaceCard)
+    const removeCard = useBoardStore(state => state.removeCard)
+
     // Local editable copies — mirrors Blazor's @bind-Value="ActiveCard.Title" etc.
     const [title, setTitle] = useState(card.title)
     const [description, setDescription] = useState(card.description)
 
-    // Local task list — owned by this overlay for the duration it's open
-    // Mirrors Blazor's _taskList RenderFragment which was rebuilt from ActiveCard.Tasks
+    // Local task list, owned by this overlay while it is open.
+    // Mirrors Blazor's _taskList RenderFragment, which was rebuilt from ActiveCard.Tasks.
     const [tasks, setTasks] = useState<Task[]>(card.tasks)
 
     const handleSubmit = async () => {
@@ -85,36 +92,66 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
         if (title.trim() && title !== card.title) patch.title = title.trim()
         if (description !== card.description) patch.description = description
 
-        if (Object.keys(patch).length > 0) {
-            await updateCard(boardId, card.id, patch)
+        if (Object.keys(patch).length === 0) {
+            onClose()
+            return
         }
 
-        onUpdated?.({ ...card, title, description, tasks })
+        const updated = await run(
+            'Saving card',
+            () => updateCard(boardId, card.id, patch),
+            // The card is patched in local state below; nothing else on the board moved.
+            { refresh: false }
+        )
+        if (!updated) return
+
+        replaceCard({
+            ...card,
+            title: patch.title ?? card.title,
+            description: patch.description ?? card.description,
+            tasks,
+        })
         onClose()
     }
 
     const handleDeleteCard = async () => {
-        await deleteCard(boardId, card.id)
-        onDeleted?.(card.id)
+        const deleted = await run(
+            `Deleting "${card.title}"`,
+            () => deleteCard(boardId, card.id),
+            { refresh: false }
+        )
+        if (!deleted) return
+
+        removeCard(card.id)
         onClose()
     }
 
-    // Mirrors Blazor's DeleteTaskAsync — removes task from API and local list
+    // Mirrors Blazor's DeleteTaskAsync — removes the task server-side, then locally
     const handleDeleteTask = async (taskId: string) => {
-        await deleteTask(boardId, card.id, taskId)
-        setTasks(prev => prev.filter(t => t.id !== taskId))
+        const deleted = await run(
+            'Deleting task',
+            () => deleteTask(boardId, card.id, taskId),
+            { refresh: false }
+        )
+        if (!deleted) return
+
+        const remaining = tasks.filter(task => task.id !== taskId)
+        setTasks(remaining)
+        replaceCard({ ...card, tasks: remaining })
     }
 
     // Called by UpdateTaskPopover when a task's fields are changed
     const handleTaskUpdated = (updatedTask: Task) => {
-        setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t))
+        const next = tasks.map(task => task.id === updatedTask.id ? updatedTask : task)
+        setTasks(next)
+        replaceCard({ ...card, tasks: next })
     }
 
-    // Called by CreateTaskOverlay after a new task is saved
-    // TODO: receive the created Task object from the API response and insert it
-    const handleTaskCreated = () => {
-        // Stub: refetch or optimistically insert once real API returns the task
-        console.log('[stub] task created — re-sync task list here')
+    // Called by CreateTaskOverlay with the task the server assigned an ID to
+    const handleTaskCreated = (createdTask: Task) => {
+        const next = [...tasks, createdTask].sort((a, b) => a.order - b.order)
+        setTasks(next)
+        replaceCard({ ...card, tasks: next })
     }
 
     return (

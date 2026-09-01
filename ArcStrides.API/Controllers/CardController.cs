@@ -1,8 +1,11 @@
 ﻿using ArcStrides.API.Mappers;
+using ArcStrides.API.Messages;
 using ArcStrides.API.Models.Board;
 using ArcStrides.API.Repositories;
 using ArcStrides.Contracts.Request.Create;
+using ArcStrides.Contracts.Request.Patch;
 using ArcStrides.Contracts.Response;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ArcStrides.API.Controllers;
@@ -121,6 +124,46 @@ public class CardController : ControllerBase
         var cardResponse = mapper.MapCardPositionToCardPositionResponse (newCardPosition);
 
         return StatusCode (StatusCodes.Status201Created, cardResponse);
+    }
+
+    /// <summary>
+    /// Updates a card's own content (title, description).
+    ///
+    /// The card position endpoint on BoardController only moves a card between
+    /// columns and swimlanes — Title and Description live on the Card entity, so
+    /// they need this separate route.
+    /// </summary>
+    [HttpPatch ("/arcstrides/boards/{boardID:guid}/cards/{cardID:guid}")]
+    public async Task<ActionResult> UpdateCard ([FromRoute] Guid boardID,
+                                                [FromRoute] Guid cardID,
+                                                [FromBody] JsonPatchDocument<CardPatchRequest> cardPatchRequest)
+    {
+        if (cardPatchRequest is null)
+            return BadRequest ("There was no Patch Request passed in!");
+
+        var cardToUpdate = await _cardRepository.GetCardAsync (boardID, cardID);
+        if (cardToUpdate is null)
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Card)));
+
+        var convertedCardToUpdate = new CardPatchRequest
+        {
+            Title = cardToUpdate.Title,
+            Description = cardToUpdate.Description
+        };
+
+        try { cardPatchRequest.ApplyTo (convertedCardToUpdate); }
+        catch (JsonPatchException)
+            { return BadRequest (ErrorResponseMessages.PatchRequestIsInvalidErrorResponse (nameof (Card))); }
+
+        cardToUpdate.Title = convertedCardToUpdate.Title;
+        cardToUpdate.Description = convertedCardToUpdate.Description;
+
+        await _cardRepository.UpdateCardAsync (cardToUpdate);
+
+        var mapper = new CardMapper ();
+        var cardResponse = mapper.MapCardToCardResponse (cardToUpdate);
+
+        return Ok (cardResponse);
     }
 
     // Delete is currently offerred through the BoardController. We can adjust that so it is only offerred here. Or (unadvised) we can offer both endpoints to delete a card.

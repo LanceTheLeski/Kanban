@@ -40,13 +40,13 @@ import {
     Toolbar,
     Typography,
 } from '@mui/material'
-import { CreateCardOverlay } from './card/CreateCardOverlay'
-import { CreateColumnOverlay } from './column/CreateColumnOverlay'
-import { DeleteColumnOverlay } from './column/DeleteColumnOverlay'
-import { UpdateColumnOverlay } from './column/UpdateColumnOverlay'
-import { CreateSwimlaneOverlay } from './swimlane/CreateSwimlaneOverlay'
-import { DeleteSwimlaneOverlay } from './swimlane/DeleteSwimlaneOverlay'
-import { UpdateSwimlaneOverlay } from './swimlane/UpdateSwimlaneOverlay'
+import { CreateCardOverlay } from './Card/CreateCardOverlay'
+import { CreateColumnOverlay } from './Column/CreateColumnOverlay'
+import { DeleteColumnOverlay } from './Column/DeleteColumnOverlay'
+import { UpdateColumnOverlay } from './Column/UpdateColumnOverlay'
+import { CreateSwimlaneOverlay } from './Swimlane/CreateSwimlaneOverlay'
+import { DeleteSwimlaneOverlay } from './Swimlane/DeleteSwimlaneOverlay'
+import { UpdateSwimlaneOverlay } from './Swimlane/UpdateSwimlaneOverlay'
 
 // ── Menu state helper ─────────────────────────────────────────────────────────
 
@@ -85,9 +85,12 @@ export const BoardManagementNav: React.FC = () => {
     return (
         <>
             {/* ── Toolbar — mirrors MudToolBar with MudPaper Elevation=25 ─────── */}
+            {/* MudPaper Elevation="25" has no MUI equivalent — the theme's shadow
+          scale stops at 24, and anything past it renders no shadow at all
+          and logs a warning. 24 is the deepest MUI offers. */}
             <AppBar
                 position="static"
-                elevation={25}
+                elevation={24}
                 sx={{ backgroundColor: 'primary.main' }}
             >
                 <Toolbar variant="dense" sx={{ gap: 2 }}>

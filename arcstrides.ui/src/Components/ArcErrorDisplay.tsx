@@ -13,23 +13,19 @@
  *   Blazor:  _snackbar.Add("message")
  *   React:   enqueueSnackbar("message", { variant: 'error' })
  *
- * This file exports two things:
+ * The pair is:
  *
  *  1. ArcErrorDisplay — the provider wrapper that must live near the root of
  *     the app (just like MudSnackbarProvider in MainLayout.razor).
  *     Configured to match: PositionClass = TopCenter, MaxDisplayedSnackbars = 5,
  *     SnackbarVariant = Filled, PreventDuplicates = true.
  *
- *  2. useArcError — a custom hook that returns an addError() function matching
- *     the IArcErrorHandler interface exactly:
- *
- *       addError(message: string, errorCode?: number | HttpStatusCode)
- *
- *     This hook is what components use instead of injecting IArcErrorHandler.
+ *  2. useArcError — the consumer side, which lives in Components/useArcError.ts.
+ *     Components call that instead of injecting IArcErrorHandler.
  */
 
 import React from 'react'
-import { SnackbarProvider, useSnackbar, type SnackbarProviderProps } from 'notistack'
+import { SnackbarProvider, type SnackbarProviderProps } from 'notistack'
 
 // ── Provider ─────────────────────────────────────────────────────────────────
 
@@ -48,8 +44,9 @@ export const ArcErrorDisplay: React.FC<ArcErrorDisplayProps> = ({ children }) =>
         anchorOrigin: { vertical: 'top', horizontal: 'center' },
         // Snackbar.Configuration.MaxDisplayedSnackbars = 5
         maxSnack: 5,
-        // Snackbar.Configuration.SnackbarVariant = Variant.Filled
-        variant: 'filled',
+        // Snackbar.Configuration.SnackbarVariant = Variant.Filled — notistack has no
+        // separate "filled" variant; its default snackbar is already filled, and the
+        // per-call variant ('error'/'success'/'info') picks the colour.
         // Snackbar.Configuration.PreventDuplicates = true
         preventDuplicate: true,
         // Auto-dismiss after 4 seconds
@@ -57,61 +54,6 @@ export const ArcErrorDisplay: React.FC<ArcErrorDisplayProps> = ({ children }) =>
     }
 
     return <SnackbarProvider {...snackbarProps}>{children}</SnackbarProvider>
-}
-
-// ── Hook ─────────────────────────────────────────────────────────────────────
-
-/**
- * useArcError
- *
- * Returns an addError function that mirrors IArcErrorHandler exactly:
- *
- *   // Blazor:
- *   public void AddError(string message, HttpStatusCode? errorCode)
- *   public void AddError(string errorMessage, int? errorCode)
- *
- *   // React:
- *   const { addError } = useArcError()
- *   addError('Not found', 404)
- *   addError('Something went wrong')
- *
- * Must be called inside a component that is a descendant of <ArcErrorDisplay>.
- */
-export const useArcError = () => {
-    const { enqueueSnackbar } = useSnackbar()
-
-    const addError = React.useCallback(
-        (message: string, errorCode?: number | null) => {
-            // Mirrors: var displayMessage = errorCode.HasValue ?
-            //   $"{errorCode}: {errorMessage}" : $"{errorMessage}";
-            const displayMessage =
-                errorCode != null ? `${errorCode}: ${message}` : message
-
-            enqueueSnackbar(displayMessage, { variant: 'error' })
-        },
-        [enqueueSnackbar]
-    )
-
-    /**
-     * addInfo / addSuccess — not in the original IArcErrorHandler but included
-     * here since the snackbar is the only notification mechanism in the app and
-     * you will likely need these for success feedback on overlay submits.
-     */
-    const addSuccess = React.useCallback(
-        (message: string) => {
-            enqueueSnackbar(message, { variant: 'success' })
-        },
-        [enqueueSnackbar]
-    )
-
-    const addInfo = React.useCallback(
-        (message: string) => {
-            enqueueSnackbar(message, { variant: 'info' })
-        },
-        [enqueueSnackbar]
-    )
-
-    return { addError, addSuccess, addInfo }
 }
 
 export default ArcErrorDisplay

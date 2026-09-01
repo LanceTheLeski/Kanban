@@ -1,5 +1,5 @@
-﻿/**
- * boardStore.ts
+/**
+ * BoardStores.ts
  *
  * Zustand store for all board-level server-derived state.
  *
@@ -10,201 +10,153 @@
  * subscriptions mean a component only re-renders when the specific slice it
  * subscribes to changes.
  *
- * ── Why not TanStack Query for mutations? ───────────────────────────────────
- * TanStack Query's invalidateQueries pattern refetches the entire board after
- * every mutation. For most operations (create card, delete column, etc.) the
- * server already returns the canonical entity in its response — we have all
- * the information we need to update local state without another GET.
+ * ── Why the board re-fetches after structural changes ───────────────────────
+ * An earlier version of this store mirrored the server's reorder maths locally
+ * so it could skip the extra GET. That is not safe here: the server rewrites
+ * *card positions* as well as sibling orders whenever a column or swimlane is
+ * created, reordered or deleted — see
+ * ColumnController.UpdateColumnAndUpdateEffectedColumnsAndCardPositions. Mirroring
+ * only the column order left every card pointing at a stale cell.
  *
- * Exception: reorder operations. Reordering a column shifts every other
- * column's order value. Rather than treating the server as a black box and
- * refetching, we mirror the server's deterministic reorder logic locally:
- * remove from old index → insert at new index → shift everything between.
- * This keeps UI and server state in sync without an extra round-trip.
+ * So structural mutations call refresh() afterwards, which is what the Blazor UI
+ * did too (Refresh(true) → OnInitializedAsync in Pages/Board.cs). Boards are small
+ * and the GET is one round-trip.
  *
- * If a mutation fails, the calling component is responsible for reverting
- * or re-syncing (a future concern once real API calls are wired in).
+ * The exception is dragging a card, which is frequent and touches exactly one
+ * row. That applies optimistically and rolls back if the PATCH fails — see
+ * applyCardMove / restoreCard, used by Pages/BoardPage.tsx.
  *
  * ── State shape ─────────────────────────────────────────────────────────────
  * boardId   — identifies which board is loaded
- * cards     — all DropCards on this board
+ * cards     — every Card on this board, each carrying its own columnId/swimlaneId
  * columns   — Column objects (id + title + order), sorted by order
  * swimlanes — Swimlane objects (id + title + order), sorted by order
+ * status    — drives the loading spinner and error panel on BoardPage
  */
 
 import { create } from 'zustand'
-import type { Column, DropCard, Swimlane } from '../Types/Board.Types'
+import { fetchBoard } from '../APIs/Board.APIs'
+import type { Card, Column, Swimlane } from '../Types/Board.Types'
 
-// ── Reorder helper ────────────────────────────────────────────────────────────
-
-/**
- * Mirrors the server's reorder behaviour exactly.
- *
- * Given a list sorted by `order`, moving item with `targetId` to `newOrder`:
- *   - Items between oldOrder and newOrder shift by ±1
- *   - The target item gets newOrder
- *   - Result is re-sorted by order
- *
- * This is the same as what Array.splice does conceptually:
- *   remove from oldIndex → insert at newIndex → all indices between shift.
- */
-function reorderItems<T extends { id: string; order: number }>(
-    items: T[],
-    targetId: string,
-    newOrder: number
-): T[] {
-    const item = items.find(i => i.id === targetId)
-    if (!item) return items
-
-    const oldOrder = item.order
-
-    return items
-        .map(i => {
-            if (i.id === targetId) return { ...i, order: newOrder }
-
-            // Moving target to a lower index (left): items in [newOrder, oldOrder) shift up
-            if (newOrder < oldOrder && i.order >= newOrder && i.order < oldOrder)
-                return { ...i, order: i.order + 1 }
-
-            // Moving target to a higher index (right): items in (oldOrder, newOrder] shift down
-            if (newOrder > oldOrder && i.order > oldOrder && i.order <= newOrder)
-                return { ...i, order: i.order - 1 }
-
-            return i
-        })
-        .sort((a, b) => a.order - b.order)
-}
-
-// ── Store interface ───────────────────────────────────────────────────────────
+export type BoardStatus = 'idle' | 'loading' | 'ready' | 'error'
 
 interface BoardState {
     boardId: string | null
-    cards: DropCard[]
+    title: string
+    cards: Card[]
     columns: Column[]
     swimlanes: Swimlane[]
+    status: BoardStatus
+    error: string | null
 
-    // ── Bulk setters (used on initial board load) ──────────────────────────────
-    setBoardId: (id: string) => void
-    setCards: (cards: DropCard[]) => void
-    setColumns: (columns: Column[]) => void
-    setSwimlanes: (swimlanes: Swimlane[]) => void
-
-    // ── Card mutations ─────────────────────────────────────────────────────────
-    /** Called after POST /cards — uses the response object the server returned. */
-    addCard: (card: DropCard) => void
-
-    // ── Column mutations ───────────────────────────────────────────────────────
-
-    /** Called after POST /columns. Server returns the new column with its assigned order. */
-    addColumn: (column: Column) => void
+    /** Loads a board from the server, replacing whatever is currently held. */
+    loadBoard: (boardId: string) => Promise<void>
 
     /**
-     * Called after DELETE /columns/:id.
-     * Removes the column and shifts all columns with a higher order down by 1
-     * to keep the order sequence contiguous — matching server behaviour.
+     * Re-reads the currently loaded board. Called after any mutation that can
+     * shift more rows than the one being edited (see the note above).
      */
-    deleteColumn: (columnId: string) => void
+    refresh: () => Promise<void>
 
     /**
-     * Called after PATCH /columns/:id.
-     * If newOrder is provided, applies the deterministic reorder.
-     * If only title changes, updates in place.
+     * Moves a card into a new column/swimlane locally and returns the card as it
+     * was, so the caller can hand it back to restoreCard() if the PATCH fails.
+     * Returns null when the card is not in the store.
      */
-    updateColumn: (columnId: string, patch: { title?: string; newOrder?: number }) => void
+    applyCardMove: (cardId: string, column: Column, swimlane: Swimlane) => Card | null
 
-    // ── Swimlane mutations ─────────────────────────────────────────────────────
+    /** Puts a previous card snapshot back — the rollback half of applyCardMove. */
+    restoreCard: (card: Card) => void
 
-    /** Called after POST /swimlanes. */
-    addSwimlane: (swimlane: Swimlane) => void
+    /** Replaces one card in place, e.g. after editing its title. */
+    replaceCard: (card: Card) => void
 
-    /**
-     * Called after DELETE /swimlanes/:id.
-     * Removes the swimlane and shifts remaining orders down.
-     */
-    deleteSwimlane: (swimlaneId: string) => void
-
-    /**
-     * Called after PATCH /swimlanes/:id.
-     * Mirrors reorder logic if newOrder is provided.
-     */
-    updateSwimlane: (swimlaneId: string, patch: { title?: string; newOrder?: number }) => void
+    /** Drops one card from local state after a successful delete. */
+    removeCard: (cardId: string) => void
 }
 
-// ── Store ─────────────────────────────────────────────────────────────────────
+function sortByOrder<T extends { order: number }>(items: T[]): T[] {
+    return [...items].sort((a, b) => a.order - b.order)
+}
 
-export const useBoardStore = create<BoardState>((set) => ({
+export const useBoardStore = create<BoardState>((set, get) => ({
     boardId: null,
+    title: '',
     cards: [],
     columns: [],
     swimlanes: [],
+    status: 'idle',
+    error: null,
 
-    // ── Bulk setters ────────────────────────────────────────────────────────────
-    setBoardId: (id) => set({ boardId: id }),
-    setCards: (cards) => set({ cards }),
-    setColumns: (columns) => set({ columns: [...columns].sort((a, b) => a.order - b.order) }),
-    setSwimlanes: (swimlanes) => set({ swimlanes: [...swimlanes].sort((a, b) => a.order - b.order) }),
+    loadBoard: async (boardId) => {
+        set({ status: 'loading', error: null, boardId })
 
-    // ── Card mutations ──────────────────────────────────────────────────────────
-    addCard: (card) =>
-        set((state) => ({ cards: [...state.cards, card] })),
+        try {
+            const board = await fetchBoard(boardId)
 
-    // ── Column mutations ────────────────────────────────────────────────────────
-    addColumn: (column) =>
-        set((state) => ({
-            columns: [...state.columns, column].sort((a, b) => a.order - b.order),
+            // Guard against a stale response landing after the user navigated to
+            // another board — only the most recent request may write state.
+            if (get().boardId !== boardId) return
+
+            set({
+                boardId: board.id,
+                title: board.title,
+                columns: sortByOrder(board.columns),
+                swimlanes: sortByOrder(board.swimlanes),
+                cards: board.cards,
+                status: 'ready',
+                error: null,
+            })
+        } catch (error) {
+            if (get().boardId !== boardId) return
+            set({
+                status: 'error',
+                error: error instanceof Error ? error.message : String(error),
+            })
+        }
+    },
+
+    refresh: async () => {
+        const { boardId, loadBoard } = get()
+        if (!boardId) return
+        await loadBoard(boardId)
+    },
+
+    applyCardMove: (cardId, column, swimlane) => {
+        const previous = get().cards.find(card => card.id === cardId)
+        if (!previous) return null
+
+        set(state => ({
+            cards: state.cards.map(card =>
+                card.id === cardId
+                    ? {
+                        ...card,
+                        columnId: column.id,
+                        columnName: column.title,
+                        columnNumber: column.order,
+                        swimlaneId: swimlane.id,
+                        swimlaneName: swimlane.title,
+                        swimlaneNumber: swimlane.order,
+                    }
+                    : card
+            ),
+        }))
+
+        return previous
+    },
+
+    restoreCard: (card) =>
+        set(state => ({
+            cards: state.cards.map(existing => existing.id === card.id ? card : existing),
         })),
 
-    deleteColumn: (columnId) =>
-        set((state) => {
-            const deleted = state.columns.find(c => c.id === columnId)
-            if (!deleted) return state
-
-            return {
-                columns: state.columns
-                    .filter(c => c.id !== columnId)
-                    .map(c => c.order > deleted.order ? { ...c, order: c.order - 1 } : c)
-                    .sort((a, b) => a.order - b.order),
-            }
-        }),
-
-    updateColumn: (columnId, { title, newOrder }) =>
-        set((state) => {
-            let updated = state.columns.map(c =>
-                c.id === columnId && title !== undefined ? { ...c, title } : c
-            )
-            if (newOrder !== undefined) {
-                updated = reorderItems(updated, columnId, newOrder)
-            }
-            return { columns: updated.sort((a, b) => a.order - b.order) }
-        }),
-
-    // ── Swimlane mutations ──────────────────────────────────────────────────────
-    addSwimlane: (swimlane) =>
-        set((state) => ({
-            swimlanes: [...state.swimlanes, swimlane].sort((a, b) => a.order - b.order),
+    replaceCard: (card) =>
+        set(state => ({
+            cards: state.cards.map(existing => existing.id === card.id ? card : existing),
         })),
 
-    deleteSwimlane: (swimlaneId) =>
-        set((state) => {
-            const deleted = state.swimlanes.find(s => s.id === swimlaneId)
-            if (!deleted) return state
-
-            return {
-                swimlanes: state.swimlanes
-                    .filter(s => s.id !== swimlaneId)
-                    .map(s => s.order > deleted.order ? { ...s, order: s.order - 1 } : s)
-                    .sort((a, b) => a.order - b.order),
-            }
-        }),
-
-    updateSwimlane: (swimlaneId, { title, newOrder }) =>
-        set((state) => {
-            let updated = state.swimlanes.map(s =>
-                s.id === swimlaneId && title !== undefined ? { ...s, title } : s
-            )
-            if (newOrder !== undefined) {
-                updated = reorderItems(updated, swimlaneId, newOrder)
-            }
-            return { swimlanes: updated.sort((a, b) => a.order - b.order) }
-        }),
+    removeCard: (cardId) =>
+        set(state => ({
+            cards: state.cards.filter(card => card.id !== cardId),
+        })),
 }))

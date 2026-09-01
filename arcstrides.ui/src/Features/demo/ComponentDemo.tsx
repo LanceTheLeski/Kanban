@@ -18,13 +18,12 @@ import {
     Typography,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
-import EditIcon from '@mui/icons-material/Edit'
 import BugReportIcon from '@mui/icons-material/BugReport'
 
 import { ArcOverlay } from '../../Components/ArcOverlay'
 import { ArcPopover } from '../../Components/ArcPopover'
 import { ArcExpandingSelector } from '../../Components/ArcExpandingSelector'
-import { useArcError } from '../../Components/ArcErrorDisplay'
+import { useArcError } from '../../Components/useArcError'
 
 // ── Sample data ───────────────────────────────────────────────────────────────
 

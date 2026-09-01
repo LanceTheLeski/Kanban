@@ -3,18 +3,19 @@
  *
  * Mirrors: CreateCardOverlay.razor + CreateCardOverlay.cs
  *
- * Key translation notes:
+ * ── Column/Swimlane selection ────────────────────────────────────────────────
+ * Blazor used parallel List<Guid> + List<string> and looked the ID up by the
+ * index of the selected title. Here the store holds Column/Swimlane objects, so
+ * the selected title resolves straight to an object.
  *
- * 1. Column/Swimlane selection � Blazor used parallel List<Guid> + List<string>
- *    indexed together. Here we read Column/Swimlane objects from the store and
- *    find by title. The uniqueness validation from the .cs partial is preserved.
+ * The uniqueness guard from the Blazor original is kept: two columns with the
+ * same title is an error rather than a coin flip over which one is meant.
  *
- * 2. dropArea � the Blazor helper ConvertColumnAndSwimlaneToCardArea() built a
- *    "{swimlaneOrder}_{columnOrder}" string. We replicate this from the response.
- *
- * 3. The Blazor .cs had a partially-commented-out CardMapper and a TODO about
- *    using boardResponse as source of truth. We take the cleaner path: use the
- *    server's response object directly, as the non-commented code was already doing.
+ * ── Why the board is re-read afterwards ──────────────────────────────────────
+ * CardController.CreateCard responds with a CardPositionResponse whose `id` is
+ * the new *position* row, not the new card — the card's own ID never makes it
+ * into the response. There is nothing to splice into local state, so the create
+ * is followed by a refresh (handled inside useBoardActions).
  */
 
 import React, { useState } from 'react'
@@ -22,6 +23,7 @@ import { Stack, TextField, Typography } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
 import { createCard } from '../../../APIs/Board.APIs'
+import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
 import { useBoardStore } from '../../../Stores/BoardStores'
 
@@ -31,12 +33,12 @@ interface CreateCardOverlayProps {
 }
 
 export const CreateCardOverlay: React.FC<CreateCardOverlayProps> = ({ open, onClose }) => {
-    const { boardId, columns, swimlanes, addCard } = useBoardStore(useShallow(s => ({
-        boardId: s.boardId,
-        columns: s.columns,
-        swimlanes: s.swimlanes,
-        addCard: s.addCard,
+    const { boardId, columns, swimlanes } = useBoardStore(useShallow(state => ({
+        boardId: state.boardId,
+        columns: state.columns,
+        swimlanes: state.swimlanes,
     })))
+    const { run } = useBoardActions()
 
     const [cardTitle, setCardTitle] = useState('')
     const [cardDescription, setCardDescription] = useState('')
@@ -44,7 +46,7 @@ export const CreateCardOverlay: React.FC<CreateCardOverlayProps> = ({ open, onCl
     const [selectedSwimlaneTitle, setSelectedSwimlaneTitle] = useState<string | null>(null)
 
     const handleSelectColumn = (title: string) => {
-        const matches = columns.filter(c => c.title === title)
+        const matches = columns.filter(column => column.title === title)
         if (matches.length !== 1) {
             console.error(`Expected exactly 1 column with title "${title}", found ${matches.length}`)
             return
@@ -53,7 +55,7 @@ export const CreateCardOverlay: React.FC<CreateCardOverlayProps> = ({ open, onCl
     }
 
     const handleSelectSwimlane = (title: string) => {
-        const matches = swimlanes.filter(s => s.title === title)
+        const matches = swimlanes.filter(swimlane => swimlane.title === title)
         if (matches.length !== 1) {
             console.error(`Expected exactly 1 swimlane with title "${title}", found ${matches.length}`)
             return
@@ -64,21 +66,19 @@ export const CreateCardOverlay: React.FC<CreateCardOverlayProps> = ({ open, onCl
     const handleSubmit = async () => {
         if (!boardId || !cardTitle.trim() || !selectedColumnTitle || !selectedSwimlaneTitle) return
 
-        const column = columns.find(c => c.title === selectedColumnTitle)!
-        const swimlane = swimlanes.find(s => s.title === selectedSwimlaneTitle)!
+        const column = columns.find(candidate => candidate.title === selectedColumnTitle)
+        const swimlane = swimlanes.find(candidate => candidate.title === selectedSwimlaneTitle)
+        if (!column || !swimlane) return
 
-        const newDropCard = await createCard(boardId, {
-            title: cardTitle.trim(),
-            description: cardDescription.trim(),
-            columnId: column.id,
-            swimlaneId: swimlane.id,
-        })
-
-        // Compute dropArea from the column/swimlane orders we already know locally.
-        // The server response from the stub doesn't know these orders, but the real
-        // server returns columnOrder and swimlaneOrder � use those when wiring up.
-        const dropAreaFromStore = `${swimlane.order}_${column.order}`
-        addCard({ ...newDropCard, dropArea: dropAreaFromStore })
+        const created = await run('Adding card', () =>
+            createCard(boardId, {
+                title: cardTitle.trim(),
+                description: cardDescription.trim(),
+                columnId: column.id,
+                swimlaneId: swimlane.id,
+            })
+        )
+        if (!created) return
 
         setCardTitle('')
         setCardDescription('')
@@ -104,24 +104,24 @@ export const CreateCardOverlay: React.FC<CreateCardOverlayProps> = ({ open, onCl
                 <TextField
                     label="Description"
                     variant="filled"
-                    helperText="Description"
+                    helperText="Card Description"
                     value={cardDescription}
                     onChange={e => setCardDescription(e.target.value)}
                     multiline
-                    rows={7}
+                    minRows={3}
                     fullWidth
                 />
 
-                {/* Column selector � mirrors @bind-Options="ColumnTitles" */}
+                {/* Column selector — mirrors @bind-Options="ColumnTitles" */}
                 <ArcExpandingSelector
-                    options={columns.map(c => c.title)}
+                    options={columns.map(column => column.title)}
                     onSelect={handleSelectColumn}
                     placeholder="Select Column"
                 />
 
-                {/* Swimlane selector � mirrors @bind-Options="SwimlaneTitles" */}
+                {/* Swimlane selector — mirrors @bind-Options="SwimlaneTitles" */}
                 <ArcExpandingSelector
-                    options={swimlanes.map(s => s.title)}
+                    options={swimlanes.map(swimlane => swimlane.title)}
                     onSelect={handleSelectSwimlane}
                     placeholder="Select Swimlane"
                 />

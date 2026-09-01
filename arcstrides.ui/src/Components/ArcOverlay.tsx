@@ -78,7 +78,7 @@ export const ArcOverlay: React.FC<ArcOverlayProps> = ({
             <Fade in={open}>
                 {/*
           MudPaper Class="glass" → Paper with className="glass"
-          The glass class lives in arc.css and is applied globally.
+          The glass class lives in ArcStyles.css and is applied globally.
         */}
                 <Paper
                     className="glass"
@@ -86,16 +86,20 @@ export const ArcOverlay: React.FC<ArcOverlayProps> = ({
                         width,
                         maxWidth: '95vw',
                         maxHeight: '90vh',
-                        overflowY: 'auto',
                         p: 3,
                         display: 'flex',
                         flexDirection: 'column',
                         gap: 2,
+                        // The Paper itself must not scroll: the content area below does,
+                        // so the Submit/Discard group stays pinned and visible. Without
+                        // this, tall content (the card overlay) squeezed the buttons to a
+                        // few pixels and pushed them past the bottom of the screen.
+                        overflow: 'hidden',
                         outline: 'none', // removes default Modal focus ring on the Paper
                     }}
                 >
-                    {/* ChildContent slot */}
-                    <Box sx={{ flex: 1 }}>{children}</Box>
+                    {/* ChildContent slot — minHeight:0 lets a flex child actually shrink */}
+                    <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>{children}</Box>
 
                     {/*
             MudButtonGroup Class="glass-inner-engraved"
@@ -104,7 +108,7 @@ export const ArcOverlay: React.FC<ArcOverlayProps> = ({
                     <ButtonGroup
                         className="glass-inner-engraved"
                         variant="text"
-                        sx={{ alignSelf: 'flex-end', borderRadius: 1, overflow: 'hidden' }}
+                        sx={{ alignSelf: 'flex-end', flexShrink: 0, borderRadius: 1, overflow: 'hidden' }}
                     >
                         {onSubmit && (
                             <Button onClick={handleSubmit} disabled={submitting}>

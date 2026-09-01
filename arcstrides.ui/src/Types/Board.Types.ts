@@ -1,12 +1,17 @@
-﻿/**
- * board.types.ts
+/**
+ * Board.Types.ts
  *
- * TypeScript equivalents of the C# domain models in ArcStrides.UI/Models/Board/.
+ * TypeScript equivalents of the C# domain models in ArcStrides.UI.Legacy/Models/Board/.
  * Naming follows camelCase (TypeScript convention) but maps 1:1 to the C# classes.
  *
  * C# nullable reference types (string?, Guid?) become T | null here.
  * C# Guid → string (UUIDs are strings in JS/TS).
  * C# DateTime → Date | null.
+ *
+ * These are *domain* types. The raw shapes the API actually sends over the wire
+ * live in APIs/Board.APIs.ts as `*Response` interfaces, and are mapped into these
+ * on the way in. Keeping the two separate means the server's quirks (nested
+ * `position` object, `columnID`-style casing from Json.NET) stay in one file.
  */
 
 // ── TaskType ─────────────────────────────────────────────────────────────────
@@ -14,7 +19,7 @@
 /** Mirrors: Models/Board/TaskType.cs */
 export interface TaskType {
     id: number
-    groupTagId: string
+    groupTagId: string | null
     title: string
 }
 
@@ -41,7 +46,7 @@ export interface Timeline {
 
 /** Mirrors: Models/Board/Task.cs */
 export interface Task {
-    id: string | null
+    id: string
     title: string
     order: number
     taskType: TaskType | null
@@ -51,9 +56,22 @@ export interface Task {
 
 // ── Card ─────────────────────────────────────────────────────────────────────
 
-/** Mirrors: Models/Board/Card.cs */
+/**
+ * Mirrors: Models/Board/Card.cs
+ *
+ * `id` is the card's own ID; `positionId` is the ID of its CardPosition row —
+ * a separate entity on the server. Moving a card PATCHes the *position*, so both
+ * IDs have to be carried. (The Blazor Card model had the same pair: Id + PositionID.)
+ *
+ * There is deliberately no `dropArea` field. The Blazor DropCard encoded the grid
+ * cell as the string "{swimlaneOrder}_{columnOrder}" and stored it alongside the
+ * card, which meant every column/swimlane reorder silently invalidated it. The
+ * cell is now derived at render time from columnId/swimlaneId instead — see
+ * Pages/BoardPage.tsx.
+ */
 export interface Card {
     id: string
+    positionId: string
     title: string
     description: string
     columnNumber: number
@@ -64,17 +82,6 @@ export interface Card {
     swimlaneName: string
     tasks: Task[]
     timeline: Timeline | null
-}
-
-/**
- * Mirrors: Models/Board/DropCard.cs
- *
- * dropArea encodes the cell position as "{swimlaneOrder}_{columnOrder}",
- * matching the Blazor ConvertColumnAndSwimlaneToCardArea() helper.
- */
-export interface DropCard {
-    card: Card
-    dropArea: string
 }
 
 // ── Column / Swimlane ─────────────────────────────────────────────────────────
@@ -96,16 +103,4 @@ export interface Swimlane {
     id: string
     title: string
     order: number
-}
-
-// ── TaskTypeResponse (API response shape) ─────────────────────────────────────
-
-/**
- * Mirrors: ArcStrides.Contracts.Response.TaskTypeResponse
- * Used by CreateTaskOverlay and UpdateTaskPopover when fetching task type lists.
- */
-export interface TaskTypeResponse {
-    id: number
-    title: string | null
-    groupTagId: string | null
 }

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * BoardPage
  *
  * Mirrors: Pages/Board.razor + Pages/Board.cs
@@ -9,13 +9,9 @@
  * useParams() reads it — the React equivalent of a route parameter.
  *
  * ── Data loading ─────────────────────────────────────────────────────────────
- * Blazor used OnInitializedAsync() which ran once on first render.
- * React equivalent: useEffect with [] dependency array.
- *
- * The Blazor ConvertBoardResponseToDropCardList() method populated four parallel
- * lists (_cards, _columns, _columnTitles, _swimlanes, _swimlaneTitles).
- * Here we call the Zustand store setters (setCards, setColumns, setSwimlanes)
- * directly — no parallel list alignment needed since our types carry all fields.
+ * Blazor used OnInitializedAsync() which ran once on first render. Here the
+ * effect just asks the store to load; the fetch, the response mapping and the
+ * loading/error status all live in BoardStores.ts so this file only renders.
  *
  * ── Grid layout ───────────────────────────────────────────────────────────────
  * Blazor rendered:
@@ -24,38 +20,34 @@
  *   3. MudDropContainer > per-swimlane rows > per-column MudDropZones
  *   4. UpdateCardOverlay (now owned by BoardCard, no longer here)
  *
- * The MudDropContainer's ItemsSelector="@((card, dropzone) => card.DropArea == dropzone)"
- * simply filtered cards into their cell by dropArea string match.
- * We replicate this with a plain filter: cards.filter(c => c.dropArea === identifier).
+ * ── Which cell does a card belong in? ─────────────────────────────────────────
+ * Blazor's MudDropContainer used ItemsSelector="@((card, dropzone) => card.DropArea
+ * == dropzone)", matching a "{swimlaneOrder}_{columnOrder}" string stored on each
+ * card. That string went stale the moment a column or swimlane was reordered or
+ * deleted, because nothing recomputed it.
+ *
+ * Cards now carry columnId/swimlaneId and the cell is matched on those instead —
+ * IDs don't shift when orders do. The dnd-kit droppable id encodes the same pair
+ * so a drop knows exactly where it landed.
  *
  * ── Drag and drop ─────────────────────────────────────────────────────────────
  * MudDropContainer + MudDropZone → dnd-kit DndContext + useDroppable/useDraggable.
+ * DragOverlay renders the ghost card that follows the cursor, replacing the
+ * built-in preview MudDropZone provided.
  *
- * dnd-kit is installed (package.json) but the full drag interaction is a
- * significant feature in itself and is stubbed here. The structure is complete:
- *   - DndContext wraps the grid with an onDragEnd handler
- *   - Each drop zone cell is a DroppableCell (useDroppable)
- *   - Each BoardCard is wrapped in a DraggableCard (useDraggable)
- *
- * The onDragEnd handler mirrors Blazor's UpdateCard():
- *   1. Parse new column/swimlane from the drop zone identifier
- *   2. Call moveCard API (PATCH)
- *   3. Update store via moveCard() action
- *
- * To enable visual drag feedback, add <DragOverlay> inside DndContext and render
- * a ghost card. This is the main remaining piece to make DnD fully functional.
- *
- * ── Card tasks ordering ───────────────────────────────────────────────────────
- * Blazor sorted tasks by Order in OnInitializedAsync.
- * We sort during the board response → store conversion below.
+ * The onDragEnd handler mirrors Blazor's UpdateCard(): resolve the target cell,
+ * move the card in the store, then PATCH. If the PATCH fails the move is rolled
+ * back and the error is surfaced, rather than leaving the UI out of sync.
  */
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Box, CircularProgress, Paper, Typography } from '@mui/material'
+import { Box, Button, CircularProgress, Paper, Typography } from '@mui/material'
 import {
     DndContext,
+    DragOverlay,
     type DragEndEvent,
+    type DragStartEvent,
     PointerSensor,
     useDraggable,
     useDroppable,
@@ -64,18 +56,32 @@ import {
 } from '@dnd-kit/core'
 import { BoardManagementNav } from '../Features/Board/BoardManagementNav'
 import { BoardCard } from '../Features/Board/BoardCard'
-import { fetchBoard, moveCard } from '../APIs/Board.APIs'
+import { moveCard } from '../APIs/Board.APIs'
+import { useArcError } from '../Components/useArcError'
 import { useShallow } from 'zustand/react/shallow'
 import { useBoardStore } from '../Stores/BoardStores'
-import type { DropCard } from '../Types/Board.Types'
+import type { Card } from '../Types/Board.Types'
+
+// ── Cell identifiers ──────────────────────────────────────────────────────────
+
+/**
+ * A drop cell is addressed by the pair of IDs that define it. Using IDs rather
+ * than the old order-based "0_2" string means the identifier stays valid across
+ * reorders. The separator is a character that cannot appear in a GUID.
+ */
+const cellId = (swimlaneId: string, columnId: string) => `${swimlaneId}|${columnId}`
+
+const parseCellId = (id: string): { swimlaneId: string; columnId: string } | null => {
+    const [swimlaneId, columnId] = id.split('|')
+    if (!swimlaneId || !columnId) return null
+    return { swimlaneId, columnId }
+}
 
 // ── DroppableCell ─────────────────────────────────────────────────────────────
 
 /**
  * A single drop zone cell in the grid.
- * Mirrors MudDropZone Identifier="@identifier".
- *
- * identifier format: "{swimlaneOrder}_{columnOrder}" — same as Blazor.
+ * Mirrors MudDropZone Identifier="@identifier" with CanDropClass="mud-border-success".
  */
 const DroppableCell: React.FC<{
     identifier: string
@@ -92,10 +98,10 @@ const DroppableCell: React.FC<{
                 backgroundColor: isOver ? '#d4f5d4' : '#ECED7b',
                 display: 'flex',
                 flexWrap: 'wrap',
+                alignContent: 'flex-start',
                 gap: 1,
                 p: 1,
                 overflowY: 'auto',
-                // Mirrors MudDropZone CanDropClass="mud-border-success"
                 outline: isOver ? '2px solid #4caf50' : '2px solid transparent',
                 transition: 'background-color 0.15s, outline 0.15s',
             }}
@@ -109,38 +115,20 @@ const DroppableCell: React.FC<{
 
 /**
  * Wraps BoardCard with dnd-kit drag behaviour.
- * Mirrors MudDropContainer's ItemRenderer which made each DropCard draggable.
+ * Mirrors MudDropContainer's ItemRenderer, which made each DropCard draggable.
+ *
+ * Only the drag handle strip carries the pointer listeners — putting them on the
+ * whole tile would swallow clicks on the Actions and Remove buttons.
  */
-const DraggableCard: React.FC<{
-    dropCard: DropCard
-    boardId: string
-    onUpdated: (updated: DropCard) => void
-    onDeleted: (cardId: string) => void
-}> = ({ dropCard, boardId, onUpdated, onDeleted }) => {
-    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-        id: dropCard.card.id,
-        data: { dropCard },
-    })
+const DraggableCard: React.FC<{ card: Card; boardId: string }> = ({ card, boardId }) => {
+    const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: card.id })
 
     return (
-        <Box
-            ref={setNodeRef}
-            {...listeners}
-            {...attributes}
-            sx={{
-                opacity: isDragging ? 0.4 : 1,
-                transform: transform
-                    ? `translate(${transform.x}px, ${transform.y}px)`
-                    : undefined,
-                cursor: 'grab',
-                touchAction: 'none', // required by dnd-kit for mobile
-            }}
-        >
+        <Box ref={setNodeRef} sx={{ opacity: isDragging ? 0.4 : 1 }}>
             <BoardCard
-                dropCard={dropCard}
+                card={card}
                 boardId={boardId}
-                onUpdated={onUpdated}
-                onDeleted={onDeleted}
+                dragHandleProps={{ ...listeners, ...attributes }}
             />
         </Box>
     )
@@ -150,22 +138,22 @@ const DraggableCard: React.FC<{
 
 export const BoardPage: React.FC = () => {
     const { boardId } = useParams<{ boardId: string }>()
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
+    const { addError } = useArcError()
+    const [draggingCard, setDraggingCard] = useState<Card | null>(null)
 
-    const { setBoardId, setColumns, setSwimlanes, setCards, columns, swimlanes, cards, moveCard: moveCardInStore } =
-        useBoardStore(useShallow(s => ({
-            setBoardId: s.setBoardId,
-            setColumns: s.setColumns,
-            setSwimlanes: s.setSwimlanes,
-            setCards: s.setCards,
-            columns: s.columns,
-            swimlanes: s.swimlanes,
-            cards: s.cards,
-            moveCard: s.moveCard,
+    const { status, error, columns, swimlanes, cards, loadBoard, applyCardMove, restoreCard } =
+        useBoardStore(useShallow(state => ({
+            status: state.status,
+            error: state.error,
+            columns: state.columns,
+            swimlanes: state.swimlanes,
+            cards: state.cards,
+            loadBoard: state.loadBoard,
+            applyCardMove: state.applyCardMove,
+            restoreCard: state.restoreCard,
         })))
 
-    // dnd-kit sensors — PointerSensor activates after a 8px drag distance,
+    // dnd-kit sensors — PointerSensor activates after an 8px drag distance,
     // preventing accidental drags when clicking card buttons
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -174,89 +162,75 @@ export const BoardPage: React.FC = () => {
     // ── Data loading ────────────────────────────────────────────────────────────
     // Mirrors Blazor's OnInitializedAsync()
     useEffect(() => {
-        if (!boardId) return
+        if (boardId) loadBoard(boardId)
+    }, [boardId, loadBoard])
 
-        setLoading(true)
-        fetchBoard(boardId)
-            .then(response => {
-                setBoardId(response.id)
+    // ── Card lookup by cell ─────────────────────────────────────────────────────
+    // Built once per card list rather than filtering the whole array inside every
+    // one of the (columns × swimlanes) cells.
+    const cardsByCell = useMemo(() => {
+        const groups = new Map<string, Card[]>()
 
-                // Mirrors ConvertBoardResponseToDropCardList() — populates store from response
-                setColumns(
-                    response.columns.map(c => ({ id: c.id, title: c.title, order: c.order }))
-                )
-                setSwimlanes(
-                    response.swimlanes.map(s => ({ id: s.id, title: s.title, order: s.order }))
-                )
+        for (const card of cards) {
+            const key = cellId(card.swimlaneId, card.columnId)
+            const group = groups.get(key)
+            if (group) group.push(card)
+            else groups.set(key, [card])
+        }
 
-                const dropCards = response.cards.map(c => ({
-                    dropArea: `${c.swimlaneOrder}_${c.columnOrder}`,
-                    card: {
-                        id: c.id,
-                        positionId: c.positionId,
-                        title: c.title,
-                        description: c.description,
-                        columnId: c.columnId,
-                        columnName: c.columnTitle,
-                        columnNumber: c.columnOrder,
-                        swimlaneId: c.swimlaneId,
-                        swimlaneName: c.swimlaneTitle,
-                        swimlaneNumber: c.swimlaneOrder,
-                        // Sort tasks by order on load — mirrors Blazor's OrderBy(task => task.Order)
-                        tasks: [...c.tasks].sort((a, b) => a.order - b.order),
-                        timeline: c.timeline,
-                    },
-                }))
+        return groups
+    }, [cards])
 
-                setCards(dropCards)
-            })
-            .catch(err => setError(String(err)))
-            .finally(() => setLoading(false))
-    }, [boardId])
+    // ── Drag handlers ───────────────────────────────────────────────────────────
+    const handleDragStart = (event: DragStartEvent) => {
+        setDraggingCard(cards.find(card => card.id === String(event.active.id)) ?? null)
+    }
 
-    // ── Drag end handler ────────────────────────────────────────────────────────
     // Mirrors Blazor's UpdateCard(MudItemDropInfo<DropCard> cardToUpdate)
     const handleDragEnd = async (event: DragEndEvent) => {
+        setDraggingCard(null)
+
         const { active, over } = event
         if (!over || !boardId) return
 
-        // over.id is the drop zone identifier: "{swimlaneOrder}_{columnOrder}"
-        const newDropArea = String(over.id)
+        const target = parseCellId(String(over.id))
+        if (!target) return
+
         const cardId = String(active.id)
+        const card = cards.find(candidate => candidate.id === cardId)
+        if (!card) return
 
-        const draggedDropCard = cards.find(dc => dc.card.id === cardId)
-        if (!draggedDropCard || draggedDropCard.dropArea === newDropArea) return
+        // Nothing to do when the card was dropped back where it started
+        if (card.columnId === target.columnId && card.swimlaneId === target.swimlaneId) return
 
-        // Parse new position from identifier — mirrors ConvertCardAreaToColumnAndSwimlane()
-        const [swimlaneOrderStr, columnOrderStr] = newDropArea.split('_')
-        const newColumn = columns.find(c => c.order === parseInt(columnOrderStr, 10))
-        const newSwimlane = swimlanes.find(s => s.order === parseInt(swimlaneOrderStr, 10))
-        if (!newColumn || !newSwimlane) return
+        const column = columns.find(candidate => candidate.id === target.columnId)
+        const swimlane = swimlanes.find(candidate => candidate.id === target.swimlaneId)
+        if (!column || !swimlane) return
 
-        // Update store immediately (optimistic) — mirrors Blazor's direct field mutations
-        moveCardInStore(cardId, newDropArea, newColumn, newSwimlane)
+        // Move locally first so the card follows the cursor's drop immediately
+        const previous = applyCardMove(cardId, column, swimlane)
+        if (!previous) return
 
-        // Send PATCH to server — mirrors Board.cs SendCardPatchRequest()
-        await moveCard(boardId, draggedDropCard.card.positionId, {
-            columnId: newColumn.id,
-            columnTitle: newColumn.title,
-            columnOrder: newColumn.order,
-            swimlaneId: newSwimlane.id,
-            swimlaneTitle: newSwimlane.title,
-            swimlaneOrder: newSwimlane.order,
-        })
-    }
-
-    const handleCardUpdated = (updated: DropCard) => {
-        setCards(cards.map(dc => dc.card.id === updated.card.id ? updated : dc))
-    }
-
-    const handleCardDeleted = (cardId: string) => {
-        setCards(cards.filter(dc => dc.card.id !== cardId))
+        try {
+            // Mirrors Board.cs SendCardPatchRequest() — patches the card's position row
+            await moveCard(boardId, card.positionId, {
+                columnId: column.id,
+                columnTitle: column.title,
+                columnOrder: column.order,
+                swimlaneId: swimlane.id,
+                swimlaneTitle: swimlane.title,
+                swimlaneOrder: swimlane.order,
+            })
+        } catch (moveError) {
+            // Put the card back where it was — the server never accepted the move
+            restoreCard(previous)
+            const message = moveError instanceof Error ? moveError.message : String(moveError)
+            addError(`Moving "${card.title}" failed: ${message}`)
+        }
     }
 
     // ── Loading / error states ──────────────────────────────────────────────────
-    if (loading) {
+    if (status === 'loading' || status === 'idle') {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
                 <CircularProgress />
@@ -264,10 +238,13 @@ export const BoardPage: React.FC = () => {
         )
     }
 
-    if (error) {
+    if (status === 'error') {
         return (
-            <Box sx={{ p: 4 }}>
+            <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                 <Typography color="error">Failed to load board: {error}</Typography>
+                <Button variant="outlined" onClick={() => boardId && loadBoard(boardId)}>
+                    Retry
+                </Button>
             </Box>
         )
     }
@@ -286,134 +263,151 @@ export const BoardPage: React.FC = () => {
                     <BoardManagementNav />
                 </Box>
 
-                {/* ── Column header row ────────────────────────────────────────────── */}
-                {/* Mirrors: MudGrid > MudItem > MudGrid Class="d-flex flex-nowrap" */}
-                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ height: 70, display: 'flex', alignItems: 'center' }}>
-                        {/* "Honu Boards" label — mirrors Blazor's Freestyle Script styled MudText */}
-                        <Paper
-                            elevation={0}
-                            sx={{
-                                width: 120,
-                                height: 40,
-                                backgroundColor: 'transparent',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                pl: 1.5,
-                                flexShrink: 0,
-                            }}
-                        >
-                            <Typography
-                                sx={{
-                                    fontFamily: "'Freestyle Script', cursive",
-                                    fontWeight: 'bold',
-                                    fontSize: '1.6rem',
-                                    color: 'aquamarine',
-                                }}
-                            >
-                                Honu Boards
-                            </Typography>
-                        </Paper>
+                {/*
+          The grid scrolls sideways as a unit so the column headers stay lined up
+          with the cells beneath them — the header row and the swimlane rows are
+          the same width and share one horizontal scroll container.
+        */}
+                <Box sx={{ overflowX: 'auto' }}>
+                    <Box sx={{ display: 'inline-flex', flexDirection: 'column', minWidth: '100%' }}>
 
-                        {/* Column title cells — one per column */}
-                        {columns.map(column => (
+                        {/* ── Column header row ────────────────────────────────────── */}
+                        <Box sx={{ height: 70, display: 'flex', alignItems: 'center' }}>
+                            {/* "Honu Boards" label — mirrors Blazor's Freestyle Script styled MudText */}
                             <Paper
-                                key={column.id}
+                                elevation={0}
                                 sx={{
-                                    width: 300,
-                                    height: 55,
+                                    width: 120,
+                                    height: 40,
+                                    backgroundColor: 'transparent',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
+                                    pl: 1.5,
                                     flexShrink: 0,
                                 }}
                             >
                                 <Typography
                                     sx={{
-                                        fontFamily: "'Calibri Condensed', 'Bodoni MT Condensed', 'Bahnschrift Light Condensed', sans-serif",
-                                        fontSize: 'small',
+                                        fontFamily: "'Freestyle Script', cursive",
                                         fontWeight: 'bold',
-                                        color: 'black',
+                                        fontSize: '1.6rem',
+                                        color: 'aquamarine',
                                     }}
                                 >
-                                    {column.title}
+                                    Honu Boards
                                 </Typography>
                             </Paper>
-                        ))}
-                    </Box>
 
-                    {/* ── Kanban grid ─────────────────────────────────────────────────── */}
-                    {/*
-            DndContext wraps all rows. dnd-kit manages drag state across
-            all DroppableCells within it.
-            Mirrors: <MudDropContainer> wrapper in Blazor.
-          */}
-                    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-                        {swimlanes.map(swimlane => (
-                            // Mirrors: foreach rowIndex + MudPaper Style="background-color: wheat"
-                            <Box key={swimlane.id} sx={{ backgroundColor: 'wheat' }}>
+                            {/* Column title cells — one per column */}
+                            {columns.map(column => (
                                 <Paper
-                                    elevation={0}
+                                    key={column.id}
                                     sx={{
-                                        backgroundColor: '#C7EEE6',
-                                        borderLeft: '5px solid wheat',
-                                        borderRight: '5px solid wheat',
+                                        width: 300,
+                                        height: 55,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        flexShrink: 0,
+                                        ml: 1,
                                     }}
                                 >
-                                    <Box sx={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'flex-start' }}>
+                                    <Typography
+                                        sx={{
+                                            fontFamily: "'Calibri Condensed', 'Bodoni MT Condensed', 'Bahnschrift Light Condensed', sans-serif",
+                                            fontSize: 'small',
+                                            fontWeight: 'bold',
+                                            color: 'black',
+                                        }}
+                                    >
+                                        {column.title}
+                                    </Typography>
+                                </Paper>
+                            ))}
+                        </Box>
 
-                                        {/* Swimlane label */}
-                                        {/* Mirrors: MudPaper Width="110px" Style="background-color: lightcoral" */}
-                                        <Box sx={{ display: 'flex', alignItems: 'center', minHeight: 250, flexShrink: 0 }}>
-                                            <Paper
-                                                sx={{
-                                                    width: 110,
-                                                    backgroundColor: 'lightcoral',
-                                                    ml: 1.25,
-                                                }}
-                                            >
-                                                <Typography
-                                                    align="center"
+                        {/* ── Kanban grid ───────────────────────────────────────────── */}
+                        {/* DndContext wraps all rows — mirrors <MudDropContainer> */}
+                        <DndContext
+                            sensors={sensors}
+                            onDragStart={handleDragStart}
+                            onDragEnd={handleDragEnd}
+                            onDragCancel={() => setDraggingCard(null)}
+                        >
+                            {swimlanes.map(swimlane => (
+                                // Mirrors: foreach rowIndex + MudPaper Style="background-color: wheat"
+                                <Box key={swimlane.id} sx={{ backgroundColor: 'wheat' }}>
+                                    <Paper
+                                        elevation={0}
+                                        sx={{
+                                            backgroundColor: '#C7EEE6',
+                                            borderLeft: '5px solid wheat',
+                                            borderRight: '5px solid wheat',
+                                        }}
+                                    >
+                                        <Box sx={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'flex-start' }}>
+
+                                            {/* Swimlane label */}
+                                            {/* Mirrors: MudPaper Width="110px" Style="background-color: lightcoral" */}
+                                            <Box sx={{ display: 'flex', alignItems: 'center', minHeight: 250, flexShrink: 0 }}>
+                                                <Paper
                                                     sx={{
-                                                        fontFamily: "'Calibri Condensed', sans-serif",
-                                                        fontSize: 'small',
-                                                        fontWeight: 'bold',
-                                                        color: 'black',
+                                                        width: 110,
+                                                        backgroundColor: 'lightcoral',
+                                                        ml: 1.25,
                                                     }}
                                                 >
-                                                    {swimlane.title}
-                                                </Typography>
-                                            </Paper>
+                                                    <Typography
+                                                        align="center"
+                                                        sx={{
+                                                            fontFamily: "'Calibri Condensed', sans-serif",
+                                                            fontSize: 'small',
+                                                            fontWeight: 'bold',
+                                                            color: 'black',
+                                                        }}
+                                                    >
+                                                        {swimlane.title}
+                                                    </Typography>
+                                                </Paper>
+                                            </Box>
+
+                                            {/* Drop zone cells — one per column */}
+                                            {columns.map(column => {
+                                                const identifier = cellId(swimlane.id, column.id)
+                                                const cellCards = cardsByCell.get(identifier) ?? []
+
+                                                return (
+                                                    // Mirrors: MudItem Style="height: 250px" > MudDropZone
+                                                    <Box key={column.id} sx={{ height: 250, flexShrink: 0, p: 1.25 }}>
+                                                        <DroppableCell identifier={identifier}>
+                                                            {cellCards.map(card => (
+                                                                <DraggableCard
+                                                                    key={card.id}
+                                                                    card={card}
+                                                                    boardId={boardId!}
+                                                                />
+                                                            ))}
+                                                        </DroppableCell>
+                                                    </Box>
+                                                )
+                                            })}
                                         </Box>
+                                    </Paper>
+                                </Box>
+                            ))}
 
-                                        {/* Drop zone cells — one per column */}
-                                        {columns.map(column => {
-                                            const identifier = `${swimlane.order}_${column.order}`
-                                            const cellCards = cards.filter(dc => dc.dropArea === identifier)
-
-                                            return (
-                                                // Mirrors: MudItem Style="height: 250px" > MudDropZone
-                                                <Box key={column.id} sx={{ height: 250, flexShrink: 0 }}>
-                                                    <DroppableCell identifier={identifier}>
-                                                        {cellCards.map(dc => (
-                                                            <DraggableCard
-                                                                key={dc.card.id}
-                                                                dropCard={dc}
-                                                                boardId={boardId!}
-                                                                onUpdated={handleCardUpdated}
-                                                                onDeleted={handleCardDeleted}
-                                                            />
-                                                        ))}
-                                                    </DroppableCell>
-                                                </Box>
-                                            )
-                                        })}
-                                    </Box>
-                                </Paper>
-                            </Box>
-                        ))}
-                    </DndContext>
+                            {/*
+                The card that follows the cursor mid-drag. MudDropZone drew this
+                for us; dnd-kit needs it declared explicitly.
+              */}
+                            <DragOverlay>
+                                {draggingCard && (
+                                    <BoardCard card={draggingCard} boardId={boardId!} preview />
+                                )}
+                            </DragOverlay>
+                        </DndContext>
+                    </Box>
                 </Box>
             </Paper>
         </Box>

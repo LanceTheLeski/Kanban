@@ -2,7 +2,9 @@
  * DeleteSwimlaneOverlay
  *
  * Mirrors: DeleteSwimlaneOverlay.razor + DeleteSwimlaneOverlay.cs
- * Structurally identical to DeleteColumnOverlay. See that file for pattern notes.
+ *
+ * Structurally identical to DeleteColumnOverlay — see that file for the pattern
+ * notes on selection-by-title and why the board is re-read after a delete.
  */
 
 import React, { useState } from 'react'
@@ -10,6 +12,7 @@ import { Stack, Typography } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
 import { deleteSwimlane } from '../../../APIs/Board.APIs'
+import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
 import { useBoardStore } from '../../../Stores/BoardStores'
 
@@ -19,16 +22,17 @@ interface DeleteSwimlaneOverlayProps {
 }
 
 export const DeleteSwimlaneOverlay: React.FC<DeleteSwimlaneOverlayProps> = ({ open, onClose }) => {
-    const { boardId, swimlanes, deleteSwimlaneFromStore } = useBoardStore(useShallow(s => ({
-        boardId: s.boardId,
-        swimlanes: s.swimlanes,
-        deleteSwimlaneFromStore: s.deleteSwimlane,
+    const { boardId, swimlanes } = useBoardStore(useShallow(state => ({
+        boardId: state.boardId,
+        swimlanes: state.swimlanes,
     })))
+    const { run } = useBoardActions()
 
     const [selectedTitle, setSelectedTitle] = useState<string | null>(null)
 
     const handleSelect = (title: string) => {
-        const matches = swimlanes.filter(s => s.title === title)
+        // Preserve Blazor's uniqueness guard
+        const matches = swimlanes.filter(swimlane => swimlane.title === title)
         if (matches.length !== 1) {
             console.error(`Expected exactly 1 swimlane with title "${title}", found ${matches.length}`)
             return
@@ -39,12 +43,13 @@ export const DeleteSwimlaneOverlay: React.FC<DeleteSwimlaneOverlayProps> = ({ op
     const handleSubmit = async () => {
         if (!boardId || !selectedTitle) return
 
-        const swimlane = swimlanes.find(s => s.title === selectedTitle)
+        const swimlane = swimlanes.find(candidate => candidate.title === selectedTitle)
         if (!swimlane) return
 
-        await deleteSwimlane(boardId, swimlane.id)
-
-        deleteSwimlaneFromStore(swimlane.id)
+        // Deleting a swimlane shifts the remaining orders and moves the cards that
+        // were in it — the refresh inside run() picks all of that up.
+        const deleted = await run('Deleting swimlane', () => deleteSwimlane(boardId, swimlane.id))
+        if (!deleted) return
 
         setSelectedTitle(null)
         onClose()
@@ -56,7 +61,7 @@ export const DeleteSwimlaneOverlay: React.FC<DeleteSwimlaneOverlayProps> = ({ op
                 <Typography variant="h6">Delete Swimlane</Typography>
 
                 <ArcExpandingSelector
-                    options={swimlanes.map(s => s.title)}
+                    options={swimlanes.map(swimlane => swimlane.title)}
                     onSelect={handleSelect}
                     placeholder="Select swimlane to delete"
                 />

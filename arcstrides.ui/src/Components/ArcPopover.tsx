@@ -28,7 +28,6 @@ import {
     Box,
     Button,
     ButtonGroup,
-    Paper,
     Popover,
     type ButtonProps,
     type PopoverOrigin,

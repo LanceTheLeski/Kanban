@@ -1,7 +1,7 @@
-﻿/**
- * board.api.ts
+/**
+ * Board.APIs.ts
  *
- * Real HTTP API layer for all board operations.
+ * HTTP API layer for all board operations.
  *
  * Replaces the C# repository interfaces:
  *   IBoardRepository    → fetchBoard
@@ -11,74 +11,219 @@
  *   ITaskRepository     → createTask, updateTask, deleteTask, fetchTaskTypes
  *   ITimelineRepository → createTimeline, updateTimeline
  *
+ * ── Route prefix ──────────────────────────────────────────────────────────────
+ * Every controller in ArcStrides.API is routed under "arcstrides/" — see the
+ * [Route] attributes on BoardController, ColumnController, SwimlaneController,
+ * TaskController and TimelineController. That prefix is applied once, here, via
+ * the ARC constant, so it cannot drift endpoint by endpoint.
+ *
+ * ── Wire shapes vs domain types ───────────────────────────────────────────────
+ * The `*Response` interfaces below describe what the server literally sends. They
+ * are NOT the types the rest of the app uses — Types/Board.Types.ts holds those.
+ * Two server quirks are contained here and nowhere else:
+ *
+ *   1. A CardResponse nests its board placement under `position`
+ *      (see ArcStrides.Contracts/Response/CardResponse.cs), rather than being flat.
+ *
+ *   2. Json.NET's CamelCaseNamingStrategy lowercases only the leading run of
+ *      capitals, so C# `ColumnID` serializes as `columnID`, not `columnId`.
+ *      `ID` on its own becomes `id`.
+ *
  * ── JSON Patch ────────────────────────────────────────────────────────────────
- * The Blazor .cs partial classes built raw JSON Patch strings manually using
- * string interpolation. Here we build typed PatchOperation arrays instead —
- * same wire format, no risk of malformed JSON from string concatenation.
+ * The Blazor .cs partial classes built raw JSON Patch strings using string
+ * interpolation — a card title containing a quote produced malformed JSON. Here we
+ * build typed PatchOperation arrays instead: same wire format, no escaping hazard.
  *
- * The path strings (e.g. "/Title", "/ColumnID") must match the property names
- * your ASP.NET Core controllers expect. Check your JsonPatchDocument<T> usage
- * on the server and adjust casing if needed.
- *
- * ── Null / empty patch guard ──────────────────────────────────────────────────
- * Several Blazor methods returned early if both patch fields were empty strings.
- * We preserve this: callers only invoke these functions when there is actually
- * something to send. The functions themselves do not guard against empty arrays.
+ * The path strings ("/Title", "/ColumnID") are matched case-insensitively by
+ * ASP.NET Core's JsonPatchDocument, so they keep working under the camelCase
+ * contract resolver configured in Program.cs.
  */
 
 import { apiClient, type PatchOperation } from './Client'
-import type { Column, DropCard, Swimlane, Task, TaskTypeResponse, Timeline } from '../Types/Board.Types'
+import type { Card, Column, Swimlane, Task, TaskType, Timeline } from '../Types/Board.Types'
+
+/** Route prefix shared by every ArcStrides.API controller. */
+const ARC = '/arcstrides'
+
+// ── Wire shapes ───────────────────────────────────────────────────────────────
+
+/** Mirrors ArcStrides.Contracts.Response.TimelineResponse */
+interface TimelineResponse {
+    id: string | null
+    timelineTypeID: number | null
+    startDependencyTagGroupID: string | null
+    startPreferenceUTC: string | null
+    startDeadlineUTC: string | null
+    endDependencyTagGroupID: string | null
+    endPreferenceUTC: string | null
+    endDeadlineUTC: string | null
+}
+
+/** Mirrors ArcStrides.Contracts.Response.TaskTypeResponse */
+export interface TaskTypeResponse {
+    id: number | null
+    groupTagID: string | null
+    title: string | null
+}
+
+/** Mirrors ArcStrides.Contracts.Response.TaskResponse */
+interface TaskResponse {
+    id: string | null
+    boardID: string | null
+    title: string | null
+    taskType: TaskTypeResponse | null
+    order: number | null
+    timeline: TimelineResponse | null
+    isComplete: boolean | null
+}
+
+/** Mirrors ArcStrides.Contracts.Response.CardPositionResponse */
+interface CardPositionResponse {
+    id: string | null
+    title: string | null
+    description: string | null
+    boardID: string | null
+    columnID: string | null
+    columnTitle: string | null
+    columnOrder: number | null
+    swimlaneID: string | null
+    swimlaneTitle: string | null
+    swimlaneOrder: number | null
+}
+
+/** Mirrors ArcStrides.Contracts.Response.CardResponse */
+interface CardResponse {
+    id: string | null
+    title: string | null
+    description: string | null
+    position: CardPositionResponse | null
+    tasks: TaskResponse[] | null
+    timeline: TimelineResponse | null
+}
+
+/** Mirrors ArcStrides.Contracts.Response.ColumnResponse / SwimlaneResponse */
+interface OrderedItemResponse {
+    id: string | null
+    title: string | null
+    order: number | null
+    boardID: string | null
+}
+
+/** Mirrors ArcStrides.Contracts.Response.BoardResponse */
+interface BoardResponse {
+    id: string | null
+    title: string | null
+    columns: OrderedItemResponse[] | null
+    swimlanes: OrderedItemResponse[] | null
+    cards: CardResponse[] | null
+}
+
+/** The whole board, mapped into domain types. */
+export interface Board {
+    id: string
+    title: string
+    columns: Column[]
+    swimlanes: Swimlane[]
+    cards: Card[]
+}
+
+// ── Response → domain mapping ─────────────────────────────────────────────────
+
+/**
+ * Converts ISO 8601 date strings from the server to Date | null.
+ * The server stores and returns dates as UTC strings; we parse them here once so
+ * all downstream code works with native Date objects.
+ */
+function toDate(value: string | null): Date | null {
+    return value ? new Date(value) : null
+}
+
+function mapTimeline(response: TimelineResponse | null): Timeline | null {
+    if (!response) return null
+    return {
+        id: response.id,
+        startDependencyTagGroupId: response.startDependencyTagGroupID,
+        startPreferenceUTC: toDate(response.startPreferenceUTC),
+        startDeadlineUTC: toDate(response.startDeadlineUTC),
+        endDependencyTagGroupId: response.endDependencyTagGroupID,
+        endPreferenceUTC: toDate(response.endPreferenceUTC),
+        endDeadlineUTC: toDate(response.endDeadlineUTC),
+    }
+}
+
+export function mapTaskType(response: TaskTypeResponse | null): TaskType | null {
+    if (!response || response.id == null) return null
+    return {
+        id: response.id,
+        groupTagId: response.groupTagID,
+        title: response.title ?? '',
+    }
+}
+
+function mapTask(response: TaskResponse): Task {
+    return {
+        id: response.id ?? '',
+        title: response.title ?? '',
+        order: response.order ?? 0,
+        taskType: mapTaskType(response.taskType),
+        isCompleted: response.isComplete,
+        timeline: mapTimeline(response.timeline),
+    }
+}
+
+function mapOrderedItem(response: OrderedItemResponse): Column {
+    return {
+        id: response.id ?? '',
+        title: response.title ?? '',
+        order: response.order ?? 0,
+    }
+}
+
+/**
+ * Flattens a CardResponse (card + nested position) into the domain Card.
+ *
+ * Mirrors ArcStrides.UI.Legacy/Mappers/CardMapper.cs, which mapped
+ * CardResponse.Position.ColumnOrder → Card.ColumnNumber and so on.
+ *
+ * Note the two different IDs: `response.id` is the card, `response.position.id`
+ * is its CardPosition row. Moving a card patches the latter.
+ */
+function mapCard(response: CardResponse): Card {
+    const position = response.position
+
+    return {
+        id: response.id ?? '',
+        positionId: position?.id ?? '',
+        title: response.title ?? '',
+        description: response.description ?? '',
+        columnId: position?.columnID ?? '',
+        columnName: position?.columnTitle ?? '',
+        columnNumber: position?.columnOrder ?? 0,
+        swimlaneId: position?.swimlaneID ?? '',
+        swimlaneName: position?.swimlaneTitle ?? '',
+        swimlaneNumber: position?.swimlaneOrder ?? 0,
+        // Sort tasks by order on load — mirrors Blazor's OrderBy(task => task.Order)
+        tasks: (response.tasks ?? []).map(mapTask).sort((a, b) => a.order - b.order),
+        timeline: mapTimeline(response.timeline),
+    }
+}
 
 // ── Board ─────────────────────────────────────────────────────────────────────
 
-/**
- * Shape of the server's GET /boards/:boardId response.
- * Mirrors ArcStrides.Contracts.Response.BoardResponse.
- */
-export interface BoardResponse {
-    id: string
-    columns: Array<{ id: string; title: string; order: number }>
-    swimlanes: Array<{ id: string; title: string; order: number }>
-    cards: Array<{
-        id: string
-        positionId: string
-        title: string
-        description: string
-        columnId: string
-        columnTitle: string
-        columnOrder: number
-        swimlaneId: string
-        swimlaneTitle: string
-        swimlaneOrder: number
-        tasks: Task[]
-        timeline: Timeline | null
-    }>
-}
+/** GET arcstrides/boards/:boardId */
+export async function fetchBoard(boardId: string): Promise<Board> {
+    const response = await apiClient.get<BoardResponse>(`${ARC}/boards/${boardId}`)
 
-/** GET /boards/:boardId */
-export function fetchBoard(boardId: string): Promise<BoardResponse> {
-    return apiClient.get(`/arcstrides/boards/${boardId}`)
+    return {
+        id: response.id ?? boardId,
+        title: response.title ?? '',
+        columns: (response.columns ?? []).map(mapOrderedItem).sort((a, b) => a.order - b.order),
+        swimlanes: (response.swimlanes ?? []).map(mapOrderedItem).sort((a, b) => a.order - b.order),
+        cards: (response.cards ?? []).map(mapCard),
+    }
 }
 
 // ── Card ──────────────────────────────────────────────────────────────────────
-
-/**
- * Shape of the server's card position response.
- * Mirrors ArcStrides.Contracts.Response.CardPositionResponse.
- * Returned by both POST /cards and PATCH /cards/:positionId.
- */
-interface CardPositionResponse {
-    id: string
-    positionID: string
-    title: string
-    description: string
-    columnID: string
-    columnTitle: string
-    columnOrder: number
-    swimlaneID: string
-    swimlaneTitle: string
-    swimlaneOrder: number
-}
 
 export interface CardCreateRequest {
     title: string
@@ -88,41 +233,22 @@ export interface CardCreateRequest {
 }
 
 /**
- * POST /boards/:boardId/cards
+ * POST arcstrides/boards/:boardId/cards
  *
  * Mirrors Blazor's CreateCardAsync() in CreateCardOverlay.cs.
- * The server returns a CardPositionResponse with the assigned column/swimlane
- * order values — we use those to build the dropArea string rather than
- * inferring it from local state, so the two are always in sync.
+ *
+ * The server responds with a CardPositionResponse whose `id` is the *position*
+ * ID — the new card's own ID is not in the response (see CardController.CreateCard).
+ * Callers therefore re-fetch the board rather than trying to splice the new card
+ * into local state from this response.
  */
-export async function createCard(boardId: string, req: CardCreateRequest): Promise<DropCard> {
-    const response = await apiClient.post<CardPositionResponse>(
-        `/boards/${boardId}/cards`,
-        {
-            Title: req.title,
-            Description: req.description,
-            ColumnID: req.columnId,
-            SwimlaneID: req.swimlaneId,
-        }
-    )
-
-    return {
-        dropArea: `${response.swimlaneOrder}_${response.columnOrder}`,
-        card: {
-            id: response.id,
-            positionId: response.positionID,
-            title: response.title,
-            description: response.description,
-            columnId: response.columnID,
-            columnName: response.columnTitle,
-            columnNumber: response.columnOrder,
-            swimlaneId: response.swimlaneID,
-            swimlaneName: response.swimlaneTitle,
-            swimlaneNumber: response.swimlaneOrder,
-            tasks: [],
-            timeline: null,
-        },
-    }
+export async function createCard(boardId: string, request: CardCreateRequest): Promise<void> {
+    await apiClient.post<CardPositionResponse>(`${ARC}/boards/${boardId}/cards`, {
+        Title: request.title,
+        Description: request.description,
+        ColumnID: request.columnId,
+        SwimlaneID: request.swimlaneId,
+    })
 }
 
 export interface CardMoveRequest {
@@ -135,21 +261,22 @@ export interface CardMoveRequest {
 }
 
 /**
- * PATCH /boards/:boardId/cards/:positionId
+ * PATCH arcstrides/boards/:boardId/cards/positions/:positionId
  *
  * Called on drag-drop. Mirrors Blazor's SendCardPatchRequest() in Board.cs.
- * The Blazor version built a raw JSON string; here we use typed operations.
+ * Note this targets the card's *position* ID, not the card ID — the route is
+ * BoardController's [HttpPatch("{boardID}/cards/positions/{cardPositionID}")].
  */
-export function moveCard(boardId: string, positionId: string, req: CardMoveRequest): Promise<void> {
+export function moveCard(boardId: string, positionId: string, request: CardMoveRequest): Promise<void> {
     const operations: PatchOperation[] = [
-        { op: 'replace', path: '/ColumnID', value: req.columnId },
-        { op: 'replace', path: '/ColumnTitle', value: req.columnTitle },
-        { op: 'replace', path: '/ColumnOrder', value: req.columnOrder },
-        { op: 'replace', path: '/SwimlaneID', value: req.swimlaneId },
-        { op: 'replace', path: '/SwimlaneTitle', value: req.swimlaneTitle },
-        { op: 'replace', path: '/SwimlaneOrder', value: req.swimlaneOrder },
+        { op: 'replace', path: '/ColumnID', value: request.columnId },
+        { op: 'replace', path: '/ColumnTitle', value: request.columnTitle },
+        { op: 'replace', path: '/ColumnOrder', value: request.columnOrder },
+        { op: 'replace', path: '/SwimlaneID', value: request.swimlaneId },
+        { op: 'replace', path: '/SwimlaneTitle', value: request.swimlaneTitle },
+        { op: 'replace', path: '/SwimlaneOrder', value: request.swimlaneOrder },
     ]
-    return apiClient.patch(`/boards/${boardId}/cards/${positionId}`, operations)
+    return apiClient.patch(`${ARC}/boards/${boardId}/cards/positions/${positionId}`, operations)
 }
 
 export interface CardPatchRequest {
@@ -158,10 +285,13 @@ export interface CardPatchRequest {
 }
 
 /**
- * PATCH /boards/:boardId/cards/:cardId
+ * PATCH arcstrides/boards/:boardId/cards/:cardId
  *
- * Called on UpdateCardOverlay submit. Mirrors FormPatchRequestFromOverlay()
- * in UpdateCardOverlay.cs — only includes operations for fields that changed.
+ * Called on UpdateCardOverlay submit. Only includes operations for fields that
+ * actually changed, mirroring FormPatchRequestFromOverlay() in UpdateCardOverlay.cs.
+ *
+ * Title and Description live on the Card entity rather than its CardPosition, so
+ * this is a different route from moveCard above.
  */
 export function updateCard(boardId: string, cardId: string, patch: CardPatchRequest): Promise<void> {
     const operations: PatchOperation[] = []
@@ -172,94 +302,74 @@ export function updateCard(boardId: string, cardId: string, patch: CardPatchRequ
     if (patch.description !== undefined)
         operations.push({ op: 'replace', path: '/Description', value: patch.description })
 
-    return apiClient.patch(`/boards/${boardId}/cards/${cardId}`, operations)
+    return apiClient.patch(`${ARC}/boards/${boardId}/cards/${cardId}`, operations)
 }
 
-/** DELETE /boards/:boardId/cards/:cardId */
+/** DELETE arcstrides/boards/:boardId/cards/:cardId */
 export function deleteCard(boardId: string, cardId: string): Promise<void> {
-    return apiClient.delete(`/boards/${boardId}/cards/${cardId}`)
+    return apiClient.delete(`${ARC}/boards/${boardId}/cards/${cardId}`)
 }
 
 // ── Column ────────────────────────────────────────────────────────────────────
-
-interface ColumnResponse {
-    id: string
-    title: string
-    order: number
-}
 
 export interface ColumnCreateRequest {
     title: string
     order: number
 }
 
-/**
- * POST /boards/:boardId/columns
- * Mirrors CreateColumnAsync() in CreateColumnOverlay.cs.
- */
-export async function createColumn(boardId: string, req: ColumnCreateRequest): Promise<Column> {
-    const response = await apiClient.post<ColumnResponse>(
-        `/boards/${boardId}/columns`,
-        { Title: req.title, Order: req.order }
+/** POST arcstrides/boards/:boardId/columns */
+export async function createColumn(boardId: string, request: ColumnCreateRequest): Promise<Column> {
+    const response = await apiClient.post<OrderedItemResponse>(
+        `${ARC}/boards/${boardId}/columns`,
+        { Title: request.title, Order: request.order }
     )
-    return { id: response.id, title: response.title, order: response.order }
+    return mapOrderedItem(response)
 }
 
-export interface ColumnPatchRequest {
+export interface OrderedItemPatchRequest {
     title?: string
     order?: number
 }
 
 /**
- * PATCH /boards/:boardId/columns/:columnId
- * Mirrors FormPatchRequestFromOverlay() in UpdateColumnOverlay.cs.
+ * PATCH arcstrides/boards/:boardId/columns/:columnId
+ *
+ * Reordering a column also rewrites every affected column *and card position* on
+ * the server (ColumnController.UpdateColumnAndUpdateEffectedColumnsAndCardPositions),
+ * so callers re-fetch the board afterwards rather than mirroring that locally.
  */
-export function updateColumn(boardId: string, columnId: string, patch: ColumnPatchRequest): Promise<void> {
-    const operations: PatchOperation[] = []
-
-    if (patch.title !== undefined)
-        operations.push({ op: 'replace', path: '/Title', value: patch.title })
-
-    if (patch.order !== undefined)
-        operations.push({ op: 'replace', path: '/Order', value: patch.order })
-
-    return apiClient.patch(`/boards/${boardId}/columns/${columnId}`, operations)
+export function updateColumn(boardId: string, columnId: string, patch: OrderedItemPatchRequest): Promise<void> {
+    return apiClient.patch(`${ARC}/boards/${boardId}/columns/${columnId}`, orderedItemOperations(patch))
 }
 
-/** DELETE /boards/:boardId/columns/:columnId */
+/** DELETE arcstrides/boards/:boardId/columns/:columnId */
 export function deleteColumn(boardId: string, columnId: string): Promise<void> {
-    return apiClient.delete(`/boards/${boardId}/columns/${columnId}`)
+    return apiClient.delete(`${ARC}/boards/${boardId}/columns/${columnId}`)
 }
 
 // ── Swimlane ──────────────────────────────────────────────────────────────────
 
-interface SwimlaneResponse {
-    id: string
-    title: string
-    order: number
-}
-
-export interface SwimlaneCreateRequest {
-    title: string
-    order: number
-}
-
-/** POST /boards/:boardId/swimlanes */
-export async function createSwimlane(boardId: string, req: SwimlaneCreateRequest): Promise<Swimlane> {
-    const response = await apiClient.post<SwimlaneResponse>(
-        `/boards/${boardId}/swimlanes`,
-        { Title: req.title, Order: req.order }
+/** POST arcstrides/boards/:boardId/swimlanes */
+export async function createSwimlane(boardId: string, request: ColumnCreateRequest): Promise<Swimlane> {
+    const response = await apiClient.post<OrderedItemResponse>(
+        `${ARC}/boards/${boardId}/swimlanes`,
+        { Title: request.title, Order: request.order }
     )
-    return { id: response.id, title: response.title, order: response.order }
+    return mapOrderedItem(response)
 }
 
-export interface SwimlanePatchRequest {
-    title?: string
-    order?: number
+/** PATCH arcstrides/boards/:boardId/swimlanes/:swimlaneId */
+export function updateSwimlane(boardId: string, swimlaneId: string, patch: OrderedItemPatchRequest): Promise<void> {
+    return apiClient.patch(`${ARC}/boards/${boardId}/swimlanes/${swimlaneId}`, orderedItemOperations(patch))
 }
 
-/** PATCH /boards/:boardId/swimlanes/:swimlaneId */
-export function updateSwimlane(boardId: string, swimlaneId: string, patch: SwimlanePatchRequest): Promise<void> {
+/** DELETE arcstrides/boards/:boardId/swimlanes/:swimlaneId */
+export function deleteSwimlane(boardId: string, swimlaneId: string): Promise<void> {
+    return apiClient.delete(`${ARC}/boards/${boardId}/swimlanes/${swimlaneId}`)
+}
+
+/** Columns and swimlanes share an identical patch shape. */
+function orderedItemOperations(patch: OrderedItemPatchRequest): PatchOperation[] {
     const operations: PatchOperation[] = []
 
     if (patch.title !== undefined)
@@ -268,24 +378,10 @@ export function updateSwimlane(boardId: string, swimlaneId: string, patch: Swiml
     if (patch.order !== undefined)
         operations.push({ op: 'replace', path: '/Order', value: patch.order })
 
-    return apiClient.patch(`/boards/${boardId}/swimlanes/${swimlaneId}`, operations)
-}
-
-/** DELETE /boards/:boardId/swimlanes/:swimlaneId */
-export function deleteSwimlane(boardId: string, swimlaneId: string): Promise<void> {
-    return apiClient.delete(`/boards/${boardId}/swimlanes/${swimlaneId}`)
+    return operations
 }
 
 // ── Task ──────────────────────────────────────────────────────────────────────
-
-interface TaskResponse {
-    id: string
-    title: string
-    order: number
-    taskType: { id: number; title: string; groupTagId: string | null } | null
-    isCompleted: boolean | null
-    timeline: Timeline | null
-}
 
 export interface TaskCreateRequest {
     title: string
@@ -294,37 +390,27 @@ export interface TaskCreateRequest {
     isComplete: boolean
 }
 
-/**
- * POST /boards/:boardId/cards/:cardId/tasks
- * Mirrors CreateTaskAsync() in CreateTaskOverlay.cs.
- */
-export async function createTask(boardId: string, cardId: string, req: TaskCreateRequest): Promise<Task> {
+/** POST arcstrides/boards/:boardId/cards/:cardId/tasks */
+export async function createTask(boardId: string, cardId: string, request: TaskCreateRequest): Promise<Task> {
     const response = await apiClient.post<TaskResponse>(
-        `/boards/${boardId}/cards/${cardId}/tasks`,
+        `${ARC}/boards/${boardId}/cards/${cardId}/tasks`,
         {
-            Title: req.title,
-            TaskTypeID: req.taskTypeId,
-            Order: req.order,
-            IsComplete: req.isComplete,
+            Title: request.title,
+            TaskTypeID: request.taskTypeId,
+            Order: request.order,
+            IsComplete: request.isComplete,
         }
     )
-    return {
-        id: response.id,
-        title: response.title,
-        order: response.order,
-        taskType: response.taskType,
-        isCompleted: response.isCompleted,
-        timeline: response.timeline,
-    }
+    return mapTask(response)
 }
 
 /**
- * PATCH /boards/:boardId/cards/:cardId/tasks/:taskId
+ * PATCH arcstrides/boards/:boardId/cards/:cardId/tasks/:taskId
  *
- * Mirrors UpdateTaskAsync() in UpdateTaskPopover.cs.
- * The caller (UpdateTaskPopover) passes a pre-diffed Record<string, unknown>
- * of only the fields that changed. We convert each entry to a JSON Patch
- * replace operation, capitalising the first letter to match C# property names.
+ * Mirrors UpdateTaskAsync() in UpdateTaskPopover.cs. The caller passes a
+ * pre-diffed record of only the fields that changed; each entry becomes a JSON
+ * Patch replace operation with the first letter capitalised to match the C#
+ * property names.
  */
 export function updateTask(
     boardId: string,
@@ -337,34 +423,32 @@ export function updateTask(
         path: `/${key.charAt(0).toUpperCase()}${key.slice(1)}`,
         value,
     }))
-    return apiClient.patch(`/boards/${boardId}/cards/${cardId}/tasks/${taskId}`, operations)
+    return apiClient.patch(`${ARC}/boards/${boardId}/cards/${cardId}/tasks/${taskId}`, operations)
 }
 
-/** DELETE /boards/:boardId/cards/:cardId/tasks/:taskId */
+/** DELETE arcstrides/boards/:boardId/cards/:cardId/tasks/:taskId */
 export function deleteTask(boardId: string, cardId: string, taskId: string): Promise<void> {
-    return apiClient.delete(`/boards/${boardId}/cards/${cardId}/tasks/${taskId}`)
+    return apiClient.delete(`${ARC}/boards/${boardId}/cards/${cardId}/tasks/${taskId}`)
 }
 
 /**
- * GET /taskTypes?groupIds=0,1,...
- * Mirrors FetchTaskTypesAsync() in CreateTaskOverlay.cs and UpdateTaskPopover.cs.
+ * GET arcstrides/tasks/types?TaskTypeIDs=0,1
+ *
+ * Mirrors FetchTaskTypesAsync() in TaskRepository.cs, which sent the IDs as a
+ * single comma-joined TaskTypeIDs parameter. The server currently ignores the
+ * filter and returns every task type, but the parameter name is kept correct so
+ * it starts working when TaskController's todo is addressed.
  */
-export function fetchTaskTypes(groupIds: number[]): Promise<TaskTypeResponse[]> {
-    const query = groupIds.map(id => `groupIds=${id}`).join('&')
-    return apiClient.get(`/taskTypes?${query}`)
+export async function fetchTaskTypes(taskTypeIds: number[]): Promise<TaskType[]> {
+    const query = encodeURIComponent(taskTypeIds.join(','))
+    const response = await apiClient.get<TaskTypeResponse[]>(`${ARC}/tasks/types?TaskTypeIDs=${query}`)
+
+    return response
+        .map(mapTaskType)
+        .filter((taskType): taskType is TaskType => taskType !== null)
 }
 
 // ── Timeline ──────────────────────────────────────────────────────────────────
-
-interface TimelineResponse {
-    id: string
-    startDependencyTagGroupId: string | null
-    startPreferenceUTC: string | null
-    startDeadlineUTC: string | null
-    endDependencyTagGroupId: string | null
-    endPreferenceUTC: string | null
-    endDeadlineUTC: string | null
-}
 
 export interface TimelineCreateRequest {
     parentId: string | null
@@ -376,58 +460,36 @@ export interface TimelineCreateRequest {
 }
 
 /**
- * POST /boards/:boardId/timelines
+ * POST arcstrides/boards/:boardId/timelines
  *
- * Mirrors CreateTimelineAsync() in UpdateTaskPopover.cs.
- * Dates are sent as ISO 8601 UTC strings. JSON.stringify converts Date objects
- * automatically, but we call toISOString() explicitly to make the intent clear.
- * The server returns strings which parseTimelineResponse converts back to Dates.
+ * Mirrors CreateTimelineAsync() in UpdateTaskPopover.cs. Dates are sent as ISO
+ * 8601 UTC strings; the server returns strings which mapTimeline converts back.
  */
-export async function createTimeline(boardId: string, req: TimelineCreateRequest): Promise<Timeline> {
+export async function createTimeline(boardId: string, request: TimelineCreateRequest): Promise<Timeline | null> {
     const response = await apiClient.post<TimelineResponse>(
-        `/boards/${boardId}/timelines`,
+        `${ARC}/boards/${boardId}/timelines`,
         {
-            ParentID: req.parentId,
-            TimelineTypeID: req.timelineTypeId,
-            StartPreferenceUTC: req.startPreferenceUTC?.toISOString() ?? null,
-            StartDeadlineUTC: req.startDeadlineUTC?.toISOString() ?? null,
-            EndPreferenceUTC: req.endPreferenceUTC?.toISOString() ?? null,
-            EndDeadlineUTC: req.endDeadlineUTC?.toISOString() ?? null,
+            ParentID: request.parentId,
+            TimelineTypeID: request.timelineTypeId,
+            StartPreferenceUTC: request.startPreferenceUTC?.toISOString() ?? null,
+            StartDeadlineUTC: request.startDeadlineUTC?.toISOString() ?? null,
+            EndPreferenceUTC: request.endPreferenceUTC?.toISOString() ?? null,
+            EndDeadlineUTC: request.endDeadlineUTC?.toISOString() ?? null,
         }
     )
-    return parseTimelineResponse(response)
+    return mapTimeline(response)
 }
 
 /**
- * PATCH /boards/:boardId/timelines/:timelineId
+ * PATCH arcstrides/boards/:boardId/timelines/:timelineId
  *
- * Mirrors UpdateTimelineAsync() in UpdateTaskPopover.cs.
- * The caller builds the PatchOperation array directly (since it knows exactly
- * which date fields changed) and passes it through here unchanged.
+ * Mirrors UpdateTimelineAsync() in UpdateTaskPopover.cs. The caller builds the
+ * operation array directly since it knows which date fields changed.
  */
 export function updateTimeline(
     boardId: string,
     timelineId: string,
     operations: PatchOperation[]
 ): Promise<void> {
-    return apiClient.patch(`/boards/${boardId}/timelines/${timelineId}`, operations)
-}
-
-// ── Private helpers ───────────────────────────────────────────────────────────
-
-/**
- * Converts ISO 8601 date strings from the server back to Date | null.
- * The server stores and returns dates as UTC strings; we parse them here once
- * so all downstream code works with native Date objects.
- */
-function parseTimelineResponse(r: TimelineResponse): Timeline {
-    return {
-        id: r.id,
-        startDependencyTagGroupId: r.startDependencyTagGroupId,
-        startPreferenceUTC: r.startPreferenceUTC ? new Date(r.startPreferenceUTC) : null,
-        startDeadlineUTC: r.startDeadlineUTC ? new Date(r.startDeadlineUTC) : null,
-        endDependencyTagGroupId: r.endDependencyTagGroupId,
-        endPreferenceUTC: r.endPreferenceUTC ? new Date(r.endPreferenceUTC) : null,
-        endDeadlineUTC: r.endDeadlineUTC ? new Date(r.endDeadlineUTC) : null,
-    }
+    return apiClient.patch(`${ARC}/boards/${boardId}/timelines/${timelineId}`, operations)
 }

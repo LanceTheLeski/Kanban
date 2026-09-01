@@ -1,4 +1,4 @@
-﻿/**
+/**
  * UpdateTimelinePanel
  *
  * Mirrors: Timeline/UpdateTimelinePanel.razor + UpdateTimelinePanel.cs
@@ -33,7 +33,7 @@
  */
 
 import React, { useState } from 'react'
-import { Box, Button, ButtonGroup, Paper, Typography } from '@mui/material'
+import { Box, Button, Paper, Typography } from '@mui/material'
 import { DatePicker, TimePicker } from '@mui/x-date-pickers'
 import type { Dayjs } from 'dayjs'
 import type { Timeline } from '../../../Types/Board.Types'
