@@ -12,7 +12,28 @@
     <PackageReference Include="DeepCopy" Version="1.0.3" />
     <PackageReference Include="FluentValidation" Version="11.9.2" />
     <PackageReference Include="Microsoft.AspNetCore.JsonPatch.SystemTextJson" Version="10.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
+    <!--
+      ExcludeAssets="analyzers" keeps the runtime library (AddOpenApi/MapOpenApi)
+      but stops the package's source generator from running.
+
+      That generator emits an XmlCommentOperationTransformer into this assembly to
+      attach XML doc comments to the OpenAPI document, and it throws a
+      NullReferenceException while transforming our operations:
+
+        ArcStrides.API.dll!Microsoft.AspNetCore.OpenApi.Generated
+          .XmlCommentOperationTransformer.TransformAsync(...) Line 428
+
+      Only the doc-comment descriptions are lost. Paths, schemas and everything
+      arcstrides.ui generates from the document are produced by the runtime
+      library, which is unaffected.
+
+      To investigate later, the failing file is written to
+      obj/Debug/net10.0/generated/Microsoft.AspNetCore.OpenApi.SourceGenerators/ —
+      open it at line 428 to see which lookup returns null.
+    -->
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0">
+      <ExcludeAssets>analyzers</ExcludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.2" />
     <PackageReference Include="RecurrenceCalculator" Version="3.0.2" />
     <PackageReference Include="Riok.Mapperly" Version="4.1.0" />

@@ -51,7 +51,6 @@ import React, { useState } from 'react'
 import {
     Box,
     Button,
-    Grid,
     IconButton,
     List,
     ListItem,
@@ -71,11 +70,23 @@ import { useBoardStore } from '../Board.Store'
 import type { Card } from '../../../Entities/Card/Card.Types'
 import type { Task } from '../../../Entities/Task/Task.Types'
 
-// The Blazor original's fixed geometry, named so the arrangement below reads
-// without three unexplained numbers in it.
-const OVERLAY_WIDTH = 1100
-const DETAIL_COLUMN_WIDTH = 400
-const DESCRIPTION_COLUMN_WIDTH = 700
+// The Blazor original was 1100px wide with a 400px and a 700px column. Only the
+// overall width is still a pixel value — and it is a *maximum*, not a size.
+//
+// The two columns are expressed as the 4:7 ratio those numbers described, so they
+// keep their proportion at any width instead of overflowing when the overlay is
+// narrower than the two of them added together.
+const OVERLAY_MAX_WIDTH = 1100
+
+// minmax(0, …) rather than a bare 4fr/7fr is the part that matters. A grid track's
+// default minimum is its content's min-content width, so a track holding a textarea
+// or a long unbroken word refuses to shrink past it and overflows the row — which is
+// exactly what pushed the description below the task list. minmax(0, …) lets the
+// track shrink to whatever the ratio says.
+const DETAIL_TO_DESCRIPTION = 'minmax(0, 4fr) minmax(0, 7fr)'
+
+// Below this the two columns stop being readable side by side and stack.
+const STACK_BELOW = 'md'
 
 interface UpdateCardOverlayProps {
     open: boolean
@@ -172,29 +183,32 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
     }
 
     return (
-        <ArcOverlay open={open} onClose={onClose} onSubmit={handleSubmit} width={OVERLAY_WIDTH}>
+        <ArcOverlay open={open} onClose={onClose} onSubmit={handleSubmit} width={OVERLAY_MAX_WIDTH}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
 
                 {/* Top row: card detail on the left, description filling the right */}
-                <Grid container spacing={2}>
-                    <Grid item sx={{ width: DETAIL_COLUMN_WIDTH }}>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                            <TitleAndTags title={title} onTitleChange={setTitle} />
-                            <TaskList
-                                tasks={tasks}
-                                boardId={boardId}
-                                cardId={card.id}
-                                onTaskUpdated={handleTaskUpdated}
-                                onTaskCreated={handleTaskCreated}
-                                onTaskDeleted={handleDeleteTask}
-                            />
-                        </Box>
-                    </Grid>
+                <Box
+                    sx={{
+                        display: 'grid',
+                        gridTemplateColumns: { xs: '1fr', [STACK_BELOW]: DETAIL_TO_DESCRIPTION },
+                        gap: 2,
+                        alignItems: 'start',
+                    }}
+                >
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
+                        <TitleAndTags title={title} onTitleChange={setTitle} />
+                        <TaskList
+                            tasks={tasks}
+                            boardId={boardId}
+                            cardId={card.id}
+                            onTaskUpdated={handleTaskUpdated}
+                            onTaskCreated={handleTaskCreated}
+                            onTaskDeleted={handleDeleteTask}
+                        />
+                    </Box>
 
-                    <Grid item sx={{ width: DESCRIPTION_COLUMN_WIDTH }}>
-                        <DescriptionField value={description} onChange={setDescription} />
-                    </Grid>
-                </Grid>
+                    <DescriptionField value={description} onChange={setDescription} />
+                </Box>
 
                 <TimelineAndCommands timeline={card.timeline} />
 
@@ -230,7 +244,10 @@ function TitleAndTags({ title, onTitleChange }: {
                 helperText="Card Title"
                 size="small"
                 sx={{
-                    width: 240,
+                    // Takes whatever the tag chip leaves. minWidth: 0 stops the
+                    // input's intrinsic width from propping the row open.
+                    flex: 1,
+                    minWidth: 0,
                     backgroundColor: 'rgba(255, 255, 255, 0.6)',
                     borderRadius: 1,
                 }}
@@ -238,7 +255,9 @@ function TitleAndTags({ title, onTitleChange }: {
 
             <Paper
                 sx={{
+                    // A chip, not a column: fixed because its content is fixed.
                     width: 120,
+                    flexShrink: 0,
                     height: 60,
                     backgroundColor: 'rgba(204, 255, 204, 0.6)',
                     borderRadius: 1,
@@ -267,12 +286,12 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
     onTaskDeleted: (taskId: string) => void
 }) {
     return (
-        <Paper className="glass-inner-engraved" sx={{ width: DETAIL_COLUMN_WIDTH, height: 200, overflow: 'auto' }}>
+        <Paper className="glass-inner-engraved" sx={{ width: '100%', height: 200, overflow: 'auto' }}>
             <List dense disablePadding>
                 {tasks.map(task => (
                     <ListItem key={task.id || task.title} disablePadding>
-                        {/* The popover trigger takes most of the row; the bin sits at the end */}
-                        <Box sx={{ width: 350 }}>
+                        {/* The popover trigger takes the row; the bin sits at the end */}
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
                             <UpdateTaskPopover
                                 task={task}
                                 onUpdated={onTaskUpdated}
@@ -288,7 +307,7 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
                         <IconButton
                             size="small"
                             onClick={() => task.id && onTaskDeleted(task.id)}
-                            sx={{ ml: 'auto' }}
+                            sx={{ flexShrink: 0 }}
                         >
                             <DeleteIcon fontSize="small" />
                         </IconButton>
@@ -339,14 +358,12 @@ function DescriptionField({ value, onChange }: {
  */
 function TimelineAndCommands({ timeline }: { timeline: Card['timeline'] }) {
     return (
-        <Grid container spacing={2} alignItems="flex-start">
-            <Grid item>
-                <UpdateTimelinePanel timeline={timeline} />
-            </Grid>
-            <Grid item>
-                <CommandPanel />
-            </Grid>
-        </Grid>
+        // Wraps rather than overflows when the overlay is narrow: both panels size
+        // to their own content, so there is no ratio to preserve here.
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'flex-start' }}>
+            <UpdateTimelinePanel timeline={timeline} />
+            <CommandPanel />
+        </Box>
     )
 }
 
