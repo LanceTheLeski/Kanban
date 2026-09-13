@@ -20,10 +20,10 @@ import React, { useState } from 'react'
 import { Stack, TextField, Typography } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
-import { updateColumn } from '../../../APIs/Board.APIs'
+import { updateColumn } from '../Board.APIs'
 import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
-import { useBoardStore } from '../../../Stores/BoardStores'
+import { useBoardStore } from '../Board.Store'
 
 interface UpdateColumnOverlayProps {
     open: boolean

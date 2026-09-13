@@ -11,10 +11,10 @@ import React, { useState } from 'react'
 import { Stack, TextField, Typography } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
-import { updateSwimlane } from '../../../APIs/Board.APIs'
+import { updateSwimlane } from '../Board.APIs'
 import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
-import { useBoardStore } from '../../../Stores/BoardStores'
+import { useBoardStore } from '../Board.Store'
 
 interface UpdateSwimlaneOverlayProps {
     open: boolean

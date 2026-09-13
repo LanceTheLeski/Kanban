@@ -56,9 +56,9 @@ import { UpdateTaskPopover } from '../Task/UpdateTaskPopover'
 import { CreateTaskOverlay } from '../Task/CreateTaskOverlay'
 import { CommandPanel } from '../Commands/CommandPanel'
 import { useBoardActions } from '../useBoardActions'
-import { deleteCard, deleteTask, updateCard } from '../../../APIs/Board.APIs'
-import { useBoardStore } from '../../../Stores/BoardStores'
-import type { Card, Task } from '../../../Types/Board.Types'
+import { deleteCard, deleteTask, updateCard } from '../Board.APIs'
+import { useBoardStore } from '../Board.Store'
+import type { Card, Task } from '../Board.Types'
 
 interface UpdateCardOverlayProps {
     open: boolean

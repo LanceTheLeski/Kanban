@@ -17,7 +17,7 @@
  * Overlay open/close state is ephemeral UI state — it means nothing outside this
  * component, nothing else in the app needs to know a modal is open, and it dies
  * when the component unmounts. Zustand is for server-derived data that needs to
- * be shared or outlive components. See boardStore.ts for that data.
+ * be shared or outlive components. See Board.Store.ts for that data.
  *
  * ── Column/Swimlane data ─────────────────────────────────────────────────────
  * In Blazor, columns and swimlanes were passed as @bind- parameters and piped

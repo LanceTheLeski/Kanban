@@ -18,10 +18,10 @@ import React, { useState } from 'react'
 import { Stack, Typography } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
-import { deleteColumn } from '../../../APIs/Board.APIs'
+import { deleteColumn } from '../Board.APIs'
 import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
-import { useBoardStore } from '../../../Stores/BoardStores'
+import { useBoardStore } from '../Board.Store'
 
 interface DeleteColumnOverlayProps {
     open: boolean

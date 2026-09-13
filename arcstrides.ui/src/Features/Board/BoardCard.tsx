@@ -40,9 +40,9 @@ import {
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
 import { UpdateCardOverlay } from './Card/UpdateCardOverlay'
 import { useBoardActions } from './useBoardActions'
-import { deleteCard } from '../../APIs/Board.APIs'
-import { useBoardStore } from '../../Stores/BoardStores'
-import type { Card } from '../../Types/Board.Types'
+import { deleteCard } from './Board.APIs'
+import { useBoardStore } from './Board.Store'
+import type { Card } from './Board.Types'
 
 interface BoardCardProps {
     card: Card

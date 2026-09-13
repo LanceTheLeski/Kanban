@@ -16,14 +16,14 @@
  *   const ok = await run('Add column', () => createColumn(boardId, { ... }))
  *   if (ok) onClose()
  *
- * On success it re-reads the board (see BoardStores.ts for why) and returns true.
+ * On success it re-reads the board (see Board.Store.ts for why) and returns true.
  * On failure it shows the message in the snackbar and returns false, so the
  * overlay can stay open with the user's input intact instead of silently closing.
  */
 
 import { useCallback } from 'react'
 import { useArcError } from '../../Components/useArcError'
-import { useBoardStore } from '../../Stores/BoardStores'
+import { useBoardStore } from './Board.Store'
 
 interface RunOptions {
     /**

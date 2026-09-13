@@ -9,7 +9,7 @@
  * place, since both CreateTaskOverlay and UpdateTaskPopover need it.
  */
 
-import type { PatchOperation } from '../../../APIs/Client'
+import type { PatchOperation } from '../../../Lib/Client'
 import type { TimelineDraft } from './UpdateTimelinePanel'
 
 export interface TimelineDates {

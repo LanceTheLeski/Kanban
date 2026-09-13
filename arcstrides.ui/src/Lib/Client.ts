@@ -1,5 +1,5 @@
 ﻿/**
- * client.ts
+ * Client.ts
  *
  * Base HTTP client for all API calls.
  *

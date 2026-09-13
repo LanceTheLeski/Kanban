@@ -9,7 +9,7 @@
  * C# DateTime → Date | null.
  *
  * These are *domain* types. The raw shapes the API actually sends over the wire
- * live in APIs/Board.APIs.ts as `*Response` interfaces, and are mapped into these
+ * live in Board.APIs.ts as `*Response` interfaces, and are mapped into these
  * on the way in. Keeping the two separate means the server's quirks (nested
  * `position` object, `columnID`-style casing from Json.NET) stay in one file.
  */

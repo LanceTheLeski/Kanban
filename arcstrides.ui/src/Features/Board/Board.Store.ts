@@ -1,5 +1,5 @@
 /**
- * BoardStores.ts
+ * Board.Store.ts
  *
  * Zustand store for all board-level server-derived state.
  *
@@ -35,8 +35,8 @@
  */
 
 import { create } from 'zustand'
-import { fetchBoard } from '../APIs/Board.APIs'
-import type { Card, Column, Swimlane } from '../Types/Board.Types'
+import { fetchBoard } from './Board.APIs'
+import type { Card, Column, Swimlane } from './Board.Types'
 
 export type BoardStatus = 'idle' | 'loading' | 'ready' | 'error'
 

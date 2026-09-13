@@ -3,7 +3,7 @@
  *
  * Mirrors: Commands/CommandPanel.razor
  *
- * The Blazor version was a structural stub — a message list and a text input
+ * The Blazor version was a structural stub â€” a message list and a text input
  * with an icon, but no logic. Preserved here as a faithful layout stub.
  * This is the AI command / chat input area referenced inside UpdateCardOverlay.
  */
@@ -18,7 +18,7 @@ export const CommandPanel: React.FC = () => {
             className="glass-inner-engraved"
             sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 1, minWidth: 240 }}
         >
-            {/* Message list — stub */}
+            {/* Message list â€” stub */}
             <Stack spacing={0.5} sx={{ minHeight: 80 }}>
                 <Typography variant="body2" sx={{ opacity: 0.5 }}>Text 1</Typography>
                 <Typography variant="body2" sx={{ opacity: 0.5 }}>Text 2</Typography>
@@ -34,7 +34,7 @@ export const CommandPanel: React.FC = () => {
                 <TextField
                     size="small"
                     variant="outlined"
-                    placeholder="Command…"
+                    placeholder="Commandâ€¦"
                     fullWidth
                     disabled
                 />

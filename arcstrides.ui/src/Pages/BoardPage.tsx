@@ -11,7 +11,7 @@
  * ── Data loading ─────────────────────────────────────────────────────────────
  * Blazor used OnInitializedAsync() which ran once on first render. Here the
  * effect just asks the store to load; the fetch, the response mapping and the
- * loading/error status all live in BoardStores.ts so this file only renders.
+ * loading/error status all live in Board.Store.ts so this file only renders.
  *
  * ── Grid layout ───────────────────────────────────────────────────────────────
  * Blazor rendered:
@@ -56,11 +56,11 @@ import {
 } from '@dnd-kit/core'
 import { BoardManagementNav } from '../Features/Board/BoardManagementNav'
 import { BoardCard } from '../Features/Board/BoardCard'
-import { moveCard } from '../APIs/Board.APIs'
+import { moveCard } from '../Features/Board/Board.APIs'
 import { useArcError } from '../Components/useArcError'
 import { useShallow } from 'zustand/react/shallow'
-import { useBoardStore } from '../Stores/BoardStores'
-import type { Card } from '../Types/Board.Types'
+import { useBoardStore } from '../Features/Board/Board.Store'
+import type { Card } from '../Features/Board/Board.Types'
 
 // ── Cell identifiers ──────────────────────────────────────────────────────────
 

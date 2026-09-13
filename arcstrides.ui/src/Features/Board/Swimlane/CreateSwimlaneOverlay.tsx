@@ -10,10 +10,10 @@
 import React, { useState } from 'react'
 import { Stack, TextField, Typography } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
-import { createSwimlane } from '../../../APIs/Board.APIs'
+import { createSwimlane } from '../Board.APIs'
 import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
-import { useBoardStore } from '../../../Stores/BoardStores'
+import { useBoardStore } from '../Board.Store'
 
 interface CreateSwimlaneOverlayProps {
     open: boolean

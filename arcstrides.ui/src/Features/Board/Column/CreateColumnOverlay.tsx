@@ -11,16 +11,16 @@
  *
  * The board is re-read rather than patched locally because inserting a column at a
  * given order shifts the order of every column after it *and* rewrites the affected
- * card positions server-side — see the note at the top of Stores/BoardStores.ts.
+ * card positions server-side — see the note at the top of Board.Store.ts.
  */
 
 import React, { useState } from 'react'
 import { Stack, TextField, Typography } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
-import { createColumn } from '../../../APIs/Board.APIs'
+import { createColumn } from '../Board.APIs'
 import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
-import { useBoardStore } from '../../../Stores/BoardStores'
+import { useBoardStore } from '../Board.Store'
 
 interface CreateColumnOverlayProps {
     open: boolean

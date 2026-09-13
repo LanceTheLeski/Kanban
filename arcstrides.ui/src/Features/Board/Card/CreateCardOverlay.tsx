@@ -22,10 +22,10 @@ import React, { useState } from 'react'
 import { Stack, TextField, Typography } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
-import { createCard } from '../../../APIs/Board.APIs'
+import { createCard } from '../Board.APIs'
 import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
-import { useBoardStore } from '../../../Stores/BoardStores'
+import { useBoardStore } from '../Board.Store'
 
 interface CreateCardOverlayProps {
     open: boolean

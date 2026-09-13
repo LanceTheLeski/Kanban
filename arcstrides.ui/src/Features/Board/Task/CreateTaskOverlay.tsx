@@ -36,8 +36,8 @@ import {
     hasTimeline,
     timelineTypeIdFor,
 } from '../Timeline/timelineDraft'
-import { createTask, createTimeline, fetchTaskTypes } from '../../../APIs/Board.APIs'
-import type { Task, TaskType } from '../../../Types/Board.Types'
+import { createTask, createTimeline, fetchTaskTypes } from '../Board.APIs'
+import type { Task, TaskType } from '../Board.Types'
 
 interface CreateTaskOverlayProps {
     boardId: string

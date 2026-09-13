@@ -28,14 +28,14 @@ import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
 import { UpdateTimelinePanel, type TimelineDraft } from '../Timeline/UpdateTimelinePanel'
 import { CreateTaskTypeOverlay } from '../../TagGroup/TaskType/CreateTaskTypeOverlay'
 import { useBoardActions } from '../useBoardActions'
-import { createTimeline, fetchTaskTypes, updateTask, updateTimeline } from '../../../APIs/Board.APIs'
+import { createTimeline, fetchTaskTypes, updateTask, updateTimeline } from '../Board.APIs'
 import {
     draftToTimelineDates,
     hasTimeline,
     timelineOperations,
     timelineTypeIdFor,
 } from '../Timeline/timelineDraft'
-import type { Task, TaskType, Timeline } from '../../../Types/Board.Types'
+import type { Task, TaskType, Timeline } from '../Board.Types'
 
 interface UpdateTaskPopoverProps {
     task: Task

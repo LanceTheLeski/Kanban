@@ -19,7 +19,21 @@
  *
  * ── Wire shapes vs domain types ───────────────────────────────────────────────
  * The `*Response` interfaces below describe what the server literally sends. They
- * are NOT the types the rest of the app uses — Types/Board.Types.ts holds those.
+ * are NOT the types the rest of the app uses — Board.Types.ts holds those.
+ *
+ * These are hand-written today but are meant to be generated. Once the API is
+ * running, `npm run generate:api` writes src/Lib/Api.Schema.ts from its OpenAPI
+ * document; replace the block below with aliases onto it:
+ *
+ *     import type { SchemaCardResponse, ... } from '../../Lib/Api.Schema'
+ *     type CardResponse = SchemaCardResponse
+ *
+ * and delete the hand-written interfaces. Nothing else in this file changes —
+ * the mappers already accept the `T | null | undefined` that a generated schema
+ * produces (every C# contract property is nullable with no [Required], so
+ * OpenAPI marks none of them required and every generated field is optional).
+ * Absorbing that optionality is exactly what the mapping layer is for: below
+ * this line, the rest of the app sees non-null domain types.
  * Two server quirks are contained here and nowhere else:
  *
  *   1. A CardResponse nests its board placement under `position`
@@ -39,8 +53,8 @@
  * contract resolver configured in Program.cs.
  */
 
-import { apiClient, type PatchOperation } from './Client'
-import type { Card, Column, Swimlane, Task, TaskType, Timeline } from '../Types/Board.Types'
+import { apiClient, type PatchOperation } from '../../Lib/Client'
+import type { Card, Column, Swimlane, Task, TaskType, Timeline } from './Board.Types'
 
 /** Route prefix shared by every ArcStrides.API controller. */
 const ARC = '/arcstrides'
@@ -134,28 +148,28 @@ export interface Board {
  * The server stores and returns dates as UTC strings; we parse them here once so
  * all downstream code works with native Date objects.
  */
-function toDate(value: string | null): Date | null {
+function toDate(value: string | null | undefined): Date | null {
     return value ? new Date(value) : null
 }
 
-function mapTimeline(response: TimelineResponse | null): Timeline | null {
+function mapTimeline(response: TimelineResponse | null | undefined): Timeline | null {
     if (!response) return null
     return {
-        id: response.id,
-        startDependencyTagGroupId: response.startDependencyTagGroupID,
+        id: response.id ?? null,
+        startDependencyTagGroupId: response.startDependencyTagGroupID ?? null,
         startPreferenceUTC: toDate(response.startPreferenceUTC),
         startDeadlineUTC: toDate(response.startDeadlineUTC),
-        endDependencyTagGroupId: response.endDependencyTagGroupID,
+        endDependencyTagGroupId: response.endDependencyTagGroupID ?? null,
         endPreferenceUTC: toDate(response.endPreferenceUTC),
         endDeadlineUTC: toDate(response.endDeadlineUTC),
     }
 }
 
-export function mapTaskType(response: TaskTypeResponse | null): TaskType | null {
+export function mapTaskType(response: TaskTypeResponse | null | undefined): TaskType | null {
     if (!response || response.id == null) return null
     return {
         id: response.id,
-        groupTagId: response.groupTagID,
+        groupTagId: response.groupTagID ?? null,
         title: response.title ?? '',
     }
 }
@@ -166,7 +180,7 @@ function mapTask(response: TaskResponse): Task {
         title: response.title ?? '',
         order: response.order ?? 0,
         taskType: mapTaskType(response.taskType),
-        isCompleted: response.isComplete,
+        isCompleted: response.isComplete ?? null,
         timeline: mapTimeline(response.timeline),
     }
 }
