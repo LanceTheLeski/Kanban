@@ -5,7 +5,7 @@ using ArcStrides.API.Repositories;
 using ArcStrides.Contracts.Request.Patch;
 using ArcStrides.Contracts.Response;
 using FluentValidation;
-using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.ObjectModel;
 

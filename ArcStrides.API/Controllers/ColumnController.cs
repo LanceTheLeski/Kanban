@@ -10,8 +10,8 @@ using Azure;
 using Azure.Data.Tables;
 using DeepCopy;
 using FluentValidation;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Exceptions;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 using static ArcStrides.API.Validators.ColumnValidators;
@@ -236,7 +236,7 @@ public class ColumnController : ArcController
                                                                                      ColumnPatchRequest convertedColumnPatchRequest,
                                                                                      IEnumerable<Column> columnsFromBoard,
                                                                                      IEnumerable<CardPosition> cardPositionsFromBoard,
-                                                                                     IEnumerable<Microsoft.AspNetCore.JsonPatch.Operations.Operation<ColumnPatchRequest>> columnPatchRequest)
+                                                                                     IEnumerable<Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations.Operation<ColumnPatchRequest>> columnPatchRequest)
     {
         var updateColumnTransaction = new ArcTransaction ();
 

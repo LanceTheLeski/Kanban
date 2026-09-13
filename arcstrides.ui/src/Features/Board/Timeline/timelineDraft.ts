@@ -58,9 +58,9 @@ export function hasTimeline(draft: TimelineDraft | null): draft is TimelineDraft
 
 export function timelineOperations(dates: TimelineDates): PatchOperation[] {
     return [
-        { op: 'replace', path: '/StartPreferenceUTC', value: dates.startPreferenceUTC?.toISOString() ?? null },
-        { op: 'replace', path: '/StartDeadlineUTC', value: dates.startDeadlineUTC?.toISOString() ?? null },
-        { op: 'replace', path: '/EndPreferenceUTC', value: dates.endPreferenceUTC?.toISOString() ?? null },
-        { op: 'replace', path: '/EndDeadlineUTC', value: dates.endDeadlineUTC?.toISOString() ?? null },
+        { op: 'replace', path: '/startPreferenceUTC', value: dates.startPreferenceUTC?.toISOString() ?? null },
+        { op: 'replace', path: '/startDeadlineUTC', value: dates.startDeadlineUTC?.toISOString() ?? null },
+        { op: 'replace', path: '/endPreferenceUTC', value: dates.endPreferenceUTC?.toISOString() ?? null },
+        { op: 'replace', path: '/endDeadlineUTC', value: dates.endDeadlineUTC?.toISOString() ?? null },
     ]
 }

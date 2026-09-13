@@ -5,7 +5,7 @@ using ArcStrides.API.Repositories;
 using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Request.Patch;
 using ArcStrides.Contracts.Response;
-using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ArcStrides.API.Controllers;

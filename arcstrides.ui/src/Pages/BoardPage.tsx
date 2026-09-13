@@ -60,7 +60,7 @@ import { moveCard } from '../Features/Board/Board.APIs'
 import { useArcError } from '../Components/useArcError'
 import { useShallow } from 'zustand/react/shallow'
 import { useBoardStore } from '../Features/Board/Board.Store'
-import type { Card } from '../Features/Board/Board.Types'
+import type { Card } from '../Entities/Card/Card.Types'
 
 // ── Cell identifiers ──────────────────────────────────────────────────────────
 

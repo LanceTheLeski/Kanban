@@ -10,8 +10,8 @@ using Azure;
 using Azure.Data.Tables;
 using DeepCopy;
 using FluentValidation;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Exceptions;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 using static ArcStrides.API.Validators.SwimlaneValidators;
@@ -217,7 +217,7 @@ public class SwimlaneController : ArcController
                                                                                            SwimlanePatchRequest convertedSwimlaneToUpdate,
                                                                                            IEnumerable<Swimlane> swimlanesFromBoard,
                                                                                            IEnumerable<CardPosition> cardPositionsFromBoard,
-                                                                                           IEnumerable<Microsoft.AspNetCore.JsonPatch.Operations.Operation<SwimlanePatchRequest>> swimlanePatchRequest)
+                                                                                           IEnumerable<Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations.Operation<SwimlanePatchRequest>> swimlanePatchRequest)
     {
         var updateSwimlaneTransaction = new ArcTransaction ();
 

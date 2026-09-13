@@ -28,14 +28,15 @@ import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
 import { UpdateTimelinePanel, type TimelineDraft } from '../Timeline/UpdateTimelinePanel'
 import { CreateTaskTypeOverlay } from '../../TagGroup/TaskType/CreateTaskTypeOverlay'
 import { useBoardActions } from '../useBoardActions'
-import { createTimeline, fetchTaskTypes, updateTask, updateTimeline } from '../Board.APIs'
+import { createTimeline, fetchTaskTypes, updateTask, updateTimeline, type TaskPatch } from '../Board.APIs'
 import {
     draftToTimelineDates,
     hasTimeline,
     timelineOperations,
     timelineTypeIdFor,
 } from '../Timeline/timelineDraft'
-import type { Task, TaskType, Timeline } from '../Board.Types'
+import type { Task, TaskType } from '../../../Entities/Task/Task.Types'
+import type { Timeline } from '../../../Entities/Timeline/Timeline.Types'
 
 interface UpdateTaskPopoverProps {
     task: Task
@@ -96,10 +97,10 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
     const handleSubmit = async () => {
         // Build patch — only include fields that actually changed
         // Mirrors Blazor's patchDocument.Add() conditional checks
-        const patch: Record<string, unknown> = {}
+        const patch: TaskPatch = {}
 
         if (title !== initialTitle.current) patch.title = title
-        if (selectedTaskTypeId !== initialTypeId.current) patch.typeId = selectedTaskTypeId
+        if (selectedTaskTypeId !== initialTypeId.current) patch.typeID = selectedTaskTypeId
         if (order !== initialOrder.current) patch.order = order
         if (isCompleted !== initialIsCompleted.current) patch.isComplete = isCompleted
 

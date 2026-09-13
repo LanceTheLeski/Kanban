@@ -3,7 +3,7 @@ using ArcStrides.API.Models.Board;
 using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Request.Patch;
 using FluentValidation;
-using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 
 namespace ArcStrides.API.Validators;
 

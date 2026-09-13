@@ -58,7 +58,8 @@ import { CommandPanel } from '../Commands/CommandPanel'
 import { useBoardActions } from '../useBoardActions'
 import { deleteCard, deleteTask, updateCard } from '../Board.APIs'
 import { useBoardStore } from '../Board.Store'
-import type { Card, Task } from '../Board.Types'
+import type { Card } from '../../../Entities/Card/Card.Types'
+import type { Task } from '../../../Entities/Task/Task.Types'
 
 interface UpdateCardOverlayProps {
     open: boolean

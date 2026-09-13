@@ -36,7 +36,8 @@
 
 import { create } from 'zustand'
 import { fetchBoard } from './Board.APIs'
-import type { Card, Column, Swimlane } from './Board.Types'
+import type { Card } from '../../Entities/Card/Card.Types'
+import type { Column, Swimlane } from './Board.Types'
 
 export type BoardStatus = 'idle' | 'loading' | 'ready' | 'error'
 

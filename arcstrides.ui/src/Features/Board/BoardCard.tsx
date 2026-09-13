@@ -42,7 +42,7 @@ import { UpdateCardOverlay } from './Card/UpdateCardOverlay'
 import { useBoardActions } from './useBoardActions'
 import { deleteCard } from './Board.APIs'
 import { useBoardStore } from './Board.Store'
-import type { Card } from './Board.Types'
+import type { Card } from '../../Entities/Card/Card.Types'
 
 interface BoardCardProps {
     card: Card

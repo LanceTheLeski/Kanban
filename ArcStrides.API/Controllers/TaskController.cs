@@ -12,8 +12,8 @@ using Azure;
 using Azure.Data.Tables;
 using DeepCopy;
 using FluentValidation;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Exceptions;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 using static ArcStrides.API.Validators.TaskValidators;
@@ -303,7 +303,7 @@ public class TaskController : ArcController
                                                                             Models.Board.Task taskToUpdate,
                                                                             TaskPatchRequest convertedTaskPatchRequest,
                                                                             IEnumerable<Models.Board.Task> tasksFromBoard,
-                                                                            IEnumerable<Microsoft.AspNetCore.JsonPatch.Operations.Operation<TaskPatchRequest>> taskPatchRequest) 
+                                                                            IEnumerable<Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations.Operation<TaskPatchRequest>> taskPatchRequest) 
     {
         var updateTaskTransaction = new ArcTransaction ();
 

@@ -7,11 +7,7 @@ using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Request.Patch;
 using ArcStrides.Contracts.Request.Query;
 using FluentValidation;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
-using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder (args);
@@ -43,36 +39,24 @@ builder.Services.AddTransient<ITaskRepository, TaskRepository> ();
 builder.Services.AddTransient<ITimelineRepository, TimelineRepository> ();
 builder.Services.AddTransient<ITagRepository, TagRepository> ();
 
-// Everything serializes through System.Text.Json, with one exception.
+// Everything — requests, responses and JSON Patch documents — goes through
+// System.Text.Json.
 //
-// JsonPatchDocument<T> is a Newtonsoft type: on .NET 9 it can only be model-bound
-// by NewtonsoftJsonPatchInputFormatter, so every [FromBody] JsonPatchDocument<T>
-// action would fail to bind without it. This is Microsoft's documented hybrid —
-// insert only the patch input formatter at the front of the chain and leave the
-// rest of the pipeline on System.Text.Json.
+// Until .NET 10 that was not possible: JsonPatchDocument<T> was a Newtonsoft type
+// that only NewtonsoftJsonPatchInputFormatter could model-bind, so the app had to
+// run a hybrid pipeline with that one formatter inserted ahead of the rest.
+// Microsoft.AspNetCore.JsonPatch.SystemTextJson replaces it, and Newtonsoft is
+// gone from this project entirely.
 //
 // Responses use camelCase so JavaScript clients (arcstrides.ui) get idiomatic
 // property names. STJ's CamelCase policy lowercases only the leading run of
-// capitals, exactly as Json.NET's did, so `ID` stays `id` and `ColumnID` stays
-// `columnID` — the wire shape is unchanged by this swap.
-//
-// Patch paths ("/Title") keep working: the patch document is still applied by
-// Newtonsoft, which matches members case-insensitively.
-builder.Services.AddControllers (options =>
-                {
-                    options.InputFormatters.Insert (0, CreateJsonPatchInputFormatter ());
-                })
+// capitals, so `ID` serializes as `id` and `ColumnID` as `columnID`.
+builder.Services.AddControllers ()
                 .AddJsonOptions (options =>
                 {
                     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                 });
 
-// Serves the OpenAPI document at /openapi/v1.json. It reads the System.Text.Json
-// options above, which is why the swap matters: while responses were serialized by
-// Newtonsoft the generated schema described casing the API did not actually emit.
-//
-// arcstrides.ui generates its wire-shape interfaces from this document —
-// see arcstrides.ui/package.json, `npm run generate:api`.
 builder.Services.AddOpenApi ();
 
 builder.Services.AddAntiforgery ();
@@ -118,27 +102,3 @@ app.MapControllerRoute
 app.UseAntiforgery ();
 
 app.Run ();
-
-/// <summary>
-/// Builds the Newtonsoft input formatter that JsonPatchDocument&lt;T&gt; binding requires.
-///
-/// It is constructed from a throwaway MVC pipeline because NewtonsoftJsonPatchInputFormatter
-/// has no public constructor that takes the services it needs — this is the approach
-/// Microsoft documents for keeping JSON Patch on Newtonsoft while the rest of the app
-/// uses System.Text.Json.
-/// </summary>
-static NewtonsoftJsonPatchInputFormatter CreateJsonPatchInputFormatter ()
-{
-    var builder = new ServiceCollection ()
-        .AddLogging ()
-        .AddMvc ()
-        .AddNewtonsoftJson ()
-        .Services.BuildServiceProvider ();
-
-    return builder
-        .GetRequiredService<IOptions<MvcOptions>> ()
-        .Value
-        .InputFormatters
-        .OfType<NewtonsoftJsonPatchInputFormatter> ()
-        .First ();
-}

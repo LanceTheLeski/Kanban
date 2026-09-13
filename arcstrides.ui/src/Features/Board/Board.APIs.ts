@@ -48,13 +48,17 @@
  * interpolation — a card title containing a quote produced malformed JSON. Here we
  * build typed PatchOperation arrays instead: same wire format, no escaping hazard.
  *
- * The path strings ("/Title", "/ColumnID") are matched case-insensitively by
- * ASP.NET Core's JsonPatchDocument, so they keep working under the camelCase
- * contract resolver configured in Program.cs.
+ * Patch paths address the JSON document, not the C# class, so they use the
+ * serialized spelling: "/title", "/columnID". Under Newtonsoft these also
+ * resolved case-insensitively, but Microsoft.AspNetCore.JsonPatch.SystemTextJson
+ * gives no such guarantee — matching the wire names exactly is correct either way.
  */
 
 import { apiClient, type PatchOperation } from '../../Lib/Client'
-import type { Card, Column, Swimlane, Task, TaskType, Timeline } from './Board.Types'
+import type { Card } from '../../Entities/Card/Card.Types'
+import type { Task, TaskType } from '../../Entities/Task/Task.Types'
+import type { Timeline } from '../../Entities/Timeline/Timeline.Types'
+import type { Column, Swimlane } from './Board.Types'
 
 /** Route prefix shared by every ArcStrides.API controller. */
 const ARC = '/arcstrides'
@@ -283,12 +287,12 @@ export interface CardMoveRequest {
  */
 export function moveCard(boardId: string, positionId: string, request: CardMoveRequest): Promise<void> {
     const operations: PatchOperation[] = [
-        { op: 'replace', path: '/ColumnID', value: request.columnId },
-        { op: 'replace', path: '/ColumnTitle', value: request.columnTitle },
-        { op: 'replace', path: '/ColumnOrder', value: request.columnOrder },
-        { op: 'replace', path: '/SwimlaneID', value: request.swimlaneId },
-        { op: 'replace', path: '/SwimlaneTitle', value: request.swimlaneTitle },
-        { op: 'replace', path: '/SwimlaneOrder', value: request.swimlaneOrder },
+        { op: 'replace', path: '/columnID', value: request.columnId },
+        { op: 'replace', path: '/columnTitle', value: request.columnTitle },
+        { op: 'replace', path: '/columnOrder', value: request.columnOrder },
+        { op: 'replace', path: '/swimlaneID', value: request.swimlaneId },
+        { op: 'replace', path: '/swimlaneTitle', value: request.swimlaneTitle },
+        { op: 'replace', path: '/swimlaneOrder', value: request.swimlaneOrder },
     ]
     return apiClient.patch(`${ARC}/boards/${boardId}/cards/positions/${positionId}`, operations)
 }
@@ -311,10 +315,10 @@ export function updateCard(boardId: string, cardId: string, patch: CardPatchRequ
     const operations: PatchOperation[] = []
 
     if (patch.title !== undefined)
-        operations.push({ op: 'replace', path: '/Title', value: patch.title })
+        operations.push({ op: 'replace', path: '/title', value: patch.title })
 
     if (patch.description !== undefined)
-        operations.push({ op: 'replace', path: '/Description', value: patch.description })
+        operations.push({ op: 'replace', path: '/description', value: patch.description })
 
     return apiClient.patch(`${ARC}/boards/${boardId}/cards/${cardId}`, operations)
 }
@@ -387,10 +391,10 @@ function orderedItemOperations(patch: OrderedItemPatchRequest): PatchOperation[]
     const operations: PatchOperation[] = []
 
     if (patch.title !== undefined)
-        operations.push({ op: 'replace', path: '/Title', value: patch.title })
+        operations.push({ op: 'replace', path: '/title', value: patch.title })
 
     if (patch.order !== undefined)
-        operations.push({ op: 'replace', path: '/Order', value: patch.order })
+        operations.push({ op: 'replace', path: '/order', value: patch.order })
 
     return operations
 }
@@ -419,22 +423,32 @@ export async function createTask(boardId: string, cardId: string, request: TaskC
 }
 
 /**
+ * The fields of TaskPatchRequest that this client patches, keyed exactly as the
+ * server serializes them. Typing the keys means a rename on the C# side is a
+ * compile error here rather than a silently ignored operation.
+ */
+export type TaskPatch = Partial<{
+    title: string
+    typeID: number
+    order: number
+    isComplete: boolean
+}>
+
+/**
  * PATCH arcstrides/boards/:boardId/cards/:cardId/tasks/:taskId
  *
  * Mirrors UpdateTaskAsync() in UpdateTaskPopover.cs. The caller passes a
- * pre-diffed record of only the fields that changed; each entry becomes a JSON
- * Patch replace operation with the first letter capitalised to match the C#
- * property names.
+ * pre-diffed record of only the fields that changed; each becomes a replace op.
  */
 export function updateTask(
     boardId: string,
     cardId: string,
     taskId: string,
-    patch: Record<string, unknown>
+    patch: TaskPatch
 ): Promise<void> {
     const operations: PatchOperation[] = Object.entries(patch).map(([key, value]) => ({
         op: 'replace',
-        path: `/${key.charAt(0).toUpperCase()}${key.slice(1)}`,
+        path: `/${key}`,
         value,
     }))
     return apiClient.patch(`${ARC}/boards/${boardId}/cards/${cardId}/tasks/${taskId}`, operations)
