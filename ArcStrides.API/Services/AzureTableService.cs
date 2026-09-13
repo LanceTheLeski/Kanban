@@ -57,8 +57,25 @@ public class AzureTableService<T> : IAzureTableService<T> where T : class, ITabl
             await foreach (var entity in entitiesFromTable)
                 entityList.Add (entity);
         }
-        catch (Exception ex) 
-            { throw new RequestFailedException (ExceptionMessages.EntityQueryFailedExceptionMessage (typeof (T).Name), ex); }
+        // Azure's own exception already carries the status and error code. Wrapping it
+        // through RequestFailedException(string, Exception) sets Status to 0, so that
+        // detail was being discarded and every storage failure — a table that was never
+        // provisioned, an emulator that is not running, a malformed query — surfaced as
+        // the same sentence with nothing to tell them apart. Carry both across.
+        catch (RequestFailedException ex)
+        {
+            throw new RequestFailedException (ex.Status,
+                                              ExceptionMessages.EntityQueryFailedExceptionMessage (typeof (T).Name, _table.Name, ex.Status, ex.ErrorCode),
+                                              ex.ErrorCode,
+                                              ex);
+        }
+        // Anything else failed client-side rather than coming back as a response. The
+        // usual culprit is the expression above: TableClient.QueryAsync translates only
+        // simple equality comparisons, not general LINQ.
+        catch (Exception ex)
+        {
+            throw new RequestFailedException (ExceptionMessages.EntityQueryFailedExceptionMessage (typeof (T).Name, _table.Name), ex);
+        }
 
         return entityList;
     }
