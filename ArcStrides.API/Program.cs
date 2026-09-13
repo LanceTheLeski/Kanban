@@ -2,13 +2,13 @@
 using ArcStrides.API.Mappers;
 using ArcStrides.API.Options;
 using ArcStrides.API.Repositories;
+using ArcStrides.API.Services;
 using ArcStrides.API.Validators;
 using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Request.Patch;
 using ArcStrides.Contracts.Request.Query;
 using FluentValidation;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
-using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder (args);
 
@@ -48,14 +48,18 @@ builder.Services.AddTransient<ITagRepository, TagRepository> ();
 // Microsoft.AspNetCore.JsonPatch.SystemTextJson replaces it, and Newtonsoft is
 // gone from this project entirely.
 //
-// Responses use camelCase so JavaScript clients (arcstrides.ui) get idiomatic
-// property names. STJ's CamelCase policy lowercases only the leading run of
-// capitals, so `ID` serializes as `id` and `ColumnID` as `columnID`.
-builder.Services.AddControllers ()
-                .AddJsonOptions (options =>
-                {
-                    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-                });
+// No JSON configuration is needed. MVC builds its JsonSerializerOptions from
+// JsonSerializerDefaults.Web, which already gives us:
+//
+//   PropertyNamingPolicy      = CamelCase   → `ID` serializes as `id`, `ColumnID`
+//                                             as `columnID` (only the leading run
+//                                             of capitals is lowercased)
+//   PropertyNameCaseInsensitive = true      → inbound bodies bind regardless of casing
+//   NumberHandling            = AllowReadingFromString
+//
+// The equivalent under Newtonsoft had to be set by hand, because its MVC default
+// was DefaultContractResolver — PascalCase on the wire.
+builder.Services.AddControllers ();
 
 builder.Services.AddOpenApi ();
 
@@ -85,6 +89,11 @@ if (!app.Environment.IsDevelopment())
 if (app.Environment.IsDevelopment ())
 {
     app.MapOpenApi ();
+
+    // Creates any missing Arc tables. Chiefly so that pointing
+    // AzureTables:ServiceEndpoint at the Azurite emulator gives a working API
+    // straight away — nothing else in the app creates tables.
+    await app.Services.EnsureArcTablesExistAsync (app.Logger);
 }
 
 app.UseCors ("DevCors");

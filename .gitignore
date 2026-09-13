@@ -372,3 +372,10 @@ FodyWeavers.xsd
 # Properties/launchSettings.json stays tracked on purpose: arcstrides.ui/.env points
 # at the https profile's port, so the two need to agree.
 /ArcStrides.API/appsettings.json
+
+# Azurite storage emulator data, when run with --location inside the repo.
+# See docs/local-development.md.
+.azurite/
+__azurite_db*__.json
+__blobstorage__/
+__queuestorage__/
