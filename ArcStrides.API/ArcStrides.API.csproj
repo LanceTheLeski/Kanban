@@ -11,29 +11,27 @@
     <PackageReference Include="Azure.Data.Tables" Version="12.9.1" />
     <PackageReference Include="DeepCopy" Version="1.0.3" />
     <PackageReference Include="FluentValidation" Version="11.9.2" />
-    <PackageReference Include="Microsoft.AspNetCore.JsonPatch.SystemTextJson" Version="10.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.JsonPatch.SystemTextJson" Version="10.0.12" />
     <!--
-      ExcludeAssets="analyzers" keeps the runtime library (AddOpenApi/MapOpenApi)
-      but stops the package's source generator from running.
+      10.0.0 is the one version to avoid here.
 
-      That generator emits an XmlCommentOperationTransformer into this assembly to
-      attach XML doc comments to the OpenAPI document, and it throws a
-      NullReferenceException while transforming our operations:
+      Its OpenAPI source generator emits an XmlCommentOperationTransformer that
+      assumes ApiParameterDescription.ModelMetadata is never null. For a
+      controller route parameter it can be, and reading metadata.MetadataKind
+      then threw on every request that built the document:
 
         ArcStrides.API.dll!Microsoft.AspNetCore.OpenApi.Generated
-          .XmlCommentOperationTransformer.TransformAsync(...) Line 428
+          .XmlCommentOperationTransformer.TransformAsync(...)
 
-      Only the doc-comment descriptions are lost. Paths, schemas and everything
-      arcstrides.ui generates from the document are produced by the runtime
-      library, which is unaffected.
+      Our [FromRoute] boardID/cardID parameters are exactly that shape, which is
+      why this project hit it immediately. Fixed in 10.0.1 by dotnet/aspnetcore
+      PR #64401, which guards the null before touching MetadataKind.
 
-      To investigate later, the failing file is written to
-      obj/Debug/net10.0/generated/Microsoft.AspNetCore.OpenApi.SourceGenerators/ —
-      open it at line 428 to see which lookup returns null.
+      We are on the current patch rather than 10.0.1 so the rest of the 10.0.x
+      fixes come along; it also brings Microsoft.OpenApi up to 2.12.0, which
+      clears the advisory against 2.0.0.
     -->
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0">
-      <ExcludeAssets>analyzers</ExcludeAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.2" />
     <PackageReference Include="RecurrenceCalculator" Version="3.0.2" />
     <PackageReference Include="Riok.Mapperly" Version="4.1.0" />
