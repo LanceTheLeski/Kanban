@@ -46,8 +46,8 @@ public class TaskController : ArcController
     }
 
     [HttpGet]
-    public async Task<ActionResult> FetchTask ([FromRoute] Guid boardGuid, 
-                                               [FromRoute] Guid cardGuid, 
+    public async Task<ActionResult> FetchTask ([FromRoute] Guid boardID,
+                                               [FromRoute] Guid cardID,
                                                [FromQuery] TaskQueryParameters taskQueryParameters)
     {
         var validationResult = _taskQueryParametersValidator.Validate (taskQueryParameters);
@@ -178,8 +178,7 @@ public class TaskController : ArcController
     }
 
     [HttpGet ("/arcstrides/tasks/types")]
-    public async Task<ActionResult> FetchTaskTypes ([FromRoute] Guid tagGroupID,
-                                                    [AsParameters] TaskTypeQueryParameters? taskTypeQueryParameters)//todo: Implement these parameters at some point
+    public async Task<ActionResult> FetchTaskTypes ([FromQuery] TaskTypeQueryParameters? taskTypeQueryParameters)//todo: Implement these parameters at some point
     {
         try
         {
