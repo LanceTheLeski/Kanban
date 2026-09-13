@@ -1,0 +1,13 @@
+{
+  "name": "arcstrides-tools",
+  "private": true,
+  "type": "module",
+  "description": "Local development utilities. See ../docs/local-development.md.",
+  "scripts": {
+    "provision": "node provision-azurite.mjs",
+    "seed": "node seed-dev-board.mjs"
+  },
+  "dependencies": {
+    "@azure/data-tables": "^13.3.0"
+  }
+}

@@ -2,7 +2,6 @@
 using ArcStrides.API.Mappers;
 using ArcStrides.API.Options;
 using ArcStrides.API.Repositories;
-using ArcStrides.API.Services;
 using ArcStrides.API.Validators;
 using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Request.Patch;
@@ -89,11 +88,6 @@ if (!app.Environment.IsDevelopment())
 if (app.Environment.IsDevelopment ())
 {
     app.MapOpenApi ();
-
-    // Creates any missing Arc tables. Chiefly so that pointing
-    // AzureTables:ServiceEndpoint at the Azurite emulator gives a working API
-    // straight away — nothing else in the app creates tables.
-    await app.Services.EnsureArcTablesExistAsync (app.Logger);
 }
 
 app.UseCors ("DevCors");

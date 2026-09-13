@@ -35,6 +35,16 @@
  * ── Width ──────────────────────────────────────────────────────────
  * The Blazor overlay was 1100px wide. We pass this to ArcOverlay via the
  * width prop.
+ *
+ * ── Reading this file ────────────────────────────────────────────────────────
+ * UpdateCardOverlay comes first and its return is just the arrangement: two
+ * columns on top, panels beneath, the delete action last. Each piece is a small
+ * component declared further down — function declarations, so they hoist and can
+ * sit below the component that uses them.
+ *
+ * They stay in this file on purpose. None is reusable anywhere else, and pulling
+ * them into separate modules would trade one long file for six short ones plus
+ * the imports to find them again.
  */
 
 import React, { useState } from 'react'
@@ -60,6 +70,12 @@ import { deleteCard, deleteTask, updateCard } from '../Board.APIs'
 import { useBoardStore } from '../Board.Store'
 import type { Card } from '../../../Entities/Card/Card.Types'
 import type { Task } from '../../../Entities/Task/Task.Types'
+
+// The Blazor original's fixed geometry, named so the arrangement below reads
+// without three unexplained numbers in it.
+const OVERLAY_WIDTH = 1100
+const DETAIL_COLUMN_WIDTH = 400
+const DESCRIPTION_COLUMN_WIDTH = 700
 
 interface UpdateCardOverlayProps {
     open: boolean
@@ -156,137 +172,195 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
     }
 
     return (
-        <ArcOverlay open={open} onClose={onClose} onSubmit={handleSubmit} width={1100}>
+        <ArcOverlay open={open} onClose={onClose} onSubmit={handleSubmit} width={OVERLAY_WIDTH}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
 
-                {/* ── Top row: title + tags | description ─────────────────────────── */}
+                {/* Top row: card detail on the left, description filling the right */}
                 <Grid container spacing={2}>
-
-                    {/* Left column: title + task list */}
-                    <Grid item sx={{ width: 400 }}>
+                    <Grid item sx={{ width: DETAIL_COLUMN_WIDTH }}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-
-                            {/* Title + Tags row — mirrors Blazor's MudGrid Spacing="0" */}
-                            <Box sx={{ display: 'flex', gap: 1, height: 75, alignItems: 'flex-start' }}>
-                                <TextField
-                                    value={title}
-                                    onChange={e => setTitle(e.target.value)}
-                                    variant="outlined"
-                                    helperText="Card Title"
-                                    size="small"
-                                    sx={{
-                                        width: 240,
-                                        backgroundColor: 'rgba(255, 255, 255, 0.6)',
-                                        borderRadius: 1,
-                                    }}
-                                />
-                                {/* Tags placeholder — mirrors Blazor's "Tags..." paper */}
-                                <Paper
-                                    sx={{
-                                        width: 120,
-                                        height: 60,
-                                        backgroundColor: 'rgba(204, 255, 204, 0.6)',
-                                        borderRadius: 1,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                    }}
-                                >
-                                    <Typography variant="caption">Tags…</Typography>
-                                </Paper>
-                            </Box>
-
-                            {/* Task list — replaces Blazor's _taskListRenderFragment() */}
-                            <Paper
-                                className="glass-inner-engraved"
-                                sx={{ width: 400, height: 200, overflow: 'auto' }}
-                            >
-                                <List dense disablePadding>
-                                    {tasks.map(task => (
-                                        <ListItem key={task.id ?? task.title} disablePadding>
-                                            {/* Task popover occupies most of the row width */}
-                                            <Box sx={{ width: 350 }}>
-                                                <UpdateTaskPopover
-                                                    task={task}
-                                                    onUpdated={handleTaskUpdated}
-                                                    boardId={boardId}
-                                                    cardId={card.id}
-                                                    tasksCount={tasks.length}
-                                                    triggerSize="small"
-                                                    triggerStyle={{ width: '100%', justifyContent: 'flex-start' }}
-                                                />
-                                            </Box>
-
-                                            {/* Delete task icon — mirrors Blazor's trash icon @onclick */}
-                                            <IconButton
-                                                size="small"
-                                                onClick={() => task.id && handleDeleteTask(task.id)}
-                                                sx={{ ml: 'auto' }}
-                                            >
-                                                <DeleteIcon fontSize="small" />
-                                            </IconButton>
-                                        </ListItem>
-                                    ))}
-
-                                    {/* Create task row — mirrors Blazor's <CreateTaskOverlay> in MudListItem */}
-                                    <ListItem disablePadding sx={{ pl: 1 }}>
-                                        <CreateTaskOverlay
-                                            boardId={boardId}
-                                            cardId={card.id}
-                                            tasksCount={tasks.length}
-                                            onCreated={handleTaskCreated}
-                                        />
-                                    </ListItem>
-                                </List>
-                            </Paper>
+                            <TitleAndTags title={title} onTitleChange={setTitle} />
+                            <TaskList
+                                tasks={tasks}
+                                boardId={boardId}
+                                cardId={card.id}
+                                onTaskUpdated={handleTaskUpdated}
+                                onTaskCreated={handleTaskCreated}
+                                onTaskDeleted={handleDeleteTask}
+                            />
                         </Box>
                     </Grid>
 
-                    {/* Right column: description */}
-                    <Grid item sx={{ width: 700 }}>
-                        <TextField
-                            value={description}
-                            onChange={e => setDescription(e.target.value)}
-                            multiline
-                            rows={13}
-                            variant="outlined"
-                            helperText="Card Description"
-                            fullWidth
-                            sx={{
-                                backgroundColor: 'rgba(255, 255, 230, 0.8)',
-                                borderRadius: 1,
-                            }}
-                        />
+                    <Grid item sx={{ width: DESCRIPTION_COLUMN_WIDTH }}>
+                        <DescriptionField value={description} onChange={setDescription} />
                     </Grid>
                 </Grid>
 
-                {/* ── Bottom row: timeline + command panel ────────────────────────── */}
-                <Grid container spacing={2} alignItems="flex-start">
-                    <Grid item>
-                        <UpdateTimelinePanel
-                            timeline={card.timeline}
-                        />
-                    </Grid>
-                    <Grid item>
-                        <CommandPanel />
-                    </Grid>
-                </Grid>
+                <TimelineAndCommands timeline={card.timeline} />
 
-                {/* ── Delete card action ───────────────────────────────────────────── */}
-                {/* Mirrors Blazor's DeleteCardAsync call — placed outside the submit flow */}
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <Button
-                        color="error"
-                        variant="outlined"
-                        size="small"
-                        onClick={handleDeleteCard}
-                    >
-                        Delete Card
-                    </Button>
-                </Box>
+                <DeleteCardAction onDelete={handleDeleteCard} />
 
             </Box>
         </ArcOverlay>
+    )
+}
+
+// ── Pieces of the overlay ─────────────────────────────────────────────────────
+// Everything below is presentation for the arrangement above. Declared as
+// functions so they hoist, which lets the component that composes them be read
+// first.
+
+/**
+ * Card title beside the tags placeholder.
+ * Mirrors Blazor's MudGrid Spacing="0" row at the top of the overlay.
+ *
+ * Tags are not implemented on either side yet — the Blazor original had the same
+ * static "Tags..." paper holding the space.
+ */
+function TitleAndTags({ title, onTitleChange }: {
+    title: string
+    onTitleChange: (title: string) => void
+}) {
+    return (
+        <Box sx={{ display: 'flex', gap: 1, height: 75, alignItems: 'flex-start' }}>
+            <TextField
+                value={title}
+                onChange={e => onTitleChange(e.target.value)}
+                variant="outlined"
+                helperText="Card Title"
+                size="small"
+                sx={{
+                    width: 240,
+                    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                    borderRadius: 1,
+                }}
+            />
+
+            <Paper
+                sx={{
+                    width: 120,
+                    height: 60,
+                    backgroundColor: 'rgba(204, 255, 204, 0.6)',
+                    borderRadius: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+            >
+                <Typography variant="caption">Tags…</Typography>
+            </Paper>
+        </Box>
+    )
+}
+
+/**
+ * The card's tasks, each a popover row with a delete button, and a create row at
+ * the end. Replaces Blazor's _taskListRenderFragment() factory — a workaround for
+ * Blazor not being able to rebuild a list without one.
+ */
+function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTaskDeleted }: {
+    tasks: Task[]
+    boardId: string
+    cardId: string
+    onTaskUpdated: (task: Task) => void
+    onTaskCreated: (task: Task) => void
+    onTaskDeleted: (taskId: string) => void
+}) {
+    return (
+        <Paper className="glass-inner-engraved" sx={{ width: DETAIL_COLUMN_WIDTH, height: 200, overflow: 'auto' }}>
+            <List dense disablePadding>
+                {tasks.map(task => (
+                    <ListItem key={task.id || task.title} disablePadding>
+                        {/* The popover trigger takes most of the row; the bin sits at the end */}
+                        <Box sx={{ width: 350 }}>
+                            <UpdateTaskPopover
+                                task={task}
+                                onUpdated={onTaskUpdated}
+                                boardId={boardId}
+                                cardId={cardId}
+                                tasksCount={tasks.length}
+                                triggerSize="small"
+                                triggerStyle={{ width: '100%', justifyContent: 'flex-start' }}
+                            />
+                        </Box>
+
+                        {/* Mirrors Blazor's trash icon @onclick */}
+                        <IconButton
+                            size="small"
+                            onClick={() => task.id && onTaskDeleted(task.id)}
+                            sx={{ ml: 'auto' }}
+                        >
+                            <DeleteIcon fontSize="small" />
+                        </IconButton>
+                    </ListItem>
+                ))}
+
+                <ListItem disablePadding sx={{ pl: 1 }}>
+                    <CreateTaskOverlay
+                        boardId={boardId}
+                        cardId={cardId}
+                        tasksCount={tasks.length}
+                        onCreated={onTaskCreated}
+                    />
+                </ListItem>
+            </List>
+        </Paper>
+    )
+}
+
+/** The card description, filling the right-hand column. */
+function DescriptionField({ value, onChange }: {
+    value: string
+    onChange: (description: string) => void
+}) {
+    return (
+        <TextField
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            multiline
+            rows={13}
+            variant="outlined"
+            helperText="Card Description"
+            fullWidth
+            sx={{
+                backgroundColor: 'rgba(255, 255, 230, 0.8)',
+                borderRadius: 1,
+            }}
+        />
+    )
+}
+
+/**
+ * The two panels along the bottom of the overlay.
+ *
+ * The timeline panel is read-only here: a card's own timeline is displayed, but
+ * only a *task's* timeline can currently be edited (see UpdateTaskPopover).
+ * CommandPanel is still the layout stub it was in Blazor.
+ */
+function TimelineAndCommands({ timeline }: { timeline: Card['timeline'] }) {
+    return (
+        <Grid container spacing={2} alignItems="flex-start">
+            <Grid item>
+                <UpdateTimelinePanel timeline={timeline} />
+            </Grid>
+            <Grid item>
+                <CommandPanel />
+            </Grid>
+        </Grid>
+    )
+}
+
+/**
+ * Deleting sits apart from the overlay's Submit/Discard group on purpose —
+ * mirrors Blazor, where DeleteCardAsync was outside the submit flow.
+ */
+function DeleteCardAction({ onDelete }: { onDelete: () => void }) {
+    return (
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button color="error" variant="outlined" size="small" onClick={onDelete}>
+                Delete Card
+            </Button>
+        </Box>
     )
 }
 

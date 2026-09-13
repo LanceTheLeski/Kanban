@@ -379,3 +379,6 @@ FodyWeavers.xsd
 __azurite_db*__.json
 __blobstorage__/
 __queuestorage__/
+
+# tools/ is its own small npm project — see docs/local-development.md.
+/tools/node_modules/

@@ -41,20 +41,30 @@ default in Development** — a dev machine cannot accidentally write to the real
 storage account. To deliberately point at Azure, override
 `AzureTables:ServiceEndpoint` through user secrets or an environment variable.
 
-### Tables are created for you
+### Create the tables once
 
-`AzureTableService` goes straight to `TableClient` and never calls
-`CreateIfNotExists` — fine against the real account, where the tables were made once
-by hand, but it leaves a fresh Azurite instance with no tables at all, and every
-request fails with `TableNotFound`.
+Nobody wrote the tables in the Azure portal for you locally, and **the API never
+creates a table** — not in Development, not anywhere. That is deliberate: the code
+path running against the emulator is the same code path that runs against the real
+storage account, with no `CreateIfNotExists` that only ever fires in one of them.
 
-`ArcTableProvisioner` fills that gap: on startup in Development it creates any
-missing table, reading the names from the `[ArcTableName]` attributes on the entity
-models so a new entity is covered without updating a second list. Against a storage
-account whose tables already exist it is a no-op.
+So creating them is a setup step, run once per emulator instance:
 
-If Azurite is not running, the API logs a warning naming this file and carries on
-rather than failing to boot.
+```bash
+cd tools && npm install      # first time only
+cd .. && node tools/provision-azurite.mjs
+```
+
+It reads the table names from the `[ArcTableName("…")]` attributes on the entity
+models rather than keeping its own list, so an entity added later is covered without
+anyone remembering a second place to update. Running it again reports what is
+already there and creates only what is missing.
+
+`--drop` deletes and recreates every table, which is how you get a clean slate.
+`--connection` points it somewhere other than the emulator.
+
+If you skip this step the API starts fine and then fails every request with
+`TableNotFound`.
 
 ## 2. API
 
@@ -78,7 +88,7 @@ turns it into TypeScript wire types.
 
 ## 3. Seed a board
 
-A fresh emulator is empty, so the board renders as nothing at all.
+The tables exist but hold nothing, so the board renders empty.
 
 ```bash
 node tools/seed-dev-board.mjs
@@ -107,6 +117,25 @@ allows — don't change the port without changing `Program.cs` to match.
 
 ## Starting over
 
-Stop Azurite and delete its data directory (`./.azurite`, or wherever you pointed
-`--location`). Start it again, restart the API so the tables are recreated, and
-re-run the seed script.
+```bash
+node tools/provision-azurite.mjs --drop
+node tools/seed-dev-board.mjs
+```
+
+No need to restart Azurite or the API. To go further and discard the emulator's
+files entirely, stop Azurite, delete its data directory (`./.azurite`, or wherever
+you pointed `--location`), then start it and provision again.
+
+## The order matters
+
+Each step assumes the one before it:
+
+| | | needs |
+|---|---|---|
+| 1 | `azurite` | — |
+| 2 | `node tools/provision-azurite.mjs` | Azurite running |
+| 3 | `dotnet run --project ArcStrides.API` | tables to exist |
+| 4 | `node tools/seed-dev-board.mjs` | the API running |
+| 5 | `npm run dev` in `arcstrides.ui` | the API running |
+
+Only step 2 is once-per-emulator. Steps 1, 3 and 5 are your everyday processes.
