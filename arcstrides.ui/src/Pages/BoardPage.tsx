@@ -54,6 +54,14 @@ import {
     useSensor,
     useSensors,
 } from '@dnd-kit/core'
+import {
+    BOARD_GAP,
+    BOARD_TITLE_WIDTH,
+    CELL_MIN_HEIGHT,
+    COLUMN_WIDTH,
+    STACK_LABEL_BELOW,
+    SWIMLANE_LABEL_WIDTH,
+} from '../Features/Board/Board.Layout'
 import { BoardManagementNav } from '../Features/Board/BoardManagementNav'
 import { BoardCard } from '../Features/Board/BoardCard'
 import { moveCard } from '../Features/Board/Board.APIs'
@@ -93,15 +101,16 @@ const DroppableCell: React.FC<{
         <Box
             ref={setNodeRef}
             sx={{
-                width: 300,
-                height: 200,
+                // Width comes from the column token so this cell and the header
+                // above it cannot disagree. Height is a floor, not a size: the
+                // cell grows with its cards instead of clipping the fourth one.
+                width: COLUMN_WIDTH,
+                minHeight: CELL_MIN_HEIGHT,
                 backgroundColor: isOver ? '#d4f5d4' : '#ECED7b',
                 display: 'flex',
-                flexWrap: 'wrap',
-                alignContent: 'flex-start',
-                gap: 1,
-                p: 1,
-                overflowY: 'auto',
+                flexDirection: 'column',
+                gap: BOARD_GAP,
+                p: BOARD_GAP,
                 outline: isOver ? '2px solid #4caf50' : '2px solid transparent',
                 transition: 'background-color 0.15s, outline 0.15s',
             }}
@@ -124,7 +133,7 @@ const DraggableCard: React.FC<{ card: Card; boardId: string }> = ({ card, boardI
     const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: card.id })
 
     return (
-        <Box ref={setNodeRef} sx={{ opacity: isDragging ? 0.4 : 1 }}>
+        <Box ref={setNodeRef} sx={{ opacity: isDragging ? 0.4 : 1, width: '100%' }}>
             <BoardCard
                 card={card}
                 boardId={boardId}
@@ -271,19 +280,30 @@ export const BoardPage: React.FC = () => {
                 <Box sx={{ overflowX: 'auto' }}>
                     <Box sx={{ display: 'inline-flex', flexDirection: 'column', minWidth: '100%' }}>
 
-                        {/* ── Column header row ────────────────────────────────────── */}
-                        <Box sx={{ height: 70, display: 'flex', alignItems: 'center' }}>
+                        {/*
+              Column header row.
+
+              Every width here comes from Board.Layout so the headers stay over
+              their cells. The row is hidden below the label breakpoint, where the
+              swimlane label moves above its row and there is no longer a single
+              header row that lines up with anything.
+            */}
+                        <Box sx={{
+                            display: { xs: 'none', [STACK_LABEL_BELOW]: 'flex' },
+                            alignItems: 'center',
+                            gap: BOARD_GAP,
+                            px: BOARD_GAP,
+                            py: 1,
+                        }}>
                             {/* "Honu Boards" label — mirrors Blazor's Freestyle Script styled MudText */}
                             <Paper
                                 elevation={0}
                                 sx={{
-                                    width: 120,
-                                    height: 40,
+                                    width: BOARD_TITLE_WIDTH,
                                     backgroundColor: 'transparent',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    pl: 1.5,
                                     flexShrink: 0,
                                 }}
                             >
@@ -293,6 +313,7 @@ export const BoardPage: React.FC = () => {
                                         fontWeight: 'bold',
                                         fontSize: '1.6rem',
                                         color: 'aquamarine',
+                                        lineHeight: 1.1,
                                     }}
                                 >
                                     Honu Boards
@@ -304,13 +325,14 @@ export const BoardPage: React.FC = () => {
                                 <Paper
                                     key={column.id}
                                     sx={{
-                                        width: 300,
-                                        height: 55,
+                                        width: COLUMN_WIDTH,
+                                        minHeight: 40,
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         flexShrink: 0,
-                                        ml: 1,
+                                        px: 1,
+                                        py: 0.5,
                                     }}
                                 >
                                     <Typography
@@ -319,6 +341,10 @@ export const BoardPage: React.FC = () => {
                                             fontSize: 'small',
                                             fontWeight: 'bold',
                                             color: 'black',
+                                            // Column names are user-written; let a long one wrap
+                                            // rather than clip, since the header grows to fit.
+                                            textAlign: 'center',
+                                            overflowWrap: 'anywhere',
                                         }}
                                     >
                                         {column.title}
@@ -346,41 +372,83 @@ export const BoardPage: React.FC = () => {
                                             borderRight: '5px solid wheat',
                                         }}
                                     >
-                                        <Box sx={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'flex-start' }}>
+                                        {/*
+                        A swimlane row. Wide screens put the label beside the
+                        cells; below STACK_LABEL_BELOW it moves above them, because
+                        a 76px label plus a 232px column leaves nothing for either.
+                      */}
+                                        <Box sx={{
+                                            display: 'flex',
+                                            flexDirection: { xs: 'column', [STACK_LABEL_BELOW]: 'row' },
+                                            alignItems: { xs: 'stretch', [STACK_LABEL_BELOW]: 'stretch' },
+                                            gap: BOARD_GAP,
+                                            p: BOARD_GAP,
+                                        }}>
 
                                             {/* Swimlane label */}
                                             {/* Mirrors: MudPaper Width="110px" Style="background-color: lightcoral" */}
-                                            <Box sx={{ display: 'flex', alignItems: 'center', minHeight: 250, flexShrink: 0 }}>
-                                                <Paper
+                                            <Paper
+                                                sx={{
+                                                    // Spread, not nested. SWIMLANE_LABEL_WIDTH is itself a
+                                                    // breakpoint map, so `{ [STACK_LABEL_BELOW]: SWIMLANE_LABEL_WIDTH }`
+                                                    // would hand MUI a map as a *value*; it cannot resolve that,
+                                                    // drops the entry silently, and `xs: '100%'` then cascades to
+                                                    // every width — which is exactly what made this label 1170px
+                                                    // wide and shoved the cells off the board. Spreading merges the
+                                                    // token's own sm/md entries in as siblings; the trailing
+                                                    // `xs: '100%'` overrides the token's xs for the stacked case.
+                                                    width: { ...SWIMLANE_LABEL_WIDTH, xs: '100%' },
+                                                    flexShrink: 0,
+                                                    alignSelf: { xs: 'stretch', [STACK_LABEL_BELOW]: 'center' },
+                                                    backgroundColor: 'lightcoral',
+                                                    // The page root sets textAlign: 'center', which inherits all
+                                                    // the way down here and positions the inline-block label. It
+                                                    // has to be overridden on this box, not on the Typography:
+                                                    // text-align positions an inline-block from its *parent*.
+                                                    textAlign: { xs: 'left', [STACK_LABEL_BELOW]: 'center' },
+                                                    px: 1,
+                                                    py: 0.5,
+                                                }}
+                                            >
+                                                {/*
+                            Stacked, the label bar spans the board's full scroll
+                            width — 978px at 420px wide — so centred text lands
+                            near x=489 and is simply off screen. Left-aligning it
+                            puts the name back at the edge you are looking at.
+
+                            `sticky` then keeps it there: scroll the row sideways
+                            and the swimlane name rides along the left edge instead
+                            of disappearing, which matters most on exactly the
+                            narrow screens where the label had to stack.
+                          */}
+                                                <Typography
                                                     sx={{
-                                                        width: 110,
-                                                        backgroundColor: 'lightcoral',
-                                                        ml: 1.25,
+                                                        fontFamily: "'Calibri Condensed', sans-serif",
+                                                        fontSize: 'small',
+                                                        fontWeight: 'bold',
+                                                        color: 'black',
+                                                        overflowWrap: 'anywhere',
+                                                        position: { xs: 'sticky', [STACK_LABEL_BELOW]: 'static' },
+                                                        left: 0,
+                                                        display: 'inline-block',
                                                     }}
                                                 >
-                                                    <Typography
-                                                        align="center"
-                                                        sx={{
-                                                            fontFamily: "'Calibri Condensed', sans-serif",
-                                                            fontSize: 'small',
-                                                            fontWeight: 'bold',
-                                                            color: 'black',
-                                                        }}
-                                                    >
-                                                        {swimlane.title}
-                                                    </Typography>
-                                                </Paper>
-                                            </Box>
+                                                    {swimlane.title}
+                                                </Typography>
+                                            </Paper>
 
-                                            {/* Drop zone cells — one per column */}
-                                            {columns.map(column => {
-                                                const identifier = cellId(swimlane.id, column.id)
-                                                const cellCards = cardsByCell.get(identifier) ?? []
+                                            {/*
+                          Drop cells. They stretch to the height of the tallest in
+                          the row, so a row is as tall as its fullest cell rather
+                          than a fixed 250px that clipped anything beyond it.
+                        */}
+                                            <Box sx={{ display: 'flex', gap: BOARD_GAP, alignItems: 'stretch' }}>
+                                                {columns.map(column => {
+                                                    const identifier = cellId(swimlane.id, column.id)
+                                                    const cellCards = cardsByCell.get(identifier) ?? []
 
-                                                return (
-                                                    // Mirrors: MudItem Style="height: 250px" > MudDropZone
-                                                    <Box key={column.id} sx={{ height: 250, flexShrink: 0, p: 1.25 }}>
-                                                        <DroppableCell identifier={identifier}>
+                                                    return (
+                                                        <DroppableCell key={column.id} identifier={identifier}>
                                                             {cellCards.map(card => (
                                                                 <DraggableCard
                                                                     key={card.id}
@@ -389,9 +457,9 @@ export const BoardPage: React.FC = () => {
                                                                 />
                                                             ))}
                                                         </DroppableCell>
-                                                    </Box>
-                                                )
-                                            })}
+                                                    )
+                                                })}
+                                            </Box>
                                         </Box>
                                     </Paper>
                                 </Box>

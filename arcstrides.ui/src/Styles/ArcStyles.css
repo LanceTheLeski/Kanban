@@ -85,6 +85,23 @@
 
 main {
     flex: 1;
+
+    /*
+       Not in the Blazor original, and the one deviation in this section.
+
+       .page becomes `flex-direction: row` above 641px (below), which makes <main>
+       a row flex item. A flex item's `min-width: auto` resolves to its *min-content*
+       width on the main axis, so <main> refused to be narrower than the widest thing
+       inside it — measured at 1216px — and the whole page scrolled sideways on any
+       viewport between roughly 640px and 1380px.
+
+       Blazor never hit this because the row was there to sit <main> beside a 250px
+       sidebar, and MudBlazor's board did its own clipping. min-width: 0 opts out of
+       the automatic minimum so <main> takes the width it is given; anything wider
+       than that now overflows into the board's own horizontal scroller, which is
+       where the sideways scrolling belongs.
+    */
+    min-width: 0;
 }
 
 .navbar-brand {

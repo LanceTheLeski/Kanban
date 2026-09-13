@@ -93,7 +93,14 @@ export const BoardManagementNav: React.FC = () => {
                 elevation={24}
                 sx={{ backgroundColor: 'primary.main' }}
             >
-                <Toolbar variant="dense" sx={{ gap: 2 }}>
+                {/*
+                    The toolbar wraps rather than overflowing. Its buttons are words,
+                    not icons, so below roughly 400px the four menus plus the [Menu]
+                    slot are wider than the bar — and a nowrap toolbar does not clip
+                    politely, it pushes the AppBar's scrollWidth past its own box.
+                    Wrapping costs a second row on a phone and nothing anywhere else.
+                */}
+                <Toolbar variant="dense" sx={{ gap: 2, flexWrap: 'wrap', rowGap: 0.5, py: 0.5 }}>
 
                     {/* MenuOverlay placeholder — mirrors Blazor's <MenuOverlay /> */}
                     <Box sx={{ mr: 2 }}>

@@ -42,6 +42,7 @@ import { UpdateCardOverlay } from './Card/UpdateCardOverlay'
 import { useBoardActions } from './useBoardActions'
 import { deleteCard } from './Board.APIs'
 import { useBoardStore } from './Board.Store'
+import { CARD_MIN_HEIGHT } from './Board.Layout'
 import type { Card } from '../../Entities/Card/Card.Types'
 
 interface BoardCardProps {
@@ -82,10 +83,15 @@ export const BoardCard: React.FC<BoardCardProps> = ({
             {/* Mirrors: MudPaper width=120px height=200px background-color=lightyellow */}
             <Paper
                 sx={{
-                    width: 120,
-                    height: 200,
+                    // Fills the cell rather than sitting at a fixed 120px inside a
+                    // 300px column. A card is mostly text, and the old width cut
+                    // titles off after about four words with most of the column
+                    // left empty. Height is a floor so a long title can push it.
+                    width: '100%',
+                    minHeight: CARD_MIN_HEIGHT,
+                    // The ghost has no cell to fill, so give it the column's width.
+                    ...(preview ? { width: 232 } : {}),
                     backgroundColor: 'lightyellow',
-                    overflow: 'hidden',
                     display: 'flex',
                     flexDirection: 'column',
                     borderRadius: 2,
@@ -126,14 +132,21 @@ export const BoardCard: React.FC<BoardCardProps> = ({
                     }}
                 >
                     {/* Title — mirrors MudText font-weight:600 font-size:x-small */}
+                    {/*
+              Two lines, then ellipsis. Titles are user-written and the old single
+              nowrap line clipped most of them; -webkit-line-clamp is the only way
+              to ellipsise across more than one line, and is supported everywhere
+              this app runs.
+            */}
                     <Typography
                         sx={{
-                            height: 20,
                             fontWeight: 600,
-                            fontSize: '0.65rem',
+                            fontSize: '0.7rem',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
                             overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
+                            overflowWrap: 'anywhere',
                         }}
                     >
                         {card.title}
@@ -143,8 +156,13 @@ export const BoardCard: React.FC<BoardCardProps> = ({
                     <Typography
                         sx={{
                             fontSize: '0.65rem',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 3,
+                            WebkitBoxOrient: 'vertical',
                             overflow: 'hidden',
+                            overflowWrap: 'anywhere',
                             textAlign: 'left',
+                            opacity: 0.85,
                         }}
                     >
                         {card.description}
