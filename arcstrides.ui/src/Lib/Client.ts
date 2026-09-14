@@ -108,8 +108,22 @@ async function describeFailure(response: Response): Promise<string> {
             const errors = problem.errors && typeof problem.errors === 'object'
                 ? Object.values(problem.errors as Record<string, unknown>).flat().join('; ')
                 : ''
-            const headline = [problem.title, problem.detail, problem.message]
+            // `detail` before `title`. In Problem Details, `title` is the generic
+            // category — ASP.NET fills it with "An error occurred while processing
+            // your request." — and `detail` is the part that says what actually
+            // happened. Preferring title threw the specifics away: the API was
+            // naming the exception type in detail and it never reached the screen.
+            const detailText = [problem.detail, problem.message]
                 .find(value => typeof value === 'string' && value.trim()) as string | undefined
+            const titleText = typeof problem.title === 'string' && problem.title.trim()
+                ? problem.title
+                : undefined
+
+            // Both, when they say different things: the title categorises and the
+            // detail explains, and for a 500 the category is still worth seeing.
+            const headline = detailText && titleText && detailText !== titleText
+                ? `${titleText} ${detailText}`
+                : detailText ?? titleText
 
             detail = [headline, errors].filter(Boolean).join(' — ') || raw
         }
