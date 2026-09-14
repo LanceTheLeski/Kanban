@@ -67,6 +67,12 @@ import { CommandPanel } from '../Commands/CommandPanel'
 import { useBoardActions } from '../useBoardActions'
 import { deleteCard, deleteTask, updateCard } from '../Board.APIs'
 import { useBoardStore } from '../Board.Store'
+import {
+    TAG_CHIP_HEIGHT,
+    TAG_CHIP_WIDTH,
+    TASK_LIST_HEIGHT,
+    TITLE_ROW_MIN_HEIGHT,
+} from '../../../Styles/Measures'
 import type { Card } from '../../../Entities/Card/Card.Types'
 import type { Task } from '../../../Entities/Task/Task.Types'
 
@@ -236,7 +242,7 @@ function TitleAndTags({ title, onTitleChange }: {
     onTitleChange: (title: string) => void
 }) {
     return (
-        <Box sx={{ display: 'flex', gap: 1, height: 75, alignItems: 'flex-start' }}>
+        <Box sx={{ display: 'flex', gap: 1, minHeight: TITLE_ROW_MIN_HEIGHT, alignItems: 'flex-start' }}>
             <TextField
                 value={title}
                 onChange={e => onTitleChange(e.target.value)}
@@ -248,18 +254,19 @@ function TitleAndTags({ title, onTitleChange }: {
                     // input's intrinsic width from propping the row open.
                     flex: 1,
                     minWidth: 0,
-                    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                    backgroundColor: 'arc.field',
                     borderRadius: 1,
                 }}
             />
 
             <Paper
                 sx={{
-                    // A chip, not a column: fixed because its content is fixed.
-                    width: 120,
+                    // A chip, not a column: fixed because its content is fixed —
+                    // one short word. In rem so the word still fits it.
+                    width: TAG_CHIP_WIDTH,
                     flexShrink: 0,
-                    height: 60,
-                    backgroundColor: 'rgba(204, 255, 204, 0.6)',
+                    height: TAG_CHIP_HEIGHT,
+                    backgroundColor: 'arc.tagPlaceholder',
                     borderRadius: 1,
                     display: 'flex',
                     alignItems: 'center',
@@ -286,7 +293,16 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
     onTaskDeleted: (taskId: string) => void
 }) {
     return (
-        <Paper className="glass-inner-engraved" sx={{ width: '100%', height: 200, overflow: 'auto' }}>
+        <Paper
+            className="glass-inner-engraved"
+            /*
+               A fixed height, unlike most boxes here, because this one scrolls its
+               own rows — the height is the scrollport, not a box text is squeezed
+               into. Only the unit changed, so the port grows with the rows rather
+               than showing fewer of them.
+            */
+            sx={{ width: '100%', height: TASK_LIST_HEIGHT, overflow: 'auto' }}
+        >
             <List dense disablePadding>
                 {tasks.map(task => (
                     <ListItem key={task.id || task.title} disablePadding>
@@ -342,7 +358,7 @@ function DescriptionField({ value, onChange }: {
             helperText="Card Description"
             fullWidth
             sx={{
-                backgroundColor: 'rgba(255, 255, 230, 0.8)',
+                backgroundColor: 'arc.fieldMuted',
                 borderRadius: 1,
             }}
         />

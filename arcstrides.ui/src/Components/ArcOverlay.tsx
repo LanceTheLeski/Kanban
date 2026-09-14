@@ -26,6 +26,7 @@ import {
     Modal,
     Paper,
 } from '@mui/material'
+import { OVERLAY_WIDTH } from '../Styles/Measures'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -52,7 +53,7 @@ export const ArcOverlay: React.FC<ArcOverlayProps> = ({
     onClose,
     children,
     onSubmit,
-    width = 480,
+    width = OVERLAY_WIDTH,
 }) => {
     const [submitting, setSubmitting] = React.useState(false)
 

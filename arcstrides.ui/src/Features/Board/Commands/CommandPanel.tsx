@@ -11,15 +11,25 @@
 import React from 'react'
 import { Box, IconButton, Paper, Stack, TextField, Typography } from '@mui/material'
 import SendIcon from '@mui/icons-material/Send'
+import {
+    COMMAND_LOG_MIN_HEIGHT,
+    COMMAND_PANEL_MIN_WIDTH,
+} from '../../../Styles/Measures'
 
 export const CommandPanel: React.FC = () => {
     return (
         <Paper
             className="glass-inner-engraved"
-            sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 1, minWidth: 240 }}
+            sx={{
+                p: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1,
+                minWidth: COMMAND_PANEL_MIN_WIDTH,
+            }}
         >
             {/* Message list — stub */}
-            <Stack spacing={0.5} sx={{ minHeight: 80 }}>
+            <Stack spacing={0.5} sx={{ minHeight: COMMAND_LOG_MIN_HEIGHT }}>
                 <Typography variant="body2" sx={{ opacity: 0.5 }}>Text 1</Typography>
                 <Typography variant="body2" sx={{ opacity: 0.5 }}>Text 2</Typography>
                 <Typography variant="body2" sx={{ opacity: 0.5 }}>Text 3</Typography>

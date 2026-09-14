@@ -36,6 +36,7 @@ import React, { useState } from 'react'
 import { Box, Button, Paper, Typography } from '@mui/material'
 import { DatePicker, TimePicker } from '@mui/x-date-pickers'
 import type { Dayjs } from 'dayjs'
+import { rem, TIMELINE_PANEL_MAX_WIDTH } from '../../../Styles/Measures'
 import type { Timeline } from '../../../Entities/Timeline/Timeline.Types'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -129,7 +130,7 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({
                 size="small"
                 variant={mode === 'deadline' ? 'contained' : 'outlined'}
                 onClick={() => handleModeChange('deadline')}
-                sx={{ backgroundColor: mode === 'deadline' ? 'lightgoldenrodyellow' : undefined, color: 'black' }}
+                sx={{ backgroundColor: mode === 'deadline' ? 'arc.deadlineMode' : undefined, color: 'black' }}
             >
                 Deadline
             </Button>
@@ -137,7 +138,7 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({
                 size="small"
                 variant={mode === 'timeline' ? 'contained' : 'outlined'}
                 onClick={() => handleModeChange('timeline')}
-                sx={{ backgroundColor: mode === 'timeline' ? 'aquamarine' : undefined, color: 'black' }}
+                sx={{ backgroundColor: mode === 'timeline' ? 'arc.timelineMode' : undefined, color: 'black' }}
             >
                 Timeline
             </Button>
@@ -145,7 +146,7 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({
                 size="small"
                 variant={mode === 'timeless' ? 'contained' : 'outlined'}
                 onClick={() => handleModeChange('timeless')}
-                sx={{ backgroundColor: mode === 'timeless' ? 'indianred' : undefined, color: 'black' }}
+                sx={{ backgroundColor: mode === 'timeless' ? 'arc.timelessMode' : undefined, color: 'black' }}
             >
                 Timeless
             </Button>
@@ -155,27 +156,24 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({
 /**
  * The shared geometry of the three mode panels.
  *
- * All three were `width: 460` — a fixed pixel width inside a 560px popover that
- * also had to hold the task fields. The panel could not fit, so it hung 109px
- * outside the dialog, and the column beside it was squeezed to 123px, which is
- * why "Select task type" wrapped onto three lines.
- *
- * A panel should take the width it is given. `width: 100%` with `minWidth: 0`
- * lets it shrink below the intrinsic width of the date pickers inside, which are
- * already set to wrap; `maxWidth` keeps it from sprawling when the container is
+ * A panel takes the width it is given: `width: 100%` with `minWidth: 0` lets it
+ * shrink below the intrinsic width of the date pickers inside, which are already
+ * set to wrap, and the ceiling keeps it from sprawling when the container is
  * generous. Height stays a minimum so a panel grows with its own controls.
+ *
+ * See TIMELINE_PANEL_MAX_WIDTH in Styles/Measures for what these replaced.
  */
 const PANEL = {
     p: 1,
     width: '100%',
     minWidth: 0,
-    maxWidth: '28.75rem',   // the old 460px, now a ceiling rather than a demand
-    minHeight: '7.5rem',
+    maxWidth: TIMELINE_PANEL_MAX_WIDTH,
+    minHeight: rem(120),
 } as const
 
     // ── Timeline mode (aquamarine) ───────────────────────────────────────────────
     const timelineContent = (
-        <Paper sx={{ ...PANEL, backgroundColor: 'aquamarine' }}>
+        <Paper sx={{ ...PANEL, backgroundColor: 'arc.timelineMode' }}>
             {/* Preferred row */}
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
                 <DatePicker
@@ -235,7 +233,7 @@ const PANEL = {
 
     // ── Deadline mode (goldenrod) ────────────────────────────────────────────────
     const deadlineContent = (
-        <Paper sx={{ ...PANEL, backgroundColor: 'lightgoldenrodyellow', display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+        <Paper sx={{ ...PANEL, backgroundColor: 'arc.deadlineMode', display: 'flex', gap: 1, flexWrap: 'wrap' }}>
             <DatePicker
                 label="End Date"
                 value={reqEnd}
@@ -253,7 +251,7 @@ const PANEL = {
 
     // ── Timeless mode (red) ──────────────────────────────────────────────────────
     const timelessContent = (
-        <Paper sx={{ ...PANEL, p: 2, backgroundColor: 'indianred' }}>
+        <Paper sx={{ ...PANEL, p: 2, backgroundColor: 'arc.timelessMode' }}>
             <Typography variant="body2" sx={{ color: 'white' }}>
                 You have opted not to give a deadline/timeline for this.
                 As a result, it may not show up in most places.

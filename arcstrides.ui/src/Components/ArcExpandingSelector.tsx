@@ -31,6 +31,10 @@ import {
     Typography,
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import {
+    SELECTOR_LIST_MAX_HEIGHT,
+    SELECTOR_SUMMARY_MIN_HEIGHT,
+} from '../Styles/Measures'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -92,9 +96,9 @@ export const ArcExpandingSelector: React.FC<ArcExpandingSelectorProps> = ({
             }}
         >
             <AccordionSummary
-                expandIcon={<ExpandMoreIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />}
+                expandIcon={<ExpandMoreIcon sx={{ color: 'arc.onGlassIcon' }} />}
                 sx={{
-                    minHeight: 40,
+                    minHeight: SELECTOR_SUMMARY_MIN_HEIGHT,
                     '& .MuiAccordionSummary-content': { margin: '8px 0' },
                 }}
             >
@@ -103,7 +107,7 @@ export const ArcExpandingSelector: React.FC<ArcExpandingSelectorProps> = ({
                     sx={{
                         fontFamily: '"DM Mono", monospace',
                         fontSize: '0.8rem',
-                        color: selected ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.6)',
+                        color: selected ? 'arc.onGlassStrong' : 'arc.onGlassMuted',
                     }}
                 >
                     {summaryLabel}
@@ -117,9 +121,14 @@ export const ArcExpandingSelector: React.FC<ArcExpandingSelectorProps> = ({
             <AccordionDetails
                 sx={{
                     p: 0,
-                    maxHeight: 200,
+                    maxHeight: SELECTOR_LIST_MAX_HEIGHT,
                     overflowY: 'auto',
-                    borderTop: '1px solid rgba(255,255,255,0.15)',
+                    // px width, themed colour: the rule is chrome, its colour is
+                    // part of the glass surface. `borderTop` is a shorthand and
+                    // sx does not resolve palette paths inside one, so the colour
+                    // is set on its own.
+                    borderTop: '1px solid',
+                    borderTopColor: 'arc.glassDivider',
                 }}
             >
                 <List dense disablePadding>
@@ -132,10 +141,10 @@ export const ArcExpandingSelector: React.FC<ArcExpandingSelectorProps> = ({
                                 py: 0.75,
                                 px: 2,
                                 '&.Mui-selected': {
-                                    backgroundColor: 'rgba(255,255,255,0.2)',
+                                    backgroundColor: 'arc.glassSelected',
                                 },
                                 '&:hover': {
-                                    backgroundColor: 'rgba(255,255,255,0.12)',
+                                    backgroundColor: 'arc.glassHover',
                                 },
                             }}
                         >
@@ -144,7 +153,7 @@ export const ArcExpandingSelector: React.FC<ArcExpandingSelectorProps> = ({
                                 primaryTypographyProps={{
                                     fontFamily: '"DM Mono", monospace',
                                     fontSize: '0.8rem',
-                                    color: 'rgba(255,255,255,0.9)',
+                                    color: 'arc.onGlass',
                                 }}
                             />
                         </ListItemButton>

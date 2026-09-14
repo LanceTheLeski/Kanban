@@ -46,32 +46,22 @@
 
 /*
  * ── Why rem and not px ───────────────────────────────────────────────────────
- * A browser's "default font size" setting changes the root font size, and rem is
- * measured against it. px is not. With px widths, a reader who sets 24px gets
- * text 50% larger inside a column that has not moved at all — measured on this
- * board: the card title went 11.2px → 16.8px while the column stayed exactly
- * 300px. Nothing overflows, because the titles are line-clamped; the text is
- * simply cut sooner, so the setting that was meant to help quietly removes
- * content instead.
- *
- * Every box here holds text, so every box is stated in rem and grows with it.
- * Fewer columns fit on screen at 24px — which is the honest trade, and the board
- * already scrolls sideways.
+ * Every box here holds text, so every box is stated in rem and grows with the
+ * reader's font size. Styles/Measures has the rule and the measurements behind
+ * it; the board-specific consequence is that fewer columns fit on screen at a
+ * large root size — the honest trade, and the board already scrolls sideways.
  *
  * Breakpoints stay in px (MUI's are px by design) because they describe the
  * device, not the text.
  */
 
 /**
- * The design values are kept in px because that is how they were chosen — and
- * how the Blazor original expressed them — then converted once, here. Writing
- * `rem(300)` keeps the intent legible where `18.75rem` would not.
- *
- * 16 is the CSS initial root size, not an assumption about the reader: it is the
- * divisor that makes rem(300) equal 300px for someone who has changed nothing,
- * and scale from there for everyone else.
+ * `rem` comes from Styles/Measures, which is also where the app's non-board
+ * sizes live and where the rem/theme-unit/px rule is written out in full. One
+ * helper rather than two, so a board token and a dialog token cannot end up
+ * converting against different root sizes.
  */
-const rem = (px: number) => `${px / 16}rem`
+import { rem } from '../../Styles/Measures'
 
 /**
  * Column width. Everything on the board is measured against this: the header

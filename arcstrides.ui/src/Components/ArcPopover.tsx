@@ -32,6 +32,7 @@ import {
     type ButtonProps,
     type PopoverOrigin,
 } from '@mui/material'
+import { POPOVER_MIN_WIDTH } from '../Styles/Measures'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -138,7 +139,7 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
                     sx={{
                         display: 'flex',
                         flexDirection: 'column',
-                        minWidth: 280,
+                        minWidth: POPOVER_MIN_WIDTH,
                         maxWidth: '90vw',
                     }}
                 >

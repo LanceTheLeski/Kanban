@@ -35,6 +35,7 @@ import {
     timelineOperations,
     timelineTypeIdFor,
 } from '../Timeline/timelineDraft'
+import { TASK_POPOVER_WIDTH } from '../../../Styles/Measures'
 import type { Task, TaskType } from '../../../Entities/Task/Task.Types'
 import type { Timeline } from '../../../Entities/Timeline/Timeline.Types'
 
@@ -164,13 +165,13 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                 onSubmit={handleSubmit}
                 triggerSize={triggerSize}
                 triggerStyle={{
-                    backgroundColor: 'rgba(153, 214, 255, 0.8)',
+                    backgroundColor: 'arc.taskPanel',
                     ...triggerStyle,
                 }}
                 anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'center', horizontal: 'left' }}
             >
-                <Box sx={{ width: 560, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ width: TASK_POPOVER_WIDTH, display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <TextField
                         label="Title"
                         variant="filled"

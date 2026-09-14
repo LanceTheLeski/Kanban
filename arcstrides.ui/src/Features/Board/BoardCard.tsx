@@ -43,6 +43,11 @@ import { useBoardActions } from './useBoardActions'
 import { deleteCard } from './Board.APIs'
 import { useBoardStore } from './Board.Store'
 import { CARD_MIN_HEIGHT, DRAG_PREVIEW_WIDTH } from './Board.Layout'
+import {
+    CARD_ACTIONS_MAX_HEIGHT,
+    DRAG_HANDLE_HEIGHT,
+    DRAG_HANDLE_ICON_SIZE,
+} from '../../Styles/Measures'
 import type { Card } from '../../Entities/Card/Card.Types'
 
 interface BoardCardProps {
@@ -91,7 +96,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({
                     minHeight: CARD_MIN_HEIGHT,
                     // The ghost has no cell to fill, so give it the column's width.
                     ...(preview ? { width: DRAG_PREVIEW_WIDTH } : {}),
-                    backgroundColor: 'lightyellow',
+                    backgroundColor: 'arc.cardSurface',
                     display: 'flex',
                     flexDirection: 'column',
                     borderRadius: 2,
@@ -108,7 +113,11 @@ export const BoardCard: React.FC<BoardCardProps> = ({
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        height: 16,
+                        // rem, because what this strip holds is an icon, and an
+                        // MUI icon is sized in font units. At a 24px root the icon
+                        // grew to 21px inside a 16px strip and pushed the card's
+                        // content down.
+                        height: DRAG_HANDLE_HEIGHT,
                         flexShrink: 0,
                         color: 'rgba(0,0,0,0.35)',
                         cursor: dragHandleProps ? 'grab' : 'default',
@@ -116,7 +125,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({
                         '&:active': { cursor: dragHandleProps ? 'grabbing' : 'default' },
                     }}
                 >
-                    <DragIndicatorIcon sx={{ fontSize: 14, transform: 'rotate(90deg)' }} />
+                    <DragIndicatorIcon sx={{ fontSize: DRAG_HANDLE_ICON_SIZE, transform: 'rotate(90deg)' }} />
                 </Box>
 
                 {/* Upper section: clickable card content */}
@@ -128,7 +137,8 @@ export const BoardCard: React.FC<BoardCardProps> = ({
                         cursor: preview ? 'grabbing' : 'pointer',
                         p: 0.5,
                         overflow: 'hidden',
-                        '&:hover': preview ? undefined : { backgroundColor: 'rgba(0,0,0,0.04)' },
+                        // MUI's own hover shade, which this was a hand-written copy of.
+                        '&:hover': preview ? undefined : { backgroundColor: 'action.hover' },
                     }}
                 >
                     {/* Title — mirrors MudText font-weight:600 font-size:x-small */}
@@ -175,7 +185,13 @@ export const BoardCard: React.FC<BoardCardProps> = ({
                     variant="text"
                     size="small"
                     fullWidth
-                    sx={{ maxHeight: 50, flexShrink: 0, borderTop: '1px solid rgba(0,0,0,0.1)' }}
+                    sx={{
+                        maxHeight: CARD_ACTIONS_MAX_HEIGHT,
+                        flexShrink: 0,
+                        // px: a hairline is chrome, and should not thicken with
+                        // the reader's font size.
+                        borderTop: '1px solid rgba(0,0,0,0.1)',
+                    }}
                 >
                     <Button
                         sx={{ fontSize: '0.6rem', flex: 1, minWidth: 0 }}
