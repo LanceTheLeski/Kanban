@@ -5,10 +5,24 @@ to Azure — the emulator holds everything on your own disk.
 
 ## 1. Storage: Azurite + tables
 
-```bash
-cd tools && npm install      # first time only
-cd .. && node tools/dev-up.mjs
 ```
+npm install --prefix tools     # first time only
+node tools/dev-up.mjs
+```
+
+Run both from the repository root — the folder holding `ArcStrides.sln` — in any
+terminal that has Node on its PATH. In Visual Studio, **View → Terminal** opens
+one there already.
+
+> Written without `&&` on purpose. Developer PowerShell for VS 2022 is Windows
+> PowerShell 5.1, which has no `&&` operator and answers `cd tools && npm install`
+> with *"The token '&&' is not a valid statement separator in this version."*
+> `--prefix` sidesteps the directory change entirely and works in PowerShell,
+> pwsh, cmd and bash alike.
+
+`dev-up` itself finds the repository from its own location, so only the path you
+type depends on where you are standing; `node C:\src\Kanban\tools\dev-up.mjs`
+works from anywhere.
 
 That is the whole step, and it is the one command to run before pressing F5. It
 starts [Azurite](https://learn.microsoft.com/azure/storage/common/storage-use-azurite)
