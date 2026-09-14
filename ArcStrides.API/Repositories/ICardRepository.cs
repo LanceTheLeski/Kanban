@@ -24,7 +24,11 @@ public interface ICardRepository
 
     #region Card Position
 
-    Task<CardPosition?> GetCardPositionAsync (Guid boardID, Guid cardID);
+    /// <summary>
+    /// The position row identified by <paramref name="cardPositionID"/> — which is
+    /// the card's CardPositionID, not its card ID. The two are different Guids.
+    /// </summary>
+    Task<CardPosition?> GetCardPositionAsync (Guid boardID, Guid cardPositionID);
 
     Task<Collection<CardPosition>> GetCardPositionsAsync (Guid boardID);
 

@@ -173,6 +173,13 @@ public class BoardController : Controller
         var cardToUpdate = await _cardRepository.GetCardPositionAsync (boardID, cardPositionID);
         //var cardToUpdate = cardFromTable.Value;
 
+        // GetCardPositionAsync returns null for a row that is not there rather than
+        // throwing, so this has to be checked before the properties below are read.
+        // Dragging a card whose position row has since been deleted would otherwise
+        // be a NullReferenceException.
+        if (cardToUpdate is null)
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (CardPosition)));
+
         var convertedCardToUpdate = new CardPositionPatchRequest
         {
             //Title = cardToUpdate.CardTitle,
@@ -224,7 +231,23 @@ public class BoardController : Controller
     [HttpDelete ("{boardID:guid}/cards/{cardID:guid}")] // Need to delete from board AND card tables. There might also be extensions to remove. For now though, I'm just going to do board.
     public async Task<ActionResult> DeleteCardPosition (Guid boardID, Guid cardID)
     {
-        var boardCardToDelete = await _cardRepository.GetCardPositionAsync (boardID, cardID);
+        // A card and its position row have different IDs. CreateCard mints a fresh
+        // Guid for the position (see CardController), stores it on the card as
+        // CardPositionID, and uses it as the position row's RowKey. This used to
+        // pass cardID straight in as the row key, so the lookup asked the
+        // CardPositions table for a row keyed by a card ID — a row that never
+        // exists — and every delete failed with ResourceNotFound (404).
+        //
+        // The route is keyed by cardID because that is what a client has, so go
+        // through the card to find its position.
+        var cardToDelete = await _cardRepository.GetCardAsync (boardID, cardID);
+        if (cardToDelete is null)
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Card)));
+
+        if (cardToDelete.CardPositionID is null)
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (CardPosition)));
+
+        var boardCardToDelete = await _cardRepository.GetCardPositionAsync (boardID, cardToDelete.CardPositionID.Value);
         if (boardCardToDelete is null)
             return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (CardPosition)));
 

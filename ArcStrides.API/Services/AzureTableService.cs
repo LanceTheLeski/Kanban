@@ -23,22 +23,35 @@ public class AzureTableService<T> : IAzureTableService<T> where T : class, ITabl
         _table = _tableServiceClient.GetTableClient (tableName: tableName);
     }
 
+    /// <summary>
+    /// The entity, or null when the table holds no such row.
+    /// </summary>
+    /// <remarks>
+    /// GetEntityIfExistsAsync rather than GetEntityAsync, because these methods
+    /// promise T? and callers act on that promise:
+    /// <c>if (cardToUpdate is null) return NotFound (…)</c>.
+    ///
+    /// GetEntityAsync throws RequestFailedException with ResourceNotFound (404)
+    /// for a missing row, so it never returned null and every one of those null
+    /// checks was unreachable. A request for something that simply is not there —
+    /// an ordinary 404 — surfaced as an unhandled exception instead.
+    ///
+    /// The old body also could not have returned null by itself: it compared
+    /// response.Value.GetType() against new T().GetType(), which is the same type
+    /// whenever a response comes back at all.
+    /// </remarks>
     public async Task<T?> GetEntityAsync (Guid partitionKeyGuid, Guid rowKeyGuid)
-    {
-        var response = await _table.GetEntityAsync<T> (partitionKey: partitionKeyGuid.ToString (), rowKey: rowKeyGuid.ToString ());
+        => await GetEntityOrNullAsync (partitionKeyGuid.ToString (), rowKeyGuid.ToString ());
 
-        return response?.Value.GetType () == new T ().GetType () ?
-            response.Value :
-            null;
-    }
-
+    /// <inheritdoc cref="GetEntityAsync(Guid, Guid)"/>
     public async Task<T?> GetEntityAsync (Guid partitionKeyGuid, int rowKeyInt)
-    {
-        var response = await _table.GetEntityAsync<T> (partitionKey: partitionKeyGuid.ToString (), rowKey: rowKeyInt.ToString ());
+        => await GetEntityOrNullAsync (partitionKeyGuid.ToString (), rowKeyInt.ToString ());
 
-        return response?.Value.GetType () == new T ().GetType () ?
-            response.Value :
-            null;
+    private async Task<T?> GetEntityOrNullAsync (string partitionKey, string rowKey)
+    {
+        var response = await _table.GetEntityIfExistsAsync<T> (partitionKey: partitionKey, rowKey: rowKey);
+
+        return response.HasValue ? response.Value : null;
     }
 
     public async Task<Collection<T>> GetEntitiesAsync (Guid partitionKeyGuid)
