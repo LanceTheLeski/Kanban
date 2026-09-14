@@ -210,10 +210,9 @@ main {
 }
 
 
-/* ── Section 3: React demo additions (not from original project) ─────────────
-   These classes exist only to support ComponentDemo.tsx.
-   They have no equivalent in the Blazor source and can be removed
-   when real page layouts replace the demo.
+/* ── Section 3: React adaptations (not from the original project) ────────────
+   Everything above is the Blazor CSS as it was. This section is what the port
+   needs on top, kept separate so the two never get confused.
    ─────────────────────────────────────────────────────────────────────────── */
 
 *,
@@ -230,10 +229,38 @@ body,
     min-height: 100vh;
 }
 
-.demo-root {
-    min-height: 100vh;
-    padding: 48px 32px;
-    display: flex;
-    flex-direction: column;
-    gap: 48px;
+/*
+   The blur that makes .glass actually read as glass.
+
+   The ported .glass is a pair of translucent gradients and an inset highlight
+   stack, with no backdrop-filter — the commented-out first draft at the top of
+   this file had one, and the version that shipped dropped it. On the board that
+   was survivable, because the panel's interior is covered by opaque children.
+   On an overlay it is not: ArcOverlay floats above a full board, and at 40-50%
+   alpha with nothing diffusing what is behind it, card titles and cell colours
+   read straight through the dialog and the text on top became unreadable.
+
+   Blur is what separates frosted glass from a see-through pane. It is applied
+   here rather than edited into the rule above so Section 1 stays a faithful
+   record of the Blazor original.
+
+   saturate() keeps the colours behind from going flat and grey once blurred —
+   it is the same pairing the original draft used, at 180% rather than 200%
+   because the gradients already carry their own colour.
+*/
+.glass {
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    backdrop-filter: blur(18px) saturate(180%);
+}
+
+/*
+   Where backdrop-filter is unsupported, translucency alone would leave overlay
+   text sitting on whatever happens to be behind it. Trade the effect for
+   legibility: a near-opaque panel is a worse-looking dialog but still a
+   readable one.
+*/
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass {
+        background-color: rgba(98, 147, 185, .92);
+    }
 }

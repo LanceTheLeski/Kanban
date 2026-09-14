@@ -19,7 +19,7 @@
  * only change this file.
  */
 
-import { ThemeProvider, CssBaseline } from '@mui/material'
+import { ThemeProvider, CssBaseline, StyledEngineProvider } from '@mui/material'
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
@@ -32,6 +32,25 @@ import './Styles/ArcStyles.css'
 function App() {
     return (
         <BrowserRouter>
+            {/*
+              injectFirst puts MUI's generated styles at the TOP of <head>, ahead of
+              ArcStyles.css, so our own stylesheet wins on equal specificity.
+
+              Without it MUI loses the race by default — emotion injects at render
+              time, after an imported CSS file has already been applied — and it was
+              quietly overriding the ported Blazor glass. On the board's Paper, MUI's
+              class replaced the transparent background with the theme's solid blue
+              and elevation={0} set box-shadow: none, which erased the entire inset
+              highlight stack. The gradients survived, so it still looked deliberate:
+              a flat blue slab rather than glass.
+
+              This is MUI's documented answer to plain CSS being overridden, and it
+              fixes the whole ported stylesheet at once rather than glass alone. The
+              trade-off is that sx no longer outranks a class in ArcStyles.css, so a
+              component wanting to depart from .glass should stop using the class
+              rather than try to out-specify it.
+            */}
+            <StyledEngineProvider injectFirst>
             <ThemeProvider theme={arcTheme}>
                 <CssBaseline />
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -59,6 +78,7 @@ function App() {
                     </ArcErrorDisplay>
                 </LocalizationProvider>
             </ThemeProvider>
+            </StyledEngineProvider>
         </BrowserRouter>
     )
 }
