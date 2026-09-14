@@ -15,31 +15,37 @@ public class SwimlaneValidators
         {
             RuleFor (boardSwimlaneEnumerable => boardSwimlaneEnumerable.Select (swimlane => swimlane.RowKey))
                 .Must (ValidateSwimlaneIDsAreGuids)
-                .WithMessage ("Todo 1");
+                .WithMessage (ValidatorMessages.InvalidFieldValueFormatValidatorMessage (nameof (Swimlane.RowKey)));
 
             RuleFor (boardSwimlaneEnumerable => boardSwimlaneEnumerable.Select (swimlane => swimlane.RowKey))
                 .Must (ValidateDistinctSwimlaneID)
-                .WithMessage ("Todo 2");
+                .WithMessage ((_, ids) =>
+                    ValidatorMessages.DuplicateFieldValidatorMessage (nameof (Swimlane.RowKey), ids));
 
             RuleFor (boardSwimlaneEnumerable => boardSwimlaneEnumerable.Select (swimlane => swimlane.Title))
                 .Must (ValidateDistinceSwimlaneTitle)
-                .WithMessage ("Todo 3");
+                .WithMessage ((_, titles) =>
+                    ValidatorMessages.DuplicateFieldValidatorMessage (nameof (Swimlane.Title), titles, StringComparer.InvariantCultureIgnoreCase));
 
             RuleFor (boardSwimlaneEnumerable => boardSwimlaneEnumerable.Select (swimlane => swimlane.SwimlaneOrder))
                 .Must (ValidateDistinctSwimlaneOrder)
-                .WithMessage ("Todo 4");
+                .WithMessage ((_, orders) =>
+                    ValidatorMessages.DuplicateFieldValidatorMessage (nameof (Swimlane.SwimlaneOrder), orders));
 
             RuleFor (boardSwimlaneEnumerable => boardSwimlaneEnumerable.Select (swimlane => swimlane.GlobalSwimlaneOrder))
                 .Must (ValidateDistinctGlobalSwimlaneOrder)
-                .WithMessage ("Todo 5");
+                .WithMessage ((_, globalOrders) =>
+                    ValidatorMessages.DuplicateFieldValidatorMessage (nameof (Swimlane.GlobalSwimlaneOrder), globalOrders));
 
             RuleFor (boardSwimlaneEnumerable => boardSwimlaneEnumerable.Select (swimlane => swimlane.SwimlaneColor))
                 .Must (ValidateDistinctSwimlaneColor)
-                .WithMessage ("Todo 6");
+                .WithMessage ((_, colors) =>
+                    ValidatorMessages.DuplicateFieldValidatorMessage (nameof (Swimlane.SwimlaneColor), colors, StringComparer.InvariantCultureIgnoreCase));
 
             RuleFor (boardSwimlaneEnumerable => boardSwimlaneEnumerable.Select (swimlane => swimlane.GlobalSwimlaneColor))
                 .Must (ValidateDistinctGlobalSwimlaneColor)
-                .WithMessage ("Todo 7");
+                .WithMessage ((_, globalColors) =>
+                    ValidatorMessages.DuplicateFieldValidatorMessage (nameof (Swimlane.GlobalSwimlaneColor), globalColors, StringComparer.InvariantCultureIgnoreCase));
         }
 
         private bool ValidateSwimlaneIDsAreGuids (IEnumerable<string?> swimlaneIDs)

@@ -135,6 +135,24 @@ npm run dev
 Serves <http://localhost:54671>, which is the origin the API's `DevCors` policy
 allows — don't change the port without changing `Program.cs` to match.
 
+## When the board will not load
+
+`GET /arcstrides/boards/{id}` validates the whole board before returning it, so
+one bad row makes the board unreadable — and what you need in order to see why is
+the data the API is refusing to hand over. This reads the tables directly:
+
+```
+node tools/inspect-board.mjs
+```
+
+It prints every column, swimlane and card position, then names the values that
+break the API's uniqueness rules. A 400 from the board endpoint with nothing
+useful in it usually means two rows share an order.
+
+It separates a genuine conflict (two swimlanes at order 0) from a field that is
+unset on every row, because the second has been true since the board was seeded
+and is rarely what just changed.
+
 ## Starting over
 
 ```bash

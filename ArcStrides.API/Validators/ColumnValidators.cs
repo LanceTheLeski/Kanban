@@ -15,31 +15,37 @@ public class ColumnValidators
         {
             RuleFor (boardColumnEnumerable => boardColumnEnumerable.Select (column => column.RowKey))
                 .Must (ValidateColumnIDsAreGuids)
-                .WithMessage ("Todo 1");
+                .WithMessage (ValidatorMessages.InvalidFieldValueFormatValidatorMessage (nameof (Column.RowKey)));
 
             RuleFor (boardColumnEnumerable => boardColumnEnumerable.Select (column => column.RowKey))
                 .Must (ValidateDistinctColumnID)
-                .WithMessage ("Todo 2");
+                .WithMessage ((_, ids) =>
+                    ValidatorMessages.DuplicateFieldValidatorMessage (nameof (Column.RowKey), ids));
 
             RuleFor (boardColumnEnumerable => boardColumnEnumerable.Select (column => column.Title))
                 .Must (ValidateDistinceColumnTitle)
-                .WithMessage ("Todo 3");
+                .WithMessage ((_, titles) =>
+                    ValidatorMessages.DuplicateFieldValidatorMessage (nameof (Column.Title), titles, StringComparer.InvariantCultureIgnoreCase));
 
             RuleFor (boardColumnEnumerable => boardColumnEnumerable.Select (column => column.ColumnOrder))
                 .Must (ValidateDistinctColumnOrder)
-                .WithMessage ("Todo 4");
+                .WithMessage ((_, orders) =>
+                    ValidatorMessages.DuplicateFieldValidatorMessage (nameof (Column.ColumnOrder), orders));
 
             RuleFor (boardColumnEnumerable => boardColumnEnumerable.Select (column => column.GlobalColumnOrder))
                 .Must (ValidateDistinctGlobalColumnOrder)
-                .WithMessage ("Todo 5");
+                .WithMessage ((_, globalOrders) =>
+                    ValidatorMessages.DuplicateFieldValidatorMessage (nameof (Column.GlobalColumnOrder), globalOrders));
 
             RuleFor (boardColumnEnumerable => boardColumnEnumerable.Select (column => column.ColumnColor))
                 .Must (ValidateDistinctColumnColor)
-                .WithMessage ("Todo 6");
+                .WithMessage ((_, colors) =>
+                    ValidatorMessages.DuplicateFieldValidatorMessage (nameof (Column.ColumnColor), colors, StringComparer.InvariantCultureIgnoreCase));
 
             RuleFor (boardColumnEnumerable => boardColumnEnumerable.Select (column => column.GlobalColumnColor))
                 .Must (ValidateDistinctGlobalColumnColor)
-                .WithMessage ("Todo 7");
+                .WithMessage ((_, globalColors) =>
+                    ValidatorMessages.DuplicateFieldValidatorMessage (nameof (Column.GlobalColumnColor), globalColors, StringComparer.InvariantCultureIgnoreCase));
         }
 
         private bool ValidateColumnIDsAreGuids (IEnumerable<string?> columnIDs)

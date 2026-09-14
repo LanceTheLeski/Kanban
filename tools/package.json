@@ -6,7 +6,8 @@
   "scripts": {
     "up": "node dev-up.mjs",
     "provision": "node provision-azurite.mjs",
-    "seed": "node seed-dev-board.mjs"
+    "seed": "node seed-dev-board.mjs",
+    "inspect": "node inspect-board.mjs"
   },
   "dependencies": {
     "@azure/data-tables": "^13.3.0"

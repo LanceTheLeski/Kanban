@@ -72,7 +72,11 @@ public class BoardController : Controller
         var swimlaneCollection = await _swimlaneRepository.GetAllBoardSwimlanes (ID);
         var swimlaneValidationResult = _boardSwimlaneEnumerableValidator.Validate (swimlaneCollection);
         if (swimlaneValidationResult.IsValid is false)
-            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (Swimlane), columnValidationResult.ToString ()));
+            // swimlaneValidationResult, not columnValidationResult. Reporting the
+            // column result here meant this branch described a validation that had
+            // just passed, so it stringified to nothing and the 400 came back with
+            // an empty body -- a rejection that could not say what it rejected.
+            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (Swimlane), swimlaneValidationResult.ToString ()));
         var swimlaneCollectionOrdered = swimlaneCollection.OrderBy (swimlane => swimlane.SwimlaneOrder);
 
         var cardCollection = await _cardRepository.GetCardsAsync (ID);
