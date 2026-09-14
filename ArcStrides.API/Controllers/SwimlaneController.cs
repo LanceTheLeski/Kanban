@@ -179,13 +179,25 @@ public class SwimlaneController : ArcController
                                                                     SwimlanePatchRequest convertedSwimlaneToUpdate,
                                                                     IEnumerable<Swimlane> swimlanesFromBoard)
     {
-        if (convertedSwimlaneToUpdate.Order is not 0 && convertedSwimlaneToUpdate.Order <= swimlanesFromBoard.Count ())
+        // A swimlane may move to any slot the board has: 0 through count - 1.
+        //
+        // The test used to be `Order is not 0 && Order <= Count()`, which rejects
+        // every position that exists except 0 -- moving a swimlane to position 1 on
+        // a two-swimlane board failed as "out of range", while position 5 on that
+        // same board passed.
+        if (convertedSwimlaneToUpdate.Order is int newSwimlaneOrder
+            && (newSwimlaneOrder < 0 || newSwimlaneOrder >= swimlanesFromBoard.Count ()))
             throw new RequestFailureWrapperException (nameof (BadRequest), ErrorResponseMessages.ValidationFailedErrorResponse (nameof (Swimlane), ValidatorMessages.FieldOutOfRangeValdiatorMessage (nameof (Swimlane.SwimlaneOrder))));
 
-        var swimlanesWithoutSwimlaneToUpdate = DeepCopier.Copy (swimlanesFromBoard.ToList ());
-        swimlanesWithoutSwimlaneToUpdate.Remove (swimlaneToUpdate);
+        // Compare the new title against the *other* swimlanes, matched by ID.
+        //
+        // This used to deep-copy the list and then Remove(swimlaneToUpdate), which
+        // removes by reference -- and after a copy there is no reference to match,
+        // so nothing was removed and the swimlane was compared against itself. Any
+        // patch that left the title as it was reported a duplicate title.
+        var otherSwimlanes = swimlanesFromBoard.Where (swimlane => swimlane.RowKey != swimlaneToUpdate.RowKey);
         if (convertedSwimlaneToUpdate.Title is not null
-            && swimlanesWithoutSwimlaneToUpdate.Any (swimlane => string.Equals (swimlane.Title, convertedSwimlaneToUpdate.Title, StringComparison.OrdinalIgnoreCase)))
+            && otherSwimlanes.Any (swimlane => string.Equals (swimlane.Title, convertedSwimlaneToUpdate.Title, StringComparison.OrdinalIgnoreCase)))
             throw new RequestFailureWrapperException (nameof (BadRequest), ErrorResponseMessages.ValidationFailedErrorResponse (nameof (Swimlane), ValidatorMessages.DuplicateFieldValidatorMessage (nameof (Swimlane.Title))));
     }
 
@@ -229,18 +241,33 @@ public class SwimlaneController : ArcController
         var updateSwimlaneTransaction = new ArcTransaction ();
 
         var orderIsUpdated = swimlanePatchRequest.Any (operation => string.Equals (operation.path, $"/{nameof (SwimlanePatchRequest.Order)}", StringComparison.OrdinalIgnoreCase));
-        if (orderIsUpdated)
-            updateSwimlaneTransaction = _swimlaneRepository.ApplyNewOrderForExistingSwimlanes (swimlaneToUpdate, convertedSwimlaneToUpdate.Order.Value, swimlanesFromBoard, updateSwimlaneTransaction);
+        // `is int` rather than .Value: an Order operation carrying null would
+        // otherwise throw from here as a generic 500 instead of being ignored.
+        if (orderIsUpdated && convertedSwimlaneToUpdate.Order is int patchedSwimlaneOrder)
+            updateSwimlaneTransaction = _swimlaneRepository.ApplyNewOrderForExistingSwimlanes (swimlaneToUpdate, patchedSwimlaneOrder, swimlanesFromBoard, updateSwimlaneTransaction);
 
-        swimlaneToUpdate = _swimlaneMapper.MapSwimlanePatchRequestToSwimlane (convertedSwimlaneToUpdate); // Make sure that the response object is preserved if not mapped to.
+        // Merge the patch onto the stored swimlane rather than replacing it.
+        //
+        // This used to reassign swimlaneToUpdate to a Swimlane built from the patch
+        // request, which carries only Title and Order -- so the entity handed to the
+        // transaction had a null RowKey and a null PartitionKey. Adding it hit
+        // Guid.Parse(null) in ArcTransactionCollection and threw, which the
+        // controller turned into "An error occurred while processing your request"
+        // with nothing in the log. ColumnController has always done it this way.
+        var originalSwimlane = DeepCopier.Copy (swimlaneToUpdate);
+        var patchedSwimlane = _swimlaneMapper.MapSwimlanePatchRequestToSwimlane (convertedSwimlaneToUpdate);
+        _swimlaneMapper.MapFieldsFromSourceToTarget (patchedSwimlane, swimlaneToUpdate);
 
-        var allUpdatedSwimlanes = updateSwimlaneTransaction.GetTransactionDictionary () [typeof (Swimlane).GetArcTableName ()]
-                                                           .Select (action => (Swimlane) action.Entity)
-                                                           .ToList ();
+        // GetTransactionEntities rather than indexing the dictionary: the indexer
+        // throws KeyNotFoundException when no swimlane order changed, so a patch that
+        // only renamed a swimlane failed here for a second, unrelated reason.
+        var allUpdatedSwimlanes = updateSwimlaneTransaction.GetTransactionEntities<Swimlane> ().ToList ();
         allUpdatedSwimlanes.Add (swimlaneToUpdate);
 
         var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, swimlaneToUpdate);
-        updateSwimlaneTransaction.Add (transaction, swimlaneToUpdate);
+        // The snapshot taken above, not the entity that was just modified -- the
+        // second argument is what a rollback restores.
+        updateSwimlaneTransaction.Add (transaction, originalSwimlane);
 
         updateSwimlaneTransaction = _swimlaneRepository.ApplyNewOrderForExistingCardPositions (allUpdatedSwimlanes!, cardPositionsFromBoard!, updateSwimlaneTransaction);
 
