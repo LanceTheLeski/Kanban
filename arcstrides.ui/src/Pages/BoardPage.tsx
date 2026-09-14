@@ -40,7 +40,7 @@
  * back and the error is surfaced, rather than leaving the UI out of sync.
  */
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Box, Button, CircularProgress, Paper, Typography } from '@mui/material'
 import {
@@ -57,6 +57,7 @@ import {
 import {
     BOARD_GAP,
     BOARD_TITLE_WIDTH,
+    CELL_MAX_HEIGHT,
     CELL_MIN_HEIGHT,
     COLUMN_WIDTH,
     STACK_LABEL_BELOW,
@@ -93,19 +94,51 @@ const parseCellId = (id: string): { swimlaneId: string; columnId: string } | nul
  */
 const DroppableCell: React.FC<{
     identifier: string
+    cardCount: number
     children: React.ReactNode
-}> = ({ identifier, children }) => {
+}> = ({ identifier, cardCount, children }) => {
     const { setNodeRef, isOver } = useDroppable({ id: identifier })
+
+    // Whether the cell is actually holding more than it can show. Measured rather
+    // than inferred from the card count, because cards are not a fixed height —
+    // two long ones can overflow where three short ones do not.
+    const cellRef = useRef<HTMLDivElement | null>(null)
+    const [isScrolling, setIsScrolling] = useState(false)
+
+    useEffect(() => {
+        const cell = cellRef.current
+        if (!cell) return
+
+        const measure = () => setIsScrolling(cell.scrollHeight > cell.clientHeight + 1)
+        measure()
+
+        // Card heights settle after fonts load and text wraps, so a single
+        // measurement on mount would be taken too early.
+        const observer = new ResizeObserver(measure)
+        observer.observe(cell)
+        for (const child of cell.children) observer.observe(child)
+
+        return () => observer.disconnect()
+    }, [cardCount])
+
+    // dnd-kit needs the node and so do we, so the ref sets both.
+    const attachRef = (node: HTMLDivElement | null) => {
+        cellRef.current = node
+        setNodeRef(node)
+    }
 
     return (
         <Box
-            ref={setNodeRef}
+            ref={attachRef}
             sx={{
                 // Width comes from the column token so this cell and the header
-                // above it cannot disagree. Height is a floor, not a size: the
-                // cell grows with its cards instead of clipping the fourth one.
+                // above it cannot disagree. Height is a floor and a ceiling: the
+                // cell grows with its cards up to a point, then scrolls, so one
+                // busy intersection cannot push the rest of the board off screen.
                 width: COLUMN_WIDTH,
                 minHeight: CELL_MIN_HEIGHT,
+                maxHeight: CELL_MAX_HEIGHT,
+                overflowY: 'auto',
                 backgroundColor: isOver ? '#d4f5d4' : '#ECED7b',
                 display: 'flex',
                 flexDirection: 'column',
@@ -115,6 +148,33 @@ const DroppableCell: React.FC<{
                 transition: 'background-color 0.15s, outline 0.15s',
             }}
         >
+            {/*
+                Only shown when cards are actually out of sight. A cell that
+                silently hides its fourth card is worse than one that grows: the
+                count is the difference between "three cards here" and "three of
+                five". Sticky so it stays put while the cell scrolls.
+            */}
+            {isScrolling && (
+                <Typography
+                    variant="caption"
+                    sx={{
+                        position: 'sticky',
+                        top: 0,
+                        alignSelf: 'flex-end',
+                        flexShrink: 0,
+                        zIndex: 1,
+                        px: 0.75,
+                        borderRadius: 1,
+                        backgroundColor: 'rgba(0, 0, 0, 0.55)',
+                        color: 'common.white',
+                        fontWeight: 'bold',
+                        pointerEvents: 'none',
+                    }}
+                >
+                    {cardCount} cards
+                </Typography>
+            )}
+
             {children}
         </Box>
     )
@@ -450,7 +510,11 @@ export const BoardPage: React.FC = () => {
                                                     const cellCards = cardsByCell.get(identifier) ?? []
 
                                                     return (
-                                                        <DroppableCell key={column.id} identifier={identifier}>
+                                                        <DroppableCell
+                                                            key={column.id}
+                                                            identifier={identifier}
+                                                            cardCount={cellCards.length}
+                                                        >
                                                             {cellCards.map(card => (
                                                                 <DraggableCard
                                                                     key={card.id}

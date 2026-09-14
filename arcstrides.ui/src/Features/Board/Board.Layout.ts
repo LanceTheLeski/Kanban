@@ -89,6 +89,21 @@ export const BOARD_TITLE_WIDTH = SWIMLANE_LABEL_WIDTH
 export const CELL_MIN_HEIGHT = { xs: rem(148), md: rem(184) }
 
 /**
+ * How tall a drop cell is allowed to get before it scrolls its own cards.
+ *
+ * Without a ceiling a cell grows with whatever is in it, and one busy
+ * intersection pushes every other swimlane off the screen — the board stops
+ * being an overview, which is the only thing a board is for. Three cards is
+ * about what reads at a glance, so the cap is roughly three plus the gaps
+ * between them; past that the cell scrolls and says how many it holds.
+ *
+ * Capping the height rather than the card count is deliberate: cards are not all
+ * the same height, and it is the height that decides whether the board still
+ * fits on a screen.
+ */
+export const CELL_MAX_HEIGHT = { xs: rem(300), md: rem(384) }
+
+/**
  * A card fills the width of its cell rather than sitting at a fixed 120px inside
  * a 300px column. Cards are mostly text, and the old fixed width was truncating
  * titles after roughly four words while three quarters of the column sat empty.
