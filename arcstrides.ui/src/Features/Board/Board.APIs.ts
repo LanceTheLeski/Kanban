@@ -476,6 +476,39 @@ export async function fetchTaskTypes(taskTypeIds: number[]): Promise<TaskType[]>
         .filter((taskType): taskType is TaskType => taskType !== null)
 }
 
+/**
+ * The tag group new task types are created under.
+ *
+ * Task types hang off a tag group, but the UI has no notion of tag groups yet —
+ * there is no picker and nothing to pick from. The server ignores the grouping
+ * on read (FetchTaskTypes queries `taskType => true`), so any valid Guid gives a
+ * consistent home until tag groups are actually built. This is the same one the
+ * seeder uses, so types created here and types seeded there sit together.
+ */
+export const DEFAULT_TASK_TYPE_TAG_GROUP_ID = '7b3f1c94-4d2e-4a61-9f0c-2e5a8d1b6c73'
+
+/**
+ * POST arcstrides/taggroups/:tagGroupId/tasks/types
+ *
+ * Returns the created type so the caller can select it immediately rather than
+ * refetching and hunting for it by title.
+ */
+export async function createTaskType(
+    title: string,
+    tagGroupId: string = DEFAULT_TASK_TYPE_TAG_GROUP_ID,
+): Promise<TaskType> {
+    const response = await apiClient.post<TaskTypeResponse>(
+        `${ARC}/taggroups/${tagGroupId}/tasks/types`,
+        { Title: title },
+    )
+
+    const taskType = mapTaskType(response)
+    if (!taskType)
+        throw new Error('The server accepted the task type but did not return one with an ID.')
+
+    return taskType
+}
+
 // ── Timeline ──────────────────────────────────────────────────────────────────
 
 export interface TimelineCreateRequest {

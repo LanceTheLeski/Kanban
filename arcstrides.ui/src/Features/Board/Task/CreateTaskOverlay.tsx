@@ -31,6 +31,7 @@ import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
 import { UpdateTimelinePanel, type TimelineDraft } from '../Timeline/UpdateTimelinePanel'
 import { CreateTaskTypeOverlay } from '../../TagGroup/TaskType/CreateTaskTypeOverlay'
 import { useBoardActions } from '../useBoardActions'
+import { useArcError } from '../../../Components/useArcError'
 import {
     draftToTimelineDates,
     hasTimeline,
@@ -64,6 +65,7 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
     const [createTaskTypeOpen, setCreateTaskTypeOpen] = useState(false)
 
     const { run } = useBoardActions()
+    const { addError } = useArcError()
 
     // Mirrors Blazor's OnAfterRenderAsync(firstRender)
     useEffect(() => {
@@ -85,6 +87,14 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
     }
 
     const handleSubmit = async () => {
+        // -1 used to go out here when nothing was selected, and the API answered
+        // "The TaskTypeID passed in does not exist in the service" — technically
+        // true, and useless. Ask for the missing field instead of inventing one.
+        if (selectedTaskTypeId === null) {
+            addError('Pick a task type before adding the task.')
+            return
+        }
+
         let created: Task | null = null
 
         const succeeded = await run(
@@ -92,7 +102,7 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
             async () => {
                 created = await createTask(boardId, cardId, {
                     title: title.trim() || 'New Task',
-                    taskTypeId: selectedTaskTypeId ?? -1,
+                    taskTypeId: selectedTaskTypeId,
                     order: selectedOrder,
                     isComplete: isCompleted,
                 })
@@ -130,7 +140,13 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
                 anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'center', horizontal: 'left' }}
             >
-                <Box sx={{ width: 560, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {/*
+                    Was a flat `width: 560`, which could not hold a 460px timeline
+                    panel and the task fields side by side. It now asks for a
+                    comfortable width and accepts less on a small screen, and the
+                    row below wraps rather than overflowing.
+                */}
+                <Box sx={{ width: 'min(46rem, 90vw)', display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <TextField
                         label="Title"
                         variant="filled"
@@ -140,8 +156,8 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
                         fullWidth
                     />
 
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                        <Box sx={{ flex: '1 1 14rem', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
                             {/* IsCompleted selector — mirrors bool.TrueString / FalseString options */}
                             <FormControlLabel
                                 control={
@@ -189,10 +205,15 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
             <CreateTaskTypeOverlay
                 open={createTaskTypeOpen}
                 onClose={() => setCreateTaskTypeOpen(false)}
-                onCreated={() => {
-                    fetchTaskTypes([0])
-                        .then(setTaskTypes)
-                        .catch(error => console.error('Could not reload task types', error))
+                onCreated={created => {
+                    // Add and select it directly. Refetching left the list correct
+                    // but nothing chosen, so the type you had just created still
+                    // had to be found and picked by hand.
+                    setTaskTypes(existing =>
+                        existing.some(taskType => taskType.id === created.id)
+                            ? existing
+                            : [...existing, created])
+                    setSelectedTaskTypeId(created.id)
                 }}
             />
         </>

@@ -230,6 +230,27 @@ body,
 }
 
 /*
+   MUI components own their own display; the glass classes are decoration.
+
+   .glass and .glass-inner-engraved both set `display: inline-block`, which was
+   harmless while MUI's styles won the cascade. Once StyledEngineProvider
+   injectFirst put this file last — the change that made glass render at all —
+   inline-block started overriding MuiButtonGroup's `inline-flex`, and a button
+   group is nothing but a flex row. In the task popover, where the group is
+   fullWidth, that gave two 100%-wide buttons no row to share: Submit and Discard
+   stacked vertically.
+
+   Restated here rather than removed from the rule above, because a bare <div
+   class="glass"> should still shrink-wrap the way it did in Blazor. Only the
+   components that manage their own layout get it back.
+*/
+.MuiButtonGroup-root.glass,
+.MuiButtonGroup-root.glass-inner-engraved,
+.MuiButtonGroup-root.glass-frosted {
+    display: inline-flex;
+}
+
+/*
    The blur that makes .glass actually read as glass.
 
    The ported .glass is a pair of translucent gradients and an inset highlight
