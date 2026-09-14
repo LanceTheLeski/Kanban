@@ -207,9 +207,16 @@ public class SwimlaneController : ArcController
                                                                                                 && cardPosition.PartitionKey == newSwimlane.PartitionKey);
         createSwimlaneTransaction = _swimlaneRepository.ApplyNewOrderForExistingCardPositions (swimlaneCollectionToUpdateOrder, cardPositionCollectionToUpdateOrder, createSwimlaneTransaction);
 
-        try { await _swimlaneRepository.SubmitArcTransactionAsync (createSwimlaneTransaction); }
+        bool submitted;
+        try { submitted = await _swimlaneRepository.SubmitArcTransactionAsync (createSwimlaneTransaction); }
         catch (RequestFailedException reqFailedEx)
             { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.AddToDatabaseErrorResponse (nameof (Swimlane), reqFailedEx.Status)); }
+
+        // false means the write failed and was rolled back. Discarding it -- which
+        // every call site did -- reported 201 Created for a swimlane that was never
+        // stored, and left the caller believing a board it had not changed.
+        if (submitted is false)
+            throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.AddToDatabaseErrorResponse (nameof (Swimlane), StatusCodes.Status409Conflict));
     }
 
     private async Task<Swimlane> UpdateSwimlaneAndUpdateEffectedSwimlanesAndCardPositions (Guid boardID,

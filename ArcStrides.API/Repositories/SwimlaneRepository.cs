@@ -50,10 +50,16 @@ public class SwimlaneRepository : ISwimlaneRepository
     {
         foreach (var swimlane in swimlaneEnumerableToUpdate)
         {
+            // Snapshot before mutating. The second argument is the entity the
+            // rollback restores, and passing the same instance that was just
+            // changed meant the "original" already carried the new order -- so a
+            // rollback would rewrite the value it was supposed to undo.
+            var swimlaneBeforeUpdate = DeepCopier.Copy (swimlane);
+
             swimlane.SwimlaneOrder ++;
 
             var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, swimlane);
-            arcTransaction.Add (transaction, swimlane);
+            arcTransaction.Add (transaction, swimlaneBeforeUpdate is null ? swimlane : swimlaneBeforeUpdate);
         }
 
         return arcTransaction;
@@ -63,10 +69,16 @@ public class SwimlaneRepository : ISwimlaneRepository
     {
         foreach (var swimlane in swimlaneEnumerableToUpdate)
         {
+            // Snapshot before mutating. The second argument is the entity the
+            // rollback restores, and passing the same instance that was just
+            // changed meant the "original" already carried the new order -- so a
+            // rollback would rewrite the value it was supposed to undo.
+            var swimlaneBeforeUpdate = DeepCopier.Copy (swimlane);
+
             swimlane.SwimlaneOrder --;
 
             var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, swimlane);
-            arcTransaction.Add (transaction, swimlane);
+            arcTransaction.Add (transaction, swimlaneBeforeUpdate is null ? swimlane : swimlaneBeforeUpdate);
         }
 
         return arcTransaction;
@@ -80,20 +92,28 @@ public class SwimlaneRepository : ISwimlaneRepository
         if (swimlaneToUpdate.SwimlaneOrder < newSwimlaneOrder)
             for (int index = swimlaneToUpdate.SwimlaneOrder + 1; index <= newSwimlaneOrder; index++)
             {
-                var newSwimlaneToUpdate = DeepCopier.Copy (boardSwimlaneEnumerable.Single (swimlane => swimlane.SwimlaneOrder == index));
+                // The copy is what gets the new order; the row as it stands is what
+                // the rollback restores. Passing the mutated copy as both left the
+                // rollback holding the value it was meant to undo.
+                var swimlaneAtIndex = boardSwimlaneEnumerable.Single (swimlane => swimlane.SwimlaneOrder == index);
+                var newSwimlaneToUpdate = DeepCopier.Copy (swimlaneAtIndex);
                 newSwimlaneToUpdate.SwimlaneOrder = index - 1;
 
                 var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, newSwimlaneToUpdate);
-                arcTransaction.Add (transaction, newSwimlaneToUpdate);
+                arcTransaction.Add (transaction, swimlaneAtIndex);
             }
         if (swimlaneToUpdate.SwimlaneOrder > newSwimlaneOrder)
             for (int index = newSwimlaneOrder; index < swimlaneToUpdate.SwimlaneOrder; index++)
             {
-                var newSwimlaneToUpdate = DeepCopier.Copy (boardSwimlaneEnumerable.Single (swimlane => swimlane.SwimlaneOrder == index));
+                // The copy is what gets the new order; the row as it stands is what
+                // the rollback restores. Passing the mutated copy as both left the
+                // rollback holding the value it was meant to undo.
+                var swimlaneAtIndex = boardSwimlaneEnumerable.Single (swimlane => swimlane.SwimlaneOrder == index);
+                var newSwimlaneToUpdate = DeepCopier.Copy (swimlaneAtIndex);
                 newSwimlaneToUpdate.SwimlaneOrder = index + 1;
 
                 var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, newSwimlaneToUpdate);
-                arcTransaction.Add (transaction, newSwimlaneToUpdate);
+                arcTransaction.Add (transaction, swimlaneAtIndex);
             }
 
         return arcTransaction;

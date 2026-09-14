@@ -50,10 +50,16 @@ public class ColumnRepository : IColumnRepository
     {
         foreach (var column in columnEnumerableToUpdate)
         {
+            // Snapshot before mutating. The second argument is the entity the
+            // rollback restores, and passing the same instance that was just
+            // changed meant the "original" already carried the new order -- so a
+            // rollback would rewrite the value it was supposed to undo.
+            var columnBeforeUpdate = DeepCopier.Copy (column);
+
             column.ColumnOrder ++;
 
             var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, column);
-            arcTransaction.Add (transaction, column);
+            arcTransaction.Add (transaction, columnBeforeUpdate is null ? column : columnBeforeUpdate);
         }
 
         return arcTransaction;
@@ -63,10 +69,16 @@ public class ColumnRepository : IColumnRepository
     {
         foreach (var column in columnEnumerableToUpdate)
         {
+            // Snapshot before mutating. The second argument is the entity the
+            // rollback restores, and passing the same instance that was just
+            // changed meant the "original" already carried the new order -- so a
+            // rollback would rewrite the value it was supposed to undo.
+            var columnBeforeUpdate = DeepCopier.Copy (column);
+
             column.ColumnOrder --;
 
             var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, column);
-            arcTransaction.Add (transaction, column);
+            arcTransaction.Add (transaction, columnBeforeUpdate is null ? column : columnBeforeUpdate);
         }
 
         return arcTransaction;
@@ -95,7 +107,9 @@ public class ColumnRepository : IColumnRepository
                 newColumnToUpdate.ColumnOrder = index + 1;
 
                 var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, newColumnToUpdate);
-                arcTransaction.Add (transaction, newColumnToUpdate);
+                // currentColumnToUpdate, matching the loop above: the rollback has to
+                // hold the row as it stands, not the copy carrying the new order.
+                arcTransaction.Add (transaction, currentColumnToUpdate);
             }
           
         return arcTransaction;

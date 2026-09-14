@@ -133,13 +133,34 @@ public class AzureTableService<T> : IAzureTableService<T> where T : class, ITabl
         { 
             var tableClient = _tableServiceClient.GetTableClient (tableName: transaction.Key);
             
-            var response = await tableClient.SubmitTransactionAsync (transaction.Value);
+            // SubmitTransactionAsync THROWS when a batch fails -- the SDK documents
+            // "An Exception will be thrown if a failure occurs" -- it does not hand
+            // back an error response to inspect. It used to be called outside this
+            // try, so ValidateTransactionResponse only ever saw a successful batch,
+            // the catch below was unreachable, and a failure threw straight past the
+            // rollback and out of this method.
+            //
+            // That is what leaves a board half-written. The dictionary holds one
+            // batch per table, and each table is a separate atomic transaction: with
+            // no rollback, a swimlane insert that shifted existing rows could commit
+            // against Swimlanes and then fail against CardPositions, and the shifted
+            // orders would simply stay.
             try
-                { ValidateTransactionResponse (response); }
-            catch (TransactionFailedException)
             {
-                var rollbackResponse = await SubmitArcRollbackAsync (completedTransactions, transactionsForRollback);
-                if (rollbackResponse is true && throwExceptionOnSuccessfulRollback)
+                var response = await tableClient.SubmitTransactionAsync (transaction.Value);
+                ValidateTransactionResponse (response);
+            }
+            catch (Exception ex) when (ex is RequestFailedException or TransactionFailedException)
+            {
+                var rollbackSucceeded = await SubmitArcRollbackAsync (completedTransactions, transactionsForRollback);
+
+                // A rollback that itself failed leaves storage inconsistent, and no
+                // caller can act on a bool it cannot distinguish from success. Say so
+                // loudly rather than returning a value every call site discards.
+                if (rollbackSucceeded is false)
+                    throw;
+
+                if (throwExceptionOnSuccessfulRollback)
                     throw;
 
                 return false;
@@ -160,16 +181,31 @@ public class AzureTableService<T> : IAzureTableService<T> where T : class, ITabl
             var rollbackRowKey = completedTransaction.Value.First ().Entity.RowKey;
             var rollbackTransaction = rollbackTransactions.SingleOrDefault (transaction => transaction.First ().Entity.PartitionKey == rollbackPartitionKey
                                                                                            && transaction.First ().Entity.RowKey == rollbackRowKey);
-            //Validation..
+            // SingleOrDefault, so this can be null -- and SubmitTransactionAsync throws
+            // ArgumentNullException on null, which would surface from inside the
+            // recovery path and bury the failure that started it. There is nothing to
+            // undo this batch with, so report that rather than throw over the top of
+            // the original error.
+            if (rollbackTransaction is null)
+                return false;
 
             var tableClient = _tableServiceClient.GetTableClient (tableName: completedTransaction.Key);
 
-            var response = await tableClient.SubmitTransactionAsync (rollbackTransaction);
+            // Same correction as above: the submit has to be inside the try, because
+            // a failed batch throws rather than returning an error response.
+            //
+            // A failed rollback used to be swallowed here and the method returned
+            // true regardless, so a board left inconsistent reported as a clean
+            // recovery and nothing reached the log or the Output window. Report it
+            // instead and let the caller decide -- it rethrows.
             try
-                { ValidateTransactionResponse (response); }
-            catch
             {
-                //This is a big issue. Should definitely throw something of value here..
+                var response = await tableClient.SubmitTransactionAsync (rollbackTransaction);
+                ValidateTransactionResponse (response);
+            }
+            catch (Exception ex) when (ex is RequestFailedException or TransactionFailedException)
+            {
+                return false;
             }
         }
 
