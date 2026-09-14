@@ -16,14 +16,84 @@
  * which avoids having to trust the dev certificate from Node.
  */
 
+import { readFile } from 'node:fs/promises'
+import { dirname, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+
 const args = process.argv.slice(2)
 const flag = (name, fallback) => {
     const index = args.indexOf(`--${name}`)
     return index === -1 ? fallback : args[index + 1]
 }
 
-const BASE = (flag('url', 'http://localhost:5100')).replace(/\/$/, '')
 const FORCE = args.includes('--force')
+
+/**
+ * Where the API is listening.
+ *
+ * There is no single right answer: launchSettings.json defines three profiles
+ * and they do not agree. "http" and "https" bind 5100, but "IIS Express" binds
+ * 18687 — so which port the API is on depends on the profile selected in the
+ * Visual Studio toolbar, which this script cannot see. Hard-coding 5100 meant
+ * anyone running under IIS Express got "Is it running?" about an API that was
+ * running perfectly well on another port.
+ *
+ * So the candidates are read from launchSettings itself and probed in turn.
+ * Only plain-HTTP URLs: the HTTPS ones use the ASP.NET development certificate,
+ * which Node rejects unless told not to verify, and quietly disabling TLS
+ * verification to seed a dev board is not a trade worth making.
+ */
+async function discoverApiBase() {
+    const explicit = flag('url', null)
+    if (explicit) return explicit.replace(/\/$/, '')
+
+    const candidates = await candidateUrls()
+    for (const candidate of candidates) {
+        try {
+            // Any answer at all proves something is listening and routing; a 404
+            // here would still mean the API is up.
+            await fetch(`${candidate}/arcstrides/boards/${BOARD_ID}`, { method: 'GET' })
+            return candidate
+        } catch {
+            continue
+        }
+    }
+
+    throw new Error(
+        `Could not reach the API on any URL from launchSettings.json:\n` +
+        candidates.map(url => `  ${url}`).join('\n') + `\n\n` +
+        `Start it with F5 in Visual Studio, or:\n` +
+        `  dotnet run --project ArcStrides.API --launch-profile https\n` +
+        `If it is running on something else, pass it:  --url http://localhost:PORT`
+    )
+}
+
+async function candidateUrls() {
+    const urls = []
+    try {
+        const settingsPath = join(REPO_ROOT, 'ArcStrides.API', 'Properties', 'launchSettings.json')
+        // The file is written by Visual Studio and carries a BOM, which JSON.parse
+        // rejects — strip it rather than letting a stray character look like a
+        // missing file.
+        const settings = JSON.parse((await readFile(settingsPath, 'utf8')).replace(/^\uFEFF/, ''))
+
+        for (const profile of Object.values(settings.profiles ?? {}))
+            for (const url of String(profile.applicationUrl ?? '').split(';'))
+                if (url.startsWith('http://')) urls.push(url.replace(/\/$/, ''))
+
+        const iisUrl = settings.iisSettings?.iisExpress?.applicationUrl
+        if (iisUrl?.startsWith('http://')) urls.push(iisUrl.replace(/\/$/, ''))
+    } catch {
+        // Fall through to the well-known default below.
+    }
+
+    if (urls.length === 0) urls.push('http://localhost:5100')
+    return [...new Set(urls)]
+}
+
+let BASE = 'http://localhost:5100'
 
 // The board the UI redirects to from "/" — see arcstrides.ui/src/App.tsx.
 const BOARD_ID = flag('board', '1cb0ce6e-6145-4fe7-833a-0b7c0545c449')
@@ -44,8 +114,7 @@ async function send(method, path, body) {
         })
     } catch (error) {
         throw new Error(
-            `Could not reach the API at ${BASE}. Is it running?\n` +
-            `  dotnet run --project ArcStrides.API --launch-profile https\n` +
+            `Lost the API at ${BASE} part-way through seeding.\n` +
             `  (${error.message})`
         )
     }
@@ -84,6 +153,7 @@ const TASKS = [
 // ── Run ───────────────────────────────────────────────────────────────────────
 
 async function main() {
+    BASE = await discoverApiBase()
     console.log(`Seeding board ${BOARD_ID} at ${BASE}\n`)
 
     const existing = await get(`/arcstrides/boards/${BOARD_ID}`)

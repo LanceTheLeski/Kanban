@@ -63,19 +63,63 @@ async function request(
     })
 
     if (!response.ok) {
-        // Try to extract a meaningful error message from the response body.
-        // ASP.NET Core Problem Details (RFC 7807) uses a "title" field.
-        let message = `${response.status} ${response.statusText}`
-        try {
-            const body = await response.json()
-            message = body.title ?? body.message ?? message
-        } catch {
-            // Response body wasn't JSON — use the status text
-        }
-        throw new Error(`API error on ${options.method ?? 'GET'} ${path}: ${message}`)
+        throw new Error(`API error on ${options.method ?? 'GET'} ${path}: ${await describeFailure(response)}`)
     }
 
     return response
+}
+
+/**
+ * The most useful thing the response can tell us about why it failed.
+ *
+ * This used to read `body.title ?? body.message` off the parsed JSON, which
+ * covers ASP.NET Core's Problem Details but nothing else — and this API mostly
+ * does not send Problem Details. `return BadRequest("The Swimlane was invalid…")`
+ * sends the string as a bare JSON string, and a string has no `.title` and no
+ * `.message`, so every one of those reasons was parsed and then dropped in
+ * favour of the status line. Worse, `statusText` is empty over HTTP/2, so a
+ * carefully worded rejection arrived as the four characters "400 ".
+ *
+ * The body is read as text once and parsed from there, so an unparseable body is
+ * still reported rather than discarded, and there is no second read of a stream
+ * that has already been consumed.
+ */
+async function describeFailure(response: Response): Promise<string> {
+    const status = `${response.status} ${response.statusText}`.trim()
+
+    let raw: string
+    try {
+        raw = await response.text()
+    } catch {
+        return status
+    }
+    if (!raw.trim()) return status
+
+    let detail = raw
+    try {
+        const body: unknown = JSON.parse(raw)
+        if (typeof body === 'string') {
+            detail = body
+        } else if (body !== null && typeof body === 'object') {
+            const problem = body as Record<string, unknown>
+            // ValidationProblemDetails puts the useful part under `errors`, keyed by
+            // field, and its `title` is the generic "One or more validation errors
+            // occurred." — so the specifics have to be pulled out separately.
+            const errors = problem.errors && typeof problem.errors === 'object'
+                ? Object.values(problem.errors as Record<string, unknown>).flat().join('; ')
+                : ''
+            const headline = [problem.title, problem.detail, problem.message]
+                .find(value => typeof value === 'string' && value.trim()) as string | undefined
+
+            detail = [headline, errors].filter(Boolean).join(' — ') || raw
+        }
+    } catch {
+        // Not JSON. The raw text is still the best answer we have.
+    }
+
+    // Keep a snackbar readable; the full body is in the network tab either way.
+    const trimmed = detail.replace(/\s+/g, ' ').trim()
+    return trimmed.length > 300 ? `${trimmed.slice(0, 300)}…` : trimmed || status
 }
 
 // ── Convenience methods ───────────────────────────────────────────────────────

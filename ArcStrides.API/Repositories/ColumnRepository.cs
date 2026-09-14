@@ -117,11 +117,24 @@ public class ColumnRepository : IColumnRepository
 
     public ArcTransaction ApplyNewOrderForExistingCardPositions (IEnumerable<Column> columnEnumerable, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction)
     {
-        var effectedCardPositionEnumerable = cardPositionEnumerable.Where (cardPosition => columnEnumerable.Any (column => column.Title == cardPosition.ColumnTitle));
-        foreach (var cardPosition in effectedCardPositionEnumerable)
+        // Keyed on ColumnID rather than Title -- see the swimlane equivalent for why
+        // Title both threw on duplicates and silently stranded renamed columns.
+        var columnByID = columnEnumerable.ToDictionary (column => column.RowKey, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var cardPosition in cardPositionEnumerable)
         {
+            if (columnByID.TryGetValue (cardPosition.ColumnID.ToString (), out var column) is false)
+                continue;
+
+            // ColumnOrder is nullable, and .Value on an unset one throws from inside
+            // a reorder that has nothing to do with this row.
+            if (column.ColumnOrder is null)
+                continue;
+
             var originalCardPosition = DeepCopier.Copy (cardPosition);
-            cardPosition.ColumnOrder = columnEnumerable.Single (column => column.Title == cardPosition.ColumnTitle).ColumnOrder.Value;
+
+            cardPosition.ColumnOrder = column.ColumnOrder.Value;
+            cardPosition.ColumnTitle = column.Title;
 
             var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, cardPosition);
             arcTransaction.Add (transaction, originalCardPosition);

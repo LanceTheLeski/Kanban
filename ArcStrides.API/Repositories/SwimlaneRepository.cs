@@ -121,16 +121,35 @@ public class SwimlaneRepository : ISwimlaneRepository
 
     public ArcTransaction ApplyNewOrderForExistingCardPositions (IEnumerable<Swimlane> swimlaneEnumerable, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction)
     {
-        var effectedCardPositionEnumerable = cardPositionEnumerable.Where (cardPosition => swimlaneEnumerable.Any (swimlane => swimlane.Title == cardPosition.SwimlaneTitle));
-        if (effectedCardPositionEnumerable.Count () is not 0)
-        {
-            foreach (var cardPosition in effectedCardPositionEnumerable)
-            {
-                cardPosition.SwimlaneOrder = swimlaneEnumerable.Single (swimlane => swimlane.Title == cardPosition.SwimlaneTitle).SwimlaneOrder;
+        // Keyed on SwimlaneID rather than Title.
+        //
+        // Title was both fragile and unsafe. Single() threw outright if two
+        // swimlanes ever shared a title, which is exactly the state the board
+        // validator is there to reject -- so a board that had drifted could not be
+        // repaired by the very operations meant to reorder it. And a swimlane
+        // renamed at any point left its cards matching nothing: they kept a stale
+        // SwimlaneOrder while the swimlane moved, and silently, because a card that
+        // matches no title is filtered out rather than reported.
+        //
+        // An ID cannot drift. Case-insensitive because a Guid rendered by two
+        // different code paths need not agree on case.
+        var swimlaneByID = swimlaneEnumerable.ToDictionary (swimlane => swimlane.RowKey, StringComparer.OrdinalIgnoreCase);
 
-                var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, cardPosition);
-                arcTransaction.Add (transaction, cardPosition);
-            }
+        foreach (var cardPosition in cardPositionEnumerable)
+        {
+            if (swimlaneByID.TryGetValue (cardPosition.SwimlaneID.ToString (), out var swimlane) is false)
+                continue;
+
+            var originalCardPosition = DeepCopier.Copy (cardPosition);
+
+            cardPosition.SwimlaneOrder = swimlane.SwimlaneOrder;
+            // CardPosition carries its own copy of the title for display. Writing it
+            // here keeps the copy honest, and lets a row left stale by an earlier
+            // rename heal the next time its swimlane moves.
+            cardPosition.SwimlaneTitle = swimlane.Title;
+
+            var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, cardPosition);
+            arcTransaction.Add (transaction, originalCardPosition);
         }
 
         return arcTransaction;
