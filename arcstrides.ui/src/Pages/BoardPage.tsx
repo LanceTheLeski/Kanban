@@ -326,7 +326,9 @@ export const BoardPage: React.FC = () => {
                                     key={column.id}
                                     sx={{
                                         width: COLUMN_WIDTH,
-                                        minHeight: 40,
+                                        // rem, not 40: this floor exists to hold one
+                                        // line of the title, so it has to grow with it.
+                                        minHeight: '2.5rem',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',

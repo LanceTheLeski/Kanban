@@ -42,7 +42,7 @@ import { UpdateCardOverlay } from './Card/UpdateCardOverlay'
 import { useBoardActions } from './useBoardActions'
 import { deleteCard } from './Board.APIs'
 import { useBoardStore } from './Board.Store'
-import { CARD_MIN_HEIGHT } from './Board.Layout'
+import { CARD_MIN_HEIGHT, DRAG_PREVIEW_WIDTH } from './Board.Layout'
 import type { Card } from '../../Entities/Card/Card.Types'
 
 interface BoardCardProps {
@@ -90,7 +90,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({
                     width: '100%',
                     minHeight: CARD_MIN_HEIGHT,
                     // The ghost has no cell to fill, so give it the column's width.
-                    ...(preview ? { width: 232 } : {}),
+                    ...(preview ? { width: DRAG_PREVIEW_WIDTH } : {}),
                     backgroundColor: 'lightyellow',
                     display: 'flex',
                     flexDirection: 'column',
