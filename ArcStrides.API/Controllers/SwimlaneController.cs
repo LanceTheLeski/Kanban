@@ -255,8 +255,26 @@ public class SwimlaneController : ArcController
         // controller turned into "An error occurred while processing your request"
         // with nothing in the log. ColumnController has always done it this way.
         var originalSwimlane = DeepCopier.Copy (swimlaneToUpdate);
-        var patchedSwimlane = _swimlaneMapper.MapSwimlanePatchRequestToSwimlane (convertedSwimlaneToUpdate);
-        _swimlaneMapper.MapFieldsFromSourceToTarget (patchedSwimlane, swimlaneToUpdate);
+
+        // Assigned by hand rather than through the mapper, which is how the column
+        // path does it -- and which does not work here.
+        //
+        // ColumnMapper's merge is safe because Column.RowKey is `string?`, so
+        // AllowNullPropertyAssignment = false makes Mapperly emit a null check and
+        // the key survives. Swimlane.RowKey is `string`, non-nullable, so there is
+        // no null for Mapperly to guard against and it assigns straight over the
+        // top: the merge wrote null into the row's own identity, and adding it to
+        // the transaction failed on "The given entities do not have a matching
+        // RowKey".
+        //
+        // A SwimlanePatchRequest has exactly two fields. Copying them explicitly is
+        // shorter than the mapper call it replaces and cannot be undone by a change
+        // in generated behaviour. Identity is not patchable and is never touched.
+        if (convertedSwimlaneToUpdate.Title is not null)
+            swimlaneToUpdate.Title = convertedSwimlaneToUpdate.Title;
+
+        if (convertedSwimlaneToUpdate.Order is int patchedOrder)
+            swimlaneToUpdate.SwimlaneOrder = patchedOrder;
 
         // GetTransactionEntities rather than indexing the dictionary: the indexer
         // throws KeyNotFoundException when no swimlane order changed, so a patch that

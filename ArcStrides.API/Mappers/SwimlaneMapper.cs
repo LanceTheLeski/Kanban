@@ -6,18 +6,14 @@ using Riok.Mapperly.Abstractions;
 
 namespace ArcStrides.API.Mappers;
 
-// AllowNullPropertyAssignment = false matches ColumnMapper, and is what makes the
-// merge below safe: a SwimlanePatchRequest carries only Title and Order, so every
-// other property on the mapped-from object is null. Without this, merging one onto
-// a stored swimlane would blank its keys rather than leave them alone.
-[Mapper (AllowNullPropertyAssignment = false)]
+// No entity-to-entity merge here, deliberately. The one added in the previous
+// commit could not preserve identity: Swimlane.RowKey is non-nullable, so
+// AllowNullPropertyAssignment has nothing to suppress and the generated merge
+// assigned null straight over the key. SwimlaneController patches its two fields
+// by hand instead.
+[Mapper]
 public partial class SwimlaneMapper
 {
-    /// <summary>
-    /// Copies the set fields of <paramref name="source"/> onto
-    /// <paramref name="target"/>, leaving the rest of the target as it was.
-    /// </summary>
-    public partial void MapFieldsFromSourceToTarget (Swimlane source, Swimlane target);
 
     /// <summary>
     /// <see cref="SwimlaneCreateRequest"/> --> <see cref="Swimlane"/>
