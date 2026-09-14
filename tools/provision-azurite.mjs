@@ -30,6 +30,8 @@ const flag = (name, fallback) => {
 
 const CONNECTION = flag('connection', 'UseDevelopmentStorage=true')
 const DROP = args.includes('--drop')
+// dev-up.mjs prints its own closing instructions, so it suppresses these.
+const NO_NEXT_STEPS = args.includes('--no-next-steps')
 
 /**
  * Never print a connection string as given: it may carry an AccountKey. The
@@ -131,12 +133,14 @@ async function main() {
         console.log(`  created  ${tableName}`)
     }
 
-    console.log(
-        `\n${created} created, ${tableNames.length - created} already present.\n` +
-        `Start the API, then seed it:\n` +
-        `  dotnet run --project ArcStrides.API --launch-profile https\n` +
-        `  node tools/seed-dev-board.mjs`
-    )
+    console.log(`\n${created} created, ${tableNames.length - created} already present.`)
+
+    if (!NO_NEXT_STEPS)
+        console.log(
+            `Start the API, then seed it:\n` +
+            `  dotnet run --project ArcStrides.API --launch-profile https\n` +
+            `  node tools/seed-dev-board.mjs`
+        )
 }
 
 main().catch(error => {

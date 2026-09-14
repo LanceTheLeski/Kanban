@@ -4,6 +4,7 @@
   "type": "module",
   "description": "Local development utilities. See ../docs/local-development.md.",
   "scripts": {
+    "up": "node dev-up.mjs",
     "provision": "node provision-azurite.mjs",
     "seed": "node seed-dev-board.mjs"
   },
