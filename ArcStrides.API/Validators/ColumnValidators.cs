@@ -32,20 +32,27 @@ public class ColumnValidators
                 .WithMessage ((_, orders) =>
                     ValidatorMessages.DuplicateFieldValidatorMessage (nameof (Column.ColumnOrder), orders));
 
-            RuleFor (boardColumnEnumerable => boardColumnEnumerable.Select (column => column.GlobalColumnOrder))
-                .Must (ValidateDistinctGlobalColumnOrder)
-                .WithMessage ((_, globalOrders) =>
-                    ValidatorMessages.DuplicateFieldValidatorMessage (nameof (Column.GlobalColumnOrder), globalOrders));
+            /*
+               Three rules used to live here, requiring ColumnColor,
+               GlobalColumnColor and GlobalColumnOrder to be distinct across a
+               board. Nothing in the codebase ever writes any of those three -- not
+               the create request, not the mapper, not any controller -- so every row
+               carried the same unset value and the rules could only pass on a board
+               with a single column. Two of anything made the board unreadable,
+               and because this validation runs on the *read* path there was no way to
+               get back in and repair it.
 
-            RuleFor (boardColumnEnumerable => boardColumnEnumerable.Select (column => column.ColumnColor))
-                .Must (ValidateDistinctColumnColor)
-                .WithMessage ((_, colors) =>
-                    ValidatorMessages.DuplicateFieldValidatorMessage (nameof (Column.ColumnColor), colors, StringComparer.InvariantCultureIgnoreCase));
+               They were also asking for the wrong thing. Uniqueness belongs to
+               identity and position -- the ID, the title, the order -- which are the
+               rules that remain. A colour is presentation, and two columns
+               sharing one is a legitimate board, not a corrupt one. GlobalColumnOrder
+               is for a feature that is not built yet ("quickly create a board on the
+               fly"); a uniqueness constraint on an unimplemented field can only ever
+               be satisfied by accident.
 
-            RuleFor (boardColumnEnumerable => boardColumnEnumerable.Select (column => column.GlobalColumnColor))
-                .Must (ValidateDistinctGlobalColumnColor)
-                .WithMessage ((_, globalColors) =>
-                    ValidatorMessages.DuplicateFieldValidatorMessage (nameof (Column.GlobalColumnColor), globalColors, StringComparer.InvariantCultureIgnoreCase));
+               If distinct colours are wanted later, that is a job for the create path
+               -- assign one -- not for a read that refuses to return the board.
+            */
         }
 
         private bool ValidateColumnIDsAreGuids (IEnumerable<string?> columnIDs)
@@ -60,14 +67,6 @@ public class ColumnValidators
         private bool ValidateDistinctColumnOrder (IEnumerable<int?> columnOrders)
             => columnOrders.Distinct ().Count() == columnOrders.Count();
 
-        private bool ValidateDistinctGlobalColumnOrder (IEnumerable<double?> globalColumnOrders)
-            => globalColumnOrders.Distinct ().Count () == globalColumnOrders.Count ();
-
-        private bool ValidateDistinctColumnColor (IEnumerable<string?> columnColors)
-            => columnColors.Distinct (StringComparer.InvariantCultureIgnoreCase).Count () == columnColors.Count ();
-
-        private bool ValidateDistinctGlobalColumnColor (IEnumerable<string?> columnColors)
-            => columnColors.Distinct (StringComparer.InvariantCultureIgnoreCase).Count () == columnColors.Count ();
     }
 
     public class ColumnCreateRequestValidator : AbstractValidator<ColumnCreateRequest>

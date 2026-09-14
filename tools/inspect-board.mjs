@@ -96,16 +96,15 @@ function report(label, rows, fields) {
 
     const conflicts = []
     const unset = []
-    for (const { name, caseInsensitive } of fields) {
+    for (const { name, unique, caseInsensitive } of fields) {
+        if (!unique) continue
         const values = rows.map(row => row[name])
         const repeated = duplicates(values, caseInsensitive)
         if (repeated.length === 0) continue
 
-        // A field no row ever sets is "duplicated" only by omission. The create
-        // endpoints never populate the colour fields, so they have looked
-        // identical on every board since it was seeded — which means they cannot
-        // be what changed today. Separating the two keeps the real conflict
-        // visible instead of buried under noise that has always been there.
+        // A checked field that is unset on *every* row is reported separately: it
+        // is duplicated only by omission, which reads differently from two rows
+        // genuinely claiming the same order.
         if (values.every(value => value === null || value === undefined))
             unset.push(`${label}: ${name} is unset on every row`)
         else
@@ -114,20 +113,32 @@ function report(label, rows, fields) {
     return { conflicts, unset }
 }
 
+/*
+ * `unique: false` fields are shown but not checked.
+ *
+ * The API used to demand that the colour and Global*Order fields be distinct too,
+ * and those rules have been removed: nothing ever writes those fields, so every
+ * row held the same unset value and a board with two swimlanes could not be read
+ * at all. Mirroring them here produced the same noise, and worse, an earlier
+ * version of this tool filed them under "unset on every row, so not what
+ * changed" -- which sounded reasonable and pointed away from the actual cause.
+ * They are still printed, because seeing that a field is blank everywhere is
+ * useful; they are simply no longer treated as faults.
+ */
 const COLUMN_FIELDS = [
-    { name: 'Title', caseInsensitive: true },
-    { name: 'ColumnOrder' },
+    { name: 'Title', unique: true, caseInsensitive: true },
+    { name: 'ColumnOrder', unique: true },
     { name: 'GlobalColumnOrder' },
-    { name: 'ColumnColor', caseInsensitive: true },
-    { name: 'GlobalColumnColor', caseInsensitive: true },
+    { name: 'ColumnColor' },
+    { name: 'GlobalColumnColor' },
 ]
 
 const SWIMLANE_FIELDS = [
-    { name: 'Title', caseInsensitive: true },
-    { name: 'SwimlaneOrder' },
+    { name: 'Title', unique: true, caseInsensitive: true },
+    { name: 'SwimlaneOrder', unique: true },
     { name: 'GlobalSwimlaneOrder' },
-    { name: 'SwimlaneColor', caseInsensitive: true },
-    { name: 'GlobalSwimlaneColor', caseInsensitive: true },
+    { name: 'SwimlaneColor' },
+    { name: 'GlobalSwimlaneColor' },
 ]
 
 async function main() {
@@ -176,13 +187,8 @@ async function main() {
 
     if (unset.length > 0) {
         console.log(
-            `\nAlso unique-constrained by the API, but unset on every row:\n` +
-            unset.map(line => `   ${line}`).join('\n') +
-            `\n\n   No create endpoint populates these, so they have looked like this\n` +
-            `   since the board was seeded. If the board used to load, they are not\n` +
-            `   what changed — but they are worth settling, because a rule demanding\n` +
-            `   distinct values for a field nothing ever writes can only be satisfied\n` +
-            `   by accident.`
+            `\nUnset on every row (not an error — nothing writes these yet):\n` +
+            unset.map(line => `   ${line}`).join('\n')
         )
     }
 }
