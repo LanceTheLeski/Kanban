@@ -71,7 +71,7 @@ import { TagsPanel, type CardTag } from './TagsPanel'
 import {
     CARD_DETAIL_ROW_MIN_HEIGHT,
     CARD_LEFT_PANE_MIN_REM,
-    CARD_PANEL_ROW_MAX_HEIGHT,
+    CARD_PANEL_ROW_HEIGHT,
     CARD_PANEL_ROW_MIN_HEIGHT,
     CARD_RIGHT_PANE_MIN_REM,
     CARD_SPLIT_DEFAULT,
@@ -280,8 +280,11 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                         gridTemplateColumns: { xs: '1fr', [STACK_BELOW]: 'minmax(0, 1fr) minmax(0, 1fr)' },
                         gap: 2,
                         alignItems: 'stretch',
+                        // Definite once the panels are side by side, so the log
+                        // scrolls rather than growing the dialog. Stacked, they
+                        // each get the full width and can take what they need.
                         minHeight: CARD_PANEL_ROW_MIN_HEIGHT,
-                        maxHeight: { [STACK_BELOW]: CARD_PANEL_ROW_MAX_HEIGHT },
+                        height: { [STACK_BELOW]: CARD_PANEL_ROW_HEIGHT },
                     }}
                 >
                     <UpdateTimelinePanel timeline={card.timeline} />
@@ -328,7 +331,15 @@ function TitleAndTags({ title, onTitleChange, tags, onTagsChange }: {
                 value={title}
                 onChange={e => onTitleChange(e.target.value)}
                 variant="outlined"
-                helperText="Card Title"
+                /*
+                   No helperText. "Card Title" under a box holding the card's
+                   title told the reader nothing they could not see, and MUI
+                   reserves the line whether or not there is anything in it — so
+                   it cost a row of height on both of the overlay's text boxes.
+                   The placeholder says the same thing, in the space the value
+                   will occupy, and only while the field is empty.
+                */
+                placeholder="Card title"
                 size="small"
                 /*
                    Multiline, up to three lines.
@@ -345,8 +356,23 @@ function TitleAndTags({ title, onTitleChange, tags, onTagsChange }: {
                 */
                 multiline
                 maxRows={3}
-                // minWidth: 0 stops the input's intrinsic width propping the row open.
-                sx={{ flex: 1, minWidth: 0, backgroundColor: 'arc.field', borderRadius: 1 }}
+                sx={{
+                    // minWidth: 0 stops the input's intrinsic width propping the row open.
+                    flex: 1,
+                    minWidth: 0,
+                    backgroundColor: 'arc.field',
+                    borderRadius: 1,
+                    /*
+                       The input fills the field rather than sitting at the top of
+                       it. MUI sizes a FormControl to input + helper text, so with
+                       the helper text gone the box kept the row's height and left
+                       the freed space empty underneath — the opposite of the point,
+                       which was to give the title that room. Text starts at the top
+                       so a one-line title does not float in the middle of a box
+                       sized for three.
+                    */
+                    '& .MuiInputBase-root': { height: '100%', alignItems: 'flex-start' },
+                }}
             />
 
             <TagsPanel tags={tags} onChange={onTagsChange} />
@@ -459,7 +485,7 @@ function DescriptionField({ value, onChange }: {
             onChange={e => onChange(e.target.value)}
             multiline
             variant="outlined"
-            helperText="Card Description"
+            placeholder="Card description"
             fullWidth
             sx={{
                 backgroundColor: 'arc.fieldMuted',
@@ -476,6 +502,11 @@ function DescriptionField({ value, onChange }: {
                 '& textarea:not([aria-hidden])': {
                     height: '100% !important',
                     overflow: 'auto !important',
+                    // Smaller than the field default: this is a body of text, not
+                    // a single value, and at the input's default size a full
+                    // description filled the pane in a handful of lines.
+                    fontSize: '0.82rem',
+                    lineHeight: 1.5,
                 },
             }}
         />

@@ -92,8 +92,19 @@ export const TAGS_BOX_WIDTH = rem(152)
 export const CARD_LEFT_PANE_MIN_REM = 21
 export const CARD_RIGHT_PANE_MIN_REM = 15
 
-/** Where the split starts, matching the 4:7 the Blazor overlay was built on. */
-export const CARD_SPLIT_DEFAULT = 4 / 11
+/**
+ * Where the split starts.
+ *
+ * Was 4/11 — the ratio the Blazor overlay's 400px and 700px columns described.
+ * Now 0.45, measured off the arrangement that was asked for: in that reference
+ * the bar sits at x≈620 of a 1312px usable width, with 591px of detail against
+ * 721px of description.
+ *
+ * The difference matters more than it looks. At 4/11 the left column was narrow
+ * enough that the title and the tags box were competing for it; at 0.45 both
+ * have room and the description is still the larger half.
+ */
+export const CARD_SPLIT_DEFAULT = 0.45
 
 /**
  * The row holding the title and the tags.
@@ -114,19 +125,23 @@ export const CARD_DETAIL_ROW_MIN_HEIGHT = rem(300)
 export const CARD_PANEL_ROW_MIN_HEIGHT = rem(170)
 
 /**
- * And a ceiling on that row.
+ * The height of that row, once there is room for it.
  *
- * Without one the card log sets the row's height from its own entry count, so a
- * card with a long history produced a taller dialog than a card with a short
- * one — and the timeline panel beside it stretched to match, turning two lines
- * of "no deadline set" into a 400px block of colour. A log should scroll, not
- * grow the window it is in.
+ * This was a `max-height`, and a max-height does not do what it looks like it
+ * does here. It clamps the *container's* box, but the grid track inside is still
+ * sized from its content, so the panels laid out at their content height and
+ * overflowed — measured: adding six log entries took the panel from 199px to
+ * 328px and the whole overlay grew with it, while the log's scroller matched its
+ * own scrollHeight and therefore never scrolled.
+ *
+ * A definite height is what makes the track definite, which is what lets
+ * `height: 100%` and `flex: 1` inside it resolve — so the log fills the space it
+ * is given and scrolls past it, instead of pushing the dialog taller.
  */
-export const CARD_PANEL_ROW_MAX_HEIGHT = rem(210)
+export const CARD_PANEL_ROW_HEIGHT = rem(210)
 
 /** CommandPanel: the stub chat input beside the card's timeline. */
 export const COMMAND_PANEL_MIN_WIDTH = rem(240)
-export const COMMAND_LOG_MIN_HEIGHT = rem(80)
 
 // ── Card chrome ───────────────────────────────────────────────────────────────
 

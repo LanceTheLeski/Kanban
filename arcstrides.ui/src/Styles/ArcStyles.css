@@ -274,8 +274,8 @@ body,
    because the gradients already carry their own colour.
 */
 .glass {
-    -webkit-backdrop-filter: blur(18px) saturate(180%);
-    backdrop-filter: blur(18px) saturate(180%);
+    -webkit-backdrop-filter: blur(5px) saturate(180%);
+    backdrop-filter: blur(5px) saturate(180%);
 }
 
 /*
@@ -369,8 +369,26 @@ body,
         rgba(226, 232, 240, .05) 55%,
         rgba(255, 255, 255, .03)
     );
-    -webkit-backdrop-filter: saturate(260%) blur(2px);
-    backdrop-filter: saturate(260%) blur(2px);
+    /*
+       No blur of its own, and a sharpen on top.
+
+       The panel used to add blur(2px) to the pane's, so it was always the
+       blurriest thing on screen — the opposite of the thin bright film it is
+       meant to be. Dropping that is half the fix; the other half is the
+       convolution, which pulls apparent detail back out of what the pane
+       softened. It cannot recover what a heavy blur destroyed, which is why the
+       pane came down to 5px first, but against a light blur it is enough to read
+       as crisper than its surroundings.
+
+       Declared twice on purpose: `url()` in a backdrop-filter is invalid if the
+       referenced filter is missing, and an invalid filter chain drops the
+       saturation with it. The first declaration is the floor every browser gets;
+       the second upgrades it where the filter resolves.
+    */
+    -webkit-backdrop-filter: saturate(260%);
+    backdrop-filter: saturate(260%);
+    -webkit-backdrop-filter: saturate(260%) url("#arc-sharpen");
+    backdrop-filter: saturate(260%) url("#arc-sharpen");
     box-shadow:
         inset 0 1px 0 0 rgba(255, 255, 255, .55),
         inset 0 -1px 0 0 rgba(255, 255, 255, .12),

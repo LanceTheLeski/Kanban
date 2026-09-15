@@ -45,10 +45,7 @@
 import React, { useMemo, useRef, useState } from 'react'
 import { Box, IconButton, InputBase, Paper, Tooltip, Typography } from '@mui/material'
 import SendIcon from '@mui/icons-material/Send'
-import {
-    COMMAND_LOG_MIN_HEIGHT,
-    COMMAND_PANEL_MIN_WIDTH,
-} from '../../../Styles/Measures'
+import { COMMAND_PANEL_MIN_WIDTH } from '../../../Styles/Measures'
 import { entity, text, type CardLogEntry, type CardLogKind, type CardLogSpan } from './CardLog.Types'
 import type { Card } from '../../../Entities/Card/Card.Types'
 
@@ -345,7 +342,11 @@ export const CommandPanel: React.FC<CommandPanelProps> = ({ card }) => {
                 ref={logRef}
                 sx={{
                     flex: 1,
-                    minHeight: COMMAND_LOG_MIN_HEIGHT,
+                    // 0, not a floor. A positive minimum here is a size the
+                    // scroller refuses to go below, which is exactly how a log
+                    // ends up taller than the panel holding it. The panel's own
+                    // minimum is what guarantees the log is usable.
+                    minHeight: 0,
                     overflowY: 'auto',
                     display: 'flex',
                     flexDirection: 'column',

@@ -7,6 +7,28 @@
     <title>ArcStrides</title>
   </head>
   <body>
+    <!--
+      The sharpen kernel .glass-inner-engraved uses as a backdrop-filter.
+
+      It lives here rather than in a React component because CSS resolves
+      `url(#arc-sharpen)` against the document the moment the rule applies, and a
+      filter that has not mounted yet makes the whole backdrop-filter chain
+      invalid — the panel would lose its saturation too, not just its sharpening.
+      In index.html it is present before the first paint and survives React
+      replacing #root.
+
+      The kernel is a mild unsharp mask. It sums to 1 (3.4 - 4 x 0.6), so it
+      sharpens without shifting brightness. See ArcStyles.css for why a panel
+      needs to sharpen its own backdrop at all.
+    -->
+    <svg width="0" height="0" aria-hidden="true" focusable="false"
+         style="position:absolute;pointer-events:none">
+      <filter id="arc-sharpen" x="0" y="0" width="100%" height="100%">
+        <feConvolveMatrix order="3" preserveAlpha="true"
+          kernelMatrix="0 -0.6 0  -0.6 3.4 -0.6  0 -0.6 0" />
+      </filter>
+    </svg>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
