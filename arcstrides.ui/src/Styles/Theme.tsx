@@ -122,6 +122,17 @@ export interface ArcPalette {
     glassSelected: string
     /** A rule between sections of a glass panel. */
     glassDivider: string
+    /**
+     * A destructive action on the engraved bar.
+     *
+     * MUI's error.main is a dark red, chosen to sit on white. On the bar's dark
+     * slate it is two dark colours on top of each other — "Delete Column" was
+     * measurably the least readable thing in the overlay. This is the same hue
+     * lifted to where it reads on a dark ground.
+     */
+    dangerOnGlass: string
+    /** The primary action on the engraved bar. */
+    accentOnGlass: string
 
     // ── Timeline modes ────────────────────────────────────────────────────────
     // Three mutually exclusive panels, each with its own colour. The Blazor
@@ -163,6 +174,8 @@ const arcSurfaces: ArcPalette = {
     glassHover: 'rgba(255, 255, 255, 0.12)',
     glassSelected: 'rgba(255, 255, 255, 0.2)',
     glassDivider: 'rgba(255, 255, 255, 0.15)',
+    dangerOnGlass: '#ff8a80',
+    accentOnGlass: '#9ad9ff',
 
     timelineMode: 'aquamarine',
     deadlineMode: 'lightgoldenrodyellow',

@@ -251,6 +251,49 @@ body,
 }
 
 /*
+   ── The two glass materials, and which to use ───────────────────────────────
+
+   .glass                 a pane that floats above the page — an overlay, a
+                          popover, the board's own panel.
+   .glass-inner-engraved  something set *into* a pane — a control, a list, a
+                          button group.
+   .glass-frosted         a pane that needs more opacity behind text.
+
+   The rule that follows, and the one that was being broken: never put .glass
+   inside .glass. Measured on the column-delete overlay, the expanding selector
+   sat two .glass layers deep, so two 40-50% blue gradients composited over each
+   other and backdrop-filter: blur(18px) saturate(180%) ran twice. The result
+   reads as a solid blue panel rather than a translucent one — which looks like
+   the glass failing, when it is actually glass applied twice.
+
+   A control inside an overlay is engraved into it, not floating over it.
+*/
+
+/*
+   .glass paints a border it never had room for.
+
+   Its background is two layers — a gradient clipped to padding-box, and a second
+   clipped to border-box:
+
+       linear-gradient(...) padding-box, linear-gradient(...) border-box
+
+   The border-box layer only ever shows in the border area, and .glass declares
+   no border at all, so that layer has zero pixels to paint into and the edge
+   highlight it was written to draw has never once been visible. The commented-out
+   first draft at the top of this file had `border: 1px solid rgba(202,217,229,.75)`;
+   the version that shipped kept the two-layer background and dropped the border,
+   which is what makes a glass panel look like it is missing its sides.
+
+   A transparent border gives the second layer somewhere to go, so the gradient
+   itself becomes the edge. box-sizing is border-box globally, so this costs no
+   layout.
+*/
+.glass,
+.glass-frosted {
+    border: 1px solid transparent;
+}
+
+/*
    The blur that makes .glass actually read as glass.
 
    The ported .glass is a pair of translucent gradients and an inset highlight
@@ -272,6 +315,33 @@ body,
 .glass {
     -webkit-backdrop-filter: blur(18px) saturate(180%);
     backdrop-filter: blur(18px) saturate(180%);
+}
+
+/*
+   .glass-inner-engraved was saturating everything behind it.
+
+   The ported rule carries `backdrop-filter: saturate(250%) blur(1px)`. Behind an
+   engraved control is the pane's own blue-grey gradient, and 250% saturation
+   turns that into vivid electric blue — so a selector or a button group read as
+   a solid blue slab sitting on a translucent pane, which is the opposite of
+   being recessed into it. Measured on the column-delete overlay, where the pane
+   over the board's olive cells is green-grey and the control inside it was
+   bright blue.
+
+   Saturation is also what was making the action bar hard to read: MUI's error
+   red on a 250%-saturated blue is two strong hues fighting, and "Delete Column"
+   came out barely legible.
+
+   The replacement keeps the idea — a darker, slightly blurred version of what is
+   behind — and drops the amplification: a near-neutral saturation, a deeper blur
+   so it reads as depth rather than transparency, and a cooler, less blue tint.
+
+   Section 1 above stays the verbatim Blazor rule; this is the adaptation.
+*/
+.glass-inner-engraved {
+    background: rgba(38, 50, 74, .34);
+    -webkit-backdrop-filter: saturate(115%) blur(6px);
+    backdrop-filter: saturate(115%) blur(6px);
 }
 
 /*

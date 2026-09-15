@@ -87,12 +87,26 @@ export const ArcExpandingSelector: React.FC<ArcExpandingSelectorProps> = ({
         <Accordion
             expanded={expanded}
             onChange={(_, isExpanded) => setExpanded(isExpanded)}
-            className="glass"
+            /*
+               Engraved, not glass. This selector always renders inside an overlay
+               or a popover, which are themselves .glass — and .glass on .glass
+               composites two translucent blue gradients and runs backdrop-filter
+               twice, which is what made it read as a solid blue slab instead of a
+               pane. See the material note in ArcStyles.css.
+            */
+            className="glass-inner-engraved"
             disableGutters
+            elevation={0}
             sx={{
                 '&:before': { display: 'none' }, // removes MUI's default top border line
+                // !important because MUI's Accordion sets its own radius on the
+                // first and last child rules, which are more specific than sx.
                 borderRadius: '6px !important',
                 overflow: 'hidden',
+                // MuiPaper paints background.paper — the theme's solid blue —
+                // underneath the engraved gradient. Nothing above can be seen
+                // through an opaque layer, so it has to go.
+                backgroundColor: 'transparent',
             }}
         >
             <AccordionSummary
