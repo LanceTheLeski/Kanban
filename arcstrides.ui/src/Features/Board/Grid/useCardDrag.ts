@@ -18,13 +18,13 @@
  */
 
 import { useState } from 'react'
+import { type DragEndEvent, type DragStartEvent, useSensor, useSensors } from '@dnd-kit/core'
 import {
-    type DragEndEvent,
-    type DragStartEvent,
-    PointerSensor,
-    useSensor,
-    useSensors,
-} from '@dnd-kit/core'
+    CARD_MOUSE_ACTIVATION,
+    CARD_TOUCH_ACTIVATION,
+    CardMouseSensor,
+    CardTouchSensor,
+} from './cardSensors'
 import { useShallow } from 'zustand/react/shallow'
 import { useBoardStore } from '../Board.Store'
 import { moveCard } from '../Board.APIs'
@@ -45,10 +45,11 @@ export function useCardDrag(boardId: string | undefined) {
     const { addError } = useArcError()
     const [draggingCard, setDraggingCard] = useState<Card | null>(null)
 
-    // PointerSensor activates only after an 8px drag, so a click on the card's
-    // Actions or Remove button is not read as the start of a drag.
+    // Two sensors rather than one PointerSensor, so a finger can still scroll a
+    // full cell now that the whole card is draggable. See cardSensors.ts.
     const sensors = useSensors(
-        useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+        useSensor(CardMouseSensor, { activationConstraint: CARD_MOUSE_ACTIVATION }),
+        useSensor(CardTouchSensor, { activationConstraint: CARD_TOUCH_ACTIVATION }),
     )
 
     const handleDragStart = (event: DragStartEvent) => {

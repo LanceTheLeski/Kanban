@@ -101,17 +101,6 @@ export const COMMAND_LOG_MIN_HEIGHT = rem(80)
 
 // ── Card chrome ───────────────────────────────────────────────────────────────
 
-/**
- * The grab strip along the top of a card.
- *
- * rem and not px despite being chrome, because what it holds is an icon — and
- * an MUI icon is sized in font units. At a 24px root the icon grew to 21px
- * inside a 16px strip and pushed the card's content down. The strip has to grow
- * with the thing it exists to contain.
- */
-export const DRAG_HANDLE_HEIGHT = rem(16)
-export const DRAG_HANDLE_ICON_SIZE = rem(14)
-
 /** The Actions / Remove row at the foot of a card. */
 export const CARD_ACTIONS_MAX_HEIGHT = rem(50)
 

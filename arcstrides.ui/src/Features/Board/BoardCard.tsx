@@ -37,24 +37,22 @@ import {
     Paper,
     Typography,
 } from '@mui/material'
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
 import { UpdateCardOverlay } from './Card/UpdateCardOverlay'
 import { useBoardActions } from './useBoardActions'
 import { deleteCard } from './Board.APIs'
 import { useBoardStore } from './Board.Store'
 import { CARD_MIN_HEIGHT, DRAG_PREVIEW_WIDTH } from './Board.Layout'
-import {
-    CARD_ACTIONS_MAX_HEIGHT,
-    DRAG_HANDLE_HEIGHT,
-    DRAG_HANDLE_ICON_SIZE,
-} from '../../Styles/Measures'
+import { CARD_ACTIONS_MAX_HEIGHT } from '../../Styles/Measures'
 import type { Card } from '../../Entities/Card/Card.Types'
 
 interface BoardCardProps {
     card: Card
     boardId: string
-    /** dnd-kit listeners/attributes, applied to the drag handle strip only. */
-    dragHandleProps?: Record<string, unknown>
+    /**
+     * dnd-kit listeners/attributes. Applied to the whole tile — the sensors
+     * decide what is a drag and what is a click, not a dedicated handle.
+     */
+    dragProps?: Record<string, unknown>
     /** Renders the static copy shown inside dnd-kit's DragOverlay. */
     preview?: boolean
 }
@@ -62,7 +60,7 @@ interface BoardCardProps {
 export const BoardCard: React.FC<BoardCardProps> = ({
     card,
     boardId,
-    dragHandleProps,
+    dragProps,
     preview = false,
 }) => {
     const [updateOpen, setUpdateOpen] = useState(false)
@@ -87,6 +85,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({
             {/* ── Card tile ─────────────────────────────────────────────────────── */}
             {/* Mirrors: MudPaper width=120px height=200px background-color=lightyellow */}
             <Paper
+                {...(dragProps ?? {})}
                 sx={{
                     // Fills the cell rather than sitting at a fixed 120px inside a
                     // 300px column. A card is mostly text, and the old width cut
@@ -103,32 +102,14 @@ export const BoardCard: React.FC<BoardCardProps> = ({
                     textAlign: 'center',
                     // The drag ghost sits above everything and shouldn't intercept pointers
                     ...(preview ? { boxShadow: 6, cursor: 'grabbing', pointerEvents: 'none' } : {}),
+                    // The whole tile is the grab surface now, so it says so.
+                    cursor: dragProps ? 'grab' : 'default',
+                    '&:active': { cursor: dragProps ? 'grabbing' : 'default' },
                 }}
                 elevation={3}
             >
-                {/* Drag handle — carries the dnd-kit listeners so the buttons below stay clickable */}
-                <Box
-                    {...(dragHandleProps ?? {})}
-                    sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        // rem, because what this strip holds is an icon, and an
-                        // MUI icon is sized in font units. At a 24px root the icon
-                        // grew to 21px inside a 16px strip and pushed the card's
-                        // content down.
-                        height: DRAG_HANDLE_HEIGHT,
-                        flexShrink: 0,
-                        color: 'rgba(0,0,0,0.35)',
-                        cursor: dragHandleProps ? 'grab' : 'default',
-                        touchAction: 'none', // required by dnd-kit for touch devices
-                        '&:active': { cursor: dragHandleProps ? 'grabbing' : 'default' },
-                    }}
-                >
-                    <DragIndicatorIcon sx={{ fontSize: DRAG_HANDLE_ICON_SIZE, transform: 'rotate(90deg)' }} />
-                </Box>
-
-                {/* Upper section: clickable card content */}
+                {/* Card content. A press here opens the card; a press that travels
+                    8px drags it instead. */}
                 <Box
                     onClick={() => !preview && setUpdateOpen(true)}
                     sx={{

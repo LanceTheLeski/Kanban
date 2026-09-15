@@ -4,8 +4,9 @@
  * Wraps BoardCard with dnd-kit drag behaviour.
  * Mirrors MudDropContainer's ItemRenderer, which made each DropCard draggable.
  *
- * Only the drag handle strip carries the pointer listeners — putting them on the
- * whole tile would swallow clicks on the Actions and Remove buttons.
+ * The listeners go on the whole tile. What stops them swallowing a click on
+ * Actions or Remove is the sensors refusing to activate on a press that began
+ * inside an interactive element — see cardSensors.ts.
  */
 
 import React from 'react'
@@ -27,7 +28,7 @@ export const DraggableCard: React.FC<DraggableCardProps> = ({ card, boardId }) =
             <BoardCard
                 card={card}
                 boardId={boardId}
-                dragHandleProps={{ ...listeners, ...attributes }}
+                dragProps={{ ...listeners, ...attributes }}
             />
         </Box>
     )
