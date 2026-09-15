@@ -320,51 +320,82 @@ body,
 }
 
 /*
-   .glass-inner-engraved: a thin film, not a tinted slab.
+   Thinning both glass layers so there is something to see through to.
 
-   ── What went wrong, and why the first fix was the wrong one ────────────────
-   The ported rule pairs `background: rgba(58,76,111,.25)` -- a dark navy -- with
-   `backdrop-filter: saturate(250%)`. The complaint was that the result read as a
-   solid blue panel, and the first attempt at fixing it dropped saturation to
-   115%. That was the wrong half: it made the panel dark and washed out, because
-   the two declarations were doing opposite jobs and only one of them was the
-   problem.
+   ── Why the film alone could not fix this ───────────────────────────────────
+   An engraved panel is never the only thing between the reader and the board:
+   it sits on a .glass pane, which sits on the page. Two stacked translucent
+   layers, and the pane's own tint was rgba(98,147,185,.40..50) — blue, at up to
+   half opacity, over everything.
 
-   Saturation is what makes what is *behind* the film vivid. That is the effect
-   worth keeping, and turning it down threw it away. The muddiness came from the
-   tint: a 25% navy wash sits in front of everything and drags it toward blue,
-   which is exactly what stops the panel reading as a film over a board and makes
-   it read as a blue rectangle.
+   So thinning only the inner film made the panel lighter and *more* blue,
+   because what it revealed more of was the pane. Measured by rendering the two
+   independently: at the pane's original alpha the panel reads blue whatever the
+   film does; drop the pane and the board's olive cells come through the panel
+   immediately.
 
-   So the tint goes neutral and the saturation goes back up. Grey glass, vivid
-   colours through it -- a thin reflective film rather than a layer of paint.
+   The pane therefore comes down to .22, and the film down to a whisper — a 10%
+   white top edge fading to 3%. What is behind is what you see; the film is the
+   sheen on top of it, not a coat of paint.
 
-   ── What makes it read as curved ───────────────────────────────────────────
-   A flat translucent rectangle looks like a flat translucent rectangle whatever
-   its tint. The box-shadow is what gives it a surface: a one-pixel specular line
-   along the top edge where a curved film would catch the light, a darker line
-   along the bottom, and a soft inner shadow under the top edge for depth. The
-   original's single dark inset is kept as that third layer.
+   ── The rim is what is left of the material ────────────────────────────────
+   With the fill this thin, the box-shadow does nearly all the work: a bright
+   specular line along the top edge where a curved film catches the light, a
+   faint one along the bottom, and a hairline all round. The original's dark
+   inset is gone — at .28 black it was the single biggest contributor to the
+   "dark blue" the panel was being read as.
 
-   An iridescent sheen was tried as well -- a second gradient shifting through
-   warm and cool at 5-7% alpha, the way a soap film does. At an alpha low enough
-   not to tint the panel it was imperceptible, so it is not here.
+   Saturation stays high. That is what makes the colours coming through vivid
+   rather than merely visible, and it is the half of the original rule that was
+   always right.
 
-   Section 1 above stays the verbatim Blazor rule; this is the adaptation.
+   Section 1 above stays the verbatim Blazor rules; these are adaptations.
 */
+.glass {
+    background:
+        linear-gradient(
+            140deg,
+            rgba(202, 217, 229, .22),
+            rgba(98, 147, 185, .22) 50%,
+            rgba(98, 147, 185, .27) 100%
+        ) padding-box,
+        linear-gradient(140deg, rgba(255, 255, 255, .20), rgba(58, 76, 111, .20) 50%) border-box;
+}
+
 .glass-inner-engraved {
     background: linear-gradient(
         160deg,
-        rgba(226, 232, 240, .17),
-        rgba(148, 163, 184, .13) 55%,
-        rgba(226, 232, 240, .10)
+        rgba(255, 255, 255, .10),
+        rgba(226, 232, 240, .05) 55%,
+        rgba(255, 255, 255, .03)
     );
     -webkit-backdrop-filter: saturate(260%) blur(2px);
     backdrop-filter: saturate(260%) blur(2px);
     box-shadow:
-        inset 0 1px 0 0 rgba(255, 255, 255, .45),
-        inset 0 -1px 0 0 rgba(0, 0, 0, .18),
-        inset 0 2px 6px 0 rgba(0, 0, 0, .28);
+        inset 0 1px 0 0 rgba(255, 255, 255, .55),
+        inset 0 -1px 0 0 rgba(255, 255, 255, .12),
+        inset 0 0 0 1px rgba(255, 255, 255, .07);
+}
+
+/*
+   Text on an engraved panel needs its own contrast now.
+
+   The panel is thin enough to show what is behind it, and what is behind it
+   varies: over the board's dark blue cells white text is fine, over its light
+   olive ones it is not. The panel cannot be darkened without undoing the
+   transparency that was the point, so the text carries its own backing instead —
+   a shadow tight enough to read as weight rather than as a glow.
+
+   Buttons opt out: a selected mode button is black on aquamarine, and a dark
+   shadow under dark text only muddies it.
+*/
+.glass-inner-engraved {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .38);
+}
+
+.glass-inner-engraved .MuiButton-root,
+.glass-inner-engraved .MuiButtonBase-root {
+    text-shadow: none;
 }
 
 /*
