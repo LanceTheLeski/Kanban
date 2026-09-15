@@ -134,6 +134,21 @@ export interface ArcPalette {
     /** The primary action on the engraved bar. */
     accentOnGlass: string
 
+    // ── Card log ──────────────────────────────────────────────────────────────
+    // One accent per kind of entry in the card's history panel. They read as a
+    // set deliberately: the panel is scanned down its left edge, and the colour
+    // is what tells a system event from something a person wrote.
+    /** Something the system recorded: moved, renamed, task completed. */
+    logEvent: string
+    /** Something a person wrote. */
+    logNote: string
+    /** A command the user typed. */
+    logCommand: string
+    /** What a command answered. */
+    logResult: string
+    /** Something wanting attention: a deadline passed, a write rejected. */
+    logAlert: string
+
     // ── Timeline modes ────────────────────────────────────────────────────────
     // Three mutually exclusive panels, each with its own colour. The Blazor
     // original drove these off a `bool?`; the colours are unchanged.
@@ -176,6 +191,12 @@ const arcSurfaces: ArcPalette = {
     glassDivider: 'rgba(255, 255, 255, 0.15)',
     dangerOnGlass: '#ff8a80',
     accentOnGlass: '#9ad9ff',
+
+    logEvent: '#7fb5d9',
+    logNote: '#c5d86d',
+    logCommand: '#9ad9ff',
+    logResult: '#8fd9b6',
+    logAlert: '#ff8a80',
 
     timelineMode: 'aquamarine',
     deadlineMode: 'lightgoldenrodyellow',

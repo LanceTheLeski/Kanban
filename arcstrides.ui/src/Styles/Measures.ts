@@ -53,15 +53,6 @@ export const POPOVER_MIN_WIDTH = rem(280)
 /** The task popover, which holds a timeline panel beside the task fields. */
 export const TASK_POPOVER_WIDTH = rem(560)
 
-/**
- * A timeline mode panel's ceiling.
- *
- * All three panels were a flat `width: 460` inside a 560px popover that also had
- * to hold the task fields, so the panel hung 109px outside the dialog. Stated as
- * a maximum with `width: 100%` and `minWidth: 0`, a panel takes the width it is
- * given and the pickers inside it wrap.
- */
-export const TIMELINE_PANEL_MAX_WIDTH = rem(460)
 
 // ── Controls ──────────────────────────────────────────────────────────────────
 
@@ -74,26 +65,42 @@ export const SELECTOR_LIST_MAX_HEIGHT = rem(200)
 /**
  * The card overlay's task list.
  *
- * Stays a fixed height, unlike most of this file, because the list scrolls its
- * own contents — the height is what the scrollport is, not a box that text is
- * being squeezed into. Only the unit changes, so the scrollport grows with the
- * rows inside it instead of showing fewer of them.
+ * A floor, not a height. It used to be a fixed 200px, which made it the only
+ * thing in the left column with an opinion — so the column ended 70px short of
+ * the description beside it and the overlay looked, correctly, unbalanced. The
+ * list now takes whatever height the row has left and scrolls inside it.
  */
-export const TASK_LIST_HEIGHT = rem(200)
+export const TASK_LIST_MIN_HEIGHT = rem(120)
 
 /**
- * The card overlay's title row, which holds an input beside the tags chip.
+ * The tags panel.
  *
- * A minimum, where it was a fixed `height: 75`. This is the case the rem pass
- * exists for: the row holds a TextField *and* its helper text, both of which
- * grow with the root font size, and a fixed 75px cut the helper text off at a
- * large default. A floor lets the row grow to hold what is in it.
+ * Bounded at both ends because it sits in a fixed column above the task list:
+ * left to grow it would push the task list down by an amount that depends on how
+ * many tags someone added. It scrolls past the maximum instead.
  */
-export const TITLE_ROW_MIN_HEIGHT = rem(75)
+export const TAGS_PANEL_MIN_HEIGHT = rem(84)
+export const TAGS_PANEL_MAX_HEIGHT = rem(132)
 
-/** The tags placeholder. Fixed because its content is fixed — one short word. */
-export const TAG_CHIP_WIDTH = rem(120)
-export const TAG_CHIP_HEIGHT = rem(60)
+/**
+ * The card overlay's two rows.
+ *
+ * Floors, so neither collapses when its content is sparse — an empty card should
+ * not produce a different shape of dialog from a full one.
+ */
+export const CARD_DETAIL_ROW_MIN_HEIGHT = rem(340)
+export const CARD_PANEL_ROW_MIN_HEIGHT = rem(190)
+
+/**
+ * And a ceiling on that row.
+ *
+ * Without one the card log sets the row's height from its own entry count, so a
+ * card with a long history produced a taller dialog than a card with a short
+ * one — and the timeline panel beside it stretched to match, turning two lines
+ * of "no deadline set" into a 400px block of colour. A log should scroll, not
+ * grow the window it is in.
+ */
+export const CARD_PANEL_ROW_MAX_HEIGHT = rem(260)
 
 /** CommandPanel: the stub chat input beside the card's timeline. */
 export const COMMAND_PANEL_MIN_WIDTH = rem(240)

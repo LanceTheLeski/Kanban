@@ -36,7 +36,7 @@ import React, { useState } from 'react'
 import { Box, Button, Paper, Typography } from '@mui/material'
 import { DatePicker, TimePicker } from '@mui/x-date-pickers'
 import type { Dayjs } from 'dayjs'
-import { rem, TIMELINE_PANEL_MAX_WIDTH } from '../../../Styles/Measures'
+import { rem } from '../../../Styles/Measures'
 import type { Timeline } from '../../../Entities/Timeline/Timeline.Types'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -123,33 +123,55 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({
         emitChange({ m: newMode })
     }
 
-    // ── Mode selector buttons (mirrors Blazor's three-button Stack) ─────────────
+    // ── Mode selector ─────────────────────────────────────────────────────────
+    /*
+       A segmented row above the panel, where this was a vertical stack of three
+       buttons beside it. The stack was always shorter than the panel it sat
+       next to, so it left a hole under itself in the card overlay — and it spent
+       a column of width on three short words that read perfectly well in a row.
+       Above also puts the control before the thing it controls, in reading order.
+    */
+    const MODES: { value: TimelineMode; label: string; colour: string }[] = [
+        { value: 'deadline', label: 'Deadline', colour: 'arc.deadlineMode' },
+        { value: 'timeline', label: 'Timeline', colour: 'arc.timelineMode' },
+        { value: 'timeless', label: 'Timeless', colour: 'arc.timelessMode' },
+    ]
+
     const modeButtons = (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mr: 1 }}>
-            <Button
-                size="small"
-                variant={mode === 'deadline' ? 'contained' : 'outlined'}
-                onClick={() => handleModeChange('deadline')}
-                sx={{ backgroundColor: mode === 'deadline' ? 'arc.deadlineMode' : undefined, color: 'black' }}
-            >
-                Deadline
-            </Button>
-            <Button
-                size="small"
-                variant={mode === 'timeline' ? 'contained' : 'outlined'}
-                onClick={() => handleModeChange('timeline')}
-                sx={{ backgroundColor: mode === 'timeline' ? 'arc.timelineMode' : undefined, color: 'black' }}
-            >
-                Timeline
-            </Button>
-            <Button
-                size="small"
-                variant={mode === 'timeless' ? 'contained' : 'outlined'}
-                onClick={() => handleModeChange('timeless')}
-                sx={{ backgroundColor: mode === 'timeless' ? 'arc.timelessMode' : undefined, color: 'black' }}
-            >
-                Timeless
-            </Button>
+        <Box
+            role="group"
+            aria-label="Timeline mode"
+            sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}
+        >
+            {MODES.map(option => {
+                const selected = mode === option.value
+                return (
+                    <Button
+                        key={option.value}
+                        size="small"
+                        aria-pressed={selected}
+                        variant={selected ? 'contained' : 'outlined'}
+                        onClick={() => handleModeChange(option.value)}
+                        sx={{
+                            flex: 1,
+                            minWidth: 0,
+                            color: 'black',
+                            backgroundColor: selected ? option.colour : 'transparent',
+                            borderColor: option.colour,
+                            // The unselected buttons sit on glass, where black on
+                            // translucent is unreadable; they carry their own
+                            // colour as an outline and a faint wash instead.
+                            ...(selected ? {} : { color: 'arc.onGlass', opacity: 0.85 }),
+                            '&:hover': {
+                                backgroundColor: selected ? option.colour : 'arc.glassHover',
+                                borderColor: option.colour,
+                            },
+                        }}
+                    >
+                        {option.label}
+                    </Button>
+                )
+            })}
         </Box>
     )
 
@@ -167,7 +189,12 @@ const PANEL = {
     p: 1,
     width: '100%',
     minWidth: 0,
-    maxWidth: TIMELINE_PANEL_MAX_WIDTH,
+    // Fills the height its container gives it, so the panel beside it in the card
+    // overlay does not end up taller. The width cap TIMELINE_PANEL_MAX_WIDTH used
+    // to impose is gone: both call sites now bound the panel themselves — a grid
+    // track in the card overlay, the popover's own width in the task popover — so
+    // a second cap only stopped it filling either.
+    flex: 1,
     minHeight: rem(120),
 } as const
 
@@ -250,17 +277,41 @@ const PANEL = {
     )
 
     // ── Timeless mode (red) ──────────────────────────────────────────────────────
+    /*
+       Centred and width-limited, because this panel stretches to match the card
+       log beside it and its content is two lines. Left to fill, those two lines
+       sat in the top-left of a 400px block of solid red, which reads as an error
+       rather than as a choice the user made.
+    */
     const timelessContent = (
-        <Paper sx={{ ...PANEL, p: 2, backgroundColor: 'arc.timelessMode' }}>
-            <Typography variant="body2" sx={{ color: 'white' }}>
-                You have opted not to give a deadline/timeline for this.
-                As a result, it may not show up in most places.
+        <Paper
+            sx={{
+                ...PANEL,
+                p: 2,
+                backgroundColor: 'arc.timelessMode',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+            }}
+        >
+            <Typography variant="body2" sx={{ color: 'white', maxWidth: '32ch' }}>
+                No deadline or timeline set for this. It will not show up in most places.
             </Typography>
         </Paper>
     )
 
     return (
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap', gap: 1, minWidth: 0 }}>
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1,
+                minWidth: 0,
+                minHeight: 0,
+                height: '100%',
+            }}
+        >
             {modeButtons}
             {mode === 'timeline' && timelineContent}
             {mode === 'deadline' && deadlineContent}

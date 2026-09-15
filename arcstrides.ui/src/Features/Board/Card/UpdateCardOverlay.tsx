@@ -66,11 +66,12 @@ import { CommandPanel } from '../Commands/CommandPanel'
 import { useBoardActions } from '../useBoardActions'
 import { deleteCard, deleteTask, updateCard } from '../Board.APIs'
 import { useBoardStore } from '../Board.Store'
+import { TagsPanel, type CardTag } from './TagsPanel'
 import {
-    TAG_CHIP_HEIGHT,
-    TAG_CHIP_WIDTH,
-    TASK_LIST_HEIGHT,
-    TITLE_ROW_MIN_HEIGHT,
+    CARD_DETAIL_ROW_MIN_HEIGHT,
+    CARD_PANEL_ROW_MAX_HEIGHT,
+    CARD_PANEL_ROW_MIN_HEIGHT,
+    TASK_LIST_MIN_HEIGHT,
 } from '../../../Styles/Measures'
 import type { Card } from '../../../Entities/Card/Card.Types'
 import type { Task } from '../../../Entities/Task/Task.Types'
@@ -117,6 +118,11 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
     // Local task list, owned by this overlay while it is open.
     // Mirrors Blazor's _taskList RenderFragment, which was rebuilt from ActiveCard.Tasks.
     const [tasks, setTasks] = useState<Task[]>(card.tasks)
+
+    // Local only. The API can create and delete tags but cannot list the ones on
+    // a card, so there is nothing to seed this from and nowhere to send it that
+    // could be read back. See TagsPanel for what would unblock it.
+    const [tags, setTags] = useState<CardTag[]>([])
 
     const handleSubmit = async () => {
         const patch: { title?: string; description?: string } = {}
@@ -203,17 +209,31 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
         >
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
 
-                {/* Top row: card detail on the left, description filling the right */}
+                {/*
+                    Top row: card detail on the left, description filling the right.
+
+                    `alignItems: stretch` rather than `start` is what makes the two
+                    columns end level. With `start` each column sized to its own
+                    content — a fixed 200px task list on the left against a 13-row
+                    textarea on the right — so the left column stopped 70px above
+                    the right and the dialog read as unbalanced. Both columns now
+                    fill the row, and the row has a floor so a sparse card does not
+                    produce a different shape of dialog from a full one.
+                */}
                 <Box
                     sx={{
                         display: 'grid',
                         gridTemplateColumns: { xs: '1fr', [STACK_BELOW]: DETAIL_TO_DESCRIPTION },
                         gap: 2,
-                        alignItems: 'start',
+                        alignItems: 'stretch',
+                        minHeight: CARD_DETAIL_ROW_MIN_HEIGHT,
                     }}
                 >
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
-                        <TitleAndTags title={title} onTitleChange={setTitle} />
+                    {/* minHeight: 0 so the task list below can actually shrink —
+                        without it a grid item refuses to go below its content. */}
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0, minHeight: 0 }}>
+                        <TitleField title={title} onTitleChange={setTitle} />
+                        <TagsPanel tags={tags} onChange={setTags} />
                         <TaskList
                             tasks={tasks}
                             boardId={boardId}
@@ -227,7 +247,25 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                     <DescriptionField value={description} onChange={setDescription} />
                 </Box>
 
-                <TimelineAndCommands timeline={card.timeline} />
+                {/*
+                    Bottom row: the timeline beside the card's log. Two equal
+                    columns that stretch, for the same reason as above — these were
+                    a wrapping flex row where each panel sized itself, which left a
+                    ragged edge and a hole under the timeline's mode buttons.
+                */}
+                <Box
+                    sx={{
+                        display: 'grid',
+                        gridTemplateColumns: { xs: '1fr', [STACK_BELOW]: 'minmax(0, 1fr) minmax(0, 1fr)' },
+                        gap: 2,
+                        alignItems: 'stretch',
+                        minHeight: CARD_PANEL_ROW_MIN_HEIGHT,
+                        maxHeight: { [STACK_BELOW]: CARD_PANEL_ROW_MAX_HEIGHT },
+                    }}
+                >
+                    <UpdateTimelinePanel timeline={card.timeline} />
+                    <CommandPanel card={card} />
+                </Box>
 
             </Box>
         </ArcOverlay>
@@ -240,51 +278,26 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
 // first.
 
 /**
- * Card title beside the tags placeholder.
- * Mirrors Blazor's MudGrid Spacing="0" row at the top of the overlay.
+ * The card's title.
  *
- * Tags are not implemented on either side yet — the Blazor original had the same
- * static "Tags..." paper holding the space.
+ * Was half of a TitleAndTags row, with a fixed 120px "Tags…" placeholder beside
+ * it. The tags are real now (TagsPanel) and need more room than a chip, so they
+ * moved to their own block below and the title takes the full width.
  */
-function TitleAndTags({ title, onTitleChange }: {
+function TitleField({ title, onTitleChange }: {
     title: string
     onTitleChange: (title: string) => void
 }) {
     return (
-        <Box sx={{ display: 'flex', gap: 1, minHeight: TITLE_ROW_MIN_HEIGHT, alignItems: 'flex-start' }}>
-            <TextField
-                value={title}
-                onChange={e => onTitleChange(e.target.value)}
-                variant="outlined"
-                helperText="Card Title"
-                size="small"
-                sx={{
-                    // Takes whatever the tag chip leaves. minWidth: 0 stops the
-                    // input's intrinsic width from propping the row open.
-                    flex: 1,
-                    minWidth: 0,
-                    backgroundColor: 'arc.field',
-                    borderRadius: 1,
-                }}
-            />
-
-            <Paper
-                sx={{
-                    // A chip, not a column: fixed because its content is fixed —
-                    // one short word. In rem so the word still fits it.
-                    width: TAG_CHIP_WIDTH,
-                    flexShrink: 0,
-                    height: TAG_CHIP_HEIGHT,
-                    backgroundColor: 'arc.tagPlaceholder',
-                    borderRadius: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}
-            >
-                <Typography variant="caption">Tags…</Typography>
-            </Paper>
-        </Box>
+        <TextField
+            value={title}
+            onChange={e => onTitleChange(e.target.value)}
+            variant="outlined"
+            helperText="Card Title"
+            size="small"
+            fullWidth
+            sx={{ flexShrink: 0, backgroundColor: 'arc.field', borderRadius: 1 }}
+        />
     )
 }
 
@@ -305,14 +318,27 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
         <Paper
             className="glass-inner-engraved"
             /*
-               A fixed height, unlike most boxes here, because this one scrolls its
-               own rows — the height is the scrollport, not a box text is squeezed
-               into. Only the unit changed, so the port grows with the rows rather
-               than showing fewer of them.
+               Takes the height the column has left rather than claiming a fixed
+               200px. That fixed height was what made the left column end short of
+               the description beside it. minHeight keeps it a usable target when
+               the row is at its floor; it scrolls past that.
             */
-            sx={{ width: '100%', height: TASK_LIST_HEIGHT, overflow: 'auto' }}
+            sx={{
+                width: '100%',
+                flex: 1,
+                minHeight: TASK_LIST_MIN_HEIGHT,
+                overflow: 'auto',
+            }}
         >
             <List dense disablePadding>
+                {tasks.length === 0 && (
+                    <ListItem disablePadding sx={{ px: 1, py: 1.5 }}>
+                        <Typography sx={{ fontSize: '0.72rem', color: 'arc.onGlassMuted' }}>
+                            No tasks on this card yet.
+                        </Typography>
+                    </ListItem>
+                )}
+
                 {tasks.map(task => (
                     <ListItem key={task.id || task.title} disablePadding>
                         {/* The popover trigger takes the row; the bin sits at the end */}
@@ -352,7 +378,24 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
     )
 }
 
-/** The card description, filling the right-hand column. */
+/**
+ * The card description, filling the right-hand column.
+ *
+ * `rows={13}` is gone. A fixed row count made the description the thing that
+ * decided how tall the whole top row was, and 13 rows is not a number anyone
+ * chose — it was whatever happened to look right next to a 200px task list.
+ *
+ * Making a multiline TextField fill its container takes three rules, because
+ * MUI sizes the textarea from its content by default:
+ *   - the FormControl becomes a flex column, so the helper text sits under a
+ *     growing input rather than being pushed out of the box
+ *   - the InputBase takes the remaining height
+ *   - the textarea fills the InputBase and scrolls its own overflow
+ *
+ * `:not([aria-hidden])` matters: an autosizing MUI textarea has a second,
+ * hidden textarea used to measure content, and forcing that one to 100% height
+ * makes it report a height that grows every render.
+ */
 function DescriptionField({ value, onChange }: {
     value: string
     onChange: (description: string) => void
@@ -362,34 +405,28 @@ function DescriptionField({ value, onChange }: {
             value={value}
             onChange={e => onChange(e.target.value)}
             multiline
-            rows={13}
             variant="outlined"
             helperText="Card Description"
             fullWidth
             sx={{
                 backgroundColor: 'arc.fieldMuted',
                 borderRadius: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: 0,
+                '& .MuiInputBase-root': {
+                    flex: 1,
+                    minHeight: 0,
+                    alignItems: 'flex-start',
+                },
+                '& textarea:not([aria-hidden])': {
+                    height: '100% !important',
+                    overflow: 'auto !important',
+                },
             }}
         />
     )
 }
 
-/**
- * The two panels along the bottom of the overlay.
- *
- * The timeline panel is read-only here: a card's own timeline is displayed, but
- * only a *task's* timeline can currently be edited (see UpdateTaskPopover).
- * CommandPanel is still the layout stub it was in Blazor.
- */
-function TimelineAndCommands({ timeline }: { timeline: Card['timeline'] }) {
-    return (
-        // Wraps rather than overflows when the overlay is narrow: both panels size
-        // to their own content, so there is no ratio to preserve here.
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'flex-start' }}>
-            <UpdateTimelinePanel timeline={timeline} />
-            <CommandPanel />
-        </Box>
-    )
-}
 
 export default UpdateCardOverlay
