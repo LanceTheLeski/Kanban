@@ -59,6 +59,7 @@ import {
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
+import { ArcSplitPane } from '../../../Components/ArcSplitPane'
 import { UpdateTimelinePanel } from '../Timeline/UpdateTimelinePanel'
 import { UpdateTaskPopover } from '../Task/UpdateTaskPopover'
 import { CreateTaskOverlay } from '../Task/CreateTaskOverlay'
@@ -69,8 +70,11 @@ import { useBoardStore } from '../Board.Store'
 import { TagsPanel, type CardTag } from './TagsPanel'
 import {
     CARD_DETAIL_ROW_MIN_HEIGHT,
+    CARD_LEFT_PANE_MIN_REM,
     CARD_PANEL_ROW_MAX_HEIGHT,
     CARD_PANEL_ROW_MIN_HEIGHT,
+    CARD_RIGHT_PANE_MIN_REM,
+    CARD_SPLIT_DEFAULT,
     TASK_LIST_MIN_HEIGHT,
     TITLE_ROW_MIN_HEIGHT,
 } from '../../../Styles/Measures'
@@ -80,17 +84,10 @@ import type { Task } from '../../../Entities/Task/Task.Types'
 // The Blazor original was 1100px wide with a 400px and a 700px column. Only the
 // overall width is still a pixel value — and it is a *maximum*, not a size.
 //
-// The two columns are expressed as the 4:7 ratio those numbers described, so they
-// keep their proportion at any width instead of overflowing when the overlay is
-// narrower than the two of them added together.
+// The 4:7 those numbers described is now only where the split *starts*
+// (CARD_SPLIT_DEFAULT): the reader drags the bar between the two panes from
+// there. See ArcSplitPane.
 const OVERLAY_MAX_WIDTH = 1100
-
-// minmax(0, …) rather than a bare 4fr/7fr is the part that matters. A grid track's
-// default minimum is its content's min-content width, so a track holding a textarea
-// or a long unbroken word refuses to shrink past it and overflows the row — which is
-// exactly what pushed the description below the task list. minmax(0, …) lets the
-// track shrink to whatever the ratio says.
-const DETAIL_TO_DESCRIPTION = 'minmax(0, 4fr) minmax(0, 7fr)'
 
 // Below this the two columns stop being readable side by side and stack.
 const STACK_BELOW = 'md'
@@ -124,6 +121,18 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
     // a card, so there is nothing to seed this from and nowhere to send it that
     // could be read back. See TagsPanel for what would unblock it.
     const [tags, setTags] = useState<CardTag[]>([])
+
+    /**
+     * How the overlay's width is divided between the card's detail and its
+     * description.
+     *
+     * Local, and therefore per-opening: drag the bar, close the card, reopen it
+     * and it is back at the default. That is deliberate for now — the point is to
+     * see whether the control is worth having before adding a column to store it
+     * in. It is a single number, so making it stick later means seeding this from
+     * the card and patching it on save; nothing else has to change.
+     */
+    const [split, setSplit] = useState(CARD_SPLIT_DEFAULT)
 
     const handleSubmit = async () => {
         const patch: { title?: string; description?: string } = {}
@@ -221,35 +230,42 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                     fill the row, and the row has a floor so a sparse card does not
                     produce a different shape of dialog from a full one.
                 */}
-                <Box
-                    sx={{
-                        display: 'grid',
-                        gridTemplateColumns: { xs: '1fr', [STACK_BELOW]: DETAIL_TO_DESCRIPTION },
-                        gap: 2,
-                        alignItems: 'stretch',
-                        minHeight: CARD_DETAIL_ROW_MIN_HEIGHT,
-                    }}
-                >
-                    {/* minHeight: 0 so the task list below can actually shrink —
-                        without it a grid item refuses to go below its content. */}
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0, minHeight: 0 }}>
-                        <TitleAndTags
-                            title={title}
-                            onTitleChange={setTitle}
-                            tags={tags}
-                            onTagsChange={setTags}
-                        />
-                        <TaskList
-                            tasks={tasks}
-                            boardId={boardId}
-                            cardId={card.id}
-                            onTaskUpdated={handleTaskUpdated}
-                            onTaskCreated={handleTaskCreated}
-                            onTaskDeleted={handleDeleteTask}
-                        />
-                    </Box>
-
-                    <DescriptionField value={description} onChange={setDescription} />
+                <Box sx={{ minHeight: CARD_DETAIL_ROW_MIN_HEIGHT, display: 'flex', flexDirection: 'column' }}>
+                    <ArcSplitPane
+                        ratio={split}
+                        onRatioChange={setSplit}
+                        minLeftRem={CARD_LEFT_PANE_MIN_REM}
+                        minRightRem={CARD_RIGHT_PANE_MIN_REM}
+                        // A card that is only a checklist should be able to drop
+                        // the description entirely rather than keep a sliver of it.
+                        collapsibleRight
+                        resetRatio={CARD_SPLIT_DEFAULT}
+                        stackBelow={STACK_BELOW}
+                        label="Resize card detail and description"
+                        left={
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0, minHeight: 0, flex: 1, pr: 1 }}>
+                                <TitleAndTags
+                                    title={title}
+                                    onTitleChange={setTitle}
+                                    tags={tags}
+                                    onTagsChange={setTags}
+                                />
+                                <TaskList
+                                    tasks={tasks}
+                                    boardId={boardId}
+                                    cardId={card.id}
+                                    onTaskUpdated={handleTaskUpdated}
+                                    onTaskCreated={handleTaskCreated}
+                                    onTaskDeleted={handleDeleteTask}
+                                />
+                            </Box>
+                        }
+                        right={
+                            <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, flex: 1, pl: 1 }}>
+                                <DescriptionField value={description} onChange={setDescription} />
+                            </Box>
+                        }
+                    />
                 </Box>
 
                 {/*
@@ -303,6 +319,8 @@ function TitleAndTags({ title, onTitleChange, tags, onTagsChange }: {
                 gap: 1,
                 flexShrink: 0,
                 minHeight: TITLE_ROW_MIN_HEIGHT,
+                // The title grows with its content now, so the tags box tracks
+                // its height rather than the two disagreeing.
                 alignItems: 'stretch',
             }}
         >
@@ -312,6 +330,21 @@ function TitleAndTags({ title, onTitleChange, tags, onTagsChange }: {
                 variant="outlined"
                 helperText="Card Title"
                 size="small"
+                /*
+                   Multiline, up to three lines.
+
+                   A single-line input shows a long title as whatever fits and
+                   scrolls the rest out of sight — so the field could hold a title
+                   the reader could not read back without dragging through it. A
+                   card title is a sentence often enough that this was the common
+                   case, not the edge one.
+
+                   Three lines rather than unbounded: past that the title is
+                   taking room from the task list underneath, and what is wanted
+                   is a description.
+                */
+                multiline
+                maxRows={3}
                 // minWidth: 0 stops the input's intrinsic width propping the row open.
                 sx={{ flex: 1, minWidth: 0, backgroundColor: 'arc.field', borderRadius: 1 }}
             />
@@ -433,6 +466,7 @@ function DescriptionField({ value, onChange }: {
                 borderRadius: 1,
                 display: 'flex',
                 flexDirection: 'column',
+                flex: 1,
                 minHeight: 0,
                 '& .MuiInputBase-root': {
                     flex: 1,

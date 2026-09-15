@@ -257,6 +257,16 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({
 
     const openSpec = useMemo(() => NODES.find(node => node.id === openNode), [openNode])
 
+    /*
+       A rail needs more than one point on it. Deadline mode has exactly one, and
+       drawing a lone dot on a line that goes nowhere said less than the date
+       itself does — it looked like a timeline with three pieces missing rather
+       than like a deadline. With one node the mode just shows that node's date
+       and time, in the same fields the rail opens, so the two modes read as the
+       same control at different sizes rather than as two designs.
+    */
+    const showRail = active.length > 1
+
     return (
         <Paper
             className="glass-inner-engraved"
@@ -304,13 +314,13 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({
             </Box>
 
             {/* ── The rail ──────────────────────────────────────────────────── */}
-            {active.length === 0 ? (
+            {!showRail ? (active.length === 0 ? (
                 <Box sx={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', px: 1, py: 2 }}>
                     <Typography sx={{ fontSize: '0.68rem', color: 'arc.onGlassMuted', textAlign: 'center', maxWidth: '34ch' }}>
                         No deadline or timeline set. This card will not appear on the calendar.
                     </Typography>
                 </Box>
-            ) : (
+            ) : null) : (
                 <Box sx={{ position: 'relative', display: 'flex', flexShrink: 0 }}>
                     {/*
                         The connecting line, inset to the centres of the first and
@@ -432,11 +442,17 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({
 
             {/*
                 The slack. This panel stretches to match the card log beside it,
-                and the rail wants to stay under the mode buttons rather than
-                float in the middle — so the spare height is put here, explicitly,
-                between the rail and the editor pinned below it.
+                so the spare height has to go somewhere deliberate.
+
+                With a rail, it goes between the rail and the editor: the rail
+                belongs under the mode buttons rather than floating in the middle,
+                and the pickers belong at the foot.
+
+                Without one — Deadline mode, a single date — it goes at the end
+                instead, so the one control sits under the buttons rather than
+                being pushed to the bottom of an otherwise empty panel.
             */}
-            <Box sx={{ flex: 1, minHeight: 0 }} />
+            {showRail && <Box sx={{ flex: 1, minHeight: 0 }} />}
 
             {/* ── The selected node's pickers ───────────────────────────────── */}
             {openSpec && (
@@ -455,7 +471,10 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({
                     <Typography
                         sx={{ fontSize: '0.6rem', fontWeight: 700, color: 'arc.onGlassStrong', flex: '1 0 100%' }}
                     >
-                        {openSpec.label.join(' ')}
+                        {/* On the rail the four points need telling apart, so they
+                            carry their full names. On its own it is just the
+                            deadline, and "Required End" is rail jargon there. */}
+                        {showRail ? openSpec.label.join(' ') : 'Deadline'}
                     </Typography>
 
                     <DatePicker
@@ -496,7 +515,9 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({
 
             {/* Nothing selected, but nodes exist: say what to do rather than
                 leaving a gap where the pickers will appear. */}
-            {!openSpec && active.length > 0 && (
+            {!showRail && <Box sx={{ flex: 1, minHeight: 0 }} />}
+
+            {!openSpec && showRail && (
                 <Typography
                     sx={{ flexShrink: 0, fontSize: '0.6rem', color: 'arc.onGlassMuted', textAlign: 'center' }}
                 >

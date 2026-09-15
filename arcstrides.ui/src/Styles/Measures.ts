@@ -78,7 +78,22 @@ export const TASK_LIST_MIN_HEIGHT = rem(120)
  * A basis rather than a fixed width — it shrinks before the title does when the
  * overlay is narrow, and never takes more than its share when it is wide.
  */
-export const TAGS_BOX_WIDTH = rem(176)
+export const TAGS_BOX_WIDTH = rem(152)
+
+/**
+ * The card overlay's two panes, as floors for the draggable split.
+ *
+ * The left holds a title, tags and the task list — all of which stop being
+ * usable well before they stop being visible. The right is a description, which
+ * needs a readable measure or it is not worth showing at all; below roughly this
+ * it is a column of two-word lines, which is when dropping it entirely (drag the
+ * bar to the edge) is the better answer.
+ */
+export const CARD_LEFT_PANE_MIN_REM = 21
+export const CARD_RIGHT_PANE_MIN_REM = 15
+
+/** Where the split starts, matching the 4:7 the Blazor overlay was built on. */
+export const CARD_SPLIT_DEFAULT = 4 / 11
 
 /**
  * The row holding the title and the tags.
