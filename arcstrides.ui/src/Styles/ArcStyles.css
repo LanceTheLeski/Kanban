@@ -32,7 +32,8 @@
 */
 
 .glass {
-    display: inline-block;
+    /* display: inline-block  — moved to Section 3; see "glass must not dictate
+       display". Left here so this rule still reads as the original did. */
     border-radius: 2px;
     padding: 10px;
     background: linear-gradient( 140deg, rgba(202, 217, 229, .40), rgba(98, 147, 185, .40) 50%, rgba(98, 147, 185, .50) 100%) padding-box, linear-gradient( 140deg, rgba(255, 255, 255, .20), rgba(58, 76, 111, .20) 50%) border-box;
@@ -40,7 +41,7 @@
 }
 
 .glass-inner-engraved {
-    display: inline-block;
+    /* display: inline-block  — moved to Section 3, as above. */
     border-radius: 4px;
     background: rgba(58, 76, 111, .25);
     box-shadow: rgba(0, 0, 0, .50) 0px 2px 5px 0px inset;
@@ -230,47 +231,7 @@ body,
 }
 
 /*
-   MUI components own their own display; the glass classes are decoration.
-
-   .glass and .glass-inner-engraved both set `display: inline-block`, which was
-   harmless while MUI's styles won the cascade. Once StyledEngineProvider
-   injectFirst put this file last — the change that made glass render at all —
-   inline-block started overriding MuiButtonGroup's `inline-flex`, and a button
-   group is nothing but a flex row. In the task popover, where the group is
-   fullWidth, that gave two 100%-wide buttons no row to share: Submit and Discard
-   stacked vertically.
-
-   Restated here rather than removed from the rule above, because a bare <div
-   class="glass"> should still shrink-wrap the way it did in Blazor. Only the
-   components that manage their own layout get it back.
-*/
-.MuiButtonGroup-root.glass,
-.MuiButtonGroup-root.glass-inner-engraved,
-.MuiButtonGroup-root.glass-frosted {
-    display: inline-flex;
-}
-
-/*
-   ── The two glass materials, and which to use ───────────────────────────────
-
-   .glass                 a pane that floats above the page — an overlay, a
-                          popover, the board's own panel.
-   .glass-inner-engraved  something set *into* a pane — a control, a list, a
-                          button group.
-   .glass-frosted         a pane that needs more opacity behind text.
-
-   The rule that follows, and the one that was being broken: never put .glass
-   inside .glass. Measured on the column-delete overlay, the expanding selector
-   sat two .glass layers deep, so two 40-50% blue gradients composited over each
-   other and backdrop-filter: blur(18px) saturate(180%) ran twice. The result
-   reads as a solid blue panel rather than a translucent one — which looks like
-   the glass failing, when it is actually glass applied twice.
-
-   A control inside an overlay is engraved into it, not floating over it.
-*/
-
-/*
-   .glass paints a border it never had room for.
+      .glass paints a border it never had room for.
 
    Its background is two layers — a gradient clipped to padding-box, and a second
    clipped to border-box:
@@ -294,7 +255,7 @@ body,
 }
 
 /*
-   The blur that makes .glass actually read as glass.
+      The blur that makes .glass actually read as glass.
 
    The ported .glass is a pair of translucent gradients and an inset highlight
    stack, with no backdrop-filter — the commented-out first draft at the top of
@@ -318,30 +279,92 @@ body,
 }
 
 /*
-   .glass-inner-engraved was saturating everything behind it.
+   The glass classes must not dictate `display`.
 
-   The ported rule carries `backdrop-filter: saturate(250%) blur(1px)`. Behind an
-   engraved control is the pane's own blue-grey gradient, and 250% saturation
-   turns that into vivid electric blue — so a selector or a button group read as
-   a solid blue slab sitting on a translucent pane, which is the opposite of
-   being recessed into it. Measured on the column-delete overlay, where the pane
-   over the board's olive cells is green-grey and the control inside it was
-   bright blue.
+   ── The bug this fixes, twice ───────────────────────────────────────────────
+   Section 1's .glass and .glass-inner-engraved both set `display: inline-block`.
+   That was harmless while MUI's styles won the cascade. Once StyledEngineProvider
+   injectFirst put this file last — the change that made glass render at all —
+   inline-block started overriding every MUI component that lays out its own
+   children, at equal specificity, on source order alone.
 
-   Saturation is also what was making the action bar hard to read: MUI's error
-   red on a 250%-saturated blue is two strong hues fighting, and "Delete Column"
-   came out barely legible.
+   It surfaced first on MuiButtonGroup, which is nothing but a flex row: in the
+   task popover, where the group is fullWidth, two 100%-wide buttons had no row
+   to share and Submit and Discard stacked vertically. That was patched by
+   restoring inline-flex for `.MuiButtonGroup-root.glass*` — a fix for the
+   symptom, on one component.
 
-   The replacement keeps the idea — a darker, slightly blurred version of what is
-   behind — and drops the amplification: a near-neutral saturation, a deeper blur
-   so it reads as depth rather than transparency, and a cooler, less blue tint.
+   It was still happening everywhere else, silently. Measured on the card
+   overlay: the timeline panel's Paper carried `sx={{ display: 'flex',
+   flexDirection: 'column' }}` and computed to `display: block`. So every
+   `flex: 1` inside it did nothing, the panel sized itself to its content instead
+   of to its grid cell, and a spacer added to push the pickers to the foot of the
+   panel had no free space to absorb. The same was true of the card log and the
+   tags panel; both happened to *look* right, because a block container stacks
+   its children much as a column flex container does — right up until something
+   needs to flex.
+
+   ── The fix ─────────────────────────────────────────────────────────────────
+   A later rule cannot hand control back to `sx`: it can only set a different
+   value, and `revert` would give `block`, not the flex the component asked for.
+   The declaration has to stop matching those elements at all, so it moves here
+   and is scoped away from anything MUI renders.
+
+   A bare <div class="glass"> still shrink-wraps the way it did in Blazor, which
+   is what the original declaration was for. Anything with a Mui* class decides
+   its own display, which is what it was always supposed to do.
+*/
+.glass:not([class*="Mui"]),
+.glass-inner-engraved:not([class*="Mui"]) {
+    display: inline-block;
+}
+
+/*
+   .glass-inner-engraved: a thin film, not a tinted slab.
+
+   ── What went wrong, and why the first fix was the wrong one ────────────────
+   The ported rule pairs `background: rgba(58,76,111,.25)` -- a dark navy -- with
+   `backdrop-filter: saturate(250%)`. The complaint was that the result read as a
+   solid blue panel, and the first attempt at fixing it dropped saturation to
+   115%. That was the wrong half: it made the panel dark and washed out, because
+   the two declarations were doing opposite jobs and only one of them was the
+   problem.
+
+   Saturation is what makes what is *behind* the film vivid. That is the effect
+   worth keeping, and turning it down threw it away. The muddiness came from the
+   tint: a 25% navy wash sits in front of everything and drags it toward blue,
+   which is exactly what stops the panel reading as a film over a board and makes
+   it read as a blue rectangle.
+
+   So the tint goes neutral and the saturation goes back up. Grey glass, vivid
+   colours through it -- a thin reflective film rather than a layer of paint.
+
+   ── What makes it read as curved ───────────────────────────────────────────
+   A flat translucent rectangle looks like a flat translucent rectangle whatever
+   its tint. The box-shadow is what gives it a surface: a one-pixel specular line
+   along the top edge where a curved film would catch the light, a darker line
+   along the bottom, and a soft inner shadow under the top edge for depth. The
+   original's single dark inset is kept as that third layer.
+
+   An iridescent sheen was tried as well -- a second gradient shifting through
+   warm and cool at 5-7% alpha, the way a soap film does. At an alpha low enough
+   not to tint the panel it was imperceptible, so it is not here.
 
    Section 1 above stays the verbatim Blazor rule; this is the adaptation.
 */
 .glass-inner-engraved {
-    background: rgba(38, 50, 74, .34);
-    -webkit-backdrop-filter: saturate(115%) blur(6px);
-    backdrop-filter: saturate(115%) blur(6px);
+    background: linear-gradient(
+        160deg,
+        rgba(226, 232, 240, .17),
+        rgba(148, 163, 184, .13) 55%,
+        rgba(226, 232, 240, .10)
+    );
+    -webkit-backdrop-filter: saturate(260%) blur(2px);
+    backdrop-filter: saturate(260%) blur(2px);
+    box-shadow:
+        inset 0 1px 0 0 rgba(255, 255, 255, .45),
+        inset 0 -1px 0 0 rgba(0, 0, 0, .18),
+        inset 0 2px 6px 0 rgba(0, 0, 0, .28);
 }
 
 /*
