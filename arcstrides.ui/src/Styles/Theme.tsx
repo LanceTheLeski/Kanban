@@ -123,6 +123,22 @@ export interface ArcPalette {
     /** A rule between sections of a glass panel. */
     glassDivider: string
     /**
+     * The timeline rail's connecting line.
+     *
+     * Stronger than glassDivider, which it used to borrow: a divider separates
+     * two things and should barely register, while this line *is* the timeline
+     * and has to read across a saturated backdrop. At 0.15 it was invisible.
+     */
+    railLine: string
+    /**
+     * The fill of a rail node with no date.
+     *
+     * Not transparent: the connecting line would run straight through the dot and
+     * it would stop reading as a point on the rail. A dark translucent fill reads
+     * as a hole in the line, which is what an unset point is.
+     */
+    railNodeEmpty: string
+    /**
      * A destructive action on the engraved bar.
      *
      * MUI's error.main is a dark red, chosen to sit on white. On the bar's dark
@@ -189,6 +205,8 @@ const arcSurfaces: ArcPalette = {
     glassHover: 'rgba(255, 255, 255, 0.12)',
     glassSelected: 'rgba(255, 255, 255, 0.2)',
     glassDivider: 'rgba(255, 255, 255, 0.15)',
+    railLine: 'rgba(255, 255, 255, 0.45)',
+    railNodeEmpty: 'rgba(24, 33, 50, 0.55)',
     dangerOnGlass: '#ff8a80',
     accentOnGlass: '#9ad9ff',
 

@@ -73,14 +73,21 @@ export const SELECTOR_LIST_MAX_HEIGHT = rem(200)
 export const TASK_LIST_MIN_HEIGHT = rem(120)
 
 /**
- * The tags panel.
+ * The tags box beside the card title.
  *
- * Bounded at both ends because it sits in a fixed column above the task list:
- * left to grow it would push the task list down by an amount that depends on how
- * many tags someone added. It scrolls past the maximum instead.
+ * A basis rather than a fixed width — it shrinks before the title does when the
+ * overlay is narrow, and never takes more than its share when it is wide.
  */
-export const TAGS_PANEL_MIN_HEIGHT = rem(84)
-export const TAGS_PANEL_MAX_HEIGHT = rem(132)
+export const TAGS_BOX_WIDTH = rem(176)
+
+/**
+ * The row holding the title and the tags.
+ *
+ * A minimum, where it was a fixed `height: 75`. The row holds a TextField *and*
+ * its helper text, both of which grow with the root font size, and a fixed 75px
+ * cut the helper text off at a large default.
+ */
+export const TITLE_ROW_MIN_HEIGHT = rem(84)
 
 /**
  * The card overlay's two rows.
@@ -88,8 +95,8 @@ export const TAGS_PANEL_MAX_HEIGHT = rem(132)
  * Floors, so neither collapses when its content is sparse — an empty card should
  * not produce a different shape of dialog from a full one.
  */
-export const CARD_DETAIL_ROW_MIN_HEIGHT = rem(340)
-export const CARD_PANEL_ROW_MIN_HEIGHT = rem(190)
+export const CARD_DETAIL_ROW_MIN_HEIGHT = rem(300)
+export const CARD_PANEL_ROW_MIN_HEIGHT = rem(170)
 
 /**
  * And a ceiling on that row.
@@ -100,7 +107,7 @@ export const CARD_PANEL_ROW_MIN_HEIGHT = rem(190)
  * of "no deadline set" into a 400px block of colour. A log should scroll, not
  * grow the window it is in.
  */
-export const CARD_PANEL_ROW_MAX_HEIGHT = rem(260)
+export const CARD_PANEL_ROW_MAX_HEIGHT = rem(210)
 
 /** CommandPanel: the stub chat input beside the card's timeline. */
 export const COMMAND_PANEL_MIN_WIDTH = rem(240)

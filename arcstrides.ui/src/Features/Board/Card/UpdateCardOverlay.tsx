@@ -72,6 +72,7 @@ import {
     CARD_PANEL_ROW_MAX_HEIGHT,
     CARD_PANEL_ROW_MIN_HEIGHT,
     TASK_LIST_MIN_HEIGHT,
+    TITLE_ROW_MIN_HEIGHT,
 } from '../../../Styles/Measures'
 import type { Card } from '../../../Entities/Card/Card.Types'
 import type { Task } from '../../../Entities/Task/Task.Types'
@@ -232,8 +233,12 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                     {/* minHeight: 0 so the task list below can actually shrink —
                         without it a grid item refuses to go below its content. */}
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0, minHeight: 0 }}>
-                        <TitleField title={title} onTitleChange={setTitle} />
-                        <TagsPanel tags={tags} onChange={setTags} />
+                        <TitleAndTags
+                            title={title}
+                            onTitleChange={setTitle}
+                            tags={tags}
+                            onTagsChange={setTags}
+                        />
                         <TaskList
                             tasks={tasks}
                             boardId={boardId}
@@ -278,26 +283,41 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
 // first.
 
 /**
- * The card's title.
+ * Card title beside its tags.
  *
- * Was half of a TitleAndTags row, with a fixed 120px "Tags…" placeholder beside
- * it. The tags are real now (TagsPanel) and need more room than a chip, so they
- * moved to their own block below and the title takes the full width.
+ * Mirrors Blazor's MudGrid Spacing="0" row at the top of the overlay, which put
+ * a fixed 120x60 "Tags…" placeholder to the right of the title. That position
+ * was right; only what sat in it was a placeholder. The tags are real now and
+ * still live there, small.
  */
-function TitleField({ title, onTitleChange }: {
+function TitleAndTags({ title, onTitleChange, tags, onTagsChange }: {
     title: string
     onTitleChange: (title: string) => void
+    tags: CardTag[]
+    onTagsChange: (tags: CardTag[]) => void
 }) {
     return (
-        <TextField
-            value={title}
-            onChange={e => onTitleChange(e.target.value)}
-            variant="outlined"
-            helperText="Card Title"
-            size="small"
-            fullWidth
-            sx={{ flexShrink: 0, backgroundColor: 'arc.field', borderRadius: 1 }}
-        />
+        <Box
+            sx={{
+                display: 'flex',
+                gap: 1,
+                flexShrink: 0,
+                minHeight: TITLE_ROW_MIN_HEIGHT,
+                alignItems: 'stretch',
+            }}
+        >
+            <TextField
+                value={title}
+                onChange={e => onTitleChange(e.target.value)}
+                variant="outlined"
+                helperText="Card Title"
+                size="small"
+                // minWidth: 0 stops the input's intrinsic width propping the row open.
+                sx={{ flex: 1, minWidth: 0, backgroundColor: 'arc.field', borderRadius: 1 }}
+            />
+
+            <TagsPanel tags={tags} onChange={onTagsChange} />
+        </Box>
     )
 }
 

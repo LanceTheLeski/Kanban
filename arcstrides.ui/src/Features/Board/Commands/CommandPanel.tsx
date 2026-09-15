@@ -187,7 +187,7 @@ const LogEntry: React.FC<{ entry: CardLogEntry; showDay: boolean }> = ({ entry, 
                 gridTemplateColumns: 'auto auto minmax(0, 1fr)',
                 gap: 0.75,
                 alignItems: 'baseline',
-                py: 0.4,
+                py: 0.3,
                 pl: 0.75,
                 borderLeft: '2px solid',
                 borderLeftColor: kind.colour,
@@ -198,7 +198,7 @@ const LogEntry: React.FC<{ entry: CardLogEntry; showDay: boolean }> = ({ entry, 
                 component="time"
                 sx={{
                     fontFamily: '"DM Mono", ui-monospace, monospace',
-                    fontSize: '0.68rem',
+                    fontSize: '0.62rem',
                     color: 'arc.onGlassMuted',
                     whiteSpace: 'nowrap',
                 }}
@@ -212,7 +212,7 @@ const LogEntry: React.FC<{ entry: CardLogEntry; showDay: boolean }> = ({ entry, 
                     aria-label={kind.label}
                     sx={{
                         fontFamily: '"DM Mono", ui-monospace, monospace',
-                        fontSize: '0.75rem',
+                        fontSize: '0.7rem',
                         fontWeight: 700,
                         color: kind.colour,
                         width: '1ch',
@@ -225,8 +225,8 @@ const LogEntry: React.FC<{ entry: CardLogEntry; showDay: boolean }> = ({ entry, 
 
             <Typography
                 sx={{
-                    fontSize: '0.75rem',
-                    lineHeight: 1.45,
+                    fontSize: '0.7rem',
+                    lineHeight: 1.4,
                     color: entry.kind === 'command' ? 'arc.logCommand' : 'arc.onGlass',
                     fontFamily: entry.kind === 'command'
                         ? '"DM Mono", ui-monospace, monospace'

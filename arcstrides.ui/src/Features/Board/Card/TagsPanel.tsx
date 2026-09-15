@@ -1,19 +1,26 @@
 /**
  * TagsPanel
  *
- * A card's tags, as pills.
+ * A card's tags, as small pills, beside the title.
  *
- * Replaces the static "Tags…" paper that held the space in both the Blazor
- * original and the port.
+ * Replaces the static 120x60 "Tags…" paper that held the space in both the
+ * Blazor original and the port.
  *
- * ── Layout ───────────────────────────────────────────────────────────────────
- * Pills wrap and the panel scrolls once they exceed its height, rather than the
- * panel growing. A card can carry a lot of tags and this sits in a fixed column
- * beside the title — letting it grow would push the task list down by an amount
- * that depends on how many tags someone added, which is exactly the kind of
- * layout that looks fine until it does not.
+ * ── Why it is small and beside the title rather than a block below it ────────
+ * It was briefly a full-width panel under the title. That is the right shape for
+ * somewhere tags are a primary axis — a filter sidebar, a tag manager — and the
+ * wrong one here: a card carries a handful of tags, they are read at a glance
+ * rather than worked with, and a block gave them more of the column than the
+ * task list got.
  *
- * The add field stays pinned below the scroller so it does not scroll away.
+ * Back beside the title, at the size a glanceable label should be. It keeps the
+ * position the Blazor original chose, which was right; only the content inside
+ * it was a placeholder.
+ *
+ * ── Overflow ─────────────────────────────────────────────────────────────────
+ * Pills wrap and the box scrolls. Nothing here grows, because it sits in a row
+ * with the title: growing would push the task list down by an amount depending
+ * on how many tags someone added.
  *
  * ── Status: the UI is real, the persistence is not ───────────────────────────
  * The server has tags — Tag, TagController, TagCreateRequest, and POST/PATCH/
@@ -21,27 +28,30 @@
  * to a card. CardResponse carries none, and the only GET is by a tag's own ID,
  * which you cannot know without having already read it from somewhere.
  *
- * So writing a tag here would put a row in the table that the board could never
- * show again: it would vanish on reload and reappear as a duplicate on the next
- * attempt. That is worse than not saving, because it fails silently and leaves
- * rows behind.
+ * Writing a tag here would put a row in the table the board could never show
+ * again: gone on reload, duplicated on the next attempt. That is worse than not
+ * saving, because it fails silently and leaves rows behind. So tags are held in
+ * local state and the panel says so — the warning dot in the corner, rather than
+ * a line of text, because the space is tight and the note is not the point.
  *
- * Tags are therefore held in local state and the panel says so on screen. This
- * project has already paid for a stub that reported success without doing
- * anything — CreateTaskTypeOverlay — and the two bugs it caused pointed
- * anywhere but at it.
+ * This project has already paid for a stub that reported success without doing
+ * anything (CreateTaskTypeOverlay), and the two bugs it caused pointed anywhere
+ * but at it.
  *
  * One of these unblocks it, and the first is much the smaller change:
  *   - include the parent's tags on CardResponse, the way tasks already are; or
  *   - GET /arcstrides/tags?parentID={id}, which the Tags table already supports
  *     since a tag's RowKey *is* its parent's ID.
+ *
+ * Showing tags on the board tile itself needs the same read path — the board
+ * cannot render what it is never sent.
  */
 
 import React, { useState } from 'react'
 import { Box, IconButton, InputBase, Paper, Tooltip, Typography } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import CloseIcon from '@mui/icons-material/Close'
-import { TAGS_PANEL_MAX_HEIGHT, TAGS_PANEL_MIN_HEIGHT } from '../../../Styles/Measures'
+import { TAGS_BOX_WIDTH } from '../../../Styles/Measures'
 
 export interface CardTag {
     id: string
@@ -77,24 +87,37 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange }) => {
         <Paper
             className="glass-inner-engraved"
             sx={{
-                p: 0.75,
+                // Shrinks before the title does, and never grows past its share.
+                flex: `0 1 ${TAGS_BOX_WIDTH}`,
+                minWidth: 0,
+                alignSelf: 'stretch',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 0.5,
-                minHeight: TAGS_PANEL_MIN_HEIGHT,
-                maxHeight: TAGS_PANEL_MAX_HEIGHT,
+                gap: 0.25,
+                p: 0.5,
+                position: 'relative',
             }}
         >
-            <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, flexShrink: 0 }}>
-                <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, color: 'arc.onGlassStrong', letterSpacing: '0.06em' }}>
-                    TAGS
-                </Typography>
-                <Tooltip title="The API can create and delete tags but cannot yet list the tags on a card, so these are not saved. See the note in TagsPanel.tsx.">
-                    <Typography sx={{ fontSize: '0.6rem', color: 'arc.logAlert', cursor: 'help' }}>
-                        not saved yet
-                    </Typography>
-                </Tooltip>
-            </Box>
+            {/*
+                The "not saved" warning as a dot in the corner. A line of text
+                would cost a third of the box, and the note is context rather
+                than content.
+            */}
+            <Tooltip title="The API can create and delete tags but cannot yet list the tags on a card, so these are not saved. See the note in TagsPanel.tsx.">
+                <Box
+                    aria-label="Tags are not saved yet"
+                    sx={{
+                        position: 'absolute',
+                        top: 3,
+                        right: 4,
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        backgroundColor: 'arc.logAlert',
+                        cursor: 'help',
+                    }}
+                />
+            </Tooltip>
 
             {/* The pills. Scrolls rather than growing — see the header. */}
             <Box
@@ -105,12 +128,13 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange }) => {
                     display: 'flex',
                     flexWrap: 'wrap',
                     alignContent: 'flex-start',
-                    gap: 0.5,
+                    gap: 0.35,
+                    pr: 1,
                 }}
             >
                 {tags.length === 0 && (
-                    <Typography sx={{ fontSize: '0.7rem', color: 'arc.onGlassMuted', alignSelf: 'center' }}>
-                        No tags yet.
+                    <Typography sx={{ fontSize: '0.6rem', color: 'arc.onGlassMuted', lineHeight: 1.6 }}>
+                        Tags…
                     </Typography>
                 )}
 
@@ -120,10 +144,9 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange }) => {
                         sx={{
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: 0.25,
-                            pl: 0.85,
-                            pr: 0.25,
-                            py: 0.15,
+                            gap: 0.1,
+                            pl: 0.6,
+                            pr: 0.1,
                             // Fully round: a pill, not a chip with corners.
                             borderRadius: 999,
                             backgroundColor: 'arc.glassSelected',
@@ -134,7 +157,8 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange }) => {
                     >
                         <Typography
                             sx={{
-                                fontSize: '0.7rem',
+                                fontSize: '0.6rem',
+                                lineHeight: 1.5,
                                 color: 'arc.onGlassStrong',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
@@ -148,9 +172,9 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange }) => {
                             size="small"
                             onClick={() => remove(tag.id)}
                             aria-label={`Remove tag ${tag.title}`}
-                            sx={{ p: 0.15, color: 'arc.onGlassMuted', '&:hover': { color: 'arc.dangerOnGlass' } }}
+                            sx={{ p: 0.1, color: 'arc.onGlassMuted', '&:hover': { color: 'arc.dangerOnGlass' } }}
                         >
-                            <CloseIcon sx={{ fontSize: '0.75rem' }} />
+                            <CloseIcon sx={{ fontSize: '0.6rem' }} />
                         </IconButton>
                     </Box>
                 ))}
@@ -161,13 +185,10 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange }) => {
                 sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 0.5,
                     flexShrink: 0,
-                    px: 0.75,
-                    borderRadius: 1,
-                    border: '1px solid',
-                    borderColor: 'arc.glassDivider',
-                    '&:focus-within': { borderColor: 'arc.accentOnGlass' },
+                    pl: 0.5,
+                    borderTop: '1px solid',
+                    borderTopColor: 'arc.glassDivider',
                 }}
             >
                 <InputBase
@@ -178,16 +199,18 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange }) => {
                         event.preventDefault()
                         add()
                     }}
-                    placeholder="Add a tag"
+                    placeholder="Add"
                     sx={{
                         flex: 1,
-                        fontSize: '0.7rem',
+                        minWidth: 0,
+                        fontSize: '0.6rem',
                         color: 'arc.onGlass',
+                        '& input': { p: 0 },
                         '& input::placeholder': { color: 'arc.onGlassMuted', opacity: 1 },
                     }}
                 />
-                <IconButton size="small" onClick={add} disabled={!draft.trim()} aria-label="Add tag">
-                    <AddIcon sx={{ fontSize: '0.85rem', color: draft.trim() ? 'arc.accentOnGlass' : 'arc.onGlassMuted' }} />
+                <IconButton size="small" onClick={add} disabled={!draft.trim()} aria-label="Add tag" sx={{ p: 0.15 }}>
+                    <AddIcon sx={{ fontSize: '0.7rem', color: draft.trim() ? 'arc.accentOnGlass' : 'arc.onGlassMuted' }} />
                 </IconButton>
             </Box>
         </Paper>
