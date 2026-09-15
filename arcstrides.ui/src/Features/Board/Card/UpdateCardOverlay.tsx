@@ -50,7 +50,6 @@
 import React, { useState } from 'react'
 import {
     Box,
-    Button,
     IconButton,
     List,
     ListItem,
@@ -189,7 +188,19 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
     }
 
     return (
-        <ArcOverlay open={open} onClose={onClose} onSubmit={handleSubmit} width={OVERLAY_MAX_WIDTH}>
+        <ArcOverlay
+            open={open}
+            onClose={onClose}
+            onSubmit={handleSubmit}
+            width={OVERLAY_MAX_WIDTH}
+            // Delete used to be a button inside the overlay's content, above the
+            // action group — the one destructive action on the board, in a place
+            // no other overlay put anything. It is now in the bar, at the far
+            // left, and confirms before it runs.
+            onDelete={handleDeleteCard}
+            deleteLabel="Delete Card"
+            deleteConfirm={`Delete "${card.title}" and its tasks?`}
+        >
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
 
                 {/* Top row: card detail on the left, description filling the right */}
@@ -217,8 +228,6 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                 </Box>
 
                 <TimelineAndCommands timeline={card.timeline} />
-
-                <DeleteCardAction onDelete={handleDeleteCard} />
 
             </Box>
         </ArcOverlay>
@@ -379,20 +388,6 @@ function TimelineAndCommands({ timeline }: { timeline: Card['timeline'] }) {
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'flex-start' }}>
             <UpdateTimelinePanel timeline={timeline} />
             <CommandPanel />
-        </Box>
-    )
-}
-
-/**
- * Deleting sits apart from the overlay's Submit/Discard group on purpose —
- * mirrors Blazor, where DeleteCardAsync was outside the submit flow.
- */
-function DeleteCardAction({ onDelete }: { onDelete: () => void }) {
-    return (
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button color="error" variant="outlined" size="small" onClick={onDelete}>
-                Delete Card
-            </Button>
         </Box>
     )
 }

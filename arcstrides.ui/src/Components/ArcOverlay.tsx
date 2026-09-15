@@ -17,15 +17,8 @@
  */
 
 import React from 'react'
-import {
-    Backdrop,
-    Box,
-    Button,
-    ButtonGroup,
-    Fade,
-    Modal,
-    Paper,
-} from '@mui/material'
+import { Backdrop, Box, Fade, Modal, Paper } from '@mui/material'
+import { ArcActionBar, type ArcAction } from './ArcActionBar'
 import { OVERLAY_WIDTH } from '../Styles/Measures'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -44,6 +37,21 @@ export interface ArcOverlayProps {
     onSubmit?: () => Promise<void> | void
     /** Optional width override for the inner Paper */
     width?: string | number
+
+    // ── Action bar ───────────────────────────────────────────────────────────
+    // Passed straight through to ArcActionBar, which owns the bottom-right
+    // corner for every overlay. See that file for why Delete sits at the far
+    // left rather than beside Save.
+    /** Renders a Delete at the leading edge, with a confirmation step. */
+    onDelete?: () => Promise<void> | void
+    deleteLabel?: string
+    deleteConfirm?: string
+    /** Anything beyond Delete. */
+    actions?: ArcAction[]
+    /** "Save" by default. */
+    submitLabel?: string
+    /** Colours the primary action as destructive. */
+    submitDestructive?: boolean
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -54,19 +62,13 @@ export const ArcOverlay: React.FC<ArcOverlayProps> = ({
     children,
     onSubmit,
     width = OVERLAY_WIDTH,
+    onDelete,
+    deleteLabel,
+    deleteConfirm,
+    actions,
+    submitLabel,
+    submitDestructive,
 }) => {
-    const [submitting, setSubmitting] = React.useState(false)
-
-    const handleSubmit = async () => {
-        if (!onSubmit) return
-        setSubmitting(true)
-        try {
-            await onSubmit()
-        } finally {
-            setSubmitting(false)
-        }
-    }
-
     return (
         <Modal
             open={open}
@@ -103,21 +105,20 @@ export const ArcOverlay: React.FC<ArcOverlayProps> = ({
                     <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>{children}</Box>
 
                     {/*
-            MudButtonGroup Class="glass-inner-engraved"
-            Submit only rendered when onSubmit is provided — mirrors null check in razor.
-          */}
-                    <ButtonGroup
-                        className="glass-inner-engraved"
-                        variant="text"
-                        sx={{ alignSelf: 'flex-end', flexShrink: 0, borderRadius: 1, overflow: 'hidden' }}
-                    >
-                        {onSubmit && (
-                            <Button onClick={handleSubmit} disabled={submitting}>
-                                {submitting ? 'Saving…' : 'Submit'}
-                            </Button>
-                        )}
-                        <Button onClick={onClose}>Discard</Button>
-                    </ButtonGroup>
+                        Mirrors MudButtonGroup Class="glass-inner-engraved". Save is
+                        only rendered when onSubmit is given — the null check the
+                        razor did.
+                    */}
+                    <ArcActionBar
+                        onSave={onSubmit}
+                        onDiscard={onClose}
+                        saveLabel={submitLabel}
+                        saveDestructive={submitDestructive}
+                        onDelete={onDelete}
+                        deleteLabel={deleteLabel}
+                        deleteConfirm={deleteConfirm}
+                        actions={actions}
+                    />
                 </Paper>
             </Fade>
         </Modal>

@@ -24,14 +24,8 @@
  */
 
 import React from 'react'
-import {
-    Box,
-    Button,
-    ButtonGroup,
-    Popover,
-    type ButtonProps,
-    type PopoverOrigin,
-} from '@mui/material'
+import { Box, Button, Popover, type ButtonProps, type PopoverOrigin } from '@mui/material'
+import { ArcActionBar, type ArcAction } from './ArcActionBar'
 import { POPOVER_MIN_WIDTH } from '../Styles/Measures'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -57,6 +51,17 @@ export interface ArcPopoverProps {
     anchorOrigin?: PopoverOrigin
     /** Where the popover transforms from — mirrors TransformOrigin */
     transformOrigin?: PopoverOrigin
+
+    // ── Action bar ───────────────────────────────────────────────────────────
+    // The same bar an overlay gets, so a popover's controls sit where an
+    // overlay's do. See ArcActionBar.
+    onDelete?: () => Promise<void> | void
+    deleteLabel?: string
+    deleteConfirm?: string
+    actions?: ArcAction[]
+    submitLabel?: string
+    /** Colours the primary action as destructive. */
+    submitDestructive?: boolean
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -71,10 +76,15 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
     triggerStyle,
     anchorOrigin = { vertical: 'center', horizontal: 'right' },
     transformOrigin = { vertical: 'bottom', horizontal: 'left' },
+    onDelete,
+    deleteLabel,
+    deleteConfirm,
+    actions,
+    submitLabel,
+    submitDestructive,
 }) => {
     // Internal state for uncontrolled mode
     const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
-    const [submitting, setSubmitting] = React.useState(false)
 
     // If a parent passes `open`, we operate in controlled mode
     const isControlled = controlledOpen !== undefined
@@ -89,16 +99,15 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
         controlledOnClose?.()
     }
 
-    const handleSubmit = async () => {
-        if (!onSubmit) return
-        setSubmitting(true)
-        try {
+    // Unlike the overlay, a popover closes itself on a successful submit — it has
+    // no backdrop, so leaving it open over the thing it just changed reads as the
+    // save not having happened. ArcActionBar owns the busy state either way.
+    const handleSubmit = onSubmit
+        ? async () => {
             await onSubmit()
             handleClose()
-        } finally {
-            setSubmitting(false)
         }
-    }
+        : undefined
 
     return (
         <>
@@ -146,20 +155,21 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
                     {/* ChildContent */}
                     <Box sx={{ p: 2 }}>{children}</Box>
 
-                    {/* MudButtonGroup Class="glass-inner-engraved" */}
-                    <ButtonGroup
-                        className="glass-inner-engraved"
-                        variant="text"
+                    {/* Mirrors MudButtonGroup Class="glass-inner-engraved".
+                        `flush` because the bar sits against the popover's own edge
+                        with no padding around it to round into. */}
+                    <ArcActionBar
+                        onSave={handleSubmit}
+                        onDiscard={handleClose}
+                        saveLabel={submitLabel}
+                        saveDestructive={submitDestructive}
+                        onDelete={onDelete}
+                        deleteLabel={deleteLabel}
+                        deleteConfirm={deleteConfirm}
+                        actions={actions}
+                        flush
                         fullWidth
-                        sx={{ borderRadius: 0 }}
-                    >
-                        {onSubmit && (
-                            <Button onClick={handleSubmit} disabled={submitting}>
-                                {submitting ? 'Saving…' : 'Submit'}
-                            </Button>
-                        )}
-                        <Button onClick={handleClose}>Discard</Button>
-                    </ButtonGroup>
+                    />
                 </Box>
             </Popover>
         </>
