@@ -104,7 +104,12 @@ public class TaskRepository : ITaskRepository
                 newTaskToUpdate.TaskOrder = index + 1;
 
                 var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, newTaskToUpdate);
-                arcTransaction.Add (transaction, newTaskToUpdate);
+                // currentTaskToUpdate, matching the loop above: the rollback has to
+                // hold the row as it stands, not the copy carrying the new order.
+                // ColumnRepository was corrected for this; this loop was missed, so
+                // a failed reorder restored tasks to the orders it was trying to
+                // write rather than the ones they had.
+                arcTransaction.Add (transaction, currentTaskToUpdate);
             }
 
         return arcTransaction;

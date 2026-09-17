@@ -51,7 +51,13 @@ interface BoardState {
     error: string | null
 
     /** Loads a board from the server, replacing whatever is currently held. */
-    loadBoard: (boardId: string) => Promise<void>
+    /**
+     * Reads the board.
+     *
+     * `silent` re-reads without dropping to the loading state, for a refresh
+     * after a write — see the note on the implementation.
+     */
+    loadBoard: (boardId: string, options?: { silent?: boolean }) => Promise<void>
 
     /**
      * Re-reads the currently loaded board. Called after any mutation that can
@@ -89,8 +95,25 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     status: 'idle',
     error: null,
 
-    loadBoard: async (boardId) => {
-        set({ status: 'loading', error: null, boardId })
+    loadBoard: async (boardId, options) => {
+        /*
+           A silent read leaves `status` alone.
+
+           `refresh()` used to go through the loud path, which set status to
+           'loading' — and BoardPage swaps the whole board for a spinner while it
+           is loading. So every mutation that refreshes unmounted the entire
+           board and everything open on top of it: edit a task's order, press
+           Save, and the card overlay you were working in disappeared. It read as
+           the app breaking, because from the outside that is what it looks like.
+           Adding a column got away with it only because that overlay closes on
+           success anyway.
+
+           The distinction is who asked. A first load has nothing to show and a
+           spinner is the honest answer; a re-read after a write already has the
+           previous board on screen and should replace it in place.
+        */
+        const silent = options?.silent === true
+        set(silent ? { error: null, boardId } : { status: 'loading', error: null, boardId })
 
         try {
             const board = await fetchBoard(boardId)
@@ -120,7 +143,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     refresh: async () => {
         const { boardId, loadBoard } = get()
         if (!boardId) return
-        await loadBoard(boardId)
+        await loadBoard(boardId, { silent: true })
     },
 
     applyCardMove: (cardId, column, swimlane) => {
