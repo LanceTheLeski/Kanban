@@ -222,6 +222,16 @@ main {
     box-sizing: border-box;
 }
 
+/*
+   The one palette value that also has to be reachable from plain CSS.
+   `box-shadow` takes no theme path, and the open-popover marker on a trigger is
+   a shadow. Kept in step with arc.accentOnGlass in Theme.tsx by hand — there is
+   exactly one of these, and a second would be worth generating instead.
+*/
+:root {
+    --arc-accent-on-glass: #9ad9ff;
+}
+
 html,
 body,
 #root {
@@ -389,10 +399,28 @@ body,
     backdrop-filter: saturate(260%);
     -webkit-backdrop-filter: saturate(260%) url("#arc-sharpen");
     backdrop-filter: saturate(260%) url("#arc-sharpen");
+    /*
+       ── Why this read as an overlay rather than a recess ────────────────────
+       The rim above was a bright 1px line along the TOP edge with a faint one
+       below. That is the lighting signature of a RAISED surface: a face tilted
+       up toward the light catches it on its top edge. Every material cue was
+       saying "this sits on top of the pane", which is exactly how it looked, and
+       no amount of transparency was going to argue with it.
+
+       An engraved recess is the same lighting inverted. The lip of the hole is
+       above the floor of it, so it casts DOWN into the recess — a dark line and
+       a short shadow along the top edge. The far wall, at the bottom, faces the
+       light and catches it — a bright line there. And the pane's own surface
+       just below the recess picks up a highlight, which is the last shadow here
+       and the only one that is not inset.
+
+       That is the whole trick: three shadows, no geometry, no extra elements.
+    */
     box-shadow:
-        inset 0 1px 0 0 rgba(255, 255, 255, .55),
-        inset 0 -1px 0 0 rgba(255, 255, 255, .12),
-        inset 0 0 0 1px rgba(255, 255, 255, .07);
+        inset 0 1px 0 0 rgba(10, 18, 32, .45),
+        inset 0 3px 5px -2px rgba(10, 18, 32, .45),
+        inset 0 -1px 0 0 rgba(255, 255, 255, .38),
+        0 1px 0 0 rgba(255, 255, 255, .22);
 }
 
 /*
