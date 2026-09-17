@@ -204,7 +204,9 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
     const handleTaskUpdated = (updatedTask: Task) => {
         replaceCard({
             ...card,
-            tasks: tasks.map(task => task.id === updatedTask.id ? updatedTask : task),
+            tasks: tasks
+                .map(task => task.id === updatedTask.id ? updatedTask : task)
+                .sort((a, b) => a.order - b.order),
         })
     }
 
@@ -435,7 +437,17 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
                     <ListItem key={task.id || task.title} disablePadding>
                         {/* The popover trigger takes the row; the bin sits at the end */}
                         <Box sx={{ flex: 1, minWidth: 0 }}>
+                            {/*
+                                Keyed on the values the popover seeds its draft
+                                from. A reorder renumbers every task on the card,
+                                and each popover captured its order once when it
+                                mounted — so after a move, the rows that did not
+                                move still offered the positions they used to
+                                have. Changing the key remounts them, which is
+                                what re-runs those initialisers.
+                            */}
                             <UpdateTaskPopover
+                                key={`${task.id}:${task.order}:${task.isCompleted}:${task.title}`}
                                 task={task}
                                 onUpdated={onTaskUpdated}
                                 boardId={boardId}
@@ -447,31 +459,10 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
                                     justifyContent: 'flex-start',
                                     backgroundColor: 'transparent',
                                     color: 'arc.onGlass',
-                                    /*
-                                       Struck through once complete. A checkbox
-                                       state that is only visible after opening
-                                       the task is not a state the list is
-                                       showing — and a list of tasks is read to
-                                       find what is left, which is the one
-                                       question the row could not answer.
-                                    */
-                                    ...(task.isCompleted
-                                        ? {
-                                            color: 'arc.onGlassMuted',
-                                            /*
-                                               `&&` doubles the class in the
-                                               selector, which is the only reason
-                                               this lands. MUI's ButtonBase sets
-                                               `text-decoration: none` so a button
-                                               rendered as an anchor is not
-                                               underlined, and at equal specificity
-                                               it was winning — the colour beside
-                                               this applied while the strike
-                                               silently did not.
-                                            */
-                                            '&&': { textDecoration: 'line-through' },
-                                        }
-                                        : {}),
+                                    // The strike for a completed task is applied by
+                                    // the popover, which is the only thing that
+                                    // knows whether the box has been ticked but not
+                                    // yet saved.
                                 }}
                             />
                         </Box>

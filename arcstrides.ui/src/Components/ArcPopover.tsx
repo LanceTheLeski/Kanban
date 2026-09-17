@@ -43,8 +43,14 @@ export interface ArcPopoverProps {
     triggerLabel: string
     /** Content inside the popover — mirrors RenderFragment ChildContent */
     children?: React.ReactNode
-    /** Async submit handler — mirrors OnSubmitAsync: Func<Task> */
-    onSubmit?: () => Promise<void> | void
+    /**
+     * Async submit handler — mirrors OnSubmitAsync: Func<Task>
+     *
+     * Return `false` to keep the popover open, for a save that did not happen.
+     * Anything else (including nothing) closes it, which is what every existing
+     * caller relied on.
+     */
+    onSubmit?: () => Promise<boolean | void> | boolean | void
     /**
      * External open control (optional) — for the "parent knows when to close"
      * pattern noted in the Blazor comments.
@@ -118,10 +124,19 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
     // Unlike the overlay, a popover closes itself on a successful submit — it has
     // no backdrop, so leaving it open over the thing it just changed reads as the
     // save not having happened. ArcActionBar owns the busy state either way.
+    /*
+       Closes on success only.
+
+       It used to close unconditionally, which was survivable while nothing
+       depended on the popover's draft surviving. It is not any more: the task
+       popover reverts its draft when it closes, so a rejected save would have
+       closed the popover *and* silently thrown away what the user typed, leaving
+       only a snackbar to explain it.
+    */
     const handleSubmit = onSubmit
         ? async () => {
-            await onSubmit()
-            handleClose()
+            const succeeded = await onSubmit()
+            if (succeeded !== false) handleClose()
         }
         : undefined
 

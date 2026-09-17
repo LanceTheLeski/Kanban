@@ -107,8 +107,9 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
 
         const existingTimeline = initialTimeline.current
         const timelineChanged = hasTimeline(timelineDraft)
+        const orderChanged = patch.order !== undefined
 
-        if (Object.keys(patch).length === 0 && !timelineChanged) return
+        if (Object.keys(patch).length === 0 && !timelineChanged) return true
 
         let savedTimeline: Timeline | null = existingTimeline
 
@@ -148,9 +149,9 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                Every other field is local to this task, so it still skips the
                round trip and the parent splices the result in from onUpdated.
             */
-            { refresh: patch.order !== undefined }
+            { refresh: orderChanged }
         )
-        if (!saved) return
+        if (!saved) return false
 
         initialTitle.current = title
         initialTypeId.current = selectedTaskTypeId
@@ -158,15 +159,44 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
         initialIsCompleted.current = isCompleted
         initialTimeline.current = savedTimeline
 
-        onUpdated?.({
-            ...task,
-            title,
-            order,
-            isCompleted,
-            timeline: savedTimeline,
-            taskType: taskTypes.find(taskType => taskType.id === selectedTaskTypeId)
-                ?? task.taskType,
-        })
+        /*
+           An order change has already been answered by the refresh inside run(),
+           which replaced every task on the card with the server's renumbering.
+           Reporting the change upward as well would write this component's idea
+           of the list back over that — and this component's idea is the one from
+           before the save, captured when the handler was created.
+
+           That is why reordering appeared to do nothing: the refresh fetched the
+           right order and the callback immediately overwrote it with the old one.
+        */
+        if (!orderChanged)
+            onUpdated?.({
+                ...task,
+                title,
+                order,
+                isCompleted,
+                timeline: savedTimeline,
+                taskType: taskTypes.find(taskType => taskType.id === selectedTaskTypeId)
+                    ?? task.taskType,
+            })
+
+        return true
+    }
+
+    /**
+     * Puts the draft back to what is saved.
+     *
+     * Called whenever the popover closes, which covers Discard, Escape and a
+     * click outside. After a successful submit the refs below have already been
+     * moved to the new values, so this is a no-op there; after a failed one the
+     * popover stays open and this does not run at all.
+     */
+    const revertDraft = () => {
+        setTitle(initialTitle.current)
+        setIsCompleted(initialIsCompleted.current ?? false)
+        setOrder(initialOrder.current)
+        setSelectedTaskTypeId(initialTypeId.current)
+        setTimelineDraft(null)
     }
 
     return (
@@ -175,9 +205,25 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                 triggerLabel={task.title}
                 onSubmit={handleSubmit}
                 triggerSize={triggerSize}
+                onClose={revertDraft}
                 triggerSx={{
                     backgroundColor: 'arc.taskPanel',
                     ...(triggerSx as object),
+                    /*
+                       Struck through from the *draft*, so ticking Completed
+                       shows on the card immediately rather than only after a
+                       save. Closing without saving runs revertDraft above, which
+                       puts the line back.
+
+                       It lives here rather than in the list because this is where
+                       the unsaved value is; the list only knows what is stored.
+                    */
+                    ...(isCompleted
+                        ? {
+                            color: 'arc.onGlassMuted',
+                            '&&': { textDecoration: 'line-through' },
+                        }
+                        : {}),
                 }}
                 anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'center', horizontal: 'left' }}

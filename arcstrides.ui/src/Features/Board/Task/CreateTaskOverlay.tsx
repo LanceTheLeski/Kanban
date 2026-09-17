@@ -27,6 +27,7 @@ import React, { useEffect, useState } from 'react'
 import { Box, Button, Checkbox, FormControlLabel, Typography } from '@mui/material'
 import { TextField } from '@mui/material'
 import { ArcPopover } from '../../../Components/ArcPopover'
+import { TASK_PANEL_ROW_MIN_HEIGHT } from '../../../Styles/Measures'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
 import { UpdateTimelinePanel, type TimelineDraft } from '../Timeline/UpdateTimelinePanel'
 import { CreateTaskTypeOverlay } from '../../TagGroup/TaskType/CreateTaskTypeOverlay'
@@ -92,7 +93,10 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
         // true, and useless. Ask for the missing field instead of inventing one.
         if (selectedTaskTypeId === null) {
             addError('Pick a task type before adding the task.')
-            return
+            // false, so the popover stays open on the field that is missing.
+            // Returning nothing closed it — telling the user what was wrong and
+            // then throwing away everything they had typed to fix it.
+            return false
         }
 
         let created: Task | null = null
@@ -127,7 +131,9 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
                re-read is what keeps the *orders* right.
             */
         )
-        if (!succeeded || !created) return
+        // false keeps the popover open, so a rejected create does not close over
+        // the fields the user filled in. See ArcPopover.onSubmit.
+        if (!succeeded || !created) return false
 
         onCreated?.(created)
 
@@ -135,6 +141,7 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
         setIsCompleted(false)
         setSelectedOrder(tasksCount)
         setTimelineDraft(null)
+        return true
     }
 
     return (
@@ -176,8 +183,8 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
                         fullWidth
                     />
 
-                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-                        <Box sx={{ flex: '1 1 14rem', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'stretch', minHeight: TASK_PANEL_ROW_MIN_HEIGHT }}>
+                        <Box sx={{ flex: '1 1 13rem', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
                             {/* IsCompleted selector — mirrors bool.TrueString / FalseString options */}
                             <FormControlLabel
                                 control={
@@ -204,20 +211,33 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
                                 placeholder="Select task type"
                             />
 
+                            {/* The same quiet link the update popover has — this
+                                is the second copy of it, and they should not
+                                disagree about how prominent creating a task type
+                                is. */}
                             <Button
                                 size="small"
-                                variant="outlined"
+                                variant="text"
                                 onClick={() => setCreateTaskTypeOpen(true)}
-                                sx={{ alignSelf: 'flex-start' }}
+                                sx={{
+                                    alignSelf: 'flex-start',
+                                    px: 0.5,
+                                    fontSize: '0.65rem',
+                                    textTransform: 'none',
+                                    color: 'arc.onGlassMuted',
+                                    '&:hover': { color: 'arc.onGlass', backgroundColor: 'arc.glassHover' },
+                                }}
                             >
-                                Create New Task Type
+                                + New task type
                             </Button>
                         </Box>
 
-                        <UpdateTimelinePanel
-                            timeline={null}
-                            onDraftChange={setTimelineDraft}
-                        />
+                        <Box sx={{ flex: '1 1 18rem', minWidth: 0, display: 'flex' }}>
+                            <UpdateTimelinePanel
+                                timeline={null}
+                                onDraftChange={setTimelineDraft}
+                            />
+                        </Box>
                     </Box>
                 </Box>
             </ArcPopover>
