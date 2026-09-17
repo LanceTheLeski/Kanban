@@ -113,9 +113,6 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
     const [title, setTitle] = useState(card.title)
     const [description, setDescription] = useState(card.description)
 
-    // Local task list, owned by this overlay while it is open.
-    // Mirrors Blazor's _taskList RenderFragment, which was rebuilt from ActiveCard.Tasks.
-    const [tasks, setTasks] = useState<Task[]>(card.tasks)
 
     // Local only. The API can create and delete tags but cannot list the ones on
     // a card, so there is nothing to seed this from and nowhere to send it that
@@ -133,6 +130,24 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
      * the card and patching it on save; nothing else has to change.
      */
     const [split, setSplit] = useState(CARD_SPLIT_DEFAULT)
+
+    /*
+       Tasks come straight from the store, not from a copy held here.
+
+       They used to be mirrored into local state, seeded once when the overlay
+       mounted. That was fine while every task edit was local — and wrong the
+       moment one of them refreshed the board, because a reorder is renumbered by
+       the server and the copy had no way to learn the new numbers. Mirroring it
+       back with an effect would have worked and is the pattern the lint rule
+       names: state derived from state, kept in step by hand.
+
+       There was never a second source to reconcile. Every handler below already
+       writes through replaceCard, so the store was always the real list; reading
+       it directly removes the copy and the staleness with it.
+    */
+    const tasks = useBoardStore(
+        state => state.cards.find(candidate => candidate.id === card.id)?.tasks ?? card.tasks,
+    )
 
     const handleSubmit = async () => {
         const patch: { title?: string; description?: string } = {}
@@ -177,30 +192,28 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
 
     // Mirrors Blazor's DeleteTaskAsync — removes the task server-side, then locally
     const handleDeleteTask = async (taskId: string) => {
-        const deleted = await run(
-            'Deleting task',
-            () => deleteTask(boardId, card.id, taskId),
-            { refresh: false }
-        )
+        // Refreshes, because removing a task closes the gap in the ordering of
+        // every task after it and the new numbers come from the server.
+        const deleted = await run('Deleting task', () => deleteTask(boardId, card.id, taskId))
         if (!deleted) return
 
-        const remaining = tasks.filter(task => task.id !== taskId)
-        setTasks(remaining)
-        replaceCard({ ...card, tasks: remaining })
+        replaceCard({ ...card, tasks: tasks.filter(task => task.id !== taskId) })
     }
 
     // Called by UpdateTaskPopover when a task's fields are changed
     const handleTaskUpdated = (updatedTask: Task) => {
-        const next = tasks.map(task => task.id === updatedTask.id ? updatedTask : task)
-        setTasks(next)
-        replaceCard({ ...card, tasks: next })
+        replaceCard({
+            ...card,
+            tasks: tasks.map(task => task.id === updatedTask.id ? updatedTask : task),
+        })
     }
 
     // Called by CreateTaskOverlay with the task the server assigned an ID to
     const handleTaskCreated = (createdTask: Task) => {
-        const next = [...tasks, createdTask].sort((a, b) => a.order - b.order)
-        setTasks(next)
-        replaceCard({ ...card, tasks: next })
+        replaceCard({
+            ...card,
+            tasks: [...tasks, createdTask].sort((a, b) => a.order - b.order),
+        })
     }
 
     return (
@@ -429,22 +442,68 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
                                 cardId={cardId}
                                 tasksCount={tasks.length}
                                 triggerSize="small"
-                                triggerStyle={{ width: '100%', justifyContent: 'flex-start' }}
+                                triggerSx={{
+                                    width: '100%',
+                                    justifyContent: 'flex-start',
+                                    backgroundColor: 'transparent',
+                                    color: 'arc.onGlass',
+                                    /*
+                                       Struck through once complete. A checkbox
+                                       state that is only visible after opening
+                                       the task is not a state the list is
+                                       showing — and a list of tasks is read to
+                                       find what is left, which is the one
+                                       question the row could not answer.
+                                    */
+                                    ...(task.isCompleted
+                                        ? {
+                                            color: 'arc.onGlassMuted',
+                                            /*
+                                               `&&` doubles the class in the
+                                               selector, which is the only reason
+                                               this lands. MUI's ButtonBase sets
+                                               `text-decoration: none` so a button
+                                               rendered as an anchor is not
+                                               underlined, and at equal specificity
+                                               it was winning — the colour beside
+                                               this applied while the strike
+                                               silently did not.
+                                            */
+                                            '&&': { textDecoration: 'line-through' },
+                                        }
+                                        : {}),
+                                }}
                             />
                         </Box>
 
                         {/* Mirrors Blazor's trash icon @onclick */}
+                        {/*
+                            Quiet until reached for. In MUI's default colour these
+                            bins were the darkest thing in the list — four of them
+                            pulling more attention than the task titles they
+                            belong to, for an action nobody comes here to take.
+                        */}
                         <IconButton
                             size="small"
                             onClick={() => task.id && onTaskDeleted(task.id)}
-                            sx={{ flexShrink: 0 }}
+                            aria-label={`Delete task ${task.title}`}
+                            sx={{
+                                flexShrink: 0,
+                                color: 'arc.onGlassMuted',
+                                '&:hover': { color: 'arc.dangerOnGlass', backgroundColor: 'arc.glassHover' },
+                            }}
                         >
-                            <DeleteIcon fontSize="small" />
+                            <DeleteIcon sx={{ fontSize: '0.95rem' }} />
                         </IconButton>
                     </ListItem>
                 ))}
 
-                <ListItem disablePadding sx={{ pl: 1 }}>
+                {/*
+                    No left padding. It had an indent the task rows above it did
+                    not, so the one row that is an action was the one row that did
+                    not line up with the others.
+                */}
+                <ListItem disablePadding>
                     <CreateTaskOverlay
                         boardId={boardId}
                         cardId={cardId}

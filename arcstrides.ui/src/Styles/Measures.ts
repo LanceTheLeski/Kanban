@@ -53,6 +53,12 @@ export const POPOVER_MIN_WIDTH = rem(280)
 /** The task popover, which holds a timeline panel beside the task fields. */
 export const TASK_POPOVER_WIDTH = rem(560)
 
+/**
+ * A floor for the popover's field row, so the three timeline modes do not each
+ * produce a different popover height and move everything as you switch.
+ */
+export const TASK_PANEL_ROW_MIN_HEIGHT = rem(200)
+
 
 // ── Controls ──────────────────────────────────────────────────────────────────
 

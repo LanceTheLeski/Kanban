@@ -35,7 +35,7 @@ import {
     timelineOperations,
     timelineTypeIdFor,
 } from '../Timeline/timelineDraft'
-import { TASK_POPOVER_WIDTH } from '../../../Styles/Measures'
+import { TASK_PANEL_ROW_MIN_HEIGHT, TASK_POPOVER_WIDTH } from '../../../Styles/Measures'
 import type { Task, TaskType } from '../../../Entities/Task/Task.Types'
 import type { Timeline } from '../../../Entities/Timeline/Timeline.Types'
 
@@ -48,7 +48,7 @@ interface UpdateTaskPopoverProps {
     tasksCount: number
     /** Mirrors PopoverBaseMudSize / PopoverBaseMudStyle / PopoverBaseMudTextStyle */
     triggerSize?: 'small' | 'medium' | 'large'
-    triggerStyle?: React.CSSProperties
+    triggerSx?: import('@mui/material').SxProps<import('@mui/material').Theme>
 }
 
 export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
@@ -58,7 +58,7 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
     cardId,
     tasksCount,
     triggerSize = 'medium',
-    triggerStyle,
+    triggerSx,
 }) => {
     // ── Local state (mirrors Blazor's mutable ActiveTask fields) ─────────────────
     const [title, setTitle] = useState(task.title)
@@ -136,8 +136,19 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                     })
                 }
             },
-            // The parent updates its own task list from onUpdated below.
-            { refresh: false }
+            /*
+               An order change is the one task edit the client cannot predict the
+               result of: the server renumbers every sibling around the moved
+               task, and nothing here knows what those new numbers are. Left
+               unrefreshed, `initialOrder` and the sibling orders drift out of
+               step with the rows, and the next reorder is computed against
+               numbers that no longer exist — which is how a second move ends up
+               asking the server to shuffle a task into a slot nothing occupies.
+
+               Every other field is local to this task, so it still skips the
+               round trip and the parent splices the result in from onUpdated.
+            */
+            { refresh: patch.order !== undefined }
         )
         if (!saved) return
 
@@ -164,9 +175,9 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                 triggerLabel={task.title}
                 onSubmit={handleSubmit}
                 triggerSize={triggerSize}
-                triggerStyle={{
+                triggerSx={{
                     backgroundColor: 'arc.taskPanel',
-                    ...triggerStyle,
+                    ...(triggerSx as object),
                 }}
                 anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'center', horizontal: 'left' }}
@@ -181,8 +192,17 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                         fullWidth
                     />
 
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {/*
+                        A floor on the row, and explicit bases for its two halves.
+
+                        The three timeline modes are different heights, so without
+                        a floor the popover grew and shrank as you switched between
+                        them — and with both halves on a bare `flex: 1` the panel
+                        and the selectors fought over the width, which is what
+                        squashed the dropdowns.
+                    */}
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'stretch', minHeight: TASK_PANEL_ROW_MIN_HEIGHT }}>
+                        <Box sx={{ flex: '1 1 13rem', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
                             <FormControlLabel
                                 control={
                                     <Checkbox
@@ -206,20 +226,36 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                                 placeholder={task.taskType?.title ?? 'Select task type'}
                             />
 
+                            {/*
+                                A text link, not an outlined button. Creating a
+                                task *type* is a rare, secondary act — it was
+                                competing with the two selectors above it for
+                                attention while being the least likely thing
+                                anyone opened this popover to do.
+                            */}
                             <Button
                                 size="small"
-                                variant="outlined"
+                                variant="text"
                                 onClick={() => setCreateTaskTypeOpen(true)}
-                                sx={{ alignSelf: 'flex-start' }}
+                                sx={{
+                                    alignSelf: 'flex-start',
+                                    px: 0.5,
+                                    fontSize: '0.65rem',
+                                    textTransform: 'none',
+                                    color: 'arc.onGlassMuted',
+                                    '&:hover': { color: 'arc.onGlass', backgroundColor: 'arc.glassHover' },
+                                }}
                             >
-                                Create New Task Type
+                                + New task type
                             </Button>
                         </Box>
 
-                        <UpdateTimelinePanel
-                            timeline={task.timeline}
-                            onDraftChange={setTimelineDraft}
-                        />
+                        <Box sx={{ flex: '1 1 18rem', minWidth: 0, display: 'flex' }}>
+                            <UpdateTimelinePanel
+                                timeline={task.timeline}
+                                onDraftChange={setTimelineDraft}
+                            />
+                        </Box>
                     </Box>
                 </Box>
             </ArcPopover>

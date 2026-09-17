@@ -24,7 +24,15 @@
  */
 
 import React from 'react'
-import { Box, Button, Popover, type ButtonProps, type PopoverOrigin } from '@mui/material'
+import {
+    Box,
+    Button,
+    Popover,
+    type ButtonProps,
+    type PopoverOrigin,
+    type SxProps,
+    type Theme,
+} from '@mui/material'
 import { ArcActionBar, type ArcAction } from './ArcActionBar'
 import { POPOVER_MIN_WIDTH } from '../Styles/Measures'
 
@@ -45,8 +53,16 @@ export interface ArcPopoverProps {
     onClose?: () => void
     /** Mirrors PopoverBaseMudSize */
     triggerSize?: ButtonProps['size']
-    /** Mirrors PopoverBaseMudStyle — inline styles for the trigger button */
-    triggerStyle?: React.CSSProperties
+    /**
+     * Styling for the trigger button.
+     *
+     * `sx`, not the inline `style` this used to take. Inline styles cannot use
+     * theme paths, so a caller passing `{ backgroundColor: 'arc.taskPanel' }` —
+     * which UpdateTaskPopover did — was handing the DOM a string that is not a
+     * colour, and the browser dropped it. The task rows had been silently
+     * unstyled ever since the palette moved into the theme.
+     */
+    triggerSx?: SxProps<Theme>
     /** Where the popover attaches to the trigger — mirrors AnchorOrigin */
     anchorOrigin?: PopoverOrigin
     /** Where the popover transforms from — mirrors TransformOrigin */
@@ -73,7 +89,7 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
     open: controlledOpen,
     onClose: controlledOnClose,
     triggerSize = 'medium',
-    triggerStyle,
+    triggerSx,
     anchorOrigin = { vertical: 'center', horizontal: 'right' },
     transformOrigin = { vertical: 'bottom', horizontal: 'left' },
     onDelete,
@@ -115,11 +131,32 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
             <Button
                 onClick={handleOpen}
                 size={triggerSize}
-                style={triggerStyle}
                 variant="text"
+                aria-expanded={isOpen}
                 sx={{
                     fontFamily: '"DM Mono", monospace',
                     fontWeight: 400,
+                    textTransform: 'none',
+                    ...triggerSx,
+                    /*
+                       While the popover is open the trigger says so. Without it,
+                       a popover anchored beside a list of near-identical rows
+                       gives no clue which row it belongs to — you have to
+                       remember what you clicked. The marker is a bar down the
+                       leading edge plus a lift in the ground, which reads at a
+                       glance without moving anything.
+
+                       After the spread, so it wins over a caller's own styling
+                       rather than being overwritten by it.
+                    */
+                    ...(isOpen
+                        ? {
+                            backgroundColor: 'arc.glassSelected',
+                            color: 'arc.onGlassStrong',
+                            fontWeight: 700,
+                            boxShadow: 'inset 3px 0 0 0 var(--arc-accent-on-glass)',
+                        }
+                        : {}),
                 }}
             >
                 {triggerLabel}
@@ -153,23 +190,30 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
                     }}
                 >
                     {/* ChildContent */}
-                    <Box sx={{ p: 2 }}>{children}</Box>
+                    <Box sx={{ px: 2, pt: 2, pb: 1 }}>{children}</Box>
 
                     {/* Mirrors MudButtonGroup Class="glass-inner-engraved".
                         `flush` because the bar sits against the popover's own edge
                         with no padding around it to round into. */}
-                    <ArcActionBar
-                        onSave={handleSubmit}
-                        onDiscard={handleClose}
-                        saveLabel={submitLabel}
-                        saveDestructive={submitDestructive}
-                        onDelete={onDelete}
-                        deleteLabel={deleteLabel}
-                        deleteConfirm={deleteConfirm}
-                        actions={actions}
-                        flush
-                        fullWidth
-                    />
+                    {/*
+                        The same bar an overlay gets, laid out the same way: the
+                        pair sits at the trailing edge with the actions away from
+                        it, rather than two stretched buttons filling the width.
+                        `fullWidth` was the difference, and it made a popover's
+                        controls a different shape from every other surface's.
+                    */}
+                    <Box sx={{ px: 2, pb: 1.5, pt: 0.5 }}>
+                        <ArcActionBar
+                            onSave={handleSubmit}
+                            onDiscard={handleClose}
+                            saveLabel={submitLabel}
+                            saveDestructive={submitDestructive}
+                            onDelete={onDelete}
+                            deleteLabel={deleteLabel}
+                            deleteConfirm={deleteConfirm}
+                            actions={actions}
+                        />
+                    </Box>
                 </Box>
             </Popover>
         </>

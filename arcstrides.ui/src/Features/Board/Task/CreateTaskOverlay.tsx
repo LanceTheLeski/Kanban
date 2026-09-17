@@ -119,8 +119,13 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
                 })
                 created = { ...created, timeline }
             },
-            // The parent splices the returned task into its own list below.
-            { refresh: false }
+            /*
+               Refreshes. A task created at a chosen order pushes every task from
+               that position down, and those new numbers are the server's to
+               assign — the same reason a reorder refreshes. The parent still
+               splices the returned task in, so the list is right either way; the
+               re-read is what keeps the *orders* right.
+            */
         )
         if (!succeeded || !created) return
 
@@ -135,7 +140,22 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
     return (
         <>
             <ArcPopover
-                triggerLabel="Create New Task"
+                triggerLabel="+ New task"
+                submitLabel="Create"
+                /*
+                   Distinct from the task rows it sits under, in colour rather
+                   than weight: those rows are the card's content and this is the
+                   one action among them, so it takes the accent the rest of the
+                   app uses for a primary action. Shorter, too — "Create New Task"
+                   in a column of task titles read as another task.
+                */
+                triggerSx={{
+                    width: '100%',
+                    justifyContent: 'flex-start',
+                    color: 'arc.accentOnGlass',
+                    fontWeight: 700,
+                    '&:hover': { backgroundColor: 'arc.glassHover' },
+                }}
                 onSubmit={handleSubmit}
                 anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'center', horizontal: 'left' }}
