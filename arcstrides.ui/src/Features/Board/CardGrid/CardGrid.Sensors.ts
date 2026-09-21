@@ -1,5 +1,5 @@
 /**
- * cardSensors
+ * CardGrid.Sensors
  *
  * What counts as picking a card up.
  *
@@ -33,55 +33,9 @@
  *
  *   mouse   drag begins after 8px of movement
  *   touch   drag begins after a 250ms hold, so a swipe scrolls the cell instead
- *
- * The hold also gives touch users an undo: move more than 8px before the delay
- * elapses and it is a scroll, not a drag.
  */
 
 import { MouseSensor, TouchSensor } from '@dnd-kit/core'
-
-/**
- * Anything that handles its own press.
- *
- * `[data-no-drag]` is the escape hatch for a control this list does not name —
- * put it on the element and presses inside it stop starting drags.
- */
-const INTERACTIVE_SELECTOR = [
-    'button',
-    'a',
-    'input',
-    'textarea',
-    'select',
-    'label',
-    '[role="button"]',
-    '[role="checkbox"]',
-    '[data-no-drag]',
-].join(', ')
-
-/**
- * Whether a press landed on something interactive *inside* the card.
- *
- * `closest` rather than a check on the target itself, because a press on a
- * Button lands on whatever span MUI renders inside it, not on the button.
- *
- * ── Why the search is bounded by the draggable root ──────────────────────────
- * The first version of this asked only `target.closest(INTERACTIVE_SELECTOR)`,
- * and no card could be dragged at all. dnd-kit's `attributes` put
- * `role="button"` and `tabIndex=0` on the draggable so it can be picked up from
- * the keyboard — and `closest` starts at the element itself, so the card matched
- * its own selector. Every press looked like a press on a button, and the sensor
- * declined every one of them.
- *
- * So the question is not "is there an interactive ancestor" but "is there one
- * between the target and the card". A match that *is* the card, or is outside
- * it, is not a reason to refuse.
- */
-function beganOnInteractiveElement(target: EventTarget | null, root: EventTarget | null): boolean {
-    if (!(target instanceof Element) || !(root instanceof Element)) return false
-
-    const match = target.closest(INTERACTIVE_SELECTOR)
-    return match !== null && match !== root && root.contains(match)
-}
 
 /**
  * dnd-kit decides whether to begin tracking a gesture by calling the handler on
@@ -112,3 +66,49 @@ export class CardTouchSensor extends TouchSensor {
 /** Mouse: 8px of travel. Touch: a 250ms hold, with 8px of slop while waiting. */
 export const CARD_MOUSE_ACTIVATION = { distance: 8 }
 export const CARD_TOUCH_ACTIVATION = { delay: 250, tolerance: 8 }
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+/**
+ * Whether a press landed on something interactive *inside* the card.
+ *
+ * `closest` rather than a check on the target itself, because a press on a
+ * Button lands on whatever span MUI renders inside it, not on the button.
+ *
+ * ── Why the search is bounded by the draggable root ──────────────────────────
+ * The first version of this asked only `target.closest(INTERACTIVE_SELECTOR)`,
+ * and no card could be dragged at all. dnd-kit's `attributes` put
+ * `role="button"` and `tabIndex=0` on the draggable so it can be picked up from
+ * the keyboard — and `closest` starts at the element itself, so the card matched
+ * its own selector. Every press looked like a press on a button, and the sensor
+ * declined every one of them.
+ *
+ * So the question is not "is there an interactive ancestor" but "is there one
+ * between the target and the card". A match that *is* the card, or is outside
+ * it, is not a reason to refuse.
+ */
+function beganOnInteractiveElement (target: EventTarget | null, root: EventTarget | null): boolean {
+    if (!(target instanceof Element) || !(root instanceof Element)) return false
+
+    const match = target.closest(INTERACTIVE_SELECTOR)
+    return match !== null && match !== root && root.contains(match)
+}
+
+/**
+ * Anything that handles its own press.
+ *
+ * `[data-no-drag]` is the escape hatch for a control this list does not name —
+ * put it on the element and presses inside it stop starting drags.
+ */
+const INTERACTIVE_SELECTOR = [
+    'button',
+    'a',
+    'input',
+    'textarea',
+    'select',
+    'label',
+    '[role="button"]',
+    '[role="checkbox"]',
+    '[data-no-drag]',
+].join(', ')

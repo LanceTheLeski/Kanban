@@ -7,7 +7,7 @@
  *
  * ── Why this takes props rather than reading the store ───────────────────────
  * The rule in this folder: a component about *the board* reads the store, a
- * component about *one* swimlane, column or card takes props. BoardGrid is the
+ * component about *one* swimlane, column or card takes props. CardGrid is the
  * former and subscribes once; everything below it is the latter.
  *
  * That keeps the leaves independent of where the data came from — they can be
@@ -21,7 +21,7 @@ import { Typography } from '@mui/material'
 import { BOARD_GAP, STACK_LABEL_BELOW, SWIMLANE_LABEL_WIDTH } from '../Board.Layout'
 import { DroppableCell } from './DroppableCell'
 import { DraggableCard } from './DraggableCard'
-import { cellId } from './Board.Cells'
+import { cellId } from './CardGrid.Cells'
 import type { Card } from '../../../Entities/Card/Card.Types'
 import type { Column, Swimlane } from '../Board.Types'
 

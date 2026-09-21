@@ -1,5 +1,5 @@
 /**
- * Board.Cells
+ * CardGrid.Cells
  *
  * How a card finds its square on the grid.
  *

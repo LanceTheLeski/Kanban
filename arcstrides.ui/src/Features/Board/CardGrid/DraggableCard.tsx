@@ -6,7 +6,7 @@
  *
  * The listeners go on the whole tile. What stops them swallowing a click on
  * Actions or Remove is the sensors refusing to activate on a press that began
- * inside an interactive element — see cardSensors.ts.
+ * inside an interactive element — see CardGrid.Sensors.
  */
 
 import React from 'react'
@@ -25,11 +25,9 @@ export const DraggableCard: React.FC<DraggableCardProps> = ({ card, boardId }) =
 
     return (
         <Box ref={setNodeRef} sx={{ opacity: isDragging ? 0.4 : 1, width: '100%' }}>
-            <BoardCard
-                card={card}
-                boardId={boardId}
-                dragProps={{ ...listeners, ...attributes }}
-            />
+            <BoardCard card={card}
+                       boardId={boardId}
+                       dragProps={{ ...listeners, ...attributes }} />
         </Box>
     )
 }

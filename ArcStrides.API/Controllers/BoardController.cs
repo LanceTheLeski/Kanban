@@ -117,7 +117,16 @@ public class BoardController : Controller
                 var taskType = taskTypeCollection.SingleOrDefault (taskType => int.Parse(taskType.RowKey) == cardTask.TaskTypeID);
                 mappedTask.TaskType = _taskMapper.MapTaskTypeToTaskTypeResponse (taskType);// Assumes TaskType is real
 
-                var taskTimeline = timelineCollection.SingleOrDefault (timeline => Guid.Parse (timeline.RowKey) == cardTask.TimelineID);
+                // Matched on the timeline's ParentObjectID, not on Task.TimelineID.
+                //
+                // The link between a task and its timeline is written in one
+                // direction and was being read in the other. CreateTimeline sets
+                // Timeline.ParentObjectID to the task it belongs to; nothing
+                // anywhere sets Task.TimelineID -- searching the solution for it
+                // finds this line reading it, the two model declarations, and no
+                // writer. So every lookup here missed, and a task's timeline never
+                // reached the client however many dates were saved against it.
+                var taskTimeline = timelineCollection.SingleOrDefault (timeline => timeline.ParentObjectID.ToString () == cardTask.RowKey);
                 if (taskTimeline is not null)
                     mappedTask.Timeline = _timelineMapper.MapTimelineToTimelineResponse (taskTimeline);
             }
@@ -125,6 +134,14 @@ public class BoardController : Controller
             var mappedCard = _cardMapper.MapCardToCardResponse (card);
             mappedCard.Position = mappedCardPosition;
             mappedCard.Tasks = mappedTasks;
+
+            // A card can carry a timeline of its own, and this never sent one --
+            // CardResponse.Timeline was left at its null default on every card the
+            // board returned, so the card overlay's timeline panel had nothing to
+            // show whatever was stored. Same parent link as the tasks above.
+            var cardTimeline = timelineCollection.SingleOrDefault (timeline => timeline.ParentObjectID.ToString () == card.RowKey);
+            if (cardTimeline is not null)
+                mappedCard.Timeline = _timelineMapper.MapTimelineToTimelineResponse (cardTimeline);
             
             cardResponse.Add (mappedCard);
         }

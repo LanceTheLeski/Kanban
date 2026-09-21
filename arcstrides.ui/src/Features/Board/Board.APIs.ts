@@ -158,6 +158,21 @@ function toDate(value: string | null | undefined): Date | null {
 
 function mapTimeline(response: TimelineResponse | null | undefined): Timeline | null {
     if (!response) return null
+
+    /*
+       A timeline with no dates and no ID is not a timeline.
+
+       TaskResponse.Timeline is declared `= new TimelineResponse ()`, so the
+       server sends an object with every field null for a task that has none.
+       Taken at face value that is a timeline, and the panel opened every such
+       task in Deadline mode — a card with nothing scheduled claiming a deadline
+       it did not have. Timeless is what "no dates" means.
+    */
+    const hasAnything = response.id != null
+        || response.startPreferenceUTC != null || response.startDeadlineUTC != null
+        || response.endPreferenceUTC != null || response.endDeadlineUTC != null
+    if (!hasAnything) return null
+
     return {
         id: response.id ?? null,
         startDependencyTagGroupId: response.startDependencyTagGroupID ?? null,

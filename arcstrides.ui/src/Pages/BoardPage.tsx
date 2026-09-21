@@ -17,15 +17,16 @@
  * the drag handlers without touching the geometry — but while they shared a file
  * every one of those changes had to be made while scrolling past the others.
  *
- * They now live under Features/Board/Grid, one concern per file:
+ * They now live under Features/Board/CardGrid, one concern per file:
  *
- *   BoardGrid          the scroll container, the headers, the rows, the DndContext
+ *   CardGrid           the scroll container, the headers, the rows, the DndContext
  *   ColumnHeaderRow    the strip of column titles
  *   SwimlaneRow        one swimlane: its label and its cells
  *   DroppableCell      one column × swimlane intersection
  *   DraggableCard      a card with drag behaviour attached
  *   useCardDrag        pick up, drop, patch, roll back on failure
- *   Board.Cells        how a card is addressed to a cell
+ *   CardGrid.Cells     how a card is addressed to a cell
+ *   CardGrid.Sensors   what counts as picking a card up
  *
  * ── Data loading ─────────────────────────────────────────────────────────────
  * Blazor used OnInitializedAsync(), which ran once on first render. The effect
@@ -38,7 +39,7 @@ import { useParams } from 'react-router-dom'
 import { Box, Button, CircularProgress, Paper, Typography } from '@mui/material'
 import { useShallow } from 'zustand/react/shallow'
 import { BoardManagementNav } from '../Features/Board/BoardManagementNav'
-import { BoardGrid } from '../Features/Board/Grid/BoardGrid'
+import { CardGrid } from '../Features/Board/CardGrid/CardGrid'
 import { useBoardStore } from '../Features/Board/Board.Store'
 
 export const BoardPage: React.FC = () => {
@@ -90,7 +91,7 @@ export const BoardPage: React.FC = () => {
                     `status` is 'ready' by here, so boardId is set — the load effect
                     is the only thing that can move the store out of 'idle'.
                 */}
-                <BoardGrid boardId={boardId!} />
+                <CardGrid boardId={boardId!} />
             </Paper>
         </Box>
     )

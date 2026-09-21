@@ -46,10 +46,34 @@ export function draftToTimelineDates(draft: TimelineDraft): TimelineDates {
     }
 }
 
-/** Timeline type IDs as the server's TimelineType enum orders them. */
-export function timelineTypeIdFor(draft: TimelineDraft): number {
-    return draft.mode === 'deadline' ? 1 : 0
-}
+/**
+ * What a timeline is parented to.
+ *
+ * ── This is not the mode ─────────────────────────────────────────────────────
+ * TimelineTypeID was being sent as `mode === 'deadline' ? 1 : 0`, as though it
+ * described the *shape* of the timeline. The server reads it as the *kind of
+ * parent*: TimelineRepository.ParentExistsAsync switches on it with `case 1: //
+ * Card` and `case 2: // Task`, and anything else falls to `default: return
+ * false`, which CreateTimeline turns into "Parent not found".
+ *
+ * So Timeline mode sent 0, hit the default, and was rejected before a row was
+ * ever written — which is why deadlines could be saved and full timelines could
+ * not. Deadline mode sent 1 and was accepted, having told the server its task
+ * was a card.
+ *
+ * The mode is not something the server stores, and does not need to be: it is
+ * recoverable from the dates. A timeline with preference dates is a timeline,
+ * one with only a deadline is a deadline, and no dates at all is timeless —
+ * which is exactly how UpdateTimelinePanel decides what to show when it loads
+ * one back.
+ *
+ * The enum's own doc comment says it carries both facts at once ("Indicates
+ * deadline or (proper) timeline. Also indicates Card or Task parent."). It
+ * cannot: there is no value meaning "a proper timeline, parented to a task".
+ * See docs/timeline-model.md for what to do about that.
+ */
+export const TIMELINE_PARENT_CARD = 1
+export const TIMELINE_PARENT_TASK = 2
 
 /** A draft only describes a real timeline once it is out of Timeless mode. */
 export function hasTimeline(draft: TimelineDraft | null): draft is TimelineDraft {
