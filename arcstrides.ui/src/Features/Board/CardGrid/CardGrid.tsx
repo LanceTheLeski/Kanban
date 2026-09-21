@@ -1,8 +1,13 @@
 /**
- * BoardGrid
+ * CardGrid
  *
- * The scrolling grid: the column headers, a row per swimlane, and the drag
- * context that ties them together.
+ * The scrolling grid of cards: the column headers, a row per swimlane, and the
+ * drag context that ties them together.
+ *
+ * Named for what it shows rather than where it lives. "Grid" alone said nothing
+ * — every screen has a layout — and "BoardGrid" restated the folder it was
+ * already in. The column headers and swimlane labels in here are not cards, but
+ * they are the axes the cards are arranged on, which is the same idea.
  *
  * Mirrors <MudDropContainer> and the two blocks Board.razor rendered inside it.
  *
@@ -18,14 +23,14 @@ import { useBoardStore } from '../Board.Store'
 import { BoardCard } from '../BoardCard'
 import { ColumnHeaderRow } from './ColumnHeaderRow'
 import { SwimlaneRow } from './SwimlaneRow'
-import { groupCardsByCell } from './Board.Cells'
+import { groupCardsByCell } from './CardGrid.Cells'
 import { useCardDrag } from './useCardDrag'
 
-interface BoardGridProps {
+interface CardGridProps {
     boardId: string
 }
 
-export const BoardGrid: React.FC<BoardGridProps> = ({ boardId }) => {
+export const CardGrid: React.FC<CardGridProps> = ({ boardId }) => {
     const { columns, swimlanes, cards } = useBoardStore(
         useShallow(state => ({
             columns: state.columns,
@@ -49,20 +54,16 @@ export const BoardGrid: React.FC<BoardGridProps> = ({ boardId }) => {
             <Box sx={{ display: 'inline-flex', flexDirection: 'column', minWidth: '100%' }}>
                 <ColumnHeaderRow columns={columns} />
 
-                <DndContext
-                    sensors={sensors}
-                    onDragStart={handleDragStart}
-                    onDragEnd={handleDragEnd}
-                    onDragCancel={handleDragCancel}
-                >
+                <DndContext sensors={sensors}
+                            onDragStart={handleDragStart}
+                            onDragEnd={handleDragEnd}
+                            onDragCancel={handleDragCancel}>
                     {swimlanes.map(swimlane => (
-                        <SwimlaneRow
-                            key={swimlane.id}
-                            swimlane={swimlane}
-                            columns={columns}
-                            cardsByCell={cardsByCell}
-                            boardId={boardId}
-                        />
+                        <SwimlaneRow key={swimlane.id}
+                                     swimlane={swimlane}
+                                     columns={columns}
+                                     cardsByCell={cardsByCell}
+                                     boardId={boardId} />
                     ))}
 
                     {/*
@@ -78,4 +79,4 @@ export const BoardGrid: React.FC<BoardGridProps> = ({ boardId }) => {
     )
 }
 
-export default BoardGrid
+export default CardGrid

@@ -24,12 +24,12 @@ import {
     CARD_TOUCH_ACTIVATION,
     CardMouseSensor,
     CardTouchSensor,
-} from './cardSensors'
+} from './CardGrid.Sensors'
 import { useShallow } from 'zustand/react/shallow'
 import { useBoardStore } from '../Board.Store'
 import { moveCard } from '../Board.APIs'
 import { useArcError } from '../../../Components/useArcError'
-import { parseCellId } from './Board.Cells'
+import { parseCellId } from './CardGrid.Cells'
 import type { Card } from '../../../Entities/Card/Card.Types'
 
 export function useCardDrag(boardId: string | undefined) {
@@ -46,7 +46,7 @@ export function useCardDrag(boardId: string | undefined) {
     const [draggingCard, setDraggingCard] = useState<Card | null>(null)
 
     // Two sensors rather than one PointerSensor, so a finger can still scroll a
-    // full cell now that the whole card is draggable. See cardSensors.ts.
+    // full cell now that the whole card is draggable. See CardGrid.Sensors.
     const sensors = useSensors(
         useSensor(CardMouseSensor, { activationConstraint: CARD_MOUSE_ACTIVATION }),
         useSensor(CardTouchSensor, { activationConstraint: CARD_TOUCH_ACTIVATION }),

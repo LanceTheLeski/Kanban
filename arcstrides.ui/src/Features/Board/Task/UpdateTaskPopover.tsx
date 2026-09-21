@@ -34,7 +34,7 @@ import {
     hasTimeline,
     timelineOperations,
     TIMELINE_PARENT_TASK,
-} from '../Timeline/timelineDraft'
+} from '../Timeline/Timeline.Draft'
 import { TASK_PANEL_ROW_MIN_HEIGHT, TASK_POPOVER_WIDTH } from '../../../Styles/Measures'
 import type { Task, TaskType } from '../../../Entities/Task/Task.Types'
 import type { Timeline } from '../../../Entities/Timeline/Timeline.Types'

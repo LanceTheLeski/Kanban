@@ -37,7 +37,7 @@ import {
     draftToTimelineDates,
     hasTimeline,
     TIMELINE_PARENT_TASK,
-} from '../Timeline/timelineDraft'
+} from '../Timeline/Timeline.Draft'
 import { createTask, createTimeline, fetchTaskTypes } from '../Board.APIs'
 import type { Task, TaskType } from '../../../Entities/Task/Task.Types'
 
