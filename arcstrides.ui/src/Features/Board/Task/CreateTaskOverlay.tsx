@@ -36,7 +36,7 @@ import { useArcError } from '../../../Components/useArcError'
 import {
     draftToTimelineDates,
     hasTimeline,
-    timelineTypeIdFor,
+    TIMELINE_PARENT_TASK,
 } from '../Timeline/timelineDraft'
 import { createTask, createTimeline, fetchTaskTypes } from '../Board.APIs'
 import type { Task, TaskType } from '../../../Entities/Task/Task.Types'
@@ -118,7 +118,8 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
 
                 const timeline = await createTimeline(boardId, {
                     parentId: created.id,
-                    timelineTypeId: timelineTypeIdFor(timelineDraft),
+                    // The parent kind, not the mode — see timelineDraft.
+                    timelineTypeId: TIMELINE_PARENT_TASK,
                     ...draftToTimelineDates(timelineDraft),
                 })
                 created = { ...created, timeline }
