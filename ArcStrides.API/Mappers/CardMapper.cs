@@ -57,6 +57,7 @@ public partial class CardMapper
     [MapProperty (nameof (CardPosition.SwimlaneID), nameof (CardPositionResponse.SwimlaneID))]
     [MapProperty (nameof (CardPosition.SwimlaneTitle), nameof (CardPositionResponse.SwimlaneTitle))]
     [MapProperty (nameof (CardPosition.SwimlaneOrder), nameof (CardPositionResponse.SwimlaneOrder))]
+    [MapProperty (nameof (CardPosition.PositionRank), nameof (CardPositionResponse.PositionRank))]
     public partial CardPositionResponse MapCardPositionToCardPositionResponse (CardPosition cardPosition);
 
     /// <summary>
@@ -64,6 +65,7 @@ public partial class CardMapper
     /// </summary>
     [MapProperty (nameof (CardCreateRequest.ColumnID), nameof (CardPosition.ColumnID))]
     [MapProperty (nameof (CardCreateRequest.SwimlaneID), nameof (CardPosition.SwimlaneID))]
+    [MapProperty (nameof (CardCreateRequest.PositionRank), nameof (CardPosition.PositionRank))]
     public partial CardPosition MapCardCreateRequestToCardPosition (CardCreateRequest cardCreateRequest);
 
     /// <summary>
@@ -75,6 +77,7 @@ public partial class CardMapper
     [MapProperty (nameof (CardPosition.SwimlaneID), nameof (CardPositionPatchRequest.SwimlaneID))]
     [MapProperty (nameof (CardPosition.SwimlaneTitle), nameof (CardPositionPatchRequest.SwimlaneTitle))]
     [MapProperty (nameof (CardPosition.SwimlaneOrder), nameof (CardPositionPatchRequest.SwimlaneOrder))]
+    [MapProperty (nameof (CardPosition.PositionRank), nameof (CardPositionPatchRequest.PositionRank))]
     public partial CardPosition MapCardPatchRequestToCard (CardPositionPatchRequest cardPatchRequest);
 
     #endregion CardPosition

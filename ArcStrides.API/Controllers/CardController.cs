@@ -92,6 +92,11 @@ public class CardController : ControllerBase
             SwimlaneTitle = swimlaneFromTable.Title,
             SwimlaneOrder = swimlaneFromTable.SwimlaneOrder,
 
+            // The client sends where in the cell the card should land, because
+            // it is the only party that knows what is already there. Defaults to
+            // 0 -- the top of the cell -- when it says nothing.
+            PositionRank = cardCreateRequest.PositionRank ?? 0,
+
             ColumnID = cardCreateRequest.ColumnID.Value,
             ColumnTitle = columnFromTable.Title,
             ColumnOrder = columnFromTable.ColumnOrder.Value,

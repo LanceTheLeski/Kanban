@@ -36,6 +36,7 @@
 
 import { create } from 'zustand'
 import { fetchBoard } from './Board.APIs'
+import type { CardPlacement } from './CardGrid/CardGrid.Cells'
 import type { Card } from '../../Entities/Card/Card.Types'
 import type { Column, Swimlane } from './Board.Types'
 
@@ -72,8 +73,20 @@ interface BoardState {
      */
     applyCardMove: (cardId: string, column: Column, swimlane: Swimlane) => Card | null
 
+    /**
+     * Moves several cards at once, which is what a drop actually is.
+     *
+     * A card landing in a cell pushes the ones below it down and closes the gap
+     * behind it, so a drop rewrites a whole cell's ranks rather than one card's
+     * placement. Returns snapshots of every card it touched, for restoreCards.
+     */
+    applyCardPlacements: (placements: CardPlacement[]) => Card[] | null
+
     /** Puts a previous card snapshot back — the rollback half of applyCardMove. */
     restoreCard: (card: Card) => void
+
+    /** The rollback half of applyCardPlacements. */
+    restoreCards: (cards: Card[]) => void
 
     /** Replaces one card in place, e.g. after editing its title. */
     replaceCard: (card: Card) => void
@@ -173,6 +186,43 @@ export const useBoardStore = create<BoardState>((set, get) => ({
         set(state => ({
             cards: state.cards.map(existing => existing.id === card.id ? card : existing),
         })),
+
+    applyCardPlacements: (placements) => {
+        const { cards } = get()
+
+        const previous = placements
+            .map(placement => cards.find(card => card.id === placement.cardId))
+            .filter((card): card is Card => card !== undefined)
+
+        if (previous.length !== placements.length) return null
+
+        const byId = new Map(placements.map(placement => [placement.cardId, placement]))
+
+        set(state => ({
+            cards: state.cards.map(card => {
+                const placement = byId.get(card.id)
+                if (!placement) return card
+
+                return {
+                    ...card,
+                    columnId: placement.column.id,
+                    columnName: placement.column.title,
+                    columnNumber: placement.column.order,
+                    swimlaneId: placement.swimlane.id,
+                    swimlaneName: placement.swimlane.title,
+                    swimlaneNumber: placement.swimlane.order,
+                    positionRank: placement.positionRank,
+                }
+            }),
+        }))
+
+        return previous
+    },
+
+    restoreCards: (restored) => {
+        const byId = new Map(restored.map(card => [card.id, card]))
+        set(state => ({ cards: state.cards.map(card => byId.get(card.id) ?? card) }))
+    },
 
     replaceCard: (card) =>
         set(state => ({

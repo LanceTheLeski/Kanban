@@ -129,11 +129,9 @@ export const SwimlaneRow: React.FC<SwimlaneRowProps> = ({
                         const cellCards = cardsByCell.get(identifier) ?? []
 
                         return (
-                            <DroppableCell
-                                key={column.id}
-                                identifier={identifier}
-                                cardCount={cellCards.length}
-                            >
+                            <DroppableCell key={column.id}
+                                           identifier={identifier}
+                                           cardIds={cellCards.map(card => card.id)}>
                                 {cellCards.map(card => (
                                     <DraggableCard key={card.id} card={card} boardId={boardId} />
                                 ))}

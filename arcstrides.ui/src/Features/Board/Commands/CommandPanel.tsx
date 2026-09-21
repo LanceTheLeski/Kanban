@@ -134,7 +134,7 @@ export const CommandPanel: React.FC<CommandPanelProps> = ({ card }) => {
     )
 
     /** Adds entries and keeps the newest in view. */
-    function append (...added: CardCommandEntry[]) {
+    function append(...added: CardCommandEntry[]) {
         setEntries(previous => [...previous, ...added])
 
         // After the entries have been laid out, or the scroll lands short.
@@ -271,7 +271,7 @@ const Span: React.FC<{ span: CardCommandSpan }> = ({ span }) => {
  * Returns the echo of the line plus its answer, so the caller appends both at
  * once and they always carry the same timestamp.
  */
-function respondTo (entered: string, card: Card): CardCommandEntry[] {
+function respondTo(entered: string, card: Card): CardCommandEntry[] {
     const at = new Date()
     const id = `${at.getTime()}`
     const echo: CardCommandEntry = { id, kind: 'command', at, content: [text(entered)] }
@@ -297,6 +297,6 @@ function respondTo (entered: string, card: Card): CardCommandEntry[] {
     return [echo, answer(`${id}-r`, at, 'error', `No command called /${name}. Try /help.`)]
 }
 
-function answer (id: string, at: Date, kind: CardCommandKind, message: string): CardCommandEntry {
+function answer(id: string, at: Date, kind: CardCommandKind, message: string): CardCommandEntry {
     return { id, kind, at, content: [text(message)] }
 }

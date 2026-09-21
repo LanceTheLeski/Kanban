@@ -107,6 +107,7 @@ interface CardPositionResponse {
     swimlaneID: string | null
     swimlaneTitle: string | null
     swimlaneOrder: number | null
+    positionRank: number | null
 }
 
 /** Mirrors ArcStrides.Contracts.Response.CardResponse */
@@ -235,6 +236,7 @@ function mapCard(response: CardResponse): Card {
         swimlaneId: position?.swimlaneID ?? '',
         swimlaneName: position?.swimlaneTitle ?? '',
         swimlaneNumber: position?.swimlaneOrder ?? 0,
+        positionRank: position?.positionRank ?? 0,
         // Sort tasks by order on load — mirrors Blazor's OrderBy(task => task.Order)
         tasks: (response.tasks ?? []).map(mapTask).sort((a, b) => a.order - b.order),
         timeline: mapTimeline(response.timeline),
@@ -263,6 +265,8 @@ export interface CardCreateRequest {
     description: string
     columnId: string
     swimlaneId: string
+    /** Where in the cell it lands. Defaults to the top. */
+    positionRank?: number
 }
 
 /**
@@ -281,6 +285,10 @@ export async function createCard(boardId: string, request: CardCreateRequest): P
         Description: request.description,
         ColumnID: request.columnId,
         SwimlaneID: request.swimlaneId,
+        // Top of the cell. The server has no opinion about where a new card
+        // goes, and the alternative — every new card at rank 0 alongside every
+        // other new card — is the tie the grid then has to break arbitrarily.
+        PositionRank: request.positionRank ?? 0,
     })
 }
 
@@ -291,6 +299,8 @@ export interface CardMoveRequest {
     swimlaneId: string
     swimlaneTitle: string
     swimlaneOrder: number
+    /** Where in the target cell it lands. */
+    positionRank: number
 }
 
 /**
@@ -302,6 +312,7 @@ export interface CardMoveRequest {
  */
 export function moveCard(boardId: string, positionId: string, request: CardMoveRequest): Promise<void> {
     const operations: PatchOperation[] = [
+        { op: 'replace', path: '/positionRank', value: request.positionRank },
         { op: 'replace', path: '/columnID', value: request.columnId },
         { op: 'replace', path: '/columnTitle', value: request.columnTitle },
         { op: 'replace', path: '/columnOrder', value: request.columnOrder },

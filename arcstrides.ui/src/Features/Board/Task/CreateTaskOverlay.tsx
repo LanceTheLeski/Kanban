@@ -29,7 +29,7 @@ import { TextField } from '@mui/material'
 import { ArcPopover } from '../../../Components/ArcPopover'
 import { TASK_PANEL_ROW_MIN_HEIGHT } from '../../../Styles/Measures'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
-import { UpdateTimelinePanel, type TimelineDraft } from '../Timeline/UpdateTimelinePanel'
+import { UpdateTimelinePanel } from '../Timeline/UpdateTimelinePanel'
 import { CreateTaskTypeOverlay } from '../../TagGroup/TaskType/CreateTaskTypeOverlay'
 import { useBoardActions } from '../useBoardActions'
 import { useArcError } from '../../../Components/useArcError'
@@ -37,6 +37,7 @@ import {
     draftToTimelineDates,
     hasTimeline,
     TIMELINE_PARENT_TASK,
+    type TimelineDraft,
 } from '../Timeline/Timeline.Draft'
 import { createTask, createTimeline, fetchTaskTypes } from '../Board.APIs'
 import type { Task, TaskType } from '../../../Entities/Task/Task.Types'

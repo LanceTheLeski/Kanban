@@ -88,7 +88,7 @@ export const CARD_TOUCH_ACTIVATION = { delay: 250, tolerance: 8 }
  * between the target and the card". A match that *is* the card, or is outside
  * it, is not a reason to refuse.
  */
-function beganOnInteractiveElement (target: EventTarget | null, root: EventTarget | null): boolean {
+function beganOnInteractiveElement(target: EventTarget | null, root: EventTarget | null): boolean {
     if (!(target instanceof Element) || !(root instanceof Element)) return false
 
     const match = target.closest(INTERACTIVE_SELECTOR)

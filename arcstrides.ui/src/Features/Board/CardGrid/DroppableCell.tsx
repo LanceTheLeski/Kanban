@@ -9,15 +9,18 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Box, Typography } from '@mui/material'
 import { useDroppable } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { BOARD_GAP, CELL_MAX_HEIGHT, CELL_MIN_HEIGHT, COLUMN_WIDTH } from '../Board.Layout'
 
 interface DroppableCellProps {
     identifier: string
-    cardCount: number
+    /** The cards in this cell, top to bottom. Sortable needs them in order. */
+    cardIds: string[]
     children: React.ReactNode
 }
 
-export const DroppableCell: React.FC<DroppableCellProps> = ({ identifier, cardCount, children }) => {
+export const DroppableCell: React.FC<DroppableCellProps> = ({ identifier, cardIds, children }) => {
+    const cardCount = cardIds.length
     const { setNodeRef, isOver } = useDroppable({ id: identifier })
 
     // Whether the cell is actually holding more than it can show. Measured rather
@@ -94,12 +97,19 @@ export const DroppableCell: React.FC<DroppableCellProps> = ({ identifier, cardCo
                 </Typography>
             )}
 
-            {children}
+            {/*
+                The cell is a drop target in its own right — for the empty space
+                below the cards — and SortableContext makes each card one too, so
+                a drop can say *where* in the cell rather than only *which*.
+            */}
+            <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
+                {children}
+            </SortableContext>
         </Box>
     )
 
     /** dnd-kit needs the node and so do we, so the ref sets both. */
-    function attachRef (node: HTMLDivElement | null) {
+    function attachRef(node: HTMLDivElement | null) {
         cellRef.current = node
         setNodeRef(node)
     }

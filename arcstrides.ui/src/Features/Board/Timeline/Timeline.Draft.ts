@@ -1,7 +1,7 @@
 /**
- * timelineDraft.ts
+ * Timeline.Draft
  *
- * Converts what UpdateTimelinePanel collects into what the timeline API stores.
+ * What UpdateTimelinePanel collects, and how it becomes what the API stores.
  *
  * The panel keeps dates and times in separate pickers because Blazor's
  * MudDatePicker and MudTimePicker were separate controls. The API takes a single
@@ -10,7 +10,27 @@
  */
 
 import type { PatchOperation } from '../../../Lib/Client'
-import type { TimelineDraft } from './UpdateTimelinePanel'
+import type { TimelineMode } from './Timeline.Nodes'
+
+/**
+ * Structured output the panel sends its parent on every change.
+ *
+ * It lives here rather than on the panel because it is the contract between the
+ * panel and everything downstream of it — CreateTaskOverlay, UpdateTaskPopover
+ * and the folding below all speak it, and only one of them draws anything. It
+ * replaces the Blazor version's @ref-based field access.
+ */
+export interface TimelineDraft {
+    mode: TimelineMode
+    preferredStart: Date | null
+    preferredEnd: Date | null
+    requiredStart: Date | null
+    requiredEnd: Date | null
+    preferredStartTime: string | null // HH:MM
+    preferredEndTime: string | null
+    requiredStartTime: string | null
+    requiredEndTime: string | null
+}
 
 export interface TimelineDates {
     startPreferenceUTC: Date | null
@@ -19,23 +39,10 @@ export interface TimelineDates {
     endDeadlineUTC: Date | null
 }
 
-/** Folds a picker date and its "HH:mm" time into one instant. */
-function combine(date: Date | null, time: string | null): Date | null {
-    if (!date) return null
-    if (!time) return date
-
-    const [hours, minutes] = time.split(':').map(Number)
-    if (Number.isNaN(hours) || Number.isNaN(minutes)) return date
-
-    const combined = new Date(date)
-    combined.setHours(hours, minutes, 0, 0)
-    return combined
-}
-
 /**
  * Maps the panel's draft onto the four timestamps the API stores.
  * "Preferred" dates are the soft range; "required" dates are the hard deadlines —
- * matching the aquamarine/goldenrod split in UpdateTimelinePanel.
+ * matching the aquamarine/goldenrod split on the rail.
  */
 export function draftToTimelineDates(draft: TimelineDraft): TimelineDates {
     return {
@@ -87,4 +94,20 @@ export function timelineOperations(dates: TimelineDates): PatchOperation[] {
         { op: 'replace', path: '/endPreferenceUTC', value: dates.endPreferenceUTC?.toISOString() ?? null },
         { op: 'replace', path: '/endDeadlineUTC', value: dates.endDeadlineUTC?.toISOString() ?? null },
     ]
+}
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+/** Folds a picker date and its "HH:mm" time into one instant. */
+function combine(date: Date | null, time: string | null): Date | null {
+    if (!date) return null
+    if (!time) return date
+
+    const [hours, minutes] = time.split(':').map(Number)
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) return date
+
+    const combined = new Date(date)
+    combined.setHours(hours, minutes, 0, 0)
+    return combined
 }

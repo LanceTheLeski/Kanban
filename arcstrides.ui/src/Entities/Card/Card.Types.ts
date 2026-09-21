@@ -34,6 +34,13 @@ export interface Card {
     swimlaneNumber: number
     swimlaneId: string
     swimlaneName: string
+    /**
+     * Where the card sits within its cell. Lower is nearer the top.
+     *
+     * Belongs to the CardPosition row like the column and swimlane fields
+     * above it — a card does not have a rank, a card *in a cell* does.
+     */
+    positionRank: number
     tasks: Task[]
     timeline: Timeline | null
 }

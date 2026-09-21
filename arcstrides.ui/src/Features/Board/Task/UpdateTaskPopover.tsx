@@ -25,7 +25,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Box, Button, Checkbox, FormControlLabel, TextField, Typography } from '@mui/material'
 import { ArcPopover } from '../../../Components/ArcPopover'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
-import { UpdateTimelinePanel, type TimelineDraft } from '../Timeline/UpdateTimelinePanel'
+import { UpdateTimelinePanel } from '../Timeline/UpdateTimelinePanel'
 import { CreateTaskTypeOverlay } from '../../TagGroup/TaskType/CreateTaskTypeOverlay'
 import { useBoardActions } from '../useBoardActions'
 import { createTimeline, fetchTaskTypes, updateTask, updateTimeline, type TaskPatch } from '../Board.APIs'
@@ -34,6 +34,7 @@ import {
     hasTimeline,
     timelineOperations,
     TIMELINE_PARENT_TASK,
+    type TimelineDraft,
 } from '../Timeline/Timeline.Draft'
 import { TASK_PANEL_ROW_MIN_HEIGHT, TASK_POPOVER_WIDTH } from '../../../Styles/Measures'
 import type { Task, TaskType } from '../../../Entities/Task/Task.Types'
