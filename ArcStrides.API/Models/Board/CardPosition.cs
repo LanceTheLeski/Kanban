@@ -22,4 +22,9 @@ public class CardPosition : ArcBoardsEntity
     public string ColumnTitle { get; set; }
 
     public int ColumnOrder { get; set; }
+
+    /// <summary>
+    /// The rank of the card within its cell (column and swimlane). A lower number indicates a higher position (closer to the top) in the cell.
+    /// </summary>
+    public int PositionRank { get; set; }
 }

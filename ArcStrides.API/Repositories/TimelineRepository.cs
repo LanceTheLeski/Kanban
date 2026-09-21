@@ -43,17 +43,17 @@ public class TimelineRepository : ITimelineRepository
     public async Task<Collection<Timeline>> QueryTimelinesAsync (Expression<Func<Timeline, bool>> timelineQueryExpression)
         => await _timelineTable.QueryEntitiesAsync (timelineQueryExpression);
 
-    public async Task<bool> ParentExistsAsync (Guid parentID, int timelineTypeID)
+    public async Task<bool> ParentExistsAsync (Guid boardID, Guid parentID, int timelineTypeID)
     {
         switch (timelineTypeID)
         {
             case 1:// Card
-                var cardCollection = await _cardRepository.GetCardsAsync (parentID);
-                return cardCollection?.Count () is 0;
+                var cardMatch = await _cardRepository.GetCardAsync (boardID, parentID);
+                return cardMatch is not null;
 
             case 2:// Task
-                var taskCollection = await _taskRepository.GetTasksAsync (parentID);
-                return taskCollection?.Count () is 0;
+                var taskMatch = await _taskRepository.GetTaskAsync (boardID, parentID);
+                return taskMatch is not null;
 
             default:
                 return false;

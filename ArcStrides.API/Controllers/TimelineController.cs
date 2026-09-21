@@ -57,7 +57,7 @@ public class TimelineController : Controller
             return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TimelineCreateRequest), "")
                                + "\n" + validationResult.ToString ());
 
-        var parentExists = await _timelineRepository.ParentExistsAsync (timelineCreateRequest.ParentID.Value, timelineCreateRequest.TimelineTypeID.Value);
+        var parentExists = await _timelineRepository.ParentExistsAsync (boardID, timelineCreateRequest.ParentID.Value, timelineCreateRequest.TimelineTypeID.Value);
         if (parentExists is false)
             return BadRequest (ErrorResponseMessages.NotFoundErrorResponse ("Parent"));
 
