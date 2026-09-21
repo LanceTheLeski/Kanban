@@ -63,10 +63,8 @@ function App() {
                     / → redirect to the demo board ID for now.
                     Replace with a real HomePage (board picker) later.
                   */}
-                                <Route
-                                    path="/"
-                                    element={<Navigate to="/board/1cb0ce6e-6145-4fe7-833a-0b7c0545c449" replace />}
-                                />
+                                <Route path="/"
+                                       element={<Navigate to="/board/1cb0ce6e-6145-4fe7-833a-0b7c0545c449" replace />} />
 
                                 {/* /board/:boardId — the main Kanban board */}
                                 <Route path="/board/:boardId" element={<BoardPage />} />

@@ -148,27 +148,25 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
 
     return (
         <>
-            <ArcPopover
-                triggerLabel="+ New task"
-                submitLabel="Create"
-                /*
-                   Distinct from the task rows it sits under, in colour rather
-                   than weight: those rows are the card's content and this is the
-                   one action among them, so it takes the accent the rest of the
-                   app uses for a primary action. Shorter, too — "Create New Task"
-                   in a column of task titles read as another task.
-                */
-                triggerSx={{
-                    width: '100%',
-                    justifyContent: 'flex-start',
-                    color: 'arc.accentOnGlass',
-                    fontWeight: 700,
-                    '&:hover': { backgroundColor: 'arc.glassHover' },
-                }}
-                onSubmit={handleSubmit}
-                anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
-                transformOrigin={{ vertical: 'center', horizontal: 'left' }}
-            >
+            <ArcPopover triggerLabel="+ New task"
+                        submitLabel="Create"
+                        /*
+                           Distinct from the task rows it sits under, in colour rather
+                           than weight: those rows are the card's content and this is the
+                           one action among them, so it takes the accent the rest of the
+                           app uses for a primary action. Shorter, too — "Create New Task"
+                           in a column of task titles read as another task.
+                        */
+                        triggerSx={{
+                            width: '100%',
+                            justifyContent: 'flex-start',
+                            color: 'arc.accentOnGlass',
+                            fontWeight: 700,
+                            '&:hover': { backgroundColor: 'arc.glassHover' },
+                        }}
+                        onSubmit={handleSubmit}
+                        anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
+                        transformOrigin={{ vertical: 'center', horizontal: 'left' }}>
                 {/*
                     Was a flat `width: 560`, which could not hold a 460px timeline
                     panel and the task fields side by side. It now asks for a
@@ -176,88 +174,78 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
                     row below wraps rather than overflowing.
                 */}
                 <Box sx={{ width: 'min(46rem, 90vw)', display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <TextField
-                        label="Title"
-                        variant="filled"
-                        helperText="Task Title"
-                        value={title}
-                        onChange={e => setTitle(e.target.value)}
-                        fullWidth
-                    />
+                    <TextField label="Title"
+                               variant="filled"
+                               helperText="Task Title"
+                               value={title}
+                               onChange={e => setTitle(e.target.value)}
+                               fullWidth />
 
-                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'stretch', minHeight: TASK_PANEL_ROW_MIN_HEIGHT }}>
-                        <Box sx={{ flex: '1 1 13rem', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Box sx={{ display: 'flex',
+                               gap: 2,
+                               flexWrap: 'wrap',
+                               alignItems: 'stretch',
+                               minHeight: TASK_PANEL_ROW_MIN_HEIGHT }}>
+                        <Box sx={{ flex: '1 1 13rem',
+                                   minWidth: 0,
+                                   display: 'flex',
+                                   flexDirection: 'column',
+                                   gap: 1 }}>
                             {/* IsCompleted selector — mirrors bool.TrueString / FalseString options */}
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        checked={isCompleted}
-                                        onChange={e => setIsCompleted(e.target.checked)}
-                                        size="small"
-                                    />
-                                }
-                                label={<Typography variant="body2">Completed</Typography>}
-                            />
+                            <FormControlLabel control={
+                                                  <Checkbox checked={isCompleted}
+                                                            onChange={e => setIsCompleted(e.target.checked)}
+                                                            size="small" />
+                                              }
+                                              label={<Typography variant="body2">Completed</Typography>} />
 
                             {/* Order selector */}
-                            <ArcExpandingSelector
-                                options={orderOptions}
-                                onSelect={v => setSelectedOrder(parseInt(v, 10))}
-                                placeholder="Select order"
-                            />
+                            <ArcExpandingSelector options={orderOptions}
+                                                  onSelect={v => setSelectedOrder(parseInt(v, 10))}
+                                                  placeholder="Select order" />
 
                             {/* Task type selector */}
-                            <ArcExpandingSelector
-                                options={taskTypes.map(t => t.title ?? '')}
-                                onSelect={handleSetTaskType}
-                                placeholder="Select task type"
-                            />
+                            <ArcExpandingSelector options={taskTypes.map(t => t.title ?? '')}
+                                                  onSelect={handleSetTaskType}
+                                                  placeholder="Select task type" />
 
                             {/* The same quiet link the update popover has — this
                                 is the second copy of it, and they should not
                                 disagree about how prominent creating a task type
                                 is. */}
-                            <Button
-                                size="small"
-                                variant="text"
-                                onClick={() => setCreateTaskTypeOpen(true)}
-                                sx={{
-                                    alignSelf: 'flex-start',
-                                    px: 0.5,
-                                    fontSize: '0.65rem',
-                                    textTransform: 'none',
-                                    color: 'arc.onGlassMuted',
-                                    '&:hover': { color: 'arc.onGlass', backgroundColor: 'arc.glassHover' },
-                                }}
-                            >
+                            <Button size="small"
+                                    variant="text"
+                                    onClick={() => setCreateTaskTypeOpen(true)}
+                                    sx={{ alignSelf: 'flex-start',
+                                          px: 0.5,
+                                          fontSize: '0.65rem',
+                                          textTransform: 'none',
+                                          color: 'arc.onGlassMuted',
+                                          '&:hover': { color: 'arc.onGlass', backgroundColor: 'arc.glassHover' } }}>
                                 + New task type
                             </Button>
                         </Box>
 
                         <Box sx={{ flex: '1 1 18rem', minWidth: 0, display: 'flex' }}>
-                            <UpdateTimelinePanel
-                                timeline={null}
-                                onDraftChange={setTimelineDraft}
-                            />
+                            <UpdateTimelinePanel timeline={null}
+                                                 onDraftChange={setTimelineDraft} />
                         </Box>
                     </Box>
                 </Box>
             </ArcPopover>
 
-            <CreateTaskTypeOverlay
-                open={createTaskTypeOpen}
-                onClose={() => setCreateTaskTypeOpen(false)}
-                onCreated={created => {
-                    // Add and select it directly. Refetching left the list correct
-                    // but nothing chosen, so the type you had just created still
-                    // had to be found and picked by hand.
-                    setTaskTypes(existing =>
-                        existing.some(taskType => taskType.id === created.id)
-                            ? existing
-                            : [...existing, created])
-                    setSelectedTaskTypeId(created.id)
-                }}
-            />
+            <CreateTaskTypeOverlay open={createTaskTypeOpen}
+                                   onClose={() => setCreateTaskTypeOpen(false)}
+                                   onCreated={created => {
+                                       // Add and select it directly. Refetching left the list correct
+                                       // but nothing chosen, so the type you had just created still
+                                       // had to be found and picked by hand.
+                                       setTaskTypes(existing =>
+                                           existing.some(taskType => taskType.id === created.id)
+                                               ? existing
+                                               : [...existing, created])
+                                       setSelectedTaskTypeId(created.id)
+                                   }} />
         </>
     )
 }

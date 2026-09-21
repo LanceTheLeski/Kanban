@@ -111,16 +111,60 @@ Anything that fits. Wrapping is for lines that would otherwise run long, not a
 rule to apply to every element — `<Box sx={{ display: 'flex', gap: 1 }}>` is
 one line and should stay one line.
 
+"Fits" is 110 characters. An `sx` that goes past it once the first rule has
+pulled it up beside its tag is broken into the same column the attributes use.
+
 ### Why this is not a Prettier config
 
 Prettier cannot produce this. Its JSX output always puts the first attribute on
 its own line once an element wraps, and that is not configurable. Adopting the
-convention means Prettier cannot be run over these files, and the alignment is
-maintained by hand.
+convention means Prettier cannot be run over these files.
 
-That is a real cost and worth naming: hand-aligned columns drift when an
-attribute is renamed, and nothing will catch it. The trade is deliberate —
-readability at the cost of an autoformatter — but it is a trade.
+That left a real cost, and this doc used to end by naming it: hand-aligned
+columns drift when an attribute is renamed, and nothing would catch it.
+
+### What catches it
+
+`arcstrides.ui/tools/reflow.py` applies all three rules above.
+
+```
+npm run format          # rewrite every .tsx under src/
+npm run format:check    # exit 1 if anything is out of shape
+```
+
+It reads the source through a mask of what is code and what is comment or
+string, then moves each block by a single delta, so a comment inside one keeps
+whatever shape it had and blank lines survive. Two things it deliberately will
+not touch, because both are better judged by a person: an element whose
+attributes hold a multi-line template literal, and an `sx` object whose last
+property carries a trailing comment. Its own header says why.
+
+The trade is still a trade — a project-specific script instead of an
+off-the-shelf formatter — but the drift it was traded against is now caught.
+
+---
+
+## Shared values live in a module, not in the first file that needed them
+
+Three modules hold values that more than one component depends on, and a
+component may not restate one of them:
+
+| module | holds |
+|---|---|
+| `Styles/Measures.ts` | every size that is not board geometry, and the `rem` helper |
+| `Styles/Fonts.ts` | the font stacks |
+| `Features/Board/Board.Layout.ts` | column widths, gaps, cell heights |
+
+A value written inline at each use does not stay one value. The font stacks are
+what proved it: the column headers fell back through three condensed faces while
+the swimlane labels beside them fell straight to `sans-serif`, so on a machine
+without Calibri Condensed the two halves of the same grid were set in different
+fonts — and the monospace stack existed in two versions for the same reason,
+whichever the nearest file happened to have when the next one was written.
+
+The test for whether something belongs in one of these: would two files
+disagreeing about it be a bug? A fallback chain, a column width and a dialog's
+width all fail that test. A one-off `gap: 1` does not.
 
 ---
 

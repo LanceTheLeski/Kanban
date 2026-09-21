@@ -88,26 +88,20 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
             <Stack spacing={2}>
                 <Typography variant="h6">Edit Column</Typography>
 
-                <ArcExpandingSelector
-                    options={columns.map(column => column.title)}
-                    onSelect={handleSelectColumn}
-                    placeholder="Select column to edit"
-                />
+                <ArcExpandingSelector options={columns.map(column => column.title)}
+                                      onSelect={handleSelectColumn}
+                                      placeholder="Select column to edit" />
 
-                <TextField
-                    label="New Title"
-                    variant="filled"
-                    helperText="Column Title"
-                    value={replacementTitle}
-                    onChange={e => setReplacementTitle(e.target.value)}
-                    fullWidth
-                />
+                <TextField label="New Title"
+                           variant="filled"
+                           helperText="Column Title"
+                           value={replacementTitle}
+                           onChange={e => setReplacementTitle(e.target.value)}
+                           fullWidth />
 
-                <ArcExpandingSelector
-                    options={orderOptions}
-                    onSelect={value => setSelectedOrder(parseInt(value, 10))}
-                    placeholder="Select new order position"
-                />
+                <ArcExpandingSelector options={orderOptions}
+                                      onSelect={value => setSelectedOrder(parseInt(value, 10))}
+                                      placeholder="Select new order position" />
             </Stack>
         </ArcOverlay>
     )

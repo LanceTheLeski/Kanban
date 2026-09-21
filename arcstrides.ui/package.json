@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "format": "python3 tools/reflow.py",
+    "format:check": "python3 tools/reflow.py --check",
     "preview": "vite preview",
     "generate:api": "openapi-typescript https://localhost:7167/openapi/v1.json -o src/Lib/Api.Schema.ts --root-types"
   },

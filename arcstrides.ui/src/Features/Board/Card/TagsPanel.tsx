@@ -84,54 +84,42 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange }) => {
     const remove = (id: string) => onChange(tags.filter(tag => tag.id !== id))
 
     return (
-        <Paper
-            className="glass-inner-engraved"
-            sx={{
-                // Shrinks before the title does, and never grows past its share.
-                flex: `0 1 ${TAGS_BOX_WIDTH}`,
-                minWidth: 0,
-                alignSelf: 'stretch',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 0.25,
-                p: 0.5,
-                position: 'relative',
-            }}
-        >
+        <Paper className="glass-inner-engraved"
+               sx={{ // Shrinks before the title does, and never grows past its share.
+                     flex: `0 1 ${TAGS_BOX_WIDTH}`,
+                     minWidth: 0,
+                     alignSelf: 'stretch',
+                     display: 'flex',
+                     flexDirection: 'column',
+                     gap: 0.25,
+                     p: 0.5,
+                     position: 'relative' }}>
             {/*
                 The "not saved" warning as a dot in the corner. A line of text
                 would cost a third of the box, and the note is context rather
                 than content.
             */}
             <Tooltip title="The API can create and delete tags but cannot yet list the tags on a card, so these are not saved. See the note in TagsPanel.tsx.">
-                <Box
-                    aria-label="Tags are not saved yet"
-                    sx={{
-                        position: 'absolute',
-                        top: 3,
-                        right: 4,
-                        width: 6,
-                        height: 6,
-                        borderRadius: '50%',
-                        backgroundColor: 'arc.logAlert',
-                        cursor: 'help',
-                    }}
-                />
+                <Box aria-label="Tags are not saved yet"
+                     sx={{ position: 'absolute',
+                           top: 3,
+                           right: 4,
+                           width: 6,
+                           height: 6,
+                           borderRadius: '50%',
+                           backgroundColor: 'arc.logAlert',
+                           cursor: 'help' }} />
             </Tooltip>
 
             {/* The pills. Scrolls rather than growing — see the header. */}
-            <Box
-                sx={{
-                    flex: 1,
-                    minHeight: 0,
-                    overflowY: 'auto',
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    alignContent: 'flex-start',
-                    gap: 0.35,
-                    pr: 1,
-                }}
-            >
+            <Box sx={{ flex: 1,
+                       minHeight: 0,
+                       overflowY: 'auto',
+                       display: 'flex',
+                       flexWrap: 'wrap',
+                       alignContent: 'flex-start',
+                       gap: 0.35,
+                       pr: 1 }}>
                 {tags.length === 0 && (
                     <Typography sx={{ fontSize: '0.6rem', color: 'arc.onGlassMuted', lineHeight: 1.6 }}>
                         Tags…
@@ -139,41 +127,33 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange }) => {
                 )}
 
                 {tags.map(tag => (
-                    <Box
-                        key={tag.id}
-                        sx={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 0.1,
-                            pl: 0.6,
-                            pr: 0.1,
-                            // Fully round: a pill, not a chip with corners.
-                            borderRadius: 999,
-                            backgroundColor: 'arc.glassSelected',
-                            border: '1px solid',
-                            borderColor: 'arc.glassDivider',
-                            maxWidth: '100%',
-                        }}
-                    >
-                        <Typography
-                            sx={{
-                                fontSize: '0.6rem',
-                                lineHeight: 1.5,
-                                color: 'arc.onGlassStrong',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                            }}
-                        >
+                    <Box key={tag.id}
+                         sx={{ display: 'inline-flex',
+                               alignItems: 'center',
+                               gap: 0.1,
+                               pl: 0.6,
+                               pr: 0.1,
+                               // Fully round: a pill, not a chip with corners.
+                               borderRadius: 999,
+                               backgroundColor: 'arc.glassSelected',
+                               border: '1px solid',
+                               borderColor: 'arc.glassDivider',
+                               maxWidth: '100%' }}>
+                        <Typography sx={{ fontSize: '0.6rem',
+                                          lineHeight: 1.5,
+                                          color: 'arc.onGlassStrong',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          whiteSpace: 'nowrap' }}>
                             {tag.title}
                         </Typography>
 
-                        <IconButton
-                            size="small"
-                            onClick={() => remove(tag.id)}
-                            aria-label={`Remove tag ${tag.title}`}
-                            sx={{ p: 0.1, color: 'arc.onGlassMuted', '&:hover': { color: 'arc.dangerOnGlass' } }}
-                        >
+                        <IconButton size="small"
+                                    onClick={() => remove(tag.id)}
+                                    aria-label={`Remove tag ${tag.title}`}
+                                    sx={{ p: 0.1,
+                                          color: 'arc.onGlassMuted',
+                                          '&:hover': { color: 'arc.dangerOnGlass' } }}>
                             <CloseIcon sx={{ fontSize: '0.6rem' }} />
                         </IconButton>
                     </Box>
@@ -181,36 +161,29 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange }) => {
             </Box>
 
             {/* Pinned below the scroller so it never scrolls out of reach. */}
-            <Box
-                sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    flexShrink: 0,
-                    pl: 0.5,
-                    borderTop: '1px solid',
-                    borderTopColor: 'arc.glassDivider',
-                }}
-            >
-                <InputBase
-                    value={draft}
-                    onChange={event => setDraft(event.target.value)}
-                    onKeyDown={event => {
-                        if (event.key !== 'Enter') return
-                        event.preventDefault()
-                        add()
-                    }}
-                    placeholder="Add"
-                    sx={{
-                        flex: 1,
-                        minWidth: 0,
-                        fontSize: '0.6rem',
-                        color: 'arc.onGlass',
-                        '& input': { p: 0 },
-                        '& input::placeholder': { color: 'arc.onGlassMuted', opacity: 1 },
-                    }}
-                />
+            <Box sx={{ display: 'flex',
+                       alignItems: 'center',
+                       flexShrink: 0,
+                       pl: 0.5,
+                       borderTop: '1px solid',
+                       borderTopColor: 'arc.glassDivider' }}>
+                <InputBase value={draft}
+                           onChange={event => setDraft(event.target.value)}
+                           onKeyDown={event => {
+                               if (event.key !== 'Enter') return
+                               event.preventDefault()
+                               add()
+                           }}
+                           placeholder="Add"
+                           sx={{ flex: 1,
+                                 minWidth: 0,
+                                 fontSize: '0.6rem',
+                                 color: 'arc.onGlass',
+                                 '& input': { p: 0 },
+                                 '& input::placeholder': { color: 'arc.onGlassMuted', opacity: 1 } }} />
                 <IconButton size="small" onClick={add} disabled={!draft.trim()} aria-label="Add tag" sx={{ p: 0.15 }}>
-                    <AddIcon sx={{ fontSize: '0.7rem', color: draft.trim() ? 'arc.accentOnGlass' : 'arc.onGlassMuted' }} />
+                    <AddIcon sx={{ fontSize: '0.7rem',
+                                   color: draft.trim() ? 'arc.accentOnGlass' : 'arc.onGlassMuted' }} />
                 </IconButton>
             </Box>
         </Paper>

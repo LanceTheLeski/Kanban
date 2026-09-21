@@ -73,15 +73,13 @@ export const CreateTaskTypeOverlay: React.FC<CreateTaskTypeOverlayProps> = ({
             <Stack spacing={2}>
                 <Typography variant="h6">Create New Task Type</Typography>
 
-                <TextField
-                    label="Title"
-                    variant="filled"
-                    helperText="Task Type Name"
-                    value={title}
-                    onChange={event => setTitle(event.target.value)}
-                    fullWidth
-                    autoFocus
-                />
+                <TextField label="Title"
+                           variant="filled"
+                           helperText="Task Type Name"
+                           value={title}
+                           onChange={event => setTitle(event.target.value)}
+                           fullWidth
+                           autoFocus />
             </Stack>
         </ArcOverlay>
     )

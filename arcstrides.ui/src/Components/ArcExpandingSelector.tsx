@@ -31,6 +31,7 @@ import {
     Typography,
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { MONO } from '../Styles/Fonts'
 import {
     SELECTOR_LIST_MAX_HEIGHT,
     SELECTOR_SUMMARY_MIN_HEIGHT,
@@ -84,46 +85,34 @@ export const ArcExpandingSelector: React.FC<ArcExpandingSelectorProps> = ({
           MaxHeight="1000" on the Blazor panel → no explicit max needed; MUI
           Accordion handles overflow gracefully.
         */
-        <Accordion
-            expanded={expanded}
-            onChange={(_, isExpanded) => setExpanded(isExpanded)}
-            /*
-               Engraved, not glass. This selector always renders inside an overlay
-               or a popover, which are themselves .glass — and .glass on .glass
-               composites two translucent blue gradients and runs backdrop-filter
-               twice, which is what made it read as a solid blue slab instead of a
-               pane. See the material note in ArcStyles.css.
-            */
-            className="glass-inner-engraved"
-            disableGutters
-            elevation={0}
-            sx={{
-                '&:before': { display: 'none' }, // removes MUI's default top border line
-                // !important because MUI's Accordion sets its own radius on the
-                // first and last child rules, which are more specific than sx.
-                borderRadius: '6px !important',
-                overflow: 'hidden',
-                // MuiPaper paints background.paper — the theme's solid blue —
-                // underneath the engraved gradient. Nothing above can be seen
-                // through an opaque layer, so it has to go.
-                backgroundColor: 'transparent',
-            }}
-        >
-            <AccordionSummary
-                expandIcon={<ExpandMoreIcon sx={{ color: 'arc.onGlassIcon' }} />}
-                sx={{
-                    minHeight: SELECTOR_SUMMARY_MIN_HEIGHT,
-                    '& .MuiAccordionSummary-content': { margin: '8px 0' },
-                }}
-            >
-                <Typography
-                    variant="body2"
-                    sx={{
-                        fontFamily: '"DM Mono", monospace',
-                        fontSize: '0.8rem',
-                        color: selected ? 'arc.onGlassStrong' : 'arc.onGlassMuted',
-                    }}
-                >
+        <Accordion expanded={expanded}
+                   onChange={(_, isExpanded) => setExpanded(isExpanded)}
+                   /*
+                      Engraved, not glass. This selector always renders inside an overlay
+                      or a popover, which are themselves .glass — and .glass on .glass
+                      composites two translucent blue gradients and runs backdrop-filter
+                      twice, which is what made it read as a solid blue slab instead of a
+                      pane. See the material note in ArcStyles.css.
+                   */
+                   className="glass-inner-engraved"
+                   disableGutters
+                   elevation={0}
+                   sx={{ '&:before': { display: 'none' }, // removes MUI's default top border line
+                         // !important because MUI's Accordion sets its own radius on the
+                         // first and last child rules, which are more specific than sx.
+                         borderRadius: '6px !important',
+                         overflow: 'hidden',
+                         // MuiPaper paints background.paper — the theme's solid blue —
+                         // underneath the engraved gradient. Nothing above can be seen
+                         // through an opaque layer, so it has to go.
+                         backgroundColor: 'transparent' }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'arc.onGlassIcon' }} />}
+                              sx={{ minHeight: SELECTOR_SUMMARY_MIN_HEIGHT,
+                                    '& .MuiAccordionSummary-content': { margin: '8px 0' } }}>
+                <Typography variant="body2"
+                            sx={{ fontFamily: MONO,
+                                  fontSize: '0.8rem',
+                                  color: selected ? 'arc.onGlassStrong' : 'arc.onGlassMuted' }}>
                     {summaryLabel}
                 </Typography>
             </AccordionSummary>
@@ -132,44 +121,34 @@ export const ArcExpandingSelector: React.FC<ArcExpandingSelectorProps> = ({
         MudPaper Style="width: 300px; height: 200px" → AccordionDetails with
         constrained height and overflow scroll, matching the Blazor layout.
       */}
-            <AccordionDetails
-                sx={{
-                    p: 0,
-                    maxHeight: SELECTOR_LIST_MAX_HEIGHT,
-                    overflowY: 'auto',
-                    // px width, themed colour: the rule is chrome, its colour is
-                    // part of the glass surface. `borderTop` is a shorthand and
-                    // sx does not resolve palette paths inside one, so the colour
-                    // is set on its own.
-                    borderTop: '1px solid',
-                    borderTopColor: 'arc.glassDivider',
-                }}
-            >
+            <AccordionDetails sx={{ p: 0,
+                                    maxHeight: SELECTOR_LIST_MAX_HEIGHT,
+                                    overflowY: 'auto',
+                                    // px width, themed colour: the rule is chrome, its colour is
+                                    // part of the glass surface. `borderTop` is a shorthand and
+                                    // sx does not resolve palette paths inside one, so the colour
+                                    // is set on its own.
+                                    borderTop: '1px solid',
+                                    borderTopColor: 'arc.glassDivider' }}>
                 <List dense disablePadding>
                     {options.map((option) => (
-                        <ListItemButton
-                            key={option}
-                            onClick={() => handleSelect(option)}
-                            selected={option === selected}
-                            sx={{
-                                py: 0.75,
-                                px: 2,
-                                '&.Mui-selected': {
-                                    backgroundColor: 'arc.glassSelected',
-                                },
-                                '&:hover': {
-                                    backgroundColor: 'arc.glassHover',
-                                },
-                            }}
-                        >
-                            <ListItemText
-                                primary={option}
-                                primaryTypographyProps={{
-                                    fontFamily: '"DM Mono", monospace',
-                                    fontSize: '0.8rem',
-                                    color: 'arc.onGlass',
-                                }}
-                            />
+                        <ListItemButton key={option}
+                                        onClick={() => handleSelect(option)}
+                                        selected={option === selected}
+                                        sx={{ py: 0.75,
+                                              px: 2,
+                                              '&.Mui-selected': {
+                                                  backgroundColor: 'arc.glassSelected',
+                                              },
+                                              '&:hover': {
+                                                  backgroundColor: 'arc.glassHover',
+                                              } }}>
+                            <ListItemText primary={option}
+                                          primaryTypographyProps={{
+                                              fontFamily: MONO,
+                                              fontSize: '0.8rem',
+                                              color: 'arc.onGlass',
+                                          }} />
                         </ListItemButton>
                     ))}
                 </List>

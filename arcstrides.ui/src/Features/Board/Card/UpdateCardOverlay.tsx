@@ -219,19 +219,17 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
     }
 
     return (
-        <ArcOverlay
-            open={open}
-            onClose={onClose}
-            onSubmit={handleSubmit}
-            width={OVERLAY_MAX_WIDTH}
-            // Delete used to be a button inside the overlay's content, above the
-            // action group — the one destructive action on the board, in a place
-            // no other overlay put anything. It is now in the bar, at the far
-            // left, and confirms before it runs.
-            onDelete={handleDeleteCard}
-            deleteLabel="Delete Card"
-            deleteConfirm={`Delete "${card.title}" and its tasks?`}
-        >
+        <ArcOverlay open={open}
+                    onClose={onClose}
+                    onSubmit={handleSubmit}
+                    width={OVERLAY_MAX_WIDTH}
+                    // Delete used to be a button inside the overlay's content, above the
+                    // action group — the one destructive action on the board, in a place
+                    // no other overlay put anything. It is now in the bar, at the far
+                    // left, and confirms before it runs.
+                    onDelete={handleDeleteCard}
+                    deleteLabel="Delete Card"
+                    deleteConfirm={`Delete "${card.title}" and its tasks?`}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
 
                 {/*
@@ -246,41 +244,46 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                     produce a different shape of dialog from a full one.
                 */}
                 <Box sx={{ minHeight: CARD_DETAIL_ROW_MIN_HEIGHT, display: 'flex', flexDirection: 'column' }}>
-                    <ArcSplitPane
-                        ratio={split}
-                        onRatioChange={setSplit}
-                        minLeftRem={CARD_LEFT_PANE_MIN_REM}
-                        minRightRem={CARD_RIGHT_PANE_MIN_REM}
-                        // A card that is only a checklist should be able to drop
-                        // the description entirely rather than keep a sliver of it.
-                        collapsibleRight
-                        resetRatio={CARD_SPLIT_DEFAULT}
-                        stackBelow={STACK_BELOW}
-                        label="Resize card detail and description"
-                        left={
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0, minHeight: 0, flex: 1, pr: 1 }}>
-                                <TitleAndTags
-                                    title={title}
-                                    onTitleChange={setTitle}
-                                    tags={tags}
-                                    onTagsChange={setTags}
-                                />
-                                <TaskList
-                                    tasks={tasks}
-                                    boardId={boardId}
-                                    cardId={card.id}
-                                    onTaskUpdated={handleTaskUpdated}
-                                    onTaskCreated={handleTaskCreated}
-                                    onTaskDeleted={handleDeleteTask}
-                                />
-                            </Box>
-                        }
-                        right={
-                            <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, flex: 1, pl: 1 }}>
-                                <DescriptionField value={description} onChange={setDescription} />
-                            </Box>
-                        }
-                    />
+                    <ArcSplitPane ratio={split}
+                                  onRatioChange={setSplit}
+                                  minLeftRem={CARD_LEFT_PANE_MIN_REM}
+                                  minRightRem={CARD_RIGHT_PANE_MIN_REM}
+                                  // A card that is only a checklist should be able to drop
+                                  // the description entirely rather than keep a sliver of it.
+                                  collapsibleRight
+                                  resetRatio={CARD_SPLIT_DEFAULT}
+                                  stackBelow={STACK_BELOW}
+                                  label="Resize card detail and description"
+                                  left={
+                                      <Box sx={{ display: 'flex',
+                                                 flexDirection: 'column',
+                                                 gap: 1,
+                                                 minWidth: 0,
+                                                 minHeight: 0,
+                                                 flex: 1,
+                                                 pr: 1 }}>
+                                          <TitleAndTags title={title}
+                                                        onTitleChange={setTitle}
+                                                        tags={tags}
+                                                        onTagsChange={setTags} />
+                                          <TaskList tasks={tasks}
+                                                    boardId={boardId}
+                                                    cardId={card.id}
+                                                    onTaskUpdated={handleTaskUpdated}
+                                                    onTaskCreated={handleTaskCreated}
+                                                    onTaskDeleted={handleDeleteTask} />
+                                      </Box>
+                                  }
+                                  right={
+                                      <Box sx={{ display: 'flex',
+                                                 flexDirection: 'column',
+                                                 minWidth: 0,
+                                                 minHeight: 0,
+                                                 flex: 1,
+                                                 pl: 1 }}>
+                                          <DescriptionField value={description} onChange={setDescription} />
+                                      </Box>
+                                  } />
                 </Box>
 
                 {/*
@@ -289,19 +292,15 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                     a wrapping flex row where each panel sized itself, which left a
                     ragged edge and a hole under the timeline's mode buttons.
                 */}
-                <Box
-                    sx={{
-                        display: 'grid',
-                        gridTemplateColumns: { xs: '1fr', [STACK_BELOW]: 'minmax(0, 1fr) minmax(0, 1fr)' },
-                        gap: 2,
-                        alignItems: 'stretch',
-                        // Definite once the panels are side by side, so the log
-                        // scrolls rather than growing the dialog. Stacked, they
-                        // each get the full width and can take what they need.
-                        minHeight: CARD_PANEL_ROW_MIN_HEIGHT,
-                        height: { [STACK_BELOW]: CARD_PANEL_ROW_HEIGHT },
-                    }}
-                >
+                <Box sx={{ display: 'grid',
+                           gridTemplateColumns: { xs: '1fr', [STACK_BELOW]: 'minmax(0, 1fr) minmax(0, 1fr)' },
+                           gap: 2,
+                           alignItems: 'stretch',
+                           // Definite once the panels are side by side, so the log
+                           // scrolls rather than growing the dialog. Stacked, they
+                           // each get the full width and can take what they need.
+                           minHeight: CARD_PANEL_ROW_MIN_HEIGHT,
+                           height: { [STACK_BELOW]: CARD_PANEL_ROW_HEIGHT } }}>
                     <UpdateTimelinePanel timeline={card.timeline} />
                     <CommandPanel card={card} />
                 </Box>
@@ -331,64 +330,56 @@ function TitleAndTags({ title, onTitleChange, tags, onTagsChange }: {
     onTagsChange: (tags: CardTag[]) => void
 }) {
     return (
-        <Box
-            sx={{
-                display: 'flex',
-                gap: 1,
-                flexShrink: 0,
-                minHeight: TITLE_ROW_MIN_HEIGHT,
-                // The title grows with its content now, so the tags box tracks
-                // its height rather than the two disagreeing.
-                alignItems: 'stretch',
-            }}
-        >
-            <TextField
-                value={title}
-                onChange={e => onTitleChange(e.target.value)}
-                variant="outlined"
-                /*
-                   No helperText. "Card Title" under a box holding the card's
-                   title told the reader nothing they could not see, and MUI
-                   reserves the line whether or not there is anything in it — so
-                   it cost a row of height on both of the overlay's text boxes.
-                   The placeholder says the same thing, in the space the value
-                   will occupy, and only while the field is empty.
-                */
-                placeholder="Card title"
-                size="small"
-                /*
-                   Multiline, up to three lines.
+        <Box sx={{ display: 'flex',
+                   gap: 1,
+                   flexShrink: 0,
+                   minHeight: TITLE_ROW_MIN_HEIGHT,
+                   // The title grows with its content now, so the tags box tracks
+                   // its height rather than the two disagreeing.
+                   alignItems: 'stretch' }}>
+            <TextField value={title}
+                       onChange={e => onTitleChange(e.target.value)}
+                       variant="outlined"
+                       /*
+                          No helperText. "Card Title" under a box holding the card's
+                          title told the reader nothing they could not see, and MUI
+                          reserves the line whether or not there is anything in it — so
+                          it cost a row of height on both of the overlay's text boxes.
+                          The placeholder says the same thing, in the space the value
+                          will occupy, and only while the field is empty.
+                       */
+                       placeholder="Card title"
+                       size="small"
+                       /*
+                          Multiline, up to three lines.
 
-                   A single-line input shows a long title as whatever fits and
-                   scrolls the rest out of sight — so the field could hold a title
-                   the reader could not read back without dragging through it. A
-                   card title is a sentence often enough that this was the common
-                   case, not the edge one.
+                          A single-line input shows a long title as whatever fits and
+                          scrolls the rest out of sight — so the field could hold a title
+                          the reader could not read back without dragging through it. A
+                          card title is a sentence often enough that this was the common
+                          case, not the edge one.
 
-                   Three lines rather than unbounded: past that the title is
-                   taking room from the task list underneath, and what is wanted
-                   is a description.
-                */
-                multiline
-                maxRows={3}
-                sx={{
-                    // minWidth: 0 stops the input's intrinsic width propping the row open.
-                    flex: 1,
-                    minWidth: 0,
-                    backgroundColor: 'arc.field',
-                    borderRadius: 1,
-                    /*
-                       The input fills the field rather than sitting at the top of
-                       it. MUI sizes a FormControl to input + helper text, so with
-                       the helper text gone the box kept the row's height and left
-                       the freed space empty underneath — the opposite of the point,
-                       which was to give the title that room. Text starts at the top
-                       so a one-line title does not float in the middle of a box
-                       sized for three.
-                    */
-                    '& .MuiInputBase-root': { height: '100%', alignItems: 'flex-start' },
-                }}
-            />
+                          Three lines rather than unbounded: past that the title is
+                          taking room from the task list underneath, and what is wanted
+                          is a description.
+                       */
+                       multiline
+                       maxRows={3}
+                       sx={{ // minWidth: 0 stops the input's intrinsic width propping the row open.
+                             flex: 1,
+                             minWidth: 0,
+                             backgroundColor: 'arc.field',
+                             borderRadius: 1,
+                             /*
+                                The input fills the field rather than sitting at the top of
+                                it. MUI sizes a FormControl to input + helper text, so with
+                                the helper text gone the box kept the row's height and left
+                                the freed space empty underneath — the opposite of the point,
+                                which was to give the title that room. Text starts at the top
+                                so a one-line title does not float in the middle of a box
+                                sized for three.
+                             */
+                             '& .MuiInputBase-root': { height: '100%', alignItems: 'flex-start' } }} />
 
             <TagsPanel tags={tags} onChange={onTagsChange} />
         </Box>
@@ -409,21 +400,17 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
     onTaskDeleted: (taskId: string) => void
 }) {
     return (
-        <Paper
-            className="glass-inner-engraved"
-            /*
-               Takes the height the column has left rather than claiming a fixed
-               200px. That fixed height was what made the left column end short of
-               the description beside it. minHeight keeps it a usable target when
-               the row is at its floor; it scrolls past that.
-            */
-            sx={{
-                width: '100%',
-                flex: 1,
-                minHeight: TASK_LIST_MIN_HEIGHT,
-                overflow: 'auto',
-            }}
-        >
+        <Paper className="glass-inner-engraved"
+               /*
+                  Takes the height the column has left rather than claiming a fixed
+                  200px. That fixed height was what made the left column end short of
+                  the description beside it. minHeight keeps it a usable target when
+                  the row is at its floor; it scrolls past that.
+               */
+               sx={{ width: '100%',
+                     flex: 1,
+                     minHeight: TASK_LIST_MIN_HEIGHT,
+                     overflow: 'auto' }}>
             <List dense disablePadding>
                 {tasks.length === 0 && (
                     <ListItem disablePadding sx={{ px: 1, py: 1.5 }}>
@@ -446,25 +433,23 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
                                 have. Changing the key remounts them, which is
                                 what re-runs those initialisers.
                             */}
-                            <UpdateTaskPopover
-                                key={`${task.id}:${task.order}:${task.isCompleted}:${task.title}`}
-                                task={task}
-                                onUpdated={onTaskUpdated}
-                                boardId={boardId}
-                                cardId={cardId}
-                                tasksCount={tasks.length}
-                                triggerSize="small"
-                                triggerSx={{
-                                    width: '100%',
-                                    justifyContent: 'flex-start',
-                                    backgroundColor: 'transparent',
-                                    color: 'arc.onGlass',
-                                    // The strike for a completed task is applied by
-                                    // the popover, which is the only thing that
-                                    // knows whether the box has been ticked but not
-                                    // yet saved.
-                                }}
-                            />
+                            <UpdateTaskPopover key={`${task.id}:${task.order}:${task.isCompleted}:${task.title}`}
+                                               task={task}
+                                               onUpdated={onTaskUpdated}
+                                               boardId={boardId}
+                                               cardId={cardId}
+                                               tasksCount={tasks.length}
+                                               triggerSize="small"
+                                               triggerSx={{
+                                                   width: '100%',
+                                                   justifyContent: 'flex-start',
+                                                   backgroundColor: 'transparent',
+                                                   color: 'arc.onGlass',
+                                                   // The strike for a completed task is applied by
+                                                   // the popover, which is the only thing that
+                                                   // knows whether the box has been ticked but not
+                                                   // yet saved.
+                                               }} />
                         </Box>
 
                         {/* Mirrors Blazor's trash icon @onclick */}
@@ -474,16 +459,12 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
                             pulling more attention than the task titles they
                             belong to, for an action nobody comes here to take.
                         */}
-                        <IconButton
-                            size="small"
-                            onClick={() => task.id && onTaskDeleted(task.id)}
-                            aria-label={`Delete task ${task.title}`}
-                            sx={{
-                                flexShrink: 0,
-                                color: 'arc.onGlassMuted',
-                                '&:hover': { color: 'arc.dangerOnGlass', backgroundColor: 'arc.glassHover' },
-                            }}
-                        >
+                        <IconButton size="small"
+                                    onClick={() => task.id && onTaskDeleted(task.id)}
+                                    aria-label={`Delete task ${task.title}`}
+                                    sx={{ flexShrink: 0,
+                                          color: 'arc.onGlassMuted',
+                                          '&:hover': { color: 'arc.dangerOnGlass', backgroundColor: 'arc.glassHover' } }}>
                             <DeleteIcon sx={{ fontSize: '0.95rem' }} />
                         </IconButton>
                     </ListItem>
@@ -495,12 +476,10 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
                     not line up with the others.
                 */}
                 <ListItem disablePadding>
-                    <CreateTaskOverlay
-                        boardId={boardId}
-                        cardId={cardId}
-                        tasksCount={tasks.length}
-                        onCreated={onTaskCreated}
-                    />
+                    <CreateTaskOverlay boardId={boardId}
+                                       cardId={cardId}
+                                       tasksCount={tasks.length}
+                                       onCreated={onTaskCreated} />
                 </ListItem>
             </List>
         </Paper>
@@ -530,36 +509,32 @@ function DescriptionField({ value, onChange }: {
     onChange: (description: string) => void
 }) {
     return (
-        <TextField
-            value={value}
-            onChange={e => onChange(e.target.value)}
-            multiline
-            variant="outlined"
-            placeholder="Card description"
-            fullWidth
-            sx={{
-                backgroundColor: 'arc.fieldMuted',
-                borderRadius: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                flex: 1,
-                minHeight: 0,
-                '& .MuiInputBase-root': {
-                    flex: 1,
-                    minHeight: 0,
-                    alignItems: 'flex-start',
-                },
-                '& textarea:not([aria-hidden])': {
-                    height: '100% !important',
-                    overflow: 'auto !important',
-                    // Smaller than the field default: this is a body of text, not
-                    // a single value, and at the input's default size a full
-                    // description filled the pane in a handful of lines.
-                    fontSize: '0.82rem',
-                    lineHeight: 1.5,
-                },
-            }}
-        />
+        <TextField value={value}
+                   onChange={e => onChange(e.target.value)}
+                   multiline
+                   variant="outlined"
+                   placeholder="Card description"
+                   fullWidth
+                   sx={{ backgroundColor: 'arc.fieldMuted',
+                         borderRadius: 1,
+                         display: 'flex',
+                         flexDirection: 'column',
+                         flex: 1,
+                         minHeight: 0,
+                         '& .MuiInputBase-root': {
+                             flex: 1,
+                             minHeight: 0,
+                             alignItems: 'flex-start',
+                         },
+                         '& textarea:not([aria-hidden])': {
+                             height: '100% !important',
+                             overflow: 'auto !important',
+                             // Smaller than the field default: this is a body of text, not
+                             // a single value, and at the input's default size a full
+                             // description filled the pane in a handful of lines.
+                             fontSize: '0.82rem',
+                             lineHeight: 1.5,
+                         } }} />
     )
 }
 

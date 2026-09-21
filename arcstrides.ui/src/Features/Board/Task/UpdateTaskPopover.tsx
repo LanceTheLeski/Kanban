@@ -203,42 +203,38 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
 
     return (
         <>
-            <ArcPopover
-                triggerLabel={task.title}
-                onSubmit={handleSubmit}
-                triggerSize={triggerSize}
-                onClose={revertDraft}
-                triggerSx={{
-                    backgroundColor: 'arc.taskPanel',
-                    ...(triggerSx as object),
-                    /*
-                       Struck through from the *draft*, so ticking Completed
-                       shows on the card immediately rather than only after a
-                       save. Closing without saving runs revertDraft above, which
-                       puts the line back.
+            <ArcPopover triggerLabel={task.title}
+                        onSubmit={handleSubmit}
+                        triggerSize={triggerSize}
+                        onClose={revertDraft}
+                        triggerSx={{
+                            backgroundColor: 'arc.taskPanel',
+                            ...(triggerSx as object),
+                            /*
+                               Struck through from the *draft*, so ticking Completed
+                               shows on the card immediately rather than only after a
+                               save. Closing without saving runs revertDraft above, which
+                               puts the line back.
 
-                       It lives here rather than in the list because this is where
-                       the unsaved value is; the list only knows what is stored.
-                    */
-                    ...(isCompleted
-                        ? {
-                            color: 'arc.onGlassMuted',
-                            '&&': { textDecoration: 'line-through' },
-                        }
-                        : {}),
-                }}
-                anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
-                transformOrigin={{ vertical: 'center', horizontal: 'left' }}
-            >
+                               It lives here rather than in the list because this is where
+                               the unsaved value is; the list only knows what is stored.
+                            */
+                            ...(isCompleted
+                                ? {
+                                    color: 'arc.onGlassMuted',
+                                    '&&': { textDecoration: 'line-through' },
+                                }
+                                : {}),
+                        }}
+                        anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
+                        transformOrigin={{ vertical: 'center', horizontal: 'left' }}>
                 <Box sx={{ width: TASK_POPOVER_WIDTH, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <TextField
-                        label="Title"
-                        variant="filled"
-                        helperText="Task Title"
-                        value={title}
-                        onChange={e => setTitle(e.target.value)}
-                        fullWidth
-                    />
+                    <TextField label="Title"
+                               variant="filled"
+                               helperText="Task Title"
+                               value={title}
+                               onChange={e => setTitle(e.target.value)}
+                               fullWidth />
 
                     {/*
                         A floor on the row, and explicit bases for its two halves.
@@ -249,30 +245,29 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                         and the selectors fought over the width, which is what
                         squashed the dropdowns.
                     */}
-                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'stretch', minHeight: TASK_PANEL_ROW_MIN_HEIGHT }}>
-                        <Box sx={{ flex: '1 1 13rem', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        checked={isCompleted}
-                                        onChange={e => setIsCompleted(e.target.checked)}
-                                        size="small"
-                                    />
-                                }
-                                label={<Typography variant="body2">Completed</Typography>}
-                            />
+                    <Box sx={{ display: 'flex',
+                               gap: 2,
+                               alignItems: 'stretch',
+                               minHeight: TASK_PANEL_ROW_MIN_HEIGHT }}>
+                        <Box sx={{ flex: '1 1 13rem',
+                                   minWidth: 0,
+                                   display: 'flex',
+                                   flexDirection: 'column',
+                                   gap: 1 }}>
+                            <FormControlLabel control={
+                                                  <Checkbox checked={isCompleted}
+                                                            onChange={e => setIsCompleted(e.target.checked)}
+                                                            size="small" />
+                                              }
+                                              label={<Typography variant="body2">Completed</Typography>} />
 
-                            <ArcExpandingSelector
-                                options={orderOptions}
-                                onSelect={v => setOrder(parseInt(v, 10) - 1)}
-                                placeholder={`Order: ${order + 1}`}
-                            />
+                            <ArcExpandingSelector options={orderOptions}
+                                                  onSelect={v => setOrder(parseInt(v, 10) - 1)}
+                                                  placeholder={`Order: ${order + 1}`} />
 
-                            <ArcExpandingSelector
-                                options={taskTypes.map(t => t.title ?? '')}
-                                onSelect={handleSetTaskType}
-                                placeholder={task.taskType?.title ?? 'Select task type'}
-                            />
+                            <ArcExpandingSelector options={taskTypes.map(t => t.title ?? '')}
+                                                  onSelect={handleSetTaskType}
+                                                  placeholder={task.taskType?.title ?? 'Select task type'} />
 
                             {/*
                                 A text link, not an outlined button. Creating a
@@ -281,38 +276,30 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                                 attention while being the least likely thing
                                 anyone opened this popover to do.
                             */}
-                            <Button
-                                size="small"
-                                variant="text"
-                                onClick={() => setCreateTaskTypeOpen(true)}
-                                sx={{
-                                    alignSelf: 'flex-start',
-                                    px: 0.5,
-                                    fontSize: '0.65rem',
-                                    textTransform: 'none',
-                                    color: 'arc.onGlassMuted',
-                                    '&:hover': { color: 'arc.onGlass', backgroundColor: 'arc.glassHover' },
-                                }}
-                            >
+                            <Button size="small"
+                                    variant="text"
+                                    onClick={() => setCreateTaskTypeOpen(true)}
+                                    sx={{ alignSelf: 'flex-start',
+                                          px: 0.5,
+                                          fontSize: '0.65rem',
+                                          textTransform: 'none',
+                                          color: 'arc.onGlassMuted',
+                                          '&:hover': { color: 'arc.onGlass', backgroundColor: 'arc.glassHover' } }}>
                                 + New task type
                             </Button>
                         </Box>
 
                         <Box sx={{ flex: '1 1 18rem', minWidth: 0, display: 'flex' }}>
-                            <UpdateTimelinePanel
-                                timeline={task.timeline}
-                                onDraftChange={setTimelineDraft}
-                            />
+                            <UpdateTimelinePanel timeline={task.timeline}
+                                                 onDraftChange={setTimelineDraft} />
                         </Box>
                     </Box>
                 </Box>
             </ArcPopover>
 
-            <CreateTaskTypeOverlay
-                open={createTaskTypeOpen}
-                onClose={() => setCreateTaskTypeOpen(false)}
-                onCreated={() => fetchTaskTypes([0]).then(setTaskTypes)}
-            />
+            <CreateTaskTypeOverlay open={createTaskTypeOpen}
+                                   onClose={() => setCreateTaskTypeOpen(false)}
+                                   onCreated={() => fetchTaskTypes([0]).then(setTaskTypes)} />
         </>
     )
 }

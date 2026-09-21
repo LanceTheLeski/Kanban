@@ -79,26 +79,20 @@ export const UpdateSwimlaneOverlay: React.FC<UpdateSwimlaneOverlayProps> = ({ op
             <Stack spacing={2}>
                 <Typography variant="h6">Edit Swimlane</Typography>
 
-                <ArcExpandingSelector
-                    options={swimlanes.map(swimlane => swimlane.title)}
-                    onSelect={handleSelectSwimlane}
-                    placeholder="Select swimlane to edit"
-                />
+                <ArcExpandingSelector options={swimlanes.map(swimlane => swimlane.title)}
+                                      onSelect={handleSelectSwimlane}
+                                      placeholder="Select swimlane to edit" />
 
-                <TextField
-                    label="New Title"
-                    variant="filled"
-                    helperText="Swimlane Title"
-                    value={replacementTitle}
-                    onChange={e => setReplacementTitle(e.target.value)}
-                    fullWidth
-                />
+                <TextField label="New Title"
+                           variant="filled"
+                           helperText="Swimlane Title"
+                           value={replacementTitle}
+                           onChange={e => setReplacementTitle(e.target.value)}
+                           fullWidth />
 
-                <ArcExpandingSelector
-                    options={orderOptions}
-                    onSelect={value => setSelectedOrder(parseInt(value, 10))}
-                    placeholder="Select new order position"
-                />
+                <ArcExpandingSelector options={orderOptions}
+                                      onSelect={value => setSelectedOrder(parseInt(value, 10))}
+                                      placeholder="Select new order position" />
             </Stack>
         </ArcOverlay>
     )

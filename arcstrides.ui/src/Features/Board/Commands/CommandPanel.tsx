@@ -37,6 +37,7 @@
 import React, { useRef, useState } from 'react'
 import { Box, IconButton, InputBase, Paper, Tooltip, Typography } from '@mui/material'
 import SendIcon from '@mui/icons-material/Send'
+import { MONO } from '../../../Styles/Fonts'
 import { COMMAND_PANEL_MIN_WIDTH } from '../../../Styles/Measures'
 import { text, type CardCommandEntry, type CardCommandKind, type CardCommandSpan } from './CardCommand.Types'
 import type { Card } from '../../../Entities/Card/Card.Types'
@@ -104,7 +105,7 @@ export const CommandPanel: React.FC<CommandPanelProps> = ({ card }) => {
                        '&:focus-within': { borderColor: 'arc.accentOnGlass' } }}>
 
                 <Box component="span"
-                     sx={{ fontFamily: '"DM Mono", ui-monospace, monospace',
+                     sx={{ fontFamily: MONO,
                            fontWeight: 700,
                            color: 'arc.accentOnGlass',
                            fontSize: '0.8rem' }}>
@@ -122,7 +123,7 @@ export const CommandPanel: React.FC<CommandPanelProps> = ({ card }) => {
                            sx={{ flex: 1,
                                  fontSize: '0.75rem',
                                  color: 'arc.onGlass',
-                                 fontFamily: '"DM Mono", ui-monospace, monospace',
+                                 fontFamily: MONO,
                                  '& input::placeholder': { color: 'arc.onGlassMuted', opacity: 1 } }} />
 
                 <IconButton size="small" onClick={submit} disabled={!draft.trim()} aria-label="Run">
@@ -185,7 +186,7 @@ const EmptyTranscript: React.FC = () => (
     <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', px: 1 }}>
         <Typography sx={{ fontSize: '0.68rem', color: 'arc.onGlassMuted', textAlign: 'center' }}>
             Nothing run yet. Type <Box component="span"
-                                      sx={{ fontFamily: '"DM Mono", ui-monospace, monospace' }}>/help</Box> to
+                                      sx={{ fontFamily: MONO }}>/help</Box> to
             see what this console understands.
         </Typography>
     </Box>
@@ -209,7 +210,7 @@ const CommandEntry: React.FC<{ entry: CardCommandEntry }> = ({ entry }) => {
                    '&:hover': { backgroundColor: 'arc.glassHover' } }}>
 
             <Typography component="time"
-                        sx={{ fontFamily: '"DM Mono", ui-monospace, monospace',
+                        sx={{ fontFamily: MONO,
                               fontSize: '0.62rem',
                               color: 'arc.onGlassMuted',
                               whiteSpace: 'nowrap' }}>
@@ -219,7 +220,7 @@ const CommandEntry: React.FC<{ entry: CardCommandEntry }> = ({ entry }) => {
             <Tooltip title={kind.label} placement="left" describeChild>
                 <Box component="span"
                      aria-label={kind.label}
-                     sx={{ fontFamily: '"DM Mono", ui-monospace, monospace',
+                     sx={{ fontFamily: MONO,
                            fontSize: '0.7rem',
                            fontWeight: 700,
                            color: kind.colour,
@@ -233,7 +234,7 @@ const CommandEntry: React.FC<{ entry: CardCommandEntry }> = ({ entry }) => {
                               lineHeight: 1.4,
                               color: entry.kind === 'command' ? 'arc.logCommand' : 'arc.onGlass',
                               fontFamily: entry.kind === 'command'
-                                  ? '"DM Mono", ui-monospace, monospace'
+                                  ? MONO
                                   : undefined }}>
                 {entry.content.map((span, index) => <Span key={index} span={span} />)}
             </Typography>

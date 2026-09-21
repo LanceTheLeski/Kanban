@@ -11,6 +11,7 @@
 
 import React from 'react'
 import { Box, ButtonBase, Tooltip, Typography } from '@mui/material'
+import { MONO } from '../../../Styles/Fonts'
 import type { NodeSpec, NodeValue } from './Timeline.Nodes'
 
 // ── Geometry ──────────────────────────────────────────────────────────────────
@@ -87,7 +88,7 @@ export const TimelineNode: React.FC<TimelineNodeProps> = ({ spec, value, isOpen,
                 </Typography>
 
                 {/* What it is set to */}
-                <Typography sx={{ fontFamily: '"DM Mono", ui-monospace, monospace',
+                <Typography sx={{ fontFamily: MONO,
                                   fontSize: '0.58rem',
                                   lineHeight: 1.4,
                                   textAlign: 'center',

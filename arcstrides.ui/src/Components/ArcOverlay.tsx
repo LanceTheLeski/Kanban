@@ -70,37 +70,32 @@ export const ArcOverlay: React.FC<ArcOverlayProps> = ({
     submitDestructive,
 }) => {
     return (
-        <Modal
-            open={open}
-            onClose={onClose}
-            closeAfterTransition
-            slots={{ backdrop: Backdrop }}
-            slotProps={{ backdrop: { timeout: 300 } }}
-            sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1300 }}
-        >
+        <Modal open={open}
+               onClose={onClose}
+               closeAfterTransition
+               slots={{ backdrop: Backdrop }}
+               slotProps={{ backdrop: { timeout: 300 } }}
+               sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1300 }}>
             <Fade in={open}>
                 {/*
           MudPaper Class="glass" → Paper with className="glass"
           The glass class lives in ArcStyles.css and is applied globally.
         */}
-                <Paper
-                    className="glass"
-                    sx={{
-                        width,
-                        maxWidth: '95vw',
-                        maxHeight: '90vh',
-                        p: 3,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 2,
-                        // The Paper itself must not scroll: the content area below does,
-                        // so the Submit/Discard group stays pinned and visible. Without
-                        // this, tall content (the card overlay) squeezed the buttons to a
-                        // few pixels and pushed them past the bottom of the screen.
-                        overflow: 'hidden',
-                        outline: 'none', // removes default Modal focus ring on the Paper
-                    }}
-                >
+                <Paper className="glass"
+                       sx={{ width,
+                             maxWidth: '95vw',
+                             maxHeight: '90vh',
+                             p: 3,
+                             display: 'flex',
+                             flexDirection: 'column',
+                             gap: 2,
+                             // The Paper itself must not scroll: the content area below does,
+                             // so the Submit/Discard group stays pinned and visible. Without
+                             // this, tall content (the card overlay) squeezed the buttons to a
+                             // few pixels and pushed them past the bottom of the screen.
+                             overflow: 'hidden',
+                             // Removes the Modal's default focus ring on the Paper.
+                             outline: 'none' }}>
                     {/* ChildContent slot — minHeight:0 lets a flex child actually shrink */}
                     <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>{children}</Box>
 
@@ -109,16 +104,14 @@ export const ArcOverlay: React.FC<ArcOverlayProps> = ({
                         only rendered when onSubmit is given — the null check the
                         razor did.
                     */}
-                    <ArcActionBar
-                        onSave={onSubmit}
-                        onDiscard={onClose}
-                        saveLabel={submitLabel}
-                        saveDestructive={submitDestructive}
-                        onDelete={onDelete}
-                        deleteLabel={deleteLabel}
-                        deleteConfirm={deleteConfirm}
-                        actions={actions}
-                    />
+                    <ArcActionBar onSave={onSubmit}
+                                  onDiscard={onClose}
+                                  saveLabel={submitLabel}
+                                  saveDestructive={submitDestructive}
+                                  onDelete={onDelete}
+                                  deleteLabel={deleteLabel}
+                                  deleteConfirm={deleteConfirm}
+                                  actions={actions} />
                 </Paper>
             </Fade>
         </Modal>

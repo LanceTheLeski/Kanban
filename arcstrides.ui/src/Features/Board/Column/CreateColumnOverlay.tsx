@@ -58,24 +58,20 @@ export const CreateColumnOverlay: React.FC<CreateColumnOverlayProps> = ({ open, 
             <Stack spacing={2}>
                 <Typography variant="h6">Add a New Column</Typography>
 
-                <TextField
-                    label="Title"
-                    variant="filled"
-                    helperText="Column Title"
-                    value={title}
-                    onChange={e => setTitle(e.target.value)}
-                    fullWidth
-                />
+                <TextField label="Title"
+                           variant="filled"
+                           helperText="Column Title"
+                           value={title}
+                           onChange={e => setTitle(e.target.value)}
+                           fullWidth />
 
-                <TextField
-                    label="Order"
-                    variant="filled"
-                    helperText={`Column Order (leave blank to append at position ${columns.length})`}
-                    value={orderInput}
-                    onChange={e => setOrderInput(e.target.value)}
-                    inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-                    fullWidth
-                />
+                <TextField label="Order"
+                           variant="filled"
+                           helperText={`Column Order (leave blank to append at position ${columns.length})`}
+                           value={orderInput}
+                           onChange={e => setOrderInput(e.target.value)}
+                           inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                           fullWidth />
             </Stack>
         </ArcOverlay>
     )

@@ -56,23 +56,19 @@ export const DeleteSwimlaneOverlay: React.FC<DeleteSwimlaneOverlayProps> = ({ op
     }
 
     return (
-        <ArcOverlay
-            open={open}
-            onClose={onClose}
-            onSubmit={handleSubmit}
-            // This overlay exists to delete, so the primary action is the
-            // delete — but it must not read as "Save".
-            submitLabel="Delete Swimlane"
-            submitDestructive
-        >
+        <ArcOverlay open={open}
+                    onClose={onClose}
+                    onSubmit={handleSubmit}
+                    // This overlay exists to delete, so the primary action is the
+                    // delete — but it must not read as "Save".
+                    submitLabel="Delete Swimlane"
+                    submitDestructive>
             <Stack spacing={2}>
                 <Typography variant="h6">Delete Swimlane</Typography>
 
-                <ArcExpandingSelector
-                    options={swimlanes.map(swimlane => swimlane.title)}
-                    onSelect={handleSelect}
-                    placeholder="Select swimlane to delete"
-                />
+                <ArcExpandingSelector options={swimlanes.map(swimlane => swimlane.title)}
+                                      onSelect={handleSelect}
+                                      placeholder="Select swimlane to delete" />
             </Stack>
         </ArcOverlay>
     )

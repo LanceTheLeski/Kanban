@@ -33,6 +33,7 @@ import {
     type SxProps,
     type Theme,
 } from '@mui/material'
+import { MONO } from '../Styles/Fonts'
 import { ArcActionBar, type ArcAction } from './ArcActionBar'
 import { POPOVER_MIN_WIDTH } from '../Styles/Measures'
 
@@ -143,67 +144,57 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
     return (
         <>
             {/* Trigger button — mirrors the MudButton that opens the MudMenu in the razor */}
-            <Button
-                onClick={handleOpen}
-                size={triggerSize}
-                variant="text"
-                aria-expanded={isOpen}
-                sx={{
-                    fontFamily: '"DM Mono", monospace',
-                    fontWeight: 400,
-                    textTransform: 'none',
-                    ...triggerSx,
-                    /*
-                       While the popover is open the trigger says so. Without it,
-                       a popover anchored beside a list of near-identical rows
-                       gives no clue which row it belongs to — you have to
-                       remember what you clicked. The marker is a bar down the
-                       leading edge plus a lift in the ground, which reads at a
-                       glance without moving anything.
+            <Button onClick={handleOpen}
+                    size={triggerSize}
+                    variant="text"
+                    aria-expanded={isOpen}
+                    sx={{ fontFamily: MONO,
+                          fontWeight: 400,
+                          textTransform: 'none',
+                          ...triggerSx,
+                          /*
+                             While the popover is open the trigger says so. Without it,
+                             a popover anchored beside a list of near-identical rows
+                             gives no clue which row it belongs to — you have to
+                             remember what you clicked. The marker is a bar down the
+                             leading edge plus a lift in the ground, which reads at a
+                             glance without moving anything.
 
-                       After the spread, so it wins over a caller's own styling
-                       rather than being overwritten by it.
-                    */
-                    ...(isOpen
-                        ? {
-                            backgroundColor: 'arc.glassSelected',
-                            color: 'arc.onGlassStrong',
-                            fontWeight: 700,
-                            boxShadow: 'inset 3px 0 0 0 var(--arc-accent-on-glass)',
-                        }
-                        : {}),
-                }}
-            >
+                             After the spread, so it wins over a caller's own styling
+                             rather than being overwritten by it.
+                          */
+                          ...(isOpen
+                              ? {
+                                  backgroundColor: 'arc.glassSelected',
+                                  color: 'arc.onGlassStrong',
+                                  fontWeight: 700,
+                                  boxShadow: 'inset 3px 0 0 0 var(--arc-accent-on-glass)',
+                              }
+                              : {}) }}>
                 {triggerLabel}
             </Button>
 
-            <Popover
-                open={isOpen}
-                anchorEl={anchorEl}
-                onClose={handleClose}
-                anchorOrigin={anchorOrigin}
-                transformOrigin={transformOrigin}
-                // OverflowBehavior.FlipAlways — MUI Popover flips automatically
-                disableScrollLock
-                slotProps={{
-                    paper: {
-                        className: 'glass',
-                        sx: { overflow: 'visible' },
-                    },
-                }}
-            >
+            <Popover open={isOpen}
+                     anchorEl={anchorEl}
+                     onClose={handleClose}
+                     anchorOrigin={anchorOrigin}
+                     transformOrigin={transformOrigin}
+                     // OverflowBehavior.FlipAlways — MUI Popover flips automatically
+                     disableScrollLock
+                     slotProps={{
+                         paper: {
+                             className: 'glass',
+                             sx: { overflow: 'visible' },
+                         },
+                     }}>
                 {/*
           MudStack Spacing="0" — Box with flex column layout, no gap between
           content and button group so the glass-inner-engraved bar looks flush.
         */}
-                <Box
-                    sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        minWidth: POPOVER_MIN_WIDTH,
-                        maxWidth: '90vw',
-                    }}
-                >
+                <Box sx={{ display: 'flex',
+                           flexDirection: 'column',
+                           minWidth: POPOVER_MIN_WIDTH,
+                           maxWidth: '90vw' }}>
                     {/* ChildContent */}
                     <Box sx={{ px: 2, pt: 2, pb: 1 }}>{children}</Box>
 
@@ -218,16 +209,14 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
                         controls a different shape from every other surface's.
                     */}
                     <Box sx={{ px: 2, pb: 1.5, pt: 0.5 }}>
-                        <ArcActionBar
-                            onSave={handleSubmit}
-                            onDiscard={handleClose}
-                            saveLabel={submitLabel}
-                            saveDestructive={submitDestructive}
-                            onDelete={onDelete}
-                            deleteLabel={deleteLabel}
-                            deleteConfirm={deleteConfirm}
-                            actions={actions}
-                        />
+                        <ArcActionBar onSave={handleSubmit}
+                                      onDiscard={handleClose}
+                                      saveLabel={submitLabel}
+                                      saveDestructive={submitDestructive}
+                                      onDelete={onDelete}
+                                      deleteLabel={deleteLabel}
+                                      deleteConfirm={deleteConfirm}
+                                      actions={actions} />
                     </Box>
                 </Box>
             </Popover>

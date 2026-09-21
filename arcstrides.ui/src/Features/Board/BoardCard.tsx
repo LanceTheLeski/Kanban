@@ -84,44 +84,36 @@ export const BoardCard: React.FC<BoardCardProps> = ({
         <>
             {/* ── Card tile ─────────────────────────────────────────────────────── */}
             {/* Mirrors: MudPaper width=120px height=200px background-color=lightyellow */}
-            <Paper
-                {...(dragProps ?? {})}
-                sx={{
-                    // Fills the cell rather than sitting at a fixed 120px inside a
-                    // 300px column. A card is mostly text, and the old width cut
-                    // titles off after about four words with most of the column
-                    // left empty. Height is a floor so a long title can push it.
-                    width: '100%',
-                    minHeight: CARD_MIN_HEIGHT,
-                    // The ghost has no cell to fill, so give it the column's width.
-                    ...(preview ? { width: DRAG_PREVIEW_WIDTH } : {}),
-                    backgroundColor: 'arc.cardSurface',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    borderRadius: 2,
-                    textAlign: 'center',
-                    // The drag ghost sits above everything and shouldn't intercept pointers
-                    ...(preview ? { boxShadow: 6, cursor: 'grabbing', pointerEvents: 'none' } : {}),
-                    // The whole tile is the grab surface now, so it says so.
-                    cursor: dragProps ? 'grab' : 'default',
-                    '&:active': { cursor: dragProps ? 'grabbing' : 'default' },
-                }}
-                elevation={3}
-            >
+            <Paper {...(dragProps ?? {})}
+                   sx={{ // Fills the cell rather than sitting at a fixed 120px inside a
+                         // 300px column. A card is mostly text, and the old width cut
+                         // titles off after about four words with most of the column
+                         // left empty. Height is a floor so a long title can push it.
+                         width: '100%',
+                         minHeight: CARD_MIN_HEIGHT,
+                         // The ghost has no cell to fill, so give it the column's width.
+                         ...(preview ? { width: DRAG_PREVIEW_WIDTH } : {}),
+                         backgroundColor: 'arc.cardSurface',
+                         display: 'flex',
+                         flexDirection: 'column',
+                         borderRadius: 2,
+                         textAlign: 'center',
+                         // The drag ghost sits above everything and shouldn't intercept pointers
+                         ...(preview ? { boxShadow: 6, cursor: 'grabbing', pointerEvents: 'none' } : {}),
+                         // The whole tile is the grab surface now, so it says so.
+                         cursor: dragProps ? 'grab' : 'default',
+                         '&:active': { cursor: dragProps ? 'grabbing' : 'default' } }}
+                   elevation={3}>
                 {/* Card content. A press here opens the card; a press that travels
                     8px drags it instead. */}
-                <Box
-                    onClick={() => !preview && setUpdateOpen(true)}
-                    sx={{
-                        flex: 1,
-                        minHeight: 0,
-                        cursor: preview ? 'grabbing' : 'pointer',
-                        p: 0.5,
-                        overflow: 'hidden',
-                        // MUI's own hover shade, which this was a hand-written copy of.
-                        '&:hover': preview ? undefined : { backgroundColor: 'action.hover' },
-                    }}
-                >
+                <Box onClick={() => !preview && setUpdateOpen(true)}
+                     sx={{ flex: 1,
+                           minHeight: 0,
+                           cursor: preview ? 'grabbing' : 'pointer',
+                           p: 0.5,
+                           overflow: 'hidden',
+                           // MUI's own hover shade, which this was a hand-written copy of.
+                           '&:hover': preview ? undefined : { backgroundColor: 'action.hover' } }}>
                     {/* Title — mirrors MudText font-weight:600 font-size:x-small */}
                     {/*
               Two lines, then ellipsis. Titles are user-written and the old single
@@ -129,64 +121,48 @@ export const BoardCard: React.FC<BoardCardProps> = ({
               to ellipsise across more than one line, and is supported everywhere
               this app runs.
             */}
-                    <Typography
-                        sx={{
-                            fontWeight: 600,
-                            fontSize: '0.7rem',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            overflowWrap: 'anywhere',
-                        }}
-                    >
+                    <Typography sx={{ fontWeight: 600,
+                                      fontSize: '0.7rem',
+                                      display: '-webkit-box',
+                                      WebkitLineClamp: 2,
+                                      WebkitBoxOrient: 'vertical',
+                                      overflow: 'hidden',
+                                      overflowWrap: 'anywhere' }}>
                         {card.title}
                     </Typography>
 
                     {/* Description — mirrors MudText height:100px font-size:x-small */}
-                    <Typography
-                        sx={{
-                            fontSize: '0.65rem',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 3,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            overflowWrap: 'anywhere',
-                            textAlign: 'left',
-                            opacity: 0.85,
-                        }}
-                    >
+                    <Typography sx={{ fontSize: '0.65rem',
+                                      display: '-webkit-box',
+                                      WebkitLineClamp: 3,
+                                      WebkitBoxOrient: 'vertical',
+                                      overflow: 'hidden',
+                                      overflowWrap: 'anywhere',
+                                      textAlign: 'left',
+                                      opacity: 0.85 }}>
                         {card.description}
                     </Typography>
                 </Box>
 
                 {/* Lower section: action buttons */}
                 {/* Mirrors Blazor's MudGrid max-height:50px with two 60px MudItems. */}
-                <ButtonGroup
-                    variant="text"
-                    size="small"
-                    fullWidth
-                    sx={{
-                        maxHeight: CARD_ACTIONS_MAX_HEIGHT,
-                        flexShrink: 0,
-                        // px: a hairline is chrome, and should not thicken with
-                        // the reader's font size.
-                        borderTop: '1px solid rgba(0,0,0,0.1)',
-                    }}
-                >
-                    <Button
-                        sx={{ fontSize: '0.6rem', flex: 1, minWidth: 0 }}
-                        onClick={() => setUpdateOpen(true)}
-                        disabled={preview}
-                    >
+                <ButtonGroup variant="text"
+                             size="small"
+                             fullWidth
+                             sx={{ maxHeight: CARD_ACTIONS_MAX_HEIGHT,
+                                   flexShrink: 0,
+                                   // px: a hairline is chrome, and should not thicken with
+                                   // the reader's font size.
+                                   borderTop: '1px solid rgba(0,0,0,0.1)' }}>
+                    <Button sx={{ fontSize: '0.6rem', flex: 1, minWidth: 0 }}
+                            onClick={() => setUpdateOpen(true)}
+                            disabled={preview}>
                         Actions
                     </Button>
-                    <Button
-                        sx={{ fontSize: '0.6rem', flex: 1, minWidth: 0 }}
-                        onClick={() => setConfirmDeleteOpen(true)}
-                        color="error"
-                        disabled={preview}
-                    >
+                    <Button sx={{ fontSize: '0.6rem', flex: 1, minWidth: 0 }}
+                            onClick={() => setConfirmDeleteOpen(true)}
+                            color="error"
+                            disabled={preview}>
                         Remove
                     </Button>
                 </ButtonGroup>
@@ -200,12 +176,10 @@ export const BoardCard: React.FC<BoardCardProps> = ({
         on open also means its draft state starts fresh each time.
       */}
             {!preview && updateOpen && (
-                <UpdateCardOverlay
-                    open
-                    onClose={() => setUpdateOpen(false)}
-                    card={card}
-                    boardId={boardId}
-                />
+                <UpdateCardOverlay open
+                                   onClose={() => setUpdateOpen(false)}
+                                   card={card}
+                                   boardId={boardId} />
             )}
 
             {/* ── Delete confirmation — mirrors DeleteCardOverlay.razor ──────────── */}

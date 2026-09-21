@@ -181,33 +181,25 @@ export const ArcActionBar: React.FC<ArcActionBarProps> = ({
     // ── Confirm strip ─────────────────────────────────────────────────────────
     if (pending) {
         return (
-            <Box
-                sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'flex-end',
-                    flexWrap: 'wrap',
-                    gap: 1,
-                    flexShrink: 0,
-                }}
-            >
+            <Box sx={{ display: 'flex',
+                       alignItems: 'center',
+                       justifyContent: 'flex-end',
+                       flexWrap: 'wrap',
+                       gap: 1,
+                       flexShrink: 0 }}>
                 <Typography variant="body2" sx={{ mr: 'auto', color: 'arc.onGlass' }}>
                     {pending.question}
                 </Typography>
 
-                <ButtonGroup
-                    className="glass-inner-engraved"
-                    variant="text"
-                    sx={{ borderRadius: radius, overflow: 'hidden' }}
-                >
+                <ButtonGroup className="glass-inner-engraved"
+                             variant="text"
+                             sx={{ borderRadius: radius, overflow: 'hidden' }}>
                     <Button onClick={() => setPending(null)} disabled={busy} sx={barButtonSx('quiet')}>
                         Cancel
                     </Button>
-                    <Button
-                        onClick={() => runGuarded(pending.run)}
-                        disabled={busy}
-                        sx={barButtonSx('danger')}
-                    >
+                    <Button onClick={() => runGuarded(pending.run)}
+                            disabled={busy}
+                            sx={barButtonSx('danger')}>
                         {busy ? 'Working…' : pending.label}
                     </Button>
                 </ButtonGroup>
@@ -217,33 +209,25 @@ export const ArcActionBar: React.FC<ArcActionBarProps> = ({
 
     // ── Normal bar ────────────────────────────────────────────────────────────
     return (
-        <Box
-            sx={{
-                display: 'flex',
-                alignItems: 'center',
-                // Wraps on a narrow overlay rather than pushing the bar wider than
-                // the dialog. Destructive actions stay on their own row when it does.
-                flexWrap: 'wrap',
-                gap: 1,
-                flexShrink: 0,
-            }}
-        >
+        <Box sx={{ display: 'flex',
+                   alignItems: 'center',
+                   // Wraps on a narrow overlay rather than pushing the bar wider than
+                   // the dialog. Destructive actions stay on their own row when it does.
+                   flexWrap: 'wrap',
+                   gap: 1,
+                   flexShrink: 0 }}>
             {allActions.map(action => (
-                <Button
-                    key={action.label}
-                    size="small"
-                    variant="outlined"
-                    disabled={busy || action.disabled}
-                    onClick={() => handleAction(action)}
-                    sx={{
-                        color: action.destructive ? 'arc.dangerOnGlass' : 'arc.onGlass',
-                        borderColor: action.destructive ? 'arc.dangerOnGlass' : 'arc.glassDivider',
-                        '&:hover': {
-                            borderColor: action.destructive ? 'arc.dangerOnGlass' : 'arc.onGlassMuted',
-                            backgroundColor: 'arc.glassHover',
-                        },
-                    }}
-                >
+                <Button key={action.label}
+                        size="small"
+                        variant="outlined"
+                        disabled={busy || action.disabled}
+                        onClick={() => handleAction(action)}
+                        sx={{ color: action.destructive ? 'arc.dangerOnGlass' : 'arc.onGlass',
+                              borderColor: action.destructive ? 'arc.dangerOnGlass' : 'arc.glassDivider',
+                              '&:hover': {
+                                  borderColor: action.destructive ? 'arc.dangerOnGlass' : 'arc.onGlassMuted',
+                                  backgroundColor: 'arc.glassHover',
+                              } }}>
                     {action.label}
                 </Button>
             ))}
@@ -251,26 +235,20 @@ export const ArcActionBar: React.FC<ArcActionBarProps> = ({
             {/* The gap that keeps destructive actions away from the corner. */}
             <Box sx={{ flex: 1, minWidth: 0 }} />
 
-            <ButtonGroup
-                className="glass-inner-engraved"
-                variant="text"
-                fullWidth={fullWidth}
-                sx={{
-                    borderRadius: radius,
-                    overflow: 'hidden',
-                    // Takes the row to itself when the actions above wrapped.
-                    ...(fullWidth ? { flex: '1 1 100%' } : {}),
-                }}
-            >
+            <ButtonGroup className="glass-inner-engraved"
+                         variant="text"
+                         fullWidth={fullWidth}
+                         sx={{ borderRadius: radius,
+                               overflow: 'hidden',
+                               // Takes the row to itself when the actions above wrapped.
+                               ...(fullWidth ? { flex: '1 1 100%' } : {}) }}>
                 <Button onClick={onDiscard} disabled={busy} sx={barButtonSx('quiet')}>
                     {discardLabel}
                 </Button>
                 {onSave && (
-                    <Button
-                        onClick={() => runGuarded(onSave)}
-                        disabled={busy}
-                        sx={barButtonSx(saveDestructive ? 'danger' : 'primary')}
-                    >
+                    <Button onClick={() => runGuarded(onSave)}
+                            disabled={busy}
+                            sx={barButtonSx(saveDestructive ? 'danger' : 'primary')}>
                         {busy ? 'Saving…' : saveLabel}
                     </Button>
                 )}

@@ -92,39 +92,31 @@ export const CreateCardOverlay: React.FC<CreateCardOverlayProps> = ({ open, onCl
             <Stack spacing={2}>
                 <Typography variant="h6">Add a New Card</Typography>
 
-                <TextField
-                    label="Title"
-                    variant="filled"
-                    helperText="Card Title"
-                    value={cardTitle}
-                    onChange={e => setCardTitle(e.target.value)}
-                    fullWidth
-                />
+                <TextField label="Title"
+                           variant="filled"
+                           helperText="Card Title"
+                           value={cardTitle}
+                           onChange={e => setCardTitle(e.target.value)}
+                           fullWidth />
 
-                <TextField
-                    label="Description"
-                    variant="filled"
-                    helperText="Card Description"
-                    value={cardDescription}
-                    onChange={e => setCardDescription(e.target.value)}
-                    multiline
-                    minRows={3}
-                    fullWidth
-                />
+                <TextField label="Description"
+                           variant="filled"
+                           helperText="Card Description"
+                           value={cardDescription}
+                           onChange={e => setCardDescription(e.target.value)}
+                           multiline
+                           minRows={3}
+                           fullWidth />
 
                 {/* Column selector — mirrors @bind-Options="ColumnTitles" */}
-                <ArcExpandingSelector
-                    options={columns.map(column => column.title)}
-                    onSelect={handleSelectColumn}
-                    placeholder="Select Column"
-                />
+                <ArcExpandingSelector options={columns.map(column => column.title)}
+                                      onSelect={handleSelectColumn}
+                                      placeholder="Select Column" />
 
                 {/* Swimlane selector — mirrors @bind-Options="SwimlaneTitles" */}
-                <ArcExpandingSelector
-                    options={swimlanes.map(swimlane => swimlane.title)}
-                    onSelect={handleSelectSwimlane}
-                    placeholder="Select Swimlane"
-                />
+                <ArcExpandingSelector options={swimlanes.map(swimlane => swimlane.title)}
+                                      onSelect={handleSelectSwimlane}
+                                      placeholder="Select Swimlane" />
             </Stack>
         </ArcOverlay>
     )

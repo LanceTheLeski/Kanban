@@ -63,23 +63,19 @@ export const DeleteColumnOverlay: React.FC<DeleteColumnOverlayProps> = ({ open, 
     }
 
     return (
-        <ArcOverlay
-            open={open}
-            onClose={onClose}
-            onSubmit={handleSubmit}
-            // This overlay exists to delete, so the primary action is the
-            // delete — but it must not read as "Save".
-            submitLabel="Delete Column"
-            submitDestructive
-        >
+        <ArcOverlay open={open}
+                    onClose={onClose}
+                    onSubmit={handleSubmit}
+                    // This overlay exists to delete, so the primary action is the
+                    // delete — but it must not read as "Save".
+                    submitLabel="Delete Column"
+                    submitDestructive>
             <Stack spacing={2}>
                 <Typography variant="h6">Delete Column</Typography>
 
-                <ArcExpandingSelector
-                    options={columns.map(column => column.title)}
-                    onSelect={handleSelect}
-                    placeholder="Select column to delete"
-                />
+                <ArcExpandingSelector options={columns.map(column => column.title)}
+                                      onSelect={handleSelect}
+                                      placeholder="Select column to delete" />
             </Stack>
         </ArcOverlay>
     )

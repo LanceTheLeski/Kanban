@@ -175,20 +175,16 @@ export const BoardManagementNav: React.FC = () => {
 
                     {MENUS.map(menu => (
                         <React.Fragment key={menu.label}>
-                            <Button
-                                color="inherit"
-                                onClick={event =>
-                                    setOpenMenu({ label: menu.label, anchor: event.currentTarget })
-                                }
-                            >
+                            <Button color="inherit"
+                                    onClick={event =>
+                                        setOpenMenu({ label: menu.label, anchor: event.currentTarget })
+                                    }>
                                 {menu.label}
                             </Button>
 
-                            <Menu
-                                anchorEl={openMenu?.anchor ?? null}
-                                open={openMenu?.label === menu.label}
-                                onClose={closeMenu}
-                            >
+                            <Menu anchorEl={openMenu?.anchor ?? null}
+                                  open={openMenu?.label === menu.label}
+                                  onClose={closeMenu}>
                                 {menu.items.map(item => (
                                     <MenuItem key={item.label} onClick={() => handleItemClick(item)}>
                                         {item.label}

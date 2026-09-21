@@ -177,61 +177,53 @@ export const ArcSplitPane: React.FC<ArcSplitPaneProps> = ({
     }
 
     return (
-        <Box
-            ref={containerRef}
-            sx={{
-                display: 'grid',
-                // Stacked, there is one column and the bar is not rendered at all:
-                // a horizontal split has no meaning when the panes are above and
-                // below each other.
-                gridTemplateColumns: {
-                    xs: '1fr',
-                    [stackBelow]: collapsed
-                        ? `minmax(0, 1fr) ${BAR_WIDTH}px 0px`
-                        : `minmax(0, ${ratio}fr) ${BAR_WIDTH}px minmax(0, ${1 - ratio}fr)`,
-                },
-                gap: { xs: 2, [stackBelow]: 0 },
-                alignItems: 'stretch',
-                // Fills the container it is given rather than sizing to its
-                // panes: both of them scroll their own content, so sizing to
-                // content means neither ever reaches the height the row has.
-                // Harmless when the parent is not a flex column.
-                flex: 1,
-                minHeight: 0,
-            }}
-        >
+        <Box ref={containerRef}
+             sx={{ display: 'grid',
+                   // Stacked, there is one column and the bar is not rendered at all:
+                   // a horizontal split has no meaning when the panes are above and
+                   // below each other.
+                   gridTemplateColumns: {
+                       xs: '1fr',
+                       [stackBelow]: collapsed
+                           ? `minmax(0, 1fr) ${BAR_WIDTH}px 0px`
+                           : `minmax(0, ${ratio}fr) ${BAR_WIDTH}px minmax(0, ${1 - ratio}fr)`,
+                   },
+                   gap: { xs: 2, [stackBelow]: 0 },
+                   alignItems: 'stretch',
+                   // Fills the container it is given rather than sizing to its
+                   // panes: both of them scroll their own content, so sizing to
+                   // content means neither ever reaches the height the row has.
+                   // Harmless when the parent is not a flex column.
+                   flex: 1,
+                   minHeight: 0 }}>
             <Box sx={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
                 {left}
             </Box>
 
             {/* ── The bar ──────────────────────────────────────────────────── */}
-            <Box
-                role="separator"
-                aria-orientation="vertical"
-                aria-label={label}
-                aria-valuenow={Math.round(ratio * 100)}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                tabIndex={0}
-                onPointerDown={handlePointerDown}
-                onPointerMove={handlePointerMove}
-                onPointerUp={endDrag}
-                onPointerCancel={endDrag}
-                onKeyDown={handleKeyDown}
-                onDoubleClick={() => resetRatio !== undefined && onRatioChange(resetRatio)}
-                sx={{
-                    display: { xs: 'none', [stackBelow]: 'flex' },
-                    position: 'relative',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'col-resize',
-                    // The gesture is horizontal, so the browser must not claim it
-                    // for scrolling on a touch device.
-                    touchAction: 'none',
-                    outline: 'none',
-                    '&:focus-visible .arc-split-grip': { backgroundColor: 'arc.accentOnGlass' },
-                }}
-            >
+            <Box role="separator"
+                 aria-orientation="vertical"
+                 aria-label={label}
+                 aria-valuenow={Math.round(ratio * 100)}
+                 aria-valuemin={0}
+                 aria-valuemax={100}
+                 tabIndex={0}
+                 onPointerDown={handlePointerDown}
+                 onPointerMove={handlePointerMove}
+                 onPointerUp={endDrag}
+                 onPointerCancel={endDrag}
+                 onKeyDown={handleKeyDown}
+                 onDoubleClick={() => resetRatio !== undefined && onRatioChange(resetRatio)}
+                 sx={{ display: { xs: 'none', [stackBelow]: 'flex' },
+                       position: 'relative',
+                       alignItems: 'center',
+                       justifyContent: 'center',
+                       cursor: 'col-resize',
+                       // The gesture is horizontal, so the browser must not claim it
+                       // for scrolling on a touch device.
+                       touchAction: 'none',
+                       outline: 'none',
+                       '&:focus-visible .arc-split-grip': { backgroundColor: 'arc.accentOnGlass' } }}>
                 {/*
                     A hairline with a handle on it.
 
@@ -242,31 +234,23 @@ export const ArcSplitPane: React.FC<ArcSplitPaneProps> = ({
                     inherits the *text* colour, so a light bar came out with dark
                     marks stamped on it.
                 */}
-                <Box
-                    className="arc-split-grip"
-                    sx={{
-                        position: 'absolute',
-                        width: 3,
-                        height: collapsed ? '100%' : '92%',
-                        borderRadius: 999,
-                        backgroundColor: dragging ? 'arc.accentOnGlass' : 'arc.railLine',
-                        transition: 'background-color .12s',
-                        '*:hover > &': { backgroundColor: 'arc.onGlass' },
-                    }}
-                />
+                <Box className="arc-split-grip"
+                     sx={{ position: 'absolute',
+                           width: 3,
+                           height: collapsed ? '100%' : '92%',
+                           borderRadius: 999,
+                           backgroundColor: dragging ? 'arc.accentOnGlass' : 'arc.railLine',
+                           transition: 'background-color .12s',
+                           '*:hover > &': { backgroundColor: 'arc.onGlass' } }} />
 
-                <Box
-                    sx={{
-                        position: 'relative',
-                        width: 7,
-                        height: 34,
-                        borderRadius: 999,
-                        backgroundColor: dragging ? 'arc.accentOnGlass' : 'arc.onGlassMuted',
-                        boxShadow: '0 1px 3px rgba(0,0,0,.35)',
-                        transition: 'background-color .12s',
-                        '*:hover > &': { backgroundColor: 'arc.onGlassStrong' },
-                    }}
-                />
+                <Box sx={{ position: 'relative',
+                           width: 7,
+                           height: 34,
+                           borderRadius: 999,
+                           backgroundColor: dragging ? 'arc.accentOnGlass' : 'arc.onGlassMuted',
+                           boxShadow: '0 1px 3px rgba(0,0,0,.35)',
+                           transition: 'background-color .12s',
+                           '*:hover > &': { backgroundColor: 'arc.onGlassStrong' } }} />
             </Box>
 
             {/*
@@ -274,14 +258,10 @@ export const ArcSplitPane: React.FC<ArcSplitPaneProps> = ({
                 is a draft the reader may have typed into, and dragging the bar
                 past a threshold is not a decision to discard it.
             */}
-            <Box
-                sx={{
-                    minWidth: 0,
-                    minHeight: 0,
-                    display: collapsed ? 'none' : 'flex',
-                    flexDirection: 'column',
-                }}
-            >
+            <Box sx={{ minWidth: 0,
+                       minHeight: 0,
+                       display: collapsed ? 'none' : 'flex',
+                       flexDirection: 'column' }}>
                 {right}
             </Box>
         </Box>

@@ -51,24 +51,20 @@ export const CreateSwimlaneOverlay: React.FC<CreateSwimlaneOverlayProps> = ({ op
             <Stack spacing={2}>
                 <Typography variant="h6">Add a New Swimlane</Typography>
 
-                <TextField
-                    label="Title"
-                    variant="filled"
-                    helperText="Swimlane Title"
-                    value={title}
-                    onChange={e => setTitle(e.target.value)}
-                    fullWidth
-                />
+                <TextField label="Title"
+                           variant="filled"
+                           helperText="Swimlane Title"
+                           value={title}
+                           onChange={e => setTitle(e.target.value)}
+                           fullWidth />
 
-                <TextField
-                    label="Order"
-                    variant="filled"
-                    helperText={`Swimlane Order (leave blank to append at position ${swimlanes.length})`}
-                    value={orderInput}
-                    onChange={e => setOrderInput(e.target.value)}
-                    inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-                    fullWidth
-                />
+                <TextField label="Order"
+                           variant="filled"
+                           helperText={`Swimlane Order (leave blank to append at position ${swimlanes.length})`}
+                           value={orderInput}
+                           onChange={e => setOrderInput(e.target.value)}
+                           inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                           fullWidth />
             </Stack>
         </ArcOverlay>
     )

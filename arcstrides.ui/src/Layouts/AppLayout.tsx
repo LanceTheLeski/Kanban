@@ -34,10 +34,8 @@ export const AppLayout: React.FC = () => {
     const { pathname } = useLocation()
 
     return (
-        <div
-            className="page"
-            style={{ ['--arc-page-background' as string]: `url('/${backgroundFor(pathname)}')` }}
-        >
+        <div className="page"
+             style={{ ['--arc-page-background' as string]: `url('/${backgroundFor(pathname)}')` }}>
             <main>
                 <Outlet />
             </main>
