@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Screenshots written by the Playwright checks when they are run with a
+# relative path. They are throwaway verification output, not project files —
+# two of them reached a commit before this line existed.
+/*.png
