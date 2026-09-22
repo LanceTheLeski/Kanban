@@ -42,6 +42,7 @@ import { useBoardActions } from './useBoardActions'
 import { deleteCard } from './Board.APIs'
 import { useBoardStore } from './Board.Store'
 import { CARD_MIN_HEIGHT, DRAG_PREVIEW_WIDTH } from './Board.Layout'
+import { noteClass } from './Board.Notes'
 import { CARD_ACTIONS_MAX_HEIGHT } from '../../Styles/Measures'
 import type { Card } from '../../Entities/Card/Card.Types'
 
@@ -85,6 +86,12 @@ export const BoardCard: React.FC<BoardCardProps> = ({
             {/* ── Card tile ─────────────────────────────────────────────────────── */}
             {/* Mirrors: MudPaper width=120px height=200px background-color=lightyellow */}
             <Paper {...(dragProps ?? {})}
+                   /*
+                      A square of paper with adhesive along one edge, in the
+                      colour of the lane it is pinned to — see Board.Notes and
+                      the .note rules.
+                   */
+                   className={noteClass(card.swimlaneNumber)}
                    sx={{ // Fills the cell rather than sitting at a fixed 120px inside a
                          // 300px column. A card is mostly text, and the old width cut
                          // titles off after about four words with most of the column
@@ -93,10 +100,8 @@ export const BoardCard: React.FC<BoardCardProps> = ({
                          minHeight: CARD_MIN_HEIGHT,
                          // The ghost has no cell to fill, so give it the column's width.
                          ...(preview ? { width: DRAG_PREVIEW_WIDTH } : {}),
-                         backgroundColor: 'arc.cardSurface',
                          display: 'flex',
                          flexDirection: 'column',
-                         borderRadius: 2,
                          textAlign: 'center',
                          // The drag ghost sits above everything and shouldn't intercept pointers
                          ...(preview ? { boxShadow: 6, cursor: 'grabbing', pointerEvents: 'none' } : {}),
@@ -152,16 +157,30 @@ export const BoardCard: React.FC<BoardCardProps> = ({
                              sx={{ maxHeight: CARD_ACTIONS_MAX_HEIGHT,
                                    flexShrink: 0,
                                    // px: a hairline is chrome, and should not thicken with
-                                   // the reader's font size.
-                                   borderTop: '1px solid rgba(0,0,0,0.1)' }}>
-                    <Button sx={{ fontSize: '0.6rem', flex: 1, minWidth: 0 }}
+                                   // the reader's font size. The colour is the note's,
+                                   // set by .note from its stock.
+                                   borderTop: '1px solid' }}>
+                    {/*
+                        Ink on the note, not MUI's blue and red. A chromatic
+                        button on a coloured note is two colours arguing over a
+                        20px strip, and the one that loses is the note — which is
+                        the thing the board is made of.
+                    */}
+                    <Button sx={{ fontSize: '0.6rem',
+                                  flex: 1,
+                                  minWidth: 0,
+                                  color: 'arc.onPaper',
+                                  '&:hover': { backgroundColor: 'arc.paperHover' } }}
                             onClick={() => setUpdateOpen(true)}
                             disabled={preview}>
                         Actions
                     </Button>
-                    <Button sx={{ fontSize: '0.6rem', flex: 1, minWidth: 0 }}
+                    <Button sx={{ fontSize: '0.6rem',
+                                  flex: 1,
+                                  minWidth: 0,
+                                  color: 'arc.paperDanger',
+                                  '&:hover': { backgroundColor: 'arc.paperHover' } }}
                             onClick={() => setConfirmDeleteOpen(true)}
-                            color="error"
                             disabled={preview}>
                         Remove
                     </Button>

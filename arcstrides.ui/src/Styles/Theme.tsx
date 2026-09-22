@@ -72,26 +72,18 @@ import { createTheme } from '@mui/material/styles'
  */
 export interface ArcPalette {
     // ── Board grid ────────────────────────────────────────────────────────────
-    /** The band behind a swimlane row, and the gutters down each side of it. */
+    // The wall itself is .board-surface in ArcStyles.css, because it is a woven
+    // texture rather than a colour. What is left here is the chrome around it.
+    /** The gutters down each side of a swimlane row. */
     swimlaneBand: string
-    /** The row surface the cells sit on. */
-    swimlaneSurface: string
-    /** The swimlane's name block, down the left of its row. */
+    /** The bar marking a swimlane's name block. */
     swimlaneLabel: string
-    /** A drop cell at rest. */
-    cell: string
-    /** A drop cell with a card held over it. */
-    cellActive: string
     /** The ring drawn round a cell that would accept the drop. */
     cellActiveEdge: string
     /** The "n cards" badge on a cell holding more than it can show. */
     overflowBadge: string
     /** "Honu Boards", above the swimlane labels. */
     boardTitle: string
-
-    // ── Cards ─────────────────────────────────────────────────────────────────
-    /** A card tile. */
-    cardSurface: string
 
     // ── On glass ──────────────────────────────────────────────────────────────
     // Glass is a dark translucent surface, so anything drawn on it is a white at
@@ -209,16 +201,11 @@ export interface ArcPalette {
  * wrote them, and `wheat` carries more than `#F5DEB3` does.
  */
 const arcSurfaces: ArcPalette = {
-    swimlaneBand: 'wheat',
-    swimlaneSurface: '#C7EEE6',
+    swimlaneBand: '#b9ae97',
     swimlaneLabel: 'lightcoral',
-    cell: '#ECED7b',
-    cellActive: '#d4f5d4',
-    cellActiveEdge: '#4caf50',
+    cellActiveEdge: '#3f8f4a',
     overflowBadge: 'rgba(0, 0, 0, 0.55)',
     boardTitle: 'aquamarine',
-
-    cardSurface: 'lightyellow',
 
     onGlassStrong: 'rgba(255, 255, 255, 0.95)',
     onGlass: 'rgba(255, 255, 255, 0.9)',

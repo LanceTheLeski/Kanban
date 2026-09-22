@@ -48,12 +48,16 @@ export const DroppableCell: React.FC<DroppableCellProps> = ({ identifier, cardId
     return (
         <Box ref={attachRef}
              /*
-                The callback form, because `outline` is a shorthand and sx does not
-                resolve palette paths in shorthands — `outline: '2px solid arc.x'`
-                would be written to the DOM verbatim and do nothing. backgroundColor
-                below could take the path form; it reads off the theme here so both
-                colours in this block come from the same place.
+                A seam in the wall rather than a block on it — see .board-cell.
+                Nothing about a cell needs to be loud until something is held
+                over it, and then it has to be unmissable, which is what
+                `is-over` is for.
+
+                The ring colour is handed over as a custom property because a
+                box-shadow takes no palette path and this one lives in the
+                stylesheet. It is the same trick .glass uses for its accent.
              */
+             className={`board-cell${isOver ? ' is-over' : ''}`}
              sx={theme => ({
                  // Width comes from the column token so this cell and the header
                  // above it cannot disagree. Height is a floor and a ceiling: the
@@ -63,15 +67,11 @@ export const DroppableCell: React.FC<DroppableCellProps> = ({ identifier, cardId
                  minHeight: CELL_MIN_HEIGHT,
                  maxHeight: CELL_MAX_HEIGHT,
                  overflowY: 'auto',
-                 backgroundColor: isOver ? theme.palette.arc.cellActive : theme.palette.arc.cell,
                  display: 'flex',
                  flexDirection: 'column',
                  gap: BOARD_GAP,
                  p: BOARD_GAP,
-                 // px, not rem: a focus ring is chrome. Thickening it with the
-                 // reader's font size makes it heavier, not clearer.
-                 outline: `2px solid ${isOver ? theme.palette.arc.cellActiveEdge : 'transparent'}`,
-                 transition: 'background-color 0.15s, outline 0.15s',
+                 '--arc-cell-ring': theme.palette.arc.cellActiveEdge,
              })}>
 
             {/*

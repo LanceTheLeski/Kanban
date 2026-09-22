@@ -824,3 +824,92 @@ body,
         0 0 0 1px rgba(30, 16, 10, .12),
         0 10px 24px -14px rgba(30, 16, 10, .55);
 }
+
+/* ── The board ────────────────────────────────────────────────────────────────
+   A wall you pin notes to, and the notes.
+
+   ── What it was ─────────────────────────────────────────────────────────────
+   Each cell was its own block of #ECED7b, a bright yellow-olive, and each card
+   was `lightyellow`. Two tints of the same hue, one on top of the other, which
+   is why the board read as flat: a pale yellow note on a bright yellow ground
+   has nowhere to stand out to. The cells were also drawn as separate coloured
+   rectangles, so the board looked like a spreadsheet rather than like a surface
+   with things on it.
+
+   ── What it is ──────────────────────────────────────────────────────────────
+   One continuous linen ground per swimlane, and the cells marked on it by a
+   hairline seam rather than by a fill. Nothing about a cell needs to be loud
+   until you are dragging something, and then it needs to be unmissable — which
+   is what the active state is for.
+
+   Linen rather than cork or charcoal, both of which were rendered and both of
+   which make the notes pop harder. The board sits in a bright glass window over
+   a photograph; a dark ground fights the chrome around it, and a brown one
+   muddies every note that is not yellow. Linen is the ground that leaves the
+   note colours telling the truth. Swapping it is two values here.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+:root {
+    --arc-linen: #dbd3c2;
+    --arc-linen-weave: url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22240%22%20height=%22240%22%3E%3Cfilter%20id=%22a%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.9%22%20numOctaves=%225%22%20stitchTiles=%22stitch%22/%3E%3CfeColorMatrix%20type=%22saturate%22%20values=%220%22/%3E%3C/filter%3E%3Cfilter%20id=%22b%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.045%22%20numOctaves=%223%22%20stitchTiles=%22stitch%22/%3E%3CfeColorMatrix%20type=%22saturate%22%20values=%220%22/%3E%3C/filter%3E%3Crect%20width=%22240%22%20height=%22240%22%20filter=%22url(%23b)%22%20opacity=%220.11%22/%3E%3Crect%20width=%22240%22%20height=%22240%22%20filter=%22url(%23a)%22%20opacity=%220.17%22/%3E%3C/svg%3E");
+}
+
+.board-surface {
+    background-color: var(--arc-linen);
+    background-image: var(--arc-linen-weave), linear-gradient(160deg, #e4ddcd, #cfc6b3);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .55),
+        inset 0 -2px 8px rgba(88, 74, 52, .22),
+        inset 0 0 0 1px rgba(88, 74, 52, .22);
+}
+
+/*
+   A cell is a seam in the wall, not a box on it — until something is held over
+   it. Then it is the only thing on the board that matters, so it takes a wash
+   and a ring rather than a tint you have to look for.
+*/
+.board-cell {
+    box-shadow: inset 0 0 0 1px rgba(92, 78, 56, .17);
+    transition: box-shadow .15s, background-color .15s;
+}
+
+.board-cell.is-over {
+    background-color: rgba(255, 255, 255, .34);
+    box-shadow:
+        inset 0 0 0 2px var(--arc-cell-ring),
+        inset 0 0 14px rgba(255, 255, 255, .5);
+}
+
+/* ── Notes ────────────────────────────────────────────────────────────────────
+   A card is a square of paper with adhesive along one edge, so: square corners,
+   a face lit from above, and a shadow that is tight at the top and longer at
+   the bottom, because that is the edge that lifts.
+
+   The colour comes from the swimlane the card is in — see Board.Notes. It is a
+   real grouping rather than decoration, so the colour is telling the truth, and
+   dragging a card to another lane recolours it, which is the feedback you want
+   from a move.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.note {
+    border-radius: 1px;
+    background-color: var(--arc-note);
+    background-image:
+        url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22240%22%20height=%22240%22%3E%3Cfilter%20id=%22a%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.9%22%20numOctaves=%225%22%20stitchTiles=%22stitch%22/%3E%3CfeColorMatrix%20type=%22saturate%22%20values=%220%22/%3E%3C/filter%3E%3Cfilter%20id=%22b%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.05%22%20numOctaves=%223%22%20stitchTiles=%22stitch%22/%3E%3CfeColorMatrix%20type=%22saturate%22%20values=%220%22/%3E%3C/filter%3E%3Crect%20width=%22240%22%20height=%22240%22%20filter=%22url(%23b)%22%20opacity=%220.05%22/%3E%3Crect%20width=%22240%22%20height=%22240%22%20filter=%22url(%23a)%22%20opacity=%220.1%22/%3E%3C/svg%3E"),
+        linear-gradient(168deg, var(--arc-note-top) 0%, var(--arc-note) 42%, var(--arc-note-bottom) 100%);
+    color: #2b2a20;
+    box-shadow:
+        0 1px 1px rgba(28, 20, 6, .3),
+        0 4px 7px -3px rgba(28, 20, 6, .32),
+        0 12px 18px -10px rgba(20, 14, 4, .38);
+}
+
+.note .MuiButtonGroup-root {
+    border-top-color: var(--arc-note-rule);
+}
+
+.note-canary  { --arc-note: #f2e15f; --arc-note-top: #f9f099; --arc-note-bottom: #e6d244; --arc-note-rule: rgba(90, 76, 12, .24); }
+.note-rose    { --arc-note: #f0a0b2; --arc-note-top: #f8c6d1; --arc-note-bottom: #e28698; --arc-note-rule: rgba(98, 32, 48, .24); }
+.note-sky     { --arc-note: #8fc9e8; --arc-note-top: #b8dff2; --arc-note-bottom: #6fb2d8; --arc-note-rule: rgba(14, 60, 86, .24); }
+.note-mint    { --arc-note: #a4d79c; --arc-note-top: #c6e9c0; --arc-note-bottom: #86c47e; --arc-note-rule: rgba(24, 66, 20, .24); }
+.note-apricot { --arc-note: #f4b97c; --arc-note-top: #fbd5a6; --arc-note-bottom: #e8a35f; --arc-note-rule: rgba(96, 54, 10, .24); }

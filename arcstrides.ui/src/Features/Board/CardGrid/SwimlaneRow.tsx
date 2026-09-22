@@ -40,9 +40,14 @@ export const SwimlaneRow: React.FC<SwimlaneRowProps> = ({
 }) => (
     // Mirrors: MudPaper Style="background-color: wheat"
     <Box sx={{ backgroundColor: 'arc.swimlaneBand' }}>
-        <Paper elevation={0}
-               sx={{ backgroundColor: 'arc.swimlaneSurface',
-                     // px, and the shorthand split so borderColor can take a palette
+        {/*
+            The row is one continuous wall; the cells are seams marked on it.
+            See .board-surface, and Board.Notes for why the cards on it are
+            coloured by which wall they are pinned to.
+        */}
+        <Paper className="board-surface"
+               elevation={0}
+               sx={{ // px, and the shorthand split so borderColor can take a palette
                      // path: sx resolves colour paths in `borderColor`, never inside
                      // the `borderLeft` shorthand. A gutter is chrome — it should not
                      // widen with the reader's font size.
