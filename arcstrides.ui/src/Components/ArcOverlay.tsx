@@ -19,11 +19,26 @@
 import React from 'react'
 import { Backdrop, Box, Fade, Modal, Paper } from '@mui/material'
 import { ArcActionBar, type ArcAction } from './ArcActionBar'
+import { ArcTitleBar, type TitleStock } from './ArcTitleBar'
 import { OVERLAY_WIDTH } from '../Styles/Measures'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
 export interface ArcOverlayProps {
+    /**
+     * The dialog's heading, as a strip of card across the top.
+     *
+     * Optional because UpdateCardOverlay does not take one: its first row is the
+     * card's own title in an editable field, which is a better heading than any
+     * fixed string, and a strip above it would be the same duplication this prop
+     * exists to remove everywhere else.
+     */
+    title?: React.ReactNode
+    /** Which stock the title strip is cut from. See ArcTitleBar. */
+    titleStock?: TitleStock
+    /** A second line under the title, for a hint the fields cannot carry. */
+    titleCaption?: React.ReactNode
+
     /** Controls visibility — mirrors Blazor's @bind-Open */
     open: boolean
     /** Called when the overlay should close — mirrors OpenChanged EventCallback */
@@ -60,6 +75,9 @@ export const ArcOverlay: React.FC<ArcOverlayProps> = ({
     open,
     onClose,
     children,
+    title,
+    titleStock,
+    titleCaption,
     onSubmit,
     width = OVERLAY_WIDTH,
     onDelete,
@@ -96,6 +114,8 @@ export const ArcOverlay: React.FC<ArcOverlayProps> = ({
                              overflow: 'hidden',
                              // Removes the Modal's default focus ring on the Paper.
                              outline: 'none' }}>
+                    {title && <ArcTitleBar stock={titleStock} caption={titleCaption}>{title}</ArcTitleBar>}
+
                     {/* ChildContent slot — minHeight:0 lets a flex child actually shrink */}
                     <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>{children}</Box>
 

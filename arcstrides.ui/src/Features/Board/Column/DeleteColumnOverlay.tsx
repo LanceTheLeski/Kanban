@@ -15,7 +15,7 @@
  */
 
 import React, { useState } from 'react'
-import { Stack, Typography } from '@mui/material'
+import { Stack } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
 import { deleteColumn } from '../Board.APIs'
@@ -69,10 +69,10 @@ export const DeleteColumnOverlay: React.FC<DeleteColumnOverlayProps> = ({ open, 
                     // This overlay exists to delete, so the primary action is the
                     // delete — but it must not read as "Save".
                     submitLabel="Delete Column"
-                    submitDestructive>
-            <Stack spacing={2}>
-                <Typography variant="h6">Delete Column</Typography>
-
+                    submitDestructive
+                    title="Delete column"
+                    titleStock="blue">
+            <Stack spacing={1.5}>
                 <ArcExpandingSelector options={columns.map(column => column.title)}
                                       onSelect={handleSelect}
                                       placeholder="Select column to delete" />

@@ -8,12 +8,13 @@
  */
 
 import React, { useState } from 'react'
-import { Stack, TextField, Typography } from '@mui/material'
+import { Stack, TextField } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
 import { updateSwimlane } from '../Board.APIs'
 import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
+import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
 
 interface UpdateSwimlaneOverlayProps {
@@ -75,17 +76,18 @@ export const UpdateSwimlaneOverlay: React.FC<UpdateSwimlaneOverlayProps> = ({ op
     }
 
     return (
-        <ArcOverlay open={open} onClose={onClose} onSubmit={handleSubmit}>
-            <Stack spacing={2}>
-                <Typography variant="h6">Edit Swimlane</Typography>
-
+        <ArcOverlay open={open}
+                    onClose={onClose}
+                    onSubmit={handleSubmit}
+                    title="Edit swimlane"
+                    titleStock="red">
+            <Stack spacing={1.5}>
                 <ArcExpandingSelector options={swimlanes.map(swimlane => swimlane.title)}
                                       onSelect={handleSelectSwimlane}
                                       placeholder="Select swimlane to edit" />
 
-                <TextField label="New Title"
-                           variant="filled"
-                           helperText="Swimlane Title"
+<TextField {...paperField()}
+                           placeholder="New title"
                            value={replacementTitle}
                            onChange={e => setReplacementTitle(e.target.value)}
                            fullWidth />

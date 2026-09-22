@@ -17,12 +17,13 @@
  */
 
 import React, { useState } from 'react'
-import { Stack, TextField, Typography } from '@mui/material'
+import { Stack, TextField } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
 import { updateColumn } from '../Board.APIs'
 import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
+import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
 
 interface UpdateColumnOverlayProps {
@@ -84,17 +85,18 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
     }
 
     return (
-        <ArcOverlay open={open} onClose={onClose} onSubmit={handleSubmit}>
-            <Stack spacing={2}>
-                <Typography variant="h6">Edit Column</Typography>
-
+        <ArcOverlay open={open}
+                    onClose={onClose}
+                    onSubmit={handleSubmit}
+                    title="Edit column"
+                    titleStock="blue">
+            <Stack spacing={1.5}>
                 <ArcExpandingSelector options={columns.map(column => column.title)}
                                       onSelect={handleSelectColumn}
                                       placeholder="Select column to edit" />
 
-                <TextField label="New Title"
-                           variant="filled"
-                           helperText="Column Title"
+<TextField {...paperField()}
+                           placeholder="New title"
                            value={replacementTitle}
                            onChange={e => setReplacementTitle(e.target.value)}
                            fullWidth />

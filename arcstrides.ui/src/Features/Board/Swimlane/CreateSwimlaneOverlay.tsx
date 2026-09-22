@@ -8,11 +8,12 @@
  */
 
 import React, { useState } from 'react'
-import { Stack, TextField, Typography } from '@mui/material'
+import { Stack, TextField } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { createSwimlane } from '../Board.APIs'
 import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
+import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
 
 interface CreateSwimlaneOverlayProps {
@@ -47,20 +48,21 @@ export const CreateSwimlaneOverlay: React.FC<CreateSwimlaneOverlayProps> = ({ op
     }
 
     return (
-        <ArcOverlay open={open} onClose={onClose} onSubmit={handleSubmit}>
-            <Stack spacing={2}>
-                <Typography variant="h6">Add a New Swimlane</Typography>
-
-                <TextField label="Title"
-                           variant="filled"
-                           helperText="Swimlane Title"
+        <ArcOverlay open={open}
+                    onClose={onClose}
+                    onSubmit={handleSubmit}
+                    title="Add a swimlane"
+                    titleStock="red">
+            <Stack spacing={1.5}>
+                <TextField {...paperField()}
+                           placeholder="Swimlane title"
                            value={title}
                            onChange={e => setTitle(e.target.value)}
                            fullWidth />
 
-                <TextField label="Order"
-                           variant="filled"
-                           helperText={`Swimlane Order (leave blank to append at position ${swimlanes.length})`}
+                <TextField {...paperField()}
+                           placeholder="Order"
+                           helperText={`Leave blank to append at position ${swimlanes.length}`}
                            value={orderInput}
                            onChange={e => setOrderInput(e.target.value)}
                            inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}

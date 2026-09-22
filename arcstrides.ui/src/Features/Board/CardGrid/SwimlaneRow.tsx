@@ -59,8 +59,18 @@ export const SwimlaneRow: React.FC<SwimlaneRowProps> = ({
                        alignItems: 'stretch',
                        gap: BOARD_GAP,
                        p: BOARD_GAP }}>
-                {/* Mirrors: MudPaper Width="110px" Style="background-color: lightcoral" */}
-                <Paper sx={{ // Spread, not nested. SWIMLANE_LABEL_WIDTH is itself a
+                {/*
+                    Was: MudPaper Width="110px" Style="background-color: lightcoral".
+
+                    The lane's colour is now a bar down its leading edge rather
+                    than a flat fill, which is how the reference carries it: the
+                    panel is the same strip the column headers use, so the two
+                    read as one system, and the colour marks the lane without
+                    being the whole of it.
+                */}
+                <Paper className="aero-strip"
+                       elevation={0}
+                       sx={{ // Spread, not nested. SWIMLANE_LABEL_WIDTH is itself a
                              // breakpoint map, so `{ [STACK_LABEL_BELOW]: SWIMLANE_LABEL_WIDTH }`
                              // would hand MUI a map as a *value*; it cannot resolve that,
                              // drops the entry silently, and `xs: '100%'` then cascades to
@@ -68,10 +78,11 @@ export const SwimlaneRow: React.FC<SwimlaneRowProps> = ({
                              // wide and shoved the cells off the board. Spreading merges the
                              // token's own sm/md entries in as siblings; the trailing
                              // `xs: '100%'` overrides the token's xs for the stacked case.
-                             width: { ...SWIMLANE_LABEL_WIDTH, xs: '100%' },
+                       width: { ...SWIMLANE_LABEL_WIDTH, xs: '100%' },
                              flexShrink: 0,
                              alignSelf: { xs: 'stretch', [STACK_LABEL_BELOW]: 'center' },
-                             backgroundColor: 'arc.swimlaneLabel',
+                             position: 'relative',
+                             overflow: 'hidden',
                              // The page root sets textAlign: 'center', which inherits all
                              // the way down here and positions the inline-block label. It
                              // has to be overridden on this box, not on the Typography:
@@ -90,10 +101,28 @@ export const SwimlaneRow: React.FC<SwimlaneRowProps> = ({
                         disappearing, which matters most on exactly the narrow screens
                         where the label had to stack.
                     */}
+                    {/*
+                        The lane's colour, as a bar down its leading edge.
+
+                        A real element rather than a border or a box-shadow: both
+                        of those are already set by .aero-strip in plain CSS,
+                        which beats sx at equal specificity in this app — the
+                        first attempt set borderLeft from sx and it silently did
+                        nothing.
+                    */}
+                    <Box aria-hidden
+                         sx={{ position: 'absolute',
+                               left: 0,
+                               top: 0,
+                               bottom: 0,
+                               width: '3px',
+                               backgroundColor: 'arc.swimlaneLabel' }} />
+
                     <Typography sx={{ fontFamily: CONDENSED,
-                                      fontSize: 'small',
-                                      fontWeight: 'bold',
-                                      color: 'black',
+                                      fontSize: '0.78rem',
+                                      fontWeight: 700,
+                                      letterSpacing: '0.04em',
+                                      color: 'arc.onPaperStrong',
                                       overflowWrap: 'anywhere',
                                       position: { xs: 'sticky', [STACK_LABEL_BELOW]: 'static' },
                                       left: 0,

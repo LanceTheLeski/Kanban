@@ -444,14 +444,19 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
                 )}
 
                 {/*
-                    One piece of card per task, laid on the tray. card-stock-flat
-                    rather than card-stock: a row is one ply up from the floor it
-                    sits on, not four, and giving it the panel's shadow is what
-                    makes layered paper look like clip art.
+                    One piece of card per task, laid on the tray, in the same
+                    green the timeline's own tab is cut from — a task is the
+                    scheduled unit of work, and the two places that say so now
+                    say it in the same colour.
+
+                    card-stock-flat rather than card-stock: a row is one ply up
+                    from the floor it sits on, not four, and giving it the
+                    panel's shadow is what makes layered paper look like clip
+                    art.
                 */}
                 {tasks.map(task => (
                     <ListItem key={task.id || task.title}
-                              className="card-stock-flat card-tilt"
+                              className="card-stock-flat card-tilt paper-green"
                               disablePadding
                               sx={{ pr: 0.25 }}>
                         {/* The popover trigger takes the row; the bin sits at the end */}

@@ -51,6 +51,8 @@ export const ColumnHeaderRow: React.FC<ColumnHeaderRowProps> = ({ columns }) => 
 
         {columns.map(column => (
             <Paper key={column.id}
+                   className="aero-strip"
+                   elevation={0}
                    sx={{ width: COLUMN_WIDTH,
                          // rem, not 40: this floor exists to hold one line of the
                          // title, so it has to grow with it.
@@ -61,10 +63,18 @@ export const ColumnHeaderRow: React.FC<ColumnHeaderRowProps> = ({ columns }) => 
                          flexShrink: 0,
                          px: 1,
                          py: 0.5 }}>
+                {/*
+                    Uppercase and letterspaced, which is what a column name is:
+                    a heading over a stack of things, not one of the things. The
+                    condensed face stays, because the names are user-written and
+                    a narrow one fits more of a long name before it wraps.
+                */}
                 <Typography sx={{ fontFamily: CONDENSED,
-                                  fontSize: 'small',
-                                  fontWeight: 'bold',
-                                  color: 'black',
+                                  fontSize: '0.78rem',
+                                  fontWeight: 700,
+                                  letterSpacing: '0.09em',
+                                  textTransform: 'uppercase',
+                                  color: 'arc.onPaperStrong',
                                   // Column names are user-written; let a long one wrap
                                   // rather than clip, since the header grows to fit.
                                   textAlign: 'center',

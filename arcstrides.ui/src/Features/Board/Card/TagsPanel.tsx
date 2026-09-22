@@ -84,7 +84,7 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange }) => {
     const remove = (id: string) => onChange(tags.filter(tag => tag.id !== id))
 
     return (
-        <Paper className="card-stock"
+        <Paper className="card-stock paper-blue"
                sx={{ // Shrinks before the title does, and never grows past its share.
                      flex: `0 1 ${TAGS_BOX_WIDTH}`,
                      minWidth: 0,
@@ -128,14 +128,21 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange }) => {
 
                 {/*
                     Each tag is its own small piece of card, set down at a
-                    fraction of a degree off square. They used to be round
+                    fraction of a degree off square, and cut from a different
+                    stock than the panel under them. They used to be round
                     translucent lozenges, which is the right shape for a chip on
                     glass and the wrong one on a panel that is itself a piece of
                     card — the pills read as holes punched in it.
+
+                    Red on blue for now. The colour will eventually come from
+                    the tag's own group, once the API can tell us which tags a
+                    card has; until then one stock says "these are a different
+                    kind of thing from the board they are pinned to", which is
+                    the part that has to read.
                 */}
                 {tags.map(tag => (
                     <Box key={tag.id}
-                         className="card-stock-flat card-tilt"
+                         className="card-stock-flat card-tilt paper-red"
                          sx={{ display: 'inline-flex',
                                alignItems: 'center',
                                gap: 0.1,

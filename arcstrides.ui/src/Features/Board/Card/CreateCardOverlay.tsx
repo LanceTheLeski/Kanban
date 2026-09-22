@@ -19,12 +19,13 @@
  */
 
 import React, { useState } from 'react'
-import { Stack, TextField, Typography } from '@mui/material'
+import { Stack, TextField } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
 import { createCard } from '../Board.APIs'
 import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
+import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
 
 interface CreateCardOverlayProps {
@@ -88,20 +89,19 @@ export const CreateCardOverlay: React.FC<CreateCardOverlayProps> = ({ open, onCl
     }
 
     return (
-        <ArcOverlay open={open} onClose={onClose} onSubmit={handleSubmit}>
-            <Stack spacing={2}>
-                <Typography variant="h6">Add a New Card</Typography>
-
-                <TextField label="Title"
-                           variant="filled"
-                           helperText="Card Title"
+        <ArcOverlay open={open}
+                    onClose={onClose}
+                    onSubmit={handleSubmit}
+                    title="Add a card">
+            <Stack spacing={1.5}>
+                <TextField {...paperField()}
+                           placeholder="Card title"
                            value={cardTitle}
                            onChange={e => setCardTitle(e.target.value)}
                            fullWidth />
 
-                <TextField label="Description"
-                           variant="filled"
-                           helperText="Card Description"
+                <TextField {...paperField()}
+                           placeholder="Card description"
                            value={cardDescription}
                            onChange={e => setCardDescription(e.target.value)}
                            multiline

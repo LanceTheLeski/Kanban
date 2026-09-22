@@ -282,10 +282,29 @@ body,
    saturate() keeps the colours behind from going flat and grey once blurred —
    it is the same pairing the original draft used, at 180% rather than 200%
    because the gradients already carry their own colour.
+
+   ── Why the blur went from 5px to 14px ──────────────────────────────────────
+   5px was chosen when every panel inside the overlay was a translucent recess:
+   the sharpen filter on .glass-inner-engraved needed a lightly-blurred backdrop
+   to pull detail back out of, and a heavy blur would have left it nothing to
+   recover.
+
+   The panels are card stock now, and opaque, so transparency only shows in the
+   few pixels *between* them. At 5px that slot was a window onto whatever board
+   cell happened to be under it — a hard-edged olive band a few pixels tall,
+   ending in a straight line where the task tray's own backdrop-filter took
+   over. It looked like a rendering fault, and it was reported as a bad shadow.
+
+   It is not the shadow. Rendered six ways to be sure: the band survives with
+   every shadow removed, and survives with the tray's filter removed, and
+   disappears the moment the pane stops showing distinct board shapes. Blur is
+   what removes the shapes — at 14px the board reads as a diffuse tint, so the
+   slot between two pieces of card reads as the pane's own material, which is
+   what it is.
 */
 .glass {
-    -webkit-backdrop-filter: blur(5px) saturate(180%);
-    backdrop-filter: blur(5px) saturate(180%);
+    -webkit-backdrop-filter: blur(14px) saturate(180%);
+    backdrop-filter: blur(14px) saturate(180%);
 }
 
 /*
@@ -348,6 +367,15 @@ body,
    white top edge fading to 3%. What is behind is what you see; the film is the
    sheen on top of it, not a coat of paint.
 
+   ── And why .22 became .35 ─────────────────────────────────────────────────
+   Same reason as the blur above. .22 was the alpha at which the board's own
+   colours came through an overlay whose panels were themselves see-through.
+   With card on top, what .22 bought was a thin bright slot between the pieces
+   rather than a ground for them to lie on. .35 with the heavier blur is the
+   lightest pair that reads as one continuous material — measured against .48
+   and .60, both of which also work and both of which give up more than they
+   need to.
+
    ── The rim is what is left of the material ────────────────────────────────
    With the fill this thin, the box-shadow does nearly all the work: a bright
    specular line along the top edge where a curved film catches the light, a
@@ -365,9 +393,9 @@ body,
     background:
         linear-gradient(
             140deg,
-            rgba(202, 217, 229, .22),
-            rgba(98, 147, 185, .22) 50%,
-            rgba(98, 147, 185, .27) 100%
+            rgba(202, 217, 229, .35),
+            rgba(98, 147, 185, .35) 50%,
+            rgba(98, 147, 185, .40) 100%
         ) padding-box,
         linear-gradient(140deg, rgba(255, 255, 255, .20), rgba(58, 76, 111, .20) 50%) border-box;
 }
@@ -394,11 +422,18 @@ body,
        referenced filter is missing, and an invalid filter chain drops the
        saturation with it. The first declaration is the floor every browser gets;
        the second upgrades it where the filter resolves.
+
+       260% became 140% when the pane went to .35. The multiplier was chosen
+       against a pane thin enough that most of what it saturated was the board
+       behind; against a pane carrying its own blue it saturated the blue, and a
+       tray holding four green cards turned into a vivid blue block louder than
+       anything in it. Rendered at 100, 110, 140, 180 and 260: 140 is where the
+       recess reads as slate and the cards in it still carry their colour.
     */
-    -webkit-backdrop-filter: saturate(260%);
-    backdrop-filter: saturate(260%);
-    -webkit-backdrop-filter: saturate(260%) url("#arc-sharpen");
-    backdrop-filter: saturate(260%) url("#arc-sharpen");
+    -webkit-backdrop-filter: saturate(140%);
+    backdrop-filter: saturate(140%);
+    -webkit-backdrop-filter: saturate(140%) url("#arc-sharpen");
+    backdrop-filter: saturate(140%) url("#arc-sharpen");
     /*
        ── Why this read as an overlay rather than a recess ────────────────────
        The rim above was a bright 1px line along the TOP edge with a faint one
@@ -505,6 +540,44 @@ body,
        read as hand-laid rather than rendered.
     */
     --arc-paper-face: linear-gradient(178deg, #fdf9f0, #f0ead9);
+    /* The cut edge. Darker than the stock, and takes its hue, so coloured board
+       does not get a brown rim. */
+    --arc-paper-edge: rgba(40, 26, 14, .32);
+}
+
+/* ── Coloured stock ───────────────────────────────────────────────────────────
+   The same board, dyed. Each of these sets nothing but the three custom
+   properties, so a coloured piece keeps the grain, the lighting and both
+   depths without restating any of it — and a panel and the chips on it can be
+   different colours while still reading as the same material.
+
+   They are pale on purpose. A saturated chip on a saturated panel is two
+   competing signals; a pale panel with a saturated chip on it is a panel with
+   something *on* it, which is the whole point of layering them.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.paper-blue {
+    --arc-paper: #cfdfef;
+    --arc-paper-face: linear-gradient(178deg, #dceaf8, #c2d5e8);
+    --arc-paper-edge: rgba(26, 52, 78, .34);
+}
+
+.paper-red {
+    --arc-paper: #e8b5ac;
+    --arc-paper-face: linear-gradient(178deg, #f2c8c0, #dda69c);
+    --arc-paper-edge: rgba(92, 32, 24, .4);
+}
+
+.paper-green {
+    --arc-paper: #cfe6dc;
+    --arc-paper-face: linear-gradient(178deg, #dcf0e7, #c1dbcf);
+    --arc-paper-edge: rgba(22, 66, 54, .32);
+}
+
+.paper-yellow {
+    --arc-paper: #ecdca6;
+    --arc-paper-face: linear-gradient(178deg, #f6e9bd, #e0cd94);
+    --arc-paper-edge: rgba(84, 66, 20, .36);
 }
 
 .card-stock,
@@ -530,36 +603,60 @@ body,
 }
 
 /*
-   ── Why these are darker than the reference they came from ──────────────────
-   The mockup sets its card on a mid-tone tray, which does half the work of
-   separating the two. This app's pane is pale glass, and against it the first
-   attempt at these values was measurably present and visually absent — the
-   panels read as flat regions of a lighter colour. A shadow is only a shadow
-   relative to what it falls on.
+   ── The shadow ramp, and the way it was wrong ───────────────────────────────
+   A real shadow is darkest where the piece touches down and fades as it
+   spreads: the contact shadow is nearly opaque and a pixel wide, the penumbra
+   is wide and almost nothing. The first version of this had that backwards —
+   the widest blur carried the *highest* alpha, .62 against .4 and .38 for the
+   two tighter ones.
 
-   Three shadows do the lifting, and they are three because one cannot:
-     · a hairline ring, which is the cut edge of the board;
-     · a tight contact shadow, which is where the piece touches down;
-     · a long soft one, which is the distance it stands off the pane.
-   Drop the contact shadow and the piece floats; drop the long one and it is
-   glued down.
+   What that produces is not a shadow, it is a dark band sitting a fixed
+   distance below every panel, with an edge of its own. Over the board's olive
+   cells it went muddy yellow-brown, and where the task tray's lip cut across
+   it the band ended in a straight line. That line is what it looks like when a
+   shadow is opaque enough to have a silhouette.
+
+   So: alpha falls as blur grows, across three stops.
+     · a hairline ring, which is the cut edge of the board — not a shadow;
+     · a tight contact shadow, where the piece touches down;
+     · two wider, fainter ones for the penumbra.
+
+   ── And why the colour is no longer warm ────────────────────────────────────
+   It was rgba(18, 9, 5, …) — a warm near-black, which is right for card on
+   card. These fall on glass, and through the glass on whatever the board is
+   showing. A warm shadow over a saturated olive cell reads as dirt rather than
+   as an absence of light. Neutral, very slightly cool, reads as shadow over
+   every ground this app has.
 */
 .card-stock {
     box-shadow:
         inset 0 1px 0 0 rgba(255, 255, 255, .85),
-        inset 0 -1px 0 0 rgba(52, 36, 20, .2),
-        0 0 0 1px rgba(40, 26, 14, .38),
-        0 2px 3px -1px rgba(26, 14, 8, .4),
-        0 14px 24px -8px rgba(18, 9, 5, .62);
+        inset 0 -1px 0 0 rgba(52, 36, 20, .18),
+        0 0 0 1px var(--arc-paper-edge),
+        0 1px 1.5px rgba(26, 24, 28, .3),
+        0 4px 7px -3px rgba(26, 24, 28, .2),
+        0 12px 22px -8px rgba(26, 24, 28, .14);
 }
 
 .card-stock-flat {
     box-shadow:
-        inset 0 1px 0 0 rgba(255, 255, 255, .8),
-        inset 0 -1px 0 0 rgba(52, 36, 20, .16),
-        0 0 0 1px rgba(40, 26, 14, .3),
-        0 1px 2px rgba(26, 14, 8, .34),
-        0 5px 9px -4px rgba(18, 9, 5, .4);
+        inset 0 1px 0 0 rgba(255, 255, 255, .78),
+        inset 0 -1px 0 0 rgba(52, 36, 20, .15),
+        0 0 0 1px var(--arc-paper-edge),
+        0 1px 1.5px rgba(26, 24, 28, .26),
+        0 3px 6px -3px rgba(26, 24, 28, .16);
+}
+
+/*
+   A round piece.
+
+   .card-stock-flat squares its corners off, which is right for a strip and
+   wrong for the rail's nodes — a punched disc has no corners. Declared after
+   it, at equal specificity, so source order decides and neither needs an
+   !important.
+*/
+.card-disc {
+    border-radius: 50%;
 }
 
 /*
@@ -585,4 +682,145 @@ body,
 
 @media (prefers-reduced-motion: reduce) {
     .card-tilt { transform: none; }
+}
+
+/* ── Pickers ──────────────────────────────────────────────────────────────────
+   The date and time popups, as card.
+
+   They portal to <body>, outside the overlay entirely, so they cannot inherit
+   anything and they cannot be given a className from the call site without
+   threading slotProps through every picker in the app. Styling them here by
+   their own classes reaches all of them at once, which is the point: there is
+   one date picker design, not one per caller.
+
+   What they looked like before: MUI's default popup on this theme's
+   `background.paper`, which is #69B4EC — a mid blue, against near-black day
+   numbers. Legible, and belonging to nothing else on screen.
+
+   The day chips are the part worth having. A calendar is a grid of targets, and
+   a target you can see the edge of is easier to hit than a number with a hover
+   state. Each day is a small disc of board; the chosen one is cut from the blue
+   stock the rail's set nodes use, so "chosen" means the same thing in both
+   places.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.MuiPickersPopper-paper,
+.MuiPickersPopper-root .MuiPaper-root {
+    background-color: var(--arc-paper);
+    background-image: var(--arc-paper-grain), var(--arc-paper-face);
+    color: #22262c;
+    border-radius: 3px;
+    box-shadow:
+        inset 0 1px 0 0 rgba(255, 255, 255, .85),
+        0 0 0 1px var(--arc-paper-edge),
+        0 2px 4px rgba(26, 24, 28, .3),
+        0 10px 20px -6px rgba(26, 24, 28, .3),
+        0 24px 48px -12px rgba(26, 24, 28, .22);
+}
+
+/* The month name, the arrows, and the weekday initials. */
+.MuiPickersCalendarHeader-label,
+.MuiPickersCalendarHeader-switchViewButton,
+.MuiPickersArrowSwitcher-button {
+    color: #2c3641;
+}
+
+.MuiDayCalendar-weekDayLabel {
+    color: #5a6572;
+    font-weight: 600;
+}
+
+/*
+   One disc of board per day. Flat, because they sit on the popup's own sheet —
+   the same one-ply-up rule the task rows follow.
+*/
+.MuiPickersDay-root:not(.MuiPickersDay-hiddenDaySpacingFiller) {
+    background-color: var(--arc-paper);
+    background-image: var(--arc-paper-grain), var(--arc-paper-face);
+    color: #22262c;
+    font-weight: 600;
+    box-shadow:
+        inset 0 1px 0 0 rgba(255, 255, 255, .7),
+        0 0 0 1px var(--arc-paper-edge),
+        0 1px 1.5px rgba(26, 24, 28, .26);
+}
+
+.MuiPickersDay-root:not(.MuiPickersDay-hiddenDaySpacingFiller):hover {
+    /* Lifted rather than tinted: it is a piece of board, so reaching for it
+       picks it up. */
+    box-shadow:
+        inset 0 1px 0 0 rgba(255, 255, 255, .8),
+        0 0 0 1px var(--arc-paper-edge),
+        0 2px 4px rgba(26, 24, 28, .3),
+        0 5px 9px -3px rgba(26, 24, 28, .2);
+}
+
+/* Today is outlined; chosen is cut from the blue stock. */
+.MuiPickersDay-root.MuiPickersDay-today:not(.Mui-selected) {
+    outline: 2px solid rgba(45, 111, 156, .55);
+    outline-offset: -2px;
+}
+
+.MuiPickersDay-root.Mui-selected,
+.MuiPickersDay-root.Mui-selected:hover,
+.MuiPickersDay-root.Mui-selected:focus {
+    --arc-paper: #a9c9e6;
+    --arc-paper-face: linear-gradient(178deg, #bcd8ef, #93b8db);
+    --arc-paper-edge: rgba(26, 52, 78, .45);
+    color: #12283c;
+}
+
+/* A day outside the shown month, and a disabled one, are unprinted board. */
+.MuiPickersDay-root.Mui-disabled:not(.MuiPickersDay-hiddenDaySpacingFiller) {
+    color: #9aa2ab;
+    box-shadow: 0 0 0 1px rgba(40, 26, 14, .16);
+}
+
+/* The time list, which is the same idea in a column. */
+.MuiMultiSectionDigitalClockSection-item,
+.MuiDigitalClock-item {
+    color: #2c3641;
+    font-weight: 600;
+    border-radius: 3px;
+}
+
+.MuiMultiSectionDigitalClockSection-item.Mui-selected,
+.MuiDigitalClock-item.Mui-selected {
+    background-color: #a9c9e6;
+    color: #12283c;
+}
+
+/* ── Aero strip ───────────────────────────────────────────────────────────────
+   The board's own furniture: column headers and swimlane labels.
+
+   These were flat blocks of colour — a MUI Paper on its default blue for the
+   columns, `lightcoral` for the lanes — carrying bold condensed black text.
+   That is what the Blazor original did and it is legible, but it is the only
+   thing on the board with no material to it, which showed once everything else
+   grew one.
+
+   The recipe is the reference UI's, which uses the same strip for both: a
+   near-white film over a blurred backdrop, a bright inner top edge, a hairline
+   all round, and a long soft shadow. Four inset highlights rather than one,
+   because what separates this from "a translucent rectangle" is that the light
+   catches the top edge, the bottom edge and the inside of the rim differently.
+
+   It is a *strip*, not a piece of card: the board furniture is part of the
+   window, and the cards are the things laid on it. Giving the headers card
+   stock too would have made the board one undifferentiated pile.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.aero-strip {
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, .7);
+    background: linear-gradient(rgba(255, 255, 255, .42), rgba(196, 220, 244, .22));
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    backdrop-filter: blur(16px) saturate(1.4);
+    box-shadow:
+        inset 0 1px 0 0 rgba(255, 255, 255, .98),
+        inset 0 0 0 1px rgba(255, 255, 255, .44),
+        inset 0 -1px 0 0 rgba(255, 255, 255, .58),
+        inset 0 20px 26px -22px rgba(255, 255, 255, .95),
+        0 0 0 1px rgba(30, 16, 10, .12),
+        0 10px 24px -14px rgba(30, 16, 10, .55);
 }

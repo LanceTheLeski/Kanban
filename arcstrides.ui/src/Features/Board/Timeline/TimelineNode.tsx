@@ -55,29 +55,27 @@ export const TimelineNode: React.FC<TimelineNodeProps> = ({ spec, value, isOpen,
                               pb: 0.25,
                               '&:hover': { backgroundColor: 'arc.paperHover' } }}>
 
-                {/* Dot */}
+                {/*
+                    The dot is a disc punched from card and laid on the rail, in
+                    the same stock as everything else in the panel. A set point
+                    is cut from blue board, an unset one from the panel's own
+                    cream — so "has a date" reads as a different *material*
+                    rather than as a different fill, which is what keeps it
+                    legible at 13px.
+                */}
                 <Box sx={{ height: DOT_ROW_HEIGHT,
                            display: 'flex',
                            alignItems: 'center',
                            justifyContent: 'center',
                            zIndex: 1 }}>
-                    <Box sx={{ width: DOT,
+                    <Box className={`card-stock-flat card-disc${isSet ? ' paper-blue' : ''}`}
+                         sx={{ width: DOT,
                                height: DOT,
-                               borderRadius: '50%',
-                               border: '2px solid',
-                               borderColor: isOpen ? 'arc.paperAccent' : 'arc.onPaper',
-                               // An unset dot is hollow, but it still has to sit
-                               // *on* the rail rather than let the line run
-                               // through it — hence a fill either way, and only
-                               // the colour saying which it is. Unset is the
-                               // card's own colour, so it reads as a hole
-                               // punched in the line.
-                               backgroundColor: isSet ? 'arc.paperAccent' : 'arc.railNodeEmpty',
-                               // The resting halo is the card colour too, which
-                               // is what keeps the rail from touching the dot.
-                               boxShadow: isOpen
-                                   ? '0 0 0 3px rgba(45,111,156,.3)'
-                                   : '0 0 0 2px var(--arc-paper)' }} />
+                               // The open node gets a ring rather than a fill, so
+                               // the selection reads on both stocks.
+                               outline: isOpen ? '2px solid' : 'none',
+                               outlineColor: 'arc.paperAccent',
+                               outlineOffset: '1px' }} />
                 </Box>
 
                 {/* Label */}

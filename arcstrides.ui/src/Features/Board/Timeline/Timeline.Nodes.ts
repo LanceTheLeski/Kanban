@@ -76,10 +76,19 @@ export const NODES_FOR: Record<TimelineMode, NodeId[]> = {
     timeline: ['preferredStart', 'requiredStart', 'preferredEnd', 'requiredEnd'],
 }
 
-export const MODES: { value: TimelineMode; label: string; colour: string }[] = [
-    { value: 'deadline', label: 'Deadline', colour: 'arc.deadlineMode' },
-    { value: 'timeline', label: 'Timeline', colour: 'arc.timelineMode' },
-    { value: 'timeless', label: 'Timeless', colour: 'arc.timelessMode' },
+/**
+ * The three modes, each cut from its own stock.
+ *
+ * `stock` names a .paper-* class rather than a palette entry, because a tab is
+ * a piece of card and the class carries the grain and the lighting with the
+ * colour. Which one is chosen is said by lifting it — .card-stock rather than
+ * .card-stock-flat — not by filling it, so the three read as one control with a
+ * piece pushed forward rather than as two off and one on.
+ */
+export const MODES: { value: TimelineMode; label: string; stock: string }[] = [
+    { value: 'deadline', label: 'Deadline', stock: 'paper-yellow' },
+    { value: 'timeline', label: 'Timeline', stock: 'paper-green' },
+    { value: 'timeless', label: 'Timeless', stock: 'paper-red' },
 ]
 
 // ── What a node is set to ─────────────────────────────────────────────────────

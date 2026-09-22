@@ -60,18 +60,42 @@ export const CommandPanel: React.FC<CommandPanelProps> = ({ card }) => {
         append(...respondTo(entered, card))
     }
 
+    /*
+       ── The panel is a tray, not a piece ─────────────────────────────────────
+       It was one sheet of card carrying its heading, its transcript and its
+       prompt. Three different jobs on one surface, and the heading in
+       particular had nothing to stand on — it was letterspaced caps floating on
+       the same ground as the text below it.
+
+       So it is built the way the task list is: an engraved tray holding
+       separate pieces. A chip for the heading, a sheet for the transcript, and
+       a strip for the prompt. That also gives the transcript somewhere to
+       scroll *inside*, rather than scrolling against the panel's own edge.
+
+       The prompt is card rather than a recess, which was the open question.
+       Tried both: a recess makes the panel read as two holes with a sheet
+       between them, and the prompt is a thing you write on, which is what card
+       is for here.
+    */
     return (
-        <Paper className="card-stock"
-               sx={{ p: 1,
+        <Paper className="glass-inner-engraved"
+               sx={{ p: 0.75,
                      display: 'flex',
                      flexDirection: 'column',
-                     gap: 0.5,
+                     gap: 0.75,
                      minWidth: COMMAND_PANEL_MIN_WIDTH,
                      flex: 1,
                      minHeight: 0,
                      height: '100%' }}>
 
-            <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, flexShrink: 0 }}>
+            <Box className="card-stock"
+                 sx={{ display: 'flex',
+                       alignItems: 'baseline',
+                       gap: 1,
+                       flexShrink: 0,
+                       alignSelf: 'flex-start',
+                       px: 0.75,
+                       py: 0.25 }}>
                 <Typography sx={{ fontSize: '0.7rem',
                                   fontWeight: 700,
                                   color: 'arc.onPaperStrong',
@@ -87,22 +111,28 @@ export const CommandPanel: React.FC<CommandPanelProps> = ({ card }) => {
             </Box>
 
             <Box ref={transcriptRef}
-                 sx={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+                 className="card-stock"
+                 sx={{ flex: 1,
+                       minHeight: 0,
+                       overflowY: 'auto',
+                       display: 'flex',
+                       flexDirection: 'column',
+                       px: 0.75,
+                       py: 0.5 }}>
                 {entries.length === 0
                     ? <EmptyTranscript />
                     : entries.map(entry => <CommandEntry key={entry.id} entry={entry} />)}
             </Box>
 
-            <Box sx={{ display: 'flex',
+            <Box className="card-stock"
+                 sx={{ display: 'flex',
                        alignItems: 'center',
                        gap: 0.5,
                        flexShrink: 0,
                        px: 0.75,
-                       borderRadius: 1,
-                       border: '1px solid',
-                       borderColor: 'arc.paperDivider',
-                       backgroundColor: 'arc.paperField',
-                       '&:focus-within': { borderColor: 'arc.paperAccent' } }}>
+                       '&:focus-within': { outline: '2px solid',
+                                           outlineColor: 'arc.paperAccent',
+                                           outlineOffset: '-1px' } }}>
 
                 <Box component="span"
                      sx={{ fontFamily: MONO,

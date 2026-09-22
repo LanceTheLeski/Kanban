@@ -29,7 +29,8 @@ interface TimelineRailProps {
 export const TimelineRail: React.FC<TimelineRailProps> = ({ nodes, values, openNode, onToggle }) => (
     <Box sx={{ position: 'relative', display: 'flex', flexShrink: 0 }}>
         {/*
-            The connecting line, inset to the centres of the first and last dots.
+            The connecting line: a strip of card laid between the first and last
+            dots, which then sit on top of it.
             Each node is an equal fraction of the row, so a node's centre sits at
             (1 / count / 2) from its own edge — half a node in from each end.
 
@@ -39,12 +40,15 @@ export const TimelineRail: React.FC<TimelineRailProps> = ({ nodes, values, openN
         */}
         {nodes.length > 1 && (
             <Box aria-hidden
+                 className="card-stock-flat"
                  sx={{ position: 'absolute',
                        left: `${100 / nodes.length / 2}%`,
                        right: `${100 / nodes.length / 2}%`,
-                       top: NODE_PAD_Y + DOT_ROW_HEIGHT / 2 - 1,
-                       height: '2px',
-                       backgroundColor: 'arc.railLine' }} />
+                       // 4px rather than 2: a strip of card has a thickness, and
+                       // at 2px the cut edge and the face have no room to be
+                       // two different things.
+                       top: NODE_PAD_Y + DOT_ROW_HEIGHT / 2 - 2,
+                       height: '4px' }} />
         )}
 
         {nodes.map(node => (

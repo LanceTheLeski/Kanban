@@ -15,11 +15,12 @@
  */
 
 import React, { useState } from 'react'
-import { Stack, TextField, Typography } from '@mui/material'
+import { Stack, TextField } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { createColumn } from '../Board.APIs'
 import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
+import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
 
 interface CreateColumnOverlayProps {
@@ -54,20 +55,21 @@ export const CreateColumnOverlay: React.FC<CreateColumnOverlayProps> = ({ open, 
     }
 
     return (
-        <ArcOverlay open={open} onClose={onClose} onSubmit={handleSubmit}>
-            <Stack spacing={2}>
-                <Typography variant="h6">Add a New Column</Typography>
-
-                <TextField label="Title"
-                           variant="filled"
-                           helperText="Column Title"
+        <ArcOverlay open={open}
+                    onClose={onClose}
+                    onSubmit={handleSubmit}
+                    title="Add a column"
+                    titleStock="blue">
+            <Stack spacing={1.5}>
+                <TextField {...paperField()}
+                           placeholder="Column title"
                            value={title}
                            onChange={e => setTitle(e.target.value)}
                            fullWidth />
 
-                <TextField label="Order"
-                           variant="filled"
-                           helperText={`Column Order (leave blank to append at position ${columns.length})`}
+                <TextField {...paperField()}
+                           placeholder="Order"
+                           helperText={`Leave blank to append at position ${columns.length}`}
                            value={orderInput}
                            onChange={e => setOrderInput(e.target.value)}
                            inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}

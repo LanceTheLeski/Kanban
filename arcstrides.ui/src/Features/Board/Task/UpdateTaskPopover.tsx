@@ -23,6 +23,7 @@
 
 import React, { useEffect, useRef, useState } from 'react'
 import { Box, Button, Checkbox, FormControlLabel, TextField, Typography } from '@mui/material'
+import { paperField } from '../../../Styles/Paper'
 import { ArcPopover } from '../../../Components/ArcPopover'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
 import { UpdateTimelinePanel } from '../Timeline/UpdateTimelinePanel'
@@ -243,12 +244,13 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                         */
                         triggerOpenSx={{ backgroundColor: 'arc.paperSelected',
                                          color: 'arc.onPaperStrong' }}
+                        title="Task"
+                        titleStock="green"
                         anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
                         transformOrigin={{ vertical: 'center', horizontal: 'left' }}>
                 <Box sx={{ width: TASK_POPOVER_WIDTH, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <TextField label="Title"
-                               variant="filled"
-                               helperText="Task Title"
+                    <TextField {...paperField('green')}
+                               placeholder="Task title"
                                value={title}
                                onChange={e => setTitle(e.target.value)}
                                fullWidth />

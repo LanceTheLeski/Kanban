@@ -35,6 +35,7 @@ import {
 } from '@mui/material'
 import { MONO } from '../Styles/Fonts'
 import { ArcActionBar, type ArcAction } from './ArcActionBar'
+import { ArcTitleBar, type TitleStock } from './ArcTitleBar'
 import { POPOVER_MIN_WIDTH } from '../Styles/Measures'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -85,6 +86,10 @@ export interface ArcPopoverProps {
      * the open row's title white on off-white.
      */
     triggerOpenSx?: SxProps<Theme>
+    /** The popover's heading, as a strip of card across the top. */
+    title?: React.ReactNode
+    /** Which stock the title strip is cut from. See ArcTitleBar. */
+    titleStock?: TitleStock
     /** Where the popover attaches to the trigger — mirrors AnchorOrigin */
     anchorOrigin?: PopoverOrigin
     /** Where the popover transforms from — mirrors TransformOrigin */
@@ -113,6 +118,8 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
     triggerSize = 'medium',
     triggerSx,
     triggerOpenSx,
+    title,
+    titleStock,
     anchorOrigin = { vertical: 'center', horizontal: 'right' },
     transformOrigin = { vertical: 'bottom', horizontal: 'left' },
     onDelete,
@@ -216,7 +223,10 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
                            minWidth: POPOVER_MIN_WIDTH,
                            maxWidth: '90vw' }}>
                     {/* ChildContent */}
-                    <Box sx={{ px: 2, pt: 2, pb: 1 }}>{children}</Box>
+                    <Box sx={{ px: 2, pt: 2, pb: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                        {title && <ArcTitleBar stock={titleStock}>{title}</ArcTitleBar>}
+                        {children}
+                    </Box>
 
                     {/* Mirrors MudButtonGroup Class="glass-inner-engraved".
                         `flush` because the bar sits against the popover's own edge

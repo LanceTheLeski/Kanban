@@ -26,6 +26,7 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Button, Checkbox, FormControlLabel, Typography } from '@mui/material'
 import { TextField } from '@mui/material'
+import { paperField } from '../../../Styles/Paper'
 import { ArcPopover } from '../../../Components/ArcPopover'
 import { TASK_PANEL_ROW_MIN_HEIGHT } from '../../../Styles/Measures'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
@@ -171,6 +172,8 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
                         */
                         triggerOpenSx={{ backgroundColor: 'arc.glassSelected',
                                          color: 'arc.onGlassStrong' }}
+                        title="New task"
+                        titleStock="green"
                         onSubmit={handleSubmit}
                         anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
                         transformOrigin={{ vertical: 'center', horizontal: 'left' }}>
@@ -181,9 +184,8 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
                     row below wraps rather than overflowing.
                 */}
                 <Box sx={{ width: 'min(46rem, 90vw)', display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <TextField label="Title"
-                               variant="filled"
-                               helperText="Task Title"
+                    <TextField {...paperField('green')}
+                               placeholder="Task title"
                                value={title}
                                onChange={e => setTitle(e.target.value)}
                                fullWidth />

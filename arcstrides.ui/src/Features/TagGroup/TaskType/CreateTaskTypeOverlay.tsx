@@ -26,7 +26,8 @@
  */
 
 import React, { useState } from 'react'
-import { Stack, TextField, Typography } from '@mui/material'
+import { Stack, TextField } from '@mui/material'
+import { paperField } from '../../../Styles/Paper'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { createTaskType } from '../../Board/Board.APIs'
 import { useBoardActions } from '../../Board/useBoardActions'
@@ -69,13 +70,14 @@ export const CreateTaskTypeOverlay: React.FC<CreateTaskTypeOverlayProps> = ({
     }
 
     return (
-        <ArcOverlay open={open} onClose={onClose} onSubmit={handleSubmit}>
-            <Stack spacing={2}>
-                <Typography variant="h6">Create New Task Type</Typography>
-
-                <TextField label="Title"
-                           variant="filled"
-                           helperText="Task Type Name"
+        <ArcOverlay open={open}
+                    onClose={onClose}
+                    onSubmit={handleSubmit}
+                    title="New task type"
+                    titleStock="yellow">
+            <Stack spacing={1.5}>
+                <TextField {...paperField()}
+                           placeholder="Task type name"
                            value={title}
                            onChange={event => setTitle(event.target.value)}
                            fullWidth

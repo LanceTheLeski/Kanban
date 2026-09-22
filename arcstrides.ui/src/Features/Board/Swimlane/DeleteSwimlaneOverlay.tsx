@@ -8,7 +8,7 @@
  */
 
 import React, { useState } from 'react'
-import { Stack, Typography } from '@mui/material'
+import { Stack } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
 import { deleteSwimlane } from '../Board.APIs'
@@ -62,10 +62,10 @@ export const DeleteSwimlaneOverlay: React.FC<DeleteSwimlaneOverlayProps> = ({ op
                     // This overlay exists to delete, so the primary action is the
                     // delete — but it must not read as "Save".
                     submitLabel="Delete Swimlane"
-                    submitDestructive>
-            <Stack spacing={2}>
-                <Typography variant="h6">Delete Swimlane</Typography>
-
+                    submitDestructive
+                    title="Delete swimlane"
+                    titleStock="red">
+            <Stack spacing={1.5}>
                 <ArcExpandingSelector options={swimlanes.map(swimlane => swimlane.title)}
                                       onSelect={handleSelect}
                                       placeholder="Select swimlane to delete" />

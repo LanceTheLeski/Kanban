@@ -53,6 +53,7 @@ import { TimelineRail } from './TimelineRail'
 import { MODES, NODES, NODES_FOR, modeOf, seedValues } from './Timeline.Nodes'
 import type { NodeId, NodeValue, NodeValues, TimelineMode } from './Timeline.Nodes'
 import type { TimelineDraft } from './Timeline.Draft'
+import { paperPickerSx } from '../../../Styles/Paper'
 import { rem } from '../../../Styles/Measures'
 import type { Timeline } from '../../../Entities/Timeline/Timeline.Types'
 
@@ -103,19 +104,29 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                         <Button key={option.value}
                                 size="small"
                                 aria-pressed={isOn}
-                                variant={isOn ? 'contained' : 'outlined'}
                                 onClick={() => changeMode(option.value)}
+                                /*
+                                   Raised when chosen, flat when not. The state is in
+                                   the depth rather than in a fill, so all three keep
+                                   their colour and the chosen one is simply the piece
+                                   standing proud of the panel.
+                                */
+                                className={`${isOn ? 'card-stock' : 'card-stock-flat'} ${option.stock}`}
                                 sx={{ flex: 1,
                                       minWidth: 0,
                                       py: 0.15,
                                       fontSize: '0.62rem',
                                       lineHeight: 1.6,
-                                      backgroundColor: isOn ? option.colour : 'transparent',
-                                      borderColor: option.colour,
-                                      color: isOn ? 'black' : 'arc.onPaper',
-                                      ...(isOn ? {} : { opacity: 0.8 }),
-                                      '&:hover': { backgroundColor: isOn ? option.colour : 'arc.paperHover',
-                                                   borderColor: option.colour } }}>
+                                      fontWeight: isOn ? 700 : 500,
+                                      letterSpacing: '0.04em',
+                                      color: 'arc.onPaperStrong',
+                                      // A flat piece sits back a little, the way an
+                                      // unchosen tab would if it were further from the
+                                      // light.
+                                      opacity: isOn ? 1 : 0.82,
+                                      transform: isOn ? 'translateY(-1px)' : 'none',
+                                      transition: 'transform .12s, opacity .12s',
+                                      '&:hover': { opacity: 1 } }}>
                             {option.label}
                         </Button>
                     )
@@ -264,22 +275,11 @@ export default UpdateTimelinePanel
 // ── Private ───────────────────────────────────────────────────────────────────
 
 /**
- * A date or time picker sitting on the card.
+ * The pickers, which are the shared pair every card-stock date field uses.
  *
- * Much less of this than there used to be. MUI's outlined input is drawn for a
- * light surface, and on the engraved panel that made it dark-on-dark — the two
- * pickers were legible only as a faint rectangle, which read as the editor being
- * clipped rather than as a control. The card stock *is* a light surface, so the
- * default is right again and what is left here is sizing and a ground half a
- * step down from the card, so the field reads as somewhere to type.
+ * There used to be a paragraph here about MUI's outlined input being drawn for
+ * a light surface and the engraved panel making it dark-on-dark. The panel is
+ * card now, so the premise is gone and so is the local copy — see Styles/Paper,
+ * which is where the six overlays that need the same thing read it from.
  */
-const pickerFieldSx = {
-    minWidth: 0,
-    '& .MuiOutlinedInput-root': { backgroundColor: 'arc.paperField' },
-    '& input': { fontSize: '0.7rem', py: 0.6, color: 'arc.onPaperStrong' },
-    '& input::placeholder': { color: 'arc.onPaperMuted', opacity: 1 },
-    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'arc.paperDivider' },
-    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'arc.onPaperMuted' },
-    '& .Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'arc.paperAccent' },
-    '& .MuiSvgIcon-root': { color: 'arc.onPaperMuted', fontSize: '1rem' },
-} as const
+const pickerFieldSx = paperPickerSx
