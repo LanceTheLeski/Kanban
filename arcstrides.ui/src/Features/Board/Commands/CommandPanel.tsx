@@ -61,7 +61,7 @@ export const CommandPanel: React.FC<CommandPanelProps> = ({ card }) => {
     }
 
     return (
-        <Paper className="glass-inner-engraved"
+        <Paper className="card-stock"
                sx={{ p: 1,
                      display: 'flex',
                      flexDirection: 'column',
@@ -74,13 +74,13 @@ export const CommandPanel: React.FC<CommandPanelProps> = ({ card }) => {
             <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, flexShrink: 0 }}>
                 <Typography sx={{ fontSize: '0.7rem',
                                   fontWeight: 700,
-                                  color: 'arc.onGlassStrong',
+                                  color: 'arc.onPaperStrong',
                                   letterSpacing: '0.06em' }}>
                     COMMANDS
                 </Typography>
 
                 <Tooltip title="Commands run against this card. Nothing here is stored — the transcript is this session only.">
-                    <Typography sx={{ fontSize: '0.62rem', color: 'arc.onGlassMuted', cursor: 'help' }}>
+                    <Typography sx={{ fontSize: '0.62rem', color: 'arc.onPaperMuted', cursor: 'help' }}>
                         this session
                     </Typography>
                 </Tooltip>
@@ -100,14 +100,14 @@ export const CommandPanel: React.FC<CommandPanelProps> = ({ card }) => {
                        px: 0.75,
                        borderRadius: 1,
                        border: '1px solid',
-                       borderColor: 'arc.glassDivider',
-                       backgroundColor: 'arc.glassHover',
-                       '&:focus-within': { borderColor: 'arc.accentOnGlass' } }}>
+                       borderColor: 'arc.paperDivider',
+                       backgroundColor: 'arc.paperField',
+                       '&:focus-within': { borderColor: 'arc.paperAccent' } }}>
 
                 <Box component="span"
                      sx={{ fontFamily: MONO,
                            fontWeight: 700,
-                           color: 'arc.accentOnGlass',
+                           color: 'arc.paperAccent',
                            fontSize: '0.8rem' }}>
                     &gt;
                 </Box>
@@ -122,13 +122,13 @@ export const CommandPanel: React.FC<CommandPanelProps> = ({ card }) => {
                            placeholder="Type a command, or /help"
                            sx={{ flex: 1,
                                  fontSize: '0.75rem',
-                                 color: 'arc.onGlass',
+                                 color: 'arc.onPaper',
                                  fontFamily: MONO,
-                                 '& input::placeholder': { color: 'arc.onGlassMuted', opacity: 1 } }} />
+                                 '& input::placeholder': { color: 'arc.onPaperMuted', opacity: 1 } }} />
 
                 <IconButton size="small" onClick={submit} disabled={!draft.trim()} aria-label="Run">
                     <SendIcon sx={{ fontSize: '0.9rem',
-                                    color: draft.trim() ? 'arc.accentOnGlass' : 'arc.onGlassMuted' }} />
+                                    color: draft.trim() ? 'arc.paperAccent' : 'arc.onPaperMuted' }} />
                 </IconButton>
             </Box>
         </Paper>
@@ -184,7 +184,7 @@ const PLANNED_COMMANDS = [
 
 const EmptyTranscript: React.FC = () => (
     <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', px: 1 }}>
-        <Typography sx={{ fontSize: '0.68rem', color: 'arc.onGlassMuted', textAlign: 'center' }}>
+        <Typography sx={{ fontSize: '0.68rem', color: 'arc.onPaperMuted', textAlign: 'center' }}>
             Nothing run yet. Type <Box component="span"
                                       sx={{ fontFamily: MONO }}>/help</Box> to
             see what this console understands.
@@ -207,12 +207,12 @@ const CommandEntry: React.FC<{ entry: CardCommandEntry }> = ({ entry }) => {
                    pl: 0.75,
                    borderLeft: '2px solid',
                    borderLeftColor: kind.colour,
-                   '&:hover': { backgroundColor: 'arc.glassHover' } }}>
+                   '&:hover': { backgroundColor: 'arc.paperHover' } }}>
 
             <Typography component="time"
                         sx={{ fontFamily: MONO,
                               fontSize: '0.62rem',
-                              color: 'arc.onGlassMuted',
+                              color: 'arc.onPaperMuted',
                               whiteSpace: 'nowrap' }}>
                 {clockFormat.format(entry.at)}
             </Typography>
@@ -232,7 +232,7 @@ const CommandEntry: React.FC<{ entry: CardCommandEntry }> = ({ entry }) => {
 
             <Typography sx={{ fontSize: '0.7rem',
                               lineHeight: 1.4,
-                              color: entry.kind === 'command' ? 'arc.logCommand' : 'arc.onGlass',
+                              color: entry.kind === 'command' ? 'arc.logCommand' : 'arc.onPaper',
                               fontFamily: entry.kind === 'command'
                                   ? MONO
                                   : undefined }}>
@@ -251,8 +251,8 @@ const Span: React.FC<{ span: CardCommandSpan }> = ({ span }) => {
                  sx={{ display: 'inline-block',
                        px: 0.6,
                        borderRadius: 0.75,
-                       backgroundColor: 'arc.glassSelected',
-                       color: 'arc.onGlassStrong',
+                       backgroundColor: 'arc.paperSelected',
+                       color: 'arc.onPaperStrong',
                        fontWeight: 600,
                        // A name can be long and is not breakable mid-word by
                        // choice; let it wrap at the pill rather than push the

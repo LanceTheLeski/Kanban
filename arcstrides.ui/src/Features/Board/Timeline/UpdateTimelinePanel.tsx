@@ -86,7 +86,7 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
     const showRail = active.length > 1
 
     return (
-        <Paper className="glass-inner-engraved"
+        <Paper className="card-stock"
                sx={{ p: 1,
                      display: 'flex',
                      flexDirection: 'column',
@@ -112,9 +112,9 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                                       lineHeight: 1.6,
                                       backgroundColor: isOn ? option.colour : 'transparent',
                                       borderColor: option.colour,
-                                      color: isOn ? 'black' : 'arc.onGlass',
+                                      color: isOn ? 'black' : 'arc.onPaper',
                                       ...(isOn ? {} : { opacity: 0.8 }),
-                                      '&:hover': { backgroundColor: isOn ? option.colour : 'arc.glassHover',
+                                      '&:hover': { backgroundColor: isOn ? option.colour : 'arc.paperHover',
                                                    borderColor: option.colour } }}>
                             {option.label}
                         </Button>
@@ -138,7 +138,7 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                            px: 1,
                            py: 2 }}>
                     <Typography sx={{ fontSize: '0.68rem',
-                                      color: 'arc.onGlassMuted',
+                                      color: 'arc.onPaperMuted',
                                       textAlign: 'center',
                                       maxWidth: '34ch' }}>
                         No deadline or timeline set. This card will not appear on the calendar.
@@ -165,7 +165,7 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                 <Box sx={{ flexShrink: 0,
                            pt: 0.75,
                            borderTop: '1px solid',
-                           borderTopColor: 'arc.glassDivider',
+                           borderTopColor: 'arc.paperDivider',
                            display: 'flex',
                            flexWrap: 'wrap',
                            gap: 0.75,
@@ -176,7 +176,7 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                         deadline, and "Required End" is rail jargon there. */}
                     <Typography sx={{ fontSize: '0.6rem',
                                       fontWeight: 700,
-                                      color: 'arc.onGlassStrong',
+                                      color: 'arc.onPaperStrong',
                                       flex: '1 0 100%' }}>
                         {showRail ? openSpec.label.join(' ') : 'Deadline'}
                     </Typography>
@@ -195,7 +195,7 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                     <Button size="small"
                             onClick={() => setNode(openSpec.id, { date: null, time: null })}
                             disabled={!values[openSpec.id].date && !values[openSpec.id].time}
-                            sx={{ fontSize: '0.6rem', minWidth: rem(48), color: 'arc.onGlassMuted' }}>
+                            sx={{ fontSize: '0.6rem', minWidth: rem(48), color: 'arc.onPaperMuted' }}>
                         Clear
                     </Button>
                 </Box>
@@ -208,7 +208,7 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
             {!openSpec && showRail && (
                 <Typography sx={{ flexShrink: 0,
                                   fontSize: '0.6rem',
-                                  color: 'arc.onGlassMuted',
+                                  color: 'arc.onPaperMuted',
                                   textAlign: 'center' }}>
                     Select a point to set its date and time.
                 </Typography>
@@ -264,19 +264,22 @@ export default UpdateTimelinePanel
 // ── Private ───────────────────────────────────────────────────────────────────
 
 /**
- * A date or time picker sitting on the engraved panel.
+ * A date or time picker sitting on the card.
  *
- * MUI's outlined input is drawn for a white surface: a near-black notched
- * outline, dark text, and a dark placeholder. On the panel's saturated backdrop
- * all three are dark-on-dark — the two pickers were legible only as a faint
- * rectangle, which reads as the editor being clipped rather than as a control.
+ * Much less of this than there used to be. MUI's outlined input is drawn for a
+ * light surface, and on the engraved panel that made it dark-on-dark — the two
+ * pickers were legible only as a faint rectangle, which read as the editor being
+ * clipped rather than as a control. The card stock *is* a light surface, so the
+ * default is right again and what is left here is sizing and a ground half a
+ * step down from the card, so the field reads as somewhere to type.
  */
 const pickerFieldSx = {
     minWidth: 0,
-    '& input': { fontSize: '0.7rem', py: 0.6, color: 'arc.onGlassStrong' },
-    '& input::placeholder': { color: 'arc.onGlassMuted', opacity: 1 },
-    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'arc.glassDivider' },
-    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'arc.onGlassMuted' },
-    '& .Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'arc.accentOnGlass' },
-    '& .MuiSvgIcon-root': { color: 'arc.onGlassMuted', fontSize: '1rem' },
+    '& .MuiOutlinedInput-root': { backgroundColor: 'arc.paperField' },
+    '& input': { fontSize: '0.7rem', py: 0.6, color: 'arc.onPaperStrong' },
+    '& input::placeholder': { color: 'arc.onPaperMuted', opacity: 1 },
+    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'arc.paperDivider' },
+    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'arc.onPaperMuted' },
+    '& .Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'arc.paperAccent' },
+    '& .MuiSvgIcon-root': { color: 'arc.onPaperMuted', fontSize: '1rem' },
 } as const

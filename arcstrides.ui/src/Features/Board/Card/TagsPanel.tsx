@@ -84,7 +84,7 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange }) => {
     const remove = (id: string) => onChange(tags.filter(tag => tag.id !== id))
 
     return (
-        <Paper className="glass-inner-engraved"
+        <Paper className="card-stock"
                sx={{ // Shrinks before the title does, and never grows past its share.
                      flex: `0 1 ${TAGS_BOX_WIDTH}`,
                      minWidth: 0,
@@ -121,27 +121,32 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange }) => {
                        gap: 0.35,
                        pr: 1 }}>
                 {tags.length === 0 && (
-                    <Typography sx={{ fontSize: '0.6rem', color: 'arc.onGlassMuted', lineHeight: 1.6 }}>
+                    <Typography sx={{ fontSize: '0.6rem', color: 'arc.onPaperMuted', lineHeight: 1.6 }}>
                         Tags…
                     </Typography>
                 )}
 
+                {/*
+                    Each tag is its own small piece of card, set down at a
+                    fraction of a degree off square. They used to be round
+                    translucent lozenges, which is the right shape for a chip on
+                    glass and the wrong one on a panel that is itself a piece of
+                    card — the pills read as holes punched in it.
+                */}
                 {tags.map(tag => (
                     <Box key={tag.id}
+                         className="card-stock-flat card-tilt"
                          sx={{ display: 'inline-flex',
                                alignItems: 'center',
                                gap: 0.1,
                                pl: 0.6,
                                pr: 0.1,
-                               // Fully round: a pill, not a chip with corners.
-                               borderRadius: 999,
-                               backgroundColor: 'arc.glassSelected',
-                               border: '1px solid',
-                               borderColor: 'arc.glassDivider',
                                maxWidth: '100%' }}>
                         <Typography sx={{ fontSize: '0.6rem',
                                           lineHeight: 1.5,
-                                          color: 'arc.onGlassStrong',
+                                          fontWeight: 600,
+                                          letterSpacing: '0.02em',
+                                          color: 'arc.onPaperStrong',
                                           overflow: 'hidden',
                                           textOverflow: 'ellipsis',
                                           whiteSpace: 'nowrap' }}>
@@ -152,8 +157,8 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange }) => {
                                     onClick={() => remove(tag.id)}
                                     aria-label={`Remove tag ${tag.title}`}
                                     sx={{ p: 0.1,
-                                          color: 'arc.onGlassMuted',
-                                          '&:hover': { color: 'arc.dangerOnGlass' } }}>
+                                          color: 'arc.onPaperMuted',
+                                          '&:hover': { color: 'arc.paperDanger' } }}>
                             <CloseIcon sx={{ fontSize: '0.6rem' }} />
                         </IconButton>
                     </Box>
@@ -166,7 +171,7 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange }) => {
                        flexShrink: 0,
                        pl: 0.5,
                        borderTop: '1px solid',
-                       borderTopColor: 'arc.glassDivider' }}>
+                       borderTopColor: 'arc.paperDivider' }}>
                 <InputBase value={draft}
                            onChange={event => setDraft(event.target.value)}
                            onKeyDown={event => {
@@ -178,12 +183,12 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange }) => {
                            sx={{ flex: 1,
                                  minWidth: 0,
                                  fontSize: '0.6rem',
-                                 color: 'arc.onGlass',
+                                 color: 'arc.onPaper',
                                  '& input': { p: 0 },
-                                 '& input::placeholder': { color: 'arc.onGlassMuted', opacity: 1 } }} />
+                                 '& input::placeholder': { color: 'arc.onPaperMuted', opacity: 1 } }} />
                 <IconButton size="small" onClick={add} disabled={!draft.trim()} aria-label="Add tag" sx={{ p: 0.15 }}>
                     <AddIcon sx={{ fontSize: '0.7rem',
-                                   color: draft.trim() ? 'arc.accentOnGlass' : 'arc.onGlassMuted' }} />
+                                   color: draft.trim() ? 'arc.paperAccent' : 'arc.onPaperMuted' }} />
                 </IconButton>
             </Box>
         </Paper>

@@ -365,11 +365,19 @@ function TitleAndTags({ title, onTitleChange, tags, onTagsChange }: {
                        */
                        multiline
                        maxRows={3}
+                       /*
+                          The field is a piece of card you write on, so the card's
+                          own cut edge is its border and the outlined variant's
+                          notch is turned off below. Two borders a pixel apart
+                          read as a rendering fault, not as emphasis.
+                       */
+                       className="card-stock"
                        sx={{ // minWidth: 0 stops the input's intrinsic width propping the row open.
                              flex: 1,
                              minWidth: 0,
-                             backgroundColor: 'arc.field',
-                             borderRadius: 1,
+                             '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                             '& .MuiInputBase-input': { color: 'arc.onPaperStrong', fontWeight: 600 },
+                             '& .MuiInputBase-input::placeholder': { color: 'arc.onPaperMuted', opacity: 1 },
                              /*
                                 The input fills the field rather than sitting at the top of
                                 it. MUI sizes a FormControl to input + helper text, so with
@@ -400,6 +408,15 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
     onTaskDeleted: (taskId: string) => void
 }) {
     return (
+        /*
+           The one panel in the overlay that keeps its engraved recess.
+
+           Everything else in here is now a piece of card sitting on the pane
+           (see .card-stock). This is the exception on purpose: it is a
+           *container* for other pieces rather than a piece itself, and a tray
+           reads as a tray because the things in it are above its floor. Make it
+           card too and the rows have nothing to sit on.
+        */
         <Paper className="glass-inner-engraved"
                /*
                   Takes the height the column has left rather than claiming a fixed
@@ -410,8 +427,14 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
                sx={{ width: '100%',
                      flex: 1,
                      minHeight: TASK_LIST_MIN_HEIGHT,
-                     overflow: 'auto' }}>
-            <List dense disablePadding>
+                     overflow: 'auto',
+                     p: 0.75 }}>
+            {/*
+                A gap between the rows, because a drop shadow needs somewhere to
+                fall. Butted up against each other they were four rectangles with
+                a line between them; 6px apart they are four pieces of card.
+            */}
+            <List dense disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
                 {tasks.length === 0 && (
                     <ListItem disablePadding sx={{ px: 1, py: 1.5 }}>
                         <Typography sx={{ fontSize: '0.72rem', color: 'arc.onGlassMuted' }}>
@@ -420,8 +443,17 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
                     </ListItem>
                 )}
 
+                {/*
+                    One piece of card per task, laid on the tray. card-stock-flat
+                    rather than card-stock: a row is one ply up from the floor it
+                    sits on, not four, and giving it the panel's shadow is what
+                    makes layered paper look like clip art.
+                */}
                 {tasks.map(task => (
-                    <ListItem key={task.id || task.title} disablePadding>
+                    <ListItem key={task.id || task.title}
+                              className="card-stock-flat card-tilt"
+                              disablePadding
+                              sx={{ pr: 0.25 }}>
                         {/* The popover trigger takes the row; the bin sits at the end */}
                         <Box sx={{ flex: 1, minWidth: 0 }}>
                             {/*
@@ -444,7 +476,7 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
                                                    width: '100%',
                                                    justifyContent: 'flex-start',
                                                    backgroundColor: 'transparent',
-                                                   color: 'arc.onGlass',
+                                                   color: 'arc.onPaper',
                                                    // The strike for a completed task is applied by
                                                    // the popover, which is the only thing that
                                                    // knows whether the box has been ticked but not
@@ -463,8 +495,8 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
                                     onClick={() => task.id && onTaskDeleted(task.id)}
                                     aria-label={`Delete task ${task.title}`}
                                     sx={{ flexShrink: 0,
-                                          color: 'arc.onGlassMuted',
-                                          '&:hover': { color: 'arc.dangerOnGlass', backgroundColor: 'arc.glassHover' } }}>
+                                          color: 'arc.onPaperMuted',
+                                          '&:hover': { color: 'arc.paperDanger', backgroundColor: 'arc.paperHover' } }}>
                             <DeleteIcon sx={{ fontSize: '0.95rem' }} />
                         </IconButton>
                     </ListItem>
@@ -515,8 +547,10 @@ function DescriptionField({ value, onChange }: {
                    variant="outlined"
                    placeholder="Card description"
                    fullWidth
-                   sx={{ backgroundColor: 'arc.fieldMuted',
-                         borderRadius: 1,
+                   className="card-stock"
+                   sx={{ '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                         '& .MuiInputBase-input': { color: 'arc.onPaper' },
+                         '& .MuiInputBase-input::placeholder': { color: 'arc.onPaperMuted', opacity: 1 },
                          display: 'flex',
                          flexDirection: 'column',
                          flex: 1,

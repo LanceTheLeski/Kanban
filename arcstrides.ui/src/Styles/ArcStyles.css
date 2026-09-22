@@ -455,3 +455,134 @@ body,
         background-color: rgba(98, 147, 185, .92);
     }
 }
+
+/* ── Card stock ───────────────────────────────────────────────────────────────
+   The panels inside an overlay, as pieces of card laid on the glass.
+
+   ── What this replaces ──────────────────────────────────────────────────────
+   Every interior panel was `.glass-inner-engraved`: a recess cut into the pane.
+   That reads correctly for *one* panel, and stops reading at four. Six recesses
+   in one dialog is not a stack of things, it is a perforated sheet — nothing is
+   in front of anything, and the eye gets no order to read them in.
+
+   Card stock inverts it. A piece of card sits ON the glass and casts a shadow
+   onto it, so the panels have a near edge and a far one. The task list keeps its
+   recess deliberately: it is the one panel that is a *container* for other
+   pieces rather than a piece itself, and a tray reads as a tray because the
+   things in it are above its floor.
+
+   ── The three parts ─────────────────────────────────────────────────────────
+   1. A warm off-white, which is the colour unbleached board actually is. Pure
+      white would read as printer paper.
+   2. Grain. Two layers of fractal noise, desaturated: a coarse one at
+      baseFrequency .045 for the mottle of pressed fibre, a fine one at .8 for
+      the tooth. Flat colour at this size looks like plastic — the grain is what
+      makes it a material rather than a rectangle. It is one repeating 220px
+      tile, so it costs one decode however many panels use it.
+   3. Lighting. A bright line along the top edge where the cut face catches the
+      light, a dark one along the bottom where the far face falls away, a
+      hairline all round so the edge reads against a light backdrop, and the
+      drop shadow that puts it above the glass.
+
+   ── Two depths ──────────────────────────────────────────────────────────────
+   `.card-stock` is a panel resting on the pane. `.card-stock-flat` is a strip
+   resting on a panel — a task row, a tag pill — and casts a shorter shadow,
+   because a thing one ply up cannot throw the shadow of a thing four plies up.
+   Getting that wrong is what makes layered paper look like clip art.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+:root {
+    /*
+       Declared once because it is a data URI of a two-filter SVG, and a second
+       copy would be ~600 bytes of unreadable percent-encoding that has to be
+       kept in step by hand.
+    */
+    --arc-paper-grain: url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22220%22%20height=%22220%22%3E%3Cfilter%20id=%22a%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.8%22%20numOctaves=%225%22%20stitchTiles=%22stitch%22/%3E%3CfeColorMatrix%20type=%22saturate%22%20values=%220%22/%3E%3C/filter%3E%3Cfilter%20id=%22b%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.045%22%20numOctaves=%223%22%20stitchTiles=%22stitch%22/%3E%3CfeColorMatrix%20type=%22saturate%22%20values=%220%22/%3E%3C/filter%3E%3Crect%20width=%22220%22%20height=%22220%22%20filter=%22url(%23b)%22%20opacity=%220.09%22/%3E%3Crect%20width=%22220%22%20height=%22220%22%20filter=%22url(%23a)%22%20opacity=%220.13%22/%3E%3C/svg%3E");
+    --arc-paper: #f6f1e4;
+    /*
+       Off-square by two degrees, so the light does not fall down the panel in a
+       perfectly straight line. With the tilt below, it is what makes a stack
+       read as hand-laid rather than rendered.
+    */
+    --arc-paper-face: linear-gradient(178deg, #fdf9f0, #f0ead9);
+}
+
+.card-stock,
+.card-stock-flat {
+    /*
+       2px, not the 4px the recess used. A cut edge is square; the radius is
+       there to take the aliasing off the corner, not to round it.
+    */
+    border-radius: 2px;
+    /*
+       Three layers, front to back: the grain, then the top-lit face, then the
+       flat colour underneath as the fallback if either fails to load.
+    */
+    background-color: var(--arc-paper);
+    background-image: var(--arc-paper-grain), var(--arc-paper-face);
+    color: #22262c;
+    /*
+       Text on card is dark on light and needs no backing. Stated rather than
+       left alone because a task row sits inside .glass-inner-engraved, which
+       shadows its text for the opposite ground and would otherwise smear this.
+    */
+    text-shadow: none;
+}
+
+/*
+   ── Why these are darker than the reference they came from ──────────────────
+   The mockup sets its card on a mid-tone tray, which does half the work of
+   separating the two. This app's pane is pale glass, and against it the first
+   attempt at these values was measurably present and visually absent — the
+   panels read as flat regions of a lighter colour. A shadow is only a shadow
+   relative to what it falls on.
+
+   Three shadows do the lifting, and they are three because one cannot:
+     · a hairline ring, which is the cut edge of the board;
+     · a tight contact shadow, which is where the piece touches down;
+     · a long soft one, which is the distance it stands off the pane.
+   Drop the contact shadow and the piece floats; drop the long one and it is
+   glued down.
+*/
+.card-stock {
+    box-shadow:
+        inset 0 1px 0 0 rgba(255, 255, 255, .85),
+        inset 0 -1px 0 0 rgba(52, 36, 20, .2),
+        0 0 0 1px rgba(40, 26, 14, .38),
+        0 2px 3px -1px rgba(26, 14, 8, .4),
+        0 14px 24px -8px rgba(18, 9, 5, .62);
+}
+
+.card-stock-flat {
+    box-shadow:
+        inset 0 1px 0 0 rgba(255, 255, 255, .8),
+        inset 0 -1px 0 0 rgba(52, 36, 20, .16),
+        0 0 0 1px rgba(40, 26, 14, .3),
+        0 1px 2px rgba(26, 14, 8, .34),
+        0 5px 9px -4px rgba(18, 9, 5, .4);
+}
+
+/*
+   The tilt.
+
+   Pieces of card set down by hand do not land square, and a stack where every
+   piece is perfectly aligned reads as a diagram of a stack. A fraction of a
+   degree is enough — it is not visible as rotation, only as the absence of
+   machine alignment.
+
+   Only the small repeated pieces get it. A panel holding a text input must not
+   be rotated: the caret, the selection rectangle and the browser's own hit
+   testing are all axis-aligned, and a rotated input makes text render off the
+   pixel grid for a cue nobody asked for.
+
+   nth-of-type rather than a random value, so a row keeps its angle across a
+   re-render instead of twitching on every keystroke.
+*/
+.card-tilt:nth-of-type(4n + 1) { transform: rotate(-0.28deg); }
+.card-tilt:nth-of-type(4n + 2) { transform: rotate(0.19deg); }
+.card-tilt:nth-of-type(4n + 3) { transform: rotate(-0.13deg); }
+.card-tilt:nth-of-type(4n + 4) { transform: rotate(0.31deg); }
+
+@media (prefers-reduced-motion: reduce) {
+    .card-tilt { transform: none; }
+}

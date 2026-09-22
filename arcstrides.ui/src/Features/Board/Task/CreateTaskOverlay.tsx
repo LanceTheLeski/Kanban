@@ -164,6 +164,13 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
                             fontWeight: 700,
                             '&:hover': { backgroundColor: 'arc.glassHover' },
                         }}
+                        /*
+                           This one is still on the glass tray — it is the only
+                           thing in the list that is not a piece of card — so its
+                           open marker lightens, the way it always did.
+                        */
+                        triggerOpenSx={{ backgroundColor: 'arc.glassSelected',
+                                         color: 'arc.onGlassStrong' }}
                         onSubmit={handleSubmit}
                         anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
                         transformOrigin={{ vertical: 'center', horizontal: 'left' }}>

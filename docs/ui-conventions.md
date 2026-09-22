@@ -168,6 +168,42 @@ width all fail that test. A one-off `gap: 1` does not.
 
 ---
 
+## Two grounds, two ramps
+
+An overlay has exactly two kinds of surface, and which one a component is
+standing on decides every colour it paints.
+
+| ground | what it is | class | text ramp |
+|---|---|---|---|
+| Glass | the pane, and recesses cut into it | `.glass`, `.glass-inner-engraved` | `arc.onGlass*`, `arc.glass*` |
+| Card stock | a piece of board resting on the pane | `.card-stock`, `.card-stock-flat` | `arc.onPaper*`, `arc.paper*` |
+
+Glass is dark, so everything on it is a white at some opacity. Card is light,
+so everything on it is a warm near-black at some opacity. **Neither ramp
+degrades into the other**: `onGlassMuted` is a 60% white, which on card stock is
+invisible, and `onPaperMuted` on glass is unreadable. Mixing them does not look
+slightly wrong, it looks broken — the first render of the card panels struck a
+completed task's title through and then made the title disappear, because the
+strike had kept its on-glass colour.
+
+So when a panel changes ground, every colour in it changes with it. There is no
+shortcut, and a token that "looks close enough" on both is a token that is
+wrong on both.
+
+### A component that cannot see its ground must be told
+
+`ArcPopover` marks its trigger while the popover is open. A marker is a change
+in *contrast*, and which direction contrast goes depends on what is underneath —
+the task rows are card, so theirs darkens; "+ New task" sits on the glass tray,
+so its lightens. The component cannot see what it was rendered onto, so it
+keeps only the half that holds either way (the accent bar and the weight) and
+takes the rest from the caller as `triggerOpenSx`.
+
+It used to guess, with a white fill and a 95% white label. That was right for
+the one ground that existed at the time.
+
+---
+
 ## C# style is not carried across
 
 The API is written with a space before the parameter list —

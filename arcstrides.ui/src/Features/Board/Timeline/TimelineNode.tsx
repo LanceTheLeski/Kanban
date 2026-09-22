@@ -53,7 +53,7 @@ export const TimelineNode: React.FC<TimelineNodeProps> = ({ spec, value, isOpen,
                               borderRadius: 1,
                               pt: `${NODE_PAD_Y}px`,
                               pb: 0.25,
-                              '&:hover': { backgroundColor: 'arc.glassHover' } }}>
+                              '&:hover': { backgroundColor: 'arc.paperHover' } }}>
 
                 {/* Dot */}
                 <Box sx={{ height: DOT_ROW_HEIGHT,
@@ -65,22 +65,26 @@ export const TimelineNode: React.FC<TimelineNodeProps> = ({ spec, value, isOpen,
                                height: DOT,
                                borderRadius: '50%',
                                border: '2px solid',
-                               borderColor: isOpen ? 'arc.accentOnGlass' : 'arc.onGlass',
+                               borderColor: isOpen ? 'arc.paperAccent' : 'arc.onPaper',
                                // An unset dot is hollow, but it still has to sit
                                // *on* the rail rather than let the line run
                                // through it — hence a fill either way, and only
-                               // the colour saying which it is.
-                               backgroundColor: isSet ? 'arc.accentOnGlass' : 'arc.railNodeEmpty',
+                               // the colour saying which it is. Unset is the
+                               // card's own colour, so it reads as a hole
+                               // punched in the line.
+                               backgroundColor: isSet ? 'arc.paperAccent' : 'arc.railNodeEmpty',
+                               // The resting halo is the card colour too, which
+                               // is what keeps the rail from touching the dot.
                                boxShadow: isOpen
-                                   ? '0 0 0 3px rgba(154,217,255,.35)'
-                                   : '0 0 0 2px rgba(30,41,59,.35)' }} />
+                                   ? '0 0 0 3px rgba(45,111,156,.3)'
+                                   : '0 0 0 2px var(--arc-paper)' }} />
                 </Box>
 
                 {/* Label */}
                 <Typography sx={{ fontSize: '0.55rem',
                                   lineHeight: 1.25,
                                   textAlign: 'center',
-                                  color: isOpen ? 'arc.onGlassStrong' : 'arc.onGlassMuted',
+                                  color: isOpen ? 'arc.onPaperStrong' : 'arc.onPaperMuted',
                                   fontWeight: isOpen ? 700 : 400 }}>
                     {spec.label[0]}
                     <br />
@@ -92,7 +96,7 @@ export const TimelineNode: React.FC<TimelineNodeProps> = ({ spec, value, isOpen,
                                   fontSize: '0.58rem',
                                   lineHeight: 1.4,
                                   textAlign: 'center',
-                                  color: isSet ? 'arc.onGlass' : 'arc.onGlassMuted',
+                                  color: isSet ? 'arc.onPaper' : 'arc.onPaperMuted',
                                   whiteSpace: 'nowrap' }}>
                     {value.date ? value.date.format('DD MMM') : '—'}
                     {value.time && (

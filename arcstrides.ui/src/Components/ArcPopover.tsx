@@ -64,12 +64,27 @@ export interface ArcPopoverProps {
      * Styling for the trigger button.
      *
      * `sx`, not the inline `style` this used to take. Inline styles cannot use
-     * theme paths, so a caller passing `{ backgroundColor: 'arc.taskPanel' }` —
-     * which UpdateTaskPopover did — was handing the DOM a string that is not a
-     * colour, and the browser dropped it. The task rows had been silently
-     * unstyled ever since the palette moved into the theme.
+     * theme paths, so a caller passing a palette path — which UpdateTaskPopover
+     * did — was handing the DOM a string that is not a colour, and the browser
+     * dropped it. The task rows had been silently unstyled ever since the
+     * palette moved into the theme.
      */
     triggerSx?: SxProps<Theme>
+    /**
+     * Styling for the trigger while the popover is open, on top of triggerSx.
+     *
+     * The marker below says *that* a trigger is open; this says what that looks
+     * like on the ground the trigger happens to be standing on. A marker is a
+     * change in contrast, and which direction contrast goes depends on what is
+     * underneath: the task rows are card stock, so theirs darkens, and "+ New
+     * task" sits on the glass tray, so its lightens. This component cannot see
+     * its ground, so it does not guess.
+     *
+     * It used to guess. The default was a white fill and a 95% white label,
+     * which was right for glass and, once the task rows became card, rendered
+     * the open row's title white on off-white.
+     */
+    triggerOpenSx?: SxProps<Theme>
     /** Where the popover attaches to the trigger — mirrors AnchorOrigin */
     anchorOrigin?: PopoverOrigin
     /** Where the popover transforms from — mirrors TransformOrigin */
@@ -97,6 +112,7 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
     onClose: controlledOnClose,
     triggerSize = 'medium',
     triggerSx,
+    triggerOpenSx,
     anchorOrigin = { vertical: 'center', horizontal: 'right' },
     transformOrigin = { vertical: 'bottom', horizontal: 'left' },
     onDelete,
@@ -160,15 +176,19 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
                              leading edge plus a lift in the ground, which reads at a
                              glance without moving anything.
 
+                             Only the half that holds on any ground is here: the bar
+                             and the weight. The fill and the label colour come from
+                             the caller, which is the only party that knows what the
+                             trigger is sitting on — see triggerOpenSx.
+
                              After the spread, so it wins over a caller's own styling
                              rather than being overwritten by it.
                           */
                           ...(isOpen
                               ? {
-                                  backgroundColor: 'arc.glassSelected',
-                                  color: 'arc.onGlassStrong',
                                   fontWeight: 700,
                                   boxShadow: 'inset 3px 0 0 0 var(--arc-accent-on-glass)',
+                                  ...(triggerOpenSx as object),
                               }
                               : {}) }}>
                 {triggerLabel}

@@ -93,16 +93,6 @@ export interface ArcPalette {
     /** A card tile. */
     cardSurface: string
 
-    // ── Overlay interiors ─────────────────────────────────────────────────────
-    /** A text input sitting on glass, which needs its own ground to stay legible. */
-    field: string
-    /** The same, for the multiline description. */
-    fieldMuted: string
-    /** The not-yet-implemented tags chip on the card overlay. */
-    tagPlaceholder: string
-    /** The task popover's panel. */
-    taskPanel: string
-
     // ── On glass ──────────────────────────────────────────────────────────────
     // Glass is a dark translucent surface, so anything drawn on it is a white at
     // some opacity. These were an unnamed ramp inside ArcExpandingSelector —
@@ -125,17 +115,18 @@ export interface ArcPalette {
     /**
      * The timeline rail's connecting line.
      *
-     * Stronger than glassDivider, which it used to borrow: a divider separates
-     * two things and should barely register, while this line *is* the timeline
-     * and has to read across a saturated backdrop. At 0.15 it was invisible.
+     * Stronger than paperDivider, which a rule between sections gets: a divider
+     * separates two things and should barely register, while this line *is* the
+     * timeline and is the first thing the panel should say.
      */
     railLine: string
     /**
      * The fill of a rail node with no date.
      *
-     * Not transparent: the connecting line would run straight through the dot and
-     * it would stop reading as a point on the rail. A dark translucent fill reads
-     * as a hole in the line, which is what an unset point is.
+     * Not transparent: the connecting line would run straight through the dot
+     * and it would stop reading as a point on the rail. Filled with the card's
+     * own colour instead, so an unset node reads as a hole punched in the line —
+     * which is what an unset point is.
      */
     railNodeEmpty: string
     /**
@@ -150,14 +141,41 @@ export interface ArcPalette {
     /** The primary action on the engraved bar. */
     accentOnGlass: string
 
-    // ── Card log ──────────────────────────────────────────────────────────────
-    // One accent per kind of entry in the card's history panel. They read as a
-    // set deliberately: the panel is scanned down its left edge, and the colour
-    // is what tells a system event from something a person wrote.
-    /** Something the system recorded: moved, renamed, task completed. */
-    logEvent: string
-    /** Something a person wrote. */
-    logNote: string
+    // ── On card stock ─────────────────────────────────────────────────────────
+    // The mirror of the "on glass" ramp above, for the panels that are pieces of
+    // card rather than recesses in the pane (see .card-stock in ArcStyles.css).
+    // Glass is dark, so everything on it is a white at some opacity; card is
+    // light, so everything on it is a warm near-black at some opacity. The two
+    // ramps have to be separate because neither one degrades into the other:
+    // white-at-60% on card is invisible, and this ramp on glass is unreadable.
+    /** A heading, or the value a panel exists to show. */
+    onPaperStrong: string
+    /** Ordinary text on card. */
+    onPaper: string
+    /** A label, a placeholder, a timestamp — present but not being read. */
+    onPaperMuted: string
+    /** A row under the pointer. */
+    paperHover: string
+    /** The chosen row. */
+    paperSelected: string
+    /** A rule between sections of a card panel. */
+    paperDivider: string
+    /** A text input's ground, one step down from the card it sits on. */
+    paperField: string
+    /** The primary action, and anything that is the point of its panel. */
+    paperAccent: string
+    /** A destructive action on card. */
+    paperDanger: string
+
+    // ── Card commands ─────────────────────────────────────────────────────────
+    // One accent per CardCommandKind — command, result, error. They read as a
+    // set deliberately: the panel is scanned down its left edge, and the
+    // colour is what tells a command from what it answered.
+    //
+    // These were a set of pale tints chosen for a dark glass panel. The panel is
+    // card now, so they are the same five hues taken to where they read on it —
+    // a pale tint on off-white is a colour you can see but not name, which is
+    // the one thing an accent set cannot afford.
     /** A command the user typed. */
     logCommand: string
     /** What a command answered. */
@@ -166,8 +184,17 @@ export interface ArcPalette {
     logAlert: string
 
     // ── Timeline modes ────────────────────────────────────────────────────────
-    // Three mutually exclusive panels, each with its own colour. The Blazor
-    // original drove these off a `bool?`; the colours are unchanged.
+    // Three mutually exclusive modes, each with its own colour, used both as a
+    // selected button's fill and as an unselected one's outline.
+    //
+    // The Blazor original's aquamarine / lightgoldenrodyellow / indianred were
+    // chosen against a dark panel, where a pale tint is the thing that stands
+    // out. The panel is card stock now, and the first render of it showed what
+    // that costs: `lightgoldenrodyellow` as a 1px outline on off-white is not a
+    // faint button, it is no button — the Deadline control had visibly vanished.
+    //
+    // Same three hues, taken to a value that reads on card and still takes black
+    // text when selected.
     /** Timeline: full preferred and required ranges. */
     timelineMode: string
     /** Deadline: a single end date and time. */
@@ -193,11 +220,6 @@ const arcSurfaces: ArcPalette = {
 
     cardSurface: 'lightyellow',
 
-    field: 'rgba(255, 255, 255, 0.6)',
-    fieldMuted: 'rgba(255, 255, 230, 0.8)',
-    tagPlaceholder: 'rgba(204, 255, 204, 0.6)',
-    taskPanel: 'rgba(153, 214, 255, 0.8)',
-
     onGlassStrong: 'rgba(255, 255, 255, 0.95)',
     onGlass: 'rgba(255, 255, 255, 0.9)',
     onGlassIcon: 'rgba(255, 255, 255, 0.7)',
@@ -205,20 +227,28 @@ const arcSurfaces: ArcPalette = {
     glassHover: 'rgba(255, 255, 255, 0.12)',
     glassSelected: 'rgba(255, 255, 255, 0.2)',
     glassDivider: 'rgba(255, 255, 255, 0.15)',
-    railLine: 'rgba(255, 255, 255, 0.45)',
-    railNodeEmpty: 'rgba(24, 33, 50, 0.55)',
+    railLine: 'rgba(52, 36, 20, 0.38)',
+    railNodeEmpty: 'var(--arc-paper)',
     dangerOnGlass: '#ff8a80',
     accentOnGlass: '#9ad9ff',
 
-    logEvent: '#7fb5d9',
-    logNote: '#c5d86d',
-    logCommand: '#9ad9ff',
-    logResult: '#8fd9b6',
-    logAlert: '#ff8a80',
+    onPaperStrong: '#22262c',
+    onPaper: '#2c3641',
+    onPaperMuted: '#5a6572',
+    paperHover: 'rgba(52, 36, 20, 0.07)',
+    paperSelected: 'rgba(52, 36, 20, 0.12)',
+    paperDivider: 'rgba(52, 36, 20, 0.18)',
+    paperField: 'rgba(255, 255, 255, 0.55)',
+    paperAccent: '#2d6f9c',
+    paperDanger: '#a6392c',
 
-    timelineMode: 'aquamarine',
-    deadlineMode: 'lightgoldenrodyellow',
-    timelessMode: 'indianred',
+    logCommand: '#1d5c86',
+    logResult: '#2c6a51',
+    logAlert: '#a6392c',
+
+    timelineMode: '#5fc7ac',
+    deadlineMode: '#d8bc5a',
+    timelessMode: '#cd5c5c',
 }
 
 /**

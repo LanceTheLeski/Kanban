@@ -208,7 +208,14 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                         triggerSize={triggerSize}
                         onClose={revertDraft}
                         triggerSx={{
-                            backgroundColor: 'arc.taskPanel',
+                            /*
+                               No default ground. This used to open with
+                               `backgroundColor: 'arc.taskPanel'` — a translucent
+                               blue — which the only caller then overrode with
+                               `transparent`, so it never painted. Now that the
+                               row it sits on is a piece of card, a blue default
+                               would not just be dead, it would be wrong.
+                            */
                             ...(triggerSx as object),
                             /*
                                Struck through from the *draft*, so ticking Completed
@@ -221,11 +228,21 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                             */
                             ...(isCompleted
                                 ? {
-                                    color: 'arc.onGlassMuted',
+                                    // onPaper, because the row this sits on is a
+                                    // piece of card. It was onGlassMuted — a 60%
+                                    // white, which on card stock struck the title
+                                    // through and then made it invisible.
+                                    color: 'arc.onPaperMuted',
                                     '&&': { textDecoration: 'line-through' },
                                 }
                                 : {}),
                         }}
+                        /*
+                           The task rows are card stock, so an open row darkens
+                           rather than lightening, and keeps its dark label.
+                        */
+                        triggerOpenSx={{ backgroundColor: 'arc.paperSelected',
+                                         color: 'arc.onPaperStrong' }}
                         anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
                         transformOrigin={{ vertical: 'center', horizontal: 'left' }}>
                 <Box sx={{ width: TASK_POPOVER_WIDTH, display: 'flex', flexDirection: 'column', gap: 2 }}>
