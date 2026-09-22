@@ -11,6 +11,7 @@
 import React from 'react'
 import { Box, Paper, Typography } from '@mui/material'
 import { CONDENSED, SCRIPT } from '../../../Styles/Fonts'
+import { columnColour, labelStyle } from '../Board.Colours'
 import {
     BOARD_GAP,
     BOARD_TITLE_WIDTH,
@@ -49,10 +50,15 @@ export const ColumnHeaderRow: React.FC<ColumnHeaderRowProps> = ({ columns }) => 
             </Typography>
         </Paper>
 
-        {columns.map(column => (
+        {columns.map((column, index) => (
             <Paper key={column.id}
-                   className="aero-strip"
+                   className="board-label"
                    elevation={0}
+                   /*
+                      The column's own colour when it has one, otherwise its place
+                      on the blue ramp — palest on the left. See Board.Colours.
+                   */
+                   style={labelStyle(columnColour(column.colour, index, columns.length))}
                    sx={{ width: COLUMN_WIDTH,
                          // rem, not 40: this floor exists to hold one line of the
                          // title, so it has to grow with it.

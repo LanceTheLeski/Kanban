@@ -29,8 +29,13 @@ interface TimelineRailProps {
 export const TimelineRail: React.FC<TimelineRailProps> = ({ nodes, values, openNode, onToggle }) => (
     <Box sx={{ position: 'relative', display: 'flex', flexShrink: 0 }}>
         {/*
-            The connecting line: a strip of card laid between the first and last
-            dots, which then sit on top of it.
+            The connecting line: a strip of yellow card laid between the first
+            and last dots, which are then glued onto it.
+
+            Gold because the line is the only thing in the panel that is not a
+            control, and in the panel's own cream it disappeared — the rail read
+            as four dots with nothing joining them. Pale yellow was the first
+            try and was no better against the mode grounds, which are pale too.
             Each node is an equal fraction of the row, so a node's centre sits at
             (1 / count / 2) from its own edge — half a node in from each end.
 
@@ -40,15 +45,15 @@ export const TimelineRail: React.FC<TimelineRailProps> = ({ nodes, values, openN
         */}
         {nodes.length > 1 && (
             <Box aria-hidden
-                 className="card-stock-flat"
+                 className="card-stock-glued paper-gold"
                  sx={{ position: 'absolute',
                        left: `${100 / nodes.length / 2}%`,
                        right: `${100 / nodes.length / 2}%`,
-                       // 4px rather than 2: a strip of card has a thickness, and
-                       // at 2px the cut edge and the face have no room to be
-                       // two different things.
-                       top: NODE_PAD_Y + DOT_ROW_HEIGHT / 2 - 2,
-                       height: '4px' }} />
+                       // 5px, not 2: a strip of card has a thickness, and below
+                       // about four pixels the cut edge and the face have no room
+                       // to be two different things.
+                       top: NODE_PAD_Y + DOT_ROW_HEIGHT / 2 - 2.5,
+                       height: '5px' }} />
         )}
 
         {nodes.map(node => (

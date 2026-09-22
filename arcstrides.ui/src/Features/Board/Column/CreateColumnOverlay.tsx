@@ -20,6 +20,8 @@ import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { createColumn } from '../Board.APIs'
 import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
+import { ArcColourPicker } from '../../../Components/ArcColourPicker'
+import { columnSwatches } from '../Board.Colours'
 import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
 
@@ -37,6 +39,8 @@ export const CreateColumnOverlay: React.FC<CreateColumnOverlayProps> = ({ open, 
 
     const [title, setTitle] = useState('')
     const [orderInput, setOrderInput] = useState('')
+    // Null is the normal case: the column takes its place on the ramp.
+    const [colour, setColour] = useState<string | null>(null)
 
     const handleSubmit = async () => {
         if (!boardId || !title.trim()) return
@@ -45,12 +49,13 @@ export const CreateColumnOverlay: React.FC<CreateColumnOverlayProps> = ({ open, 
         const order = orderInput.trim() !== '' ? parseInt(orderInput, 10) : columns.length
 
         const created = await run('Adding column', () =>
-            createColumn(boardId, { title: title.trim(), order })
+            createColumn(boardId, { title: title.trim(), order, colour, globalColour: colour })
         )
         if (!created) return
 
         setTitle('')
         setOrderInput('')
+        setColour(null)
         onClose()
     }
 
@@ -74,6 +79,17 @@ export const CreateColumnOverlay: React.FC<CreateColumnOverlayProps> = ({ open, 
                            onChange={e => setOrderInput(e.target.value)}
                            inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
                            fullWidth />
+
+                {/*
+                    Both colours take the same value for now. They are separate
+                    fields because the per-board one may repeat and the global one
+                    may not — the API does not enforce that yet, which is noted in
+                    docs/api-gaps.md.
+                */}
+                <ArcColourPicker value={colour}
+                                 onChange={setColour}
+                                 swatches={columnSwatches()}
+                                 label="Column colour" />
             </Stack>
         </ArcOverlay>
     )

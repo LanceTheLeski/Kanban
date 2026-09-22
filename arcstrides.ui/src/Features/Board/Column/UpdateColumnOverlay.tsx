@@ -23,6 +23,8 @@ import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
 import { updateColumn } from '../Board.APIs'
 import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
+import { ArcColourPicker } from '../../../Components/ArcColourPicker'
+import { columnSwatches } from '../Board.Colours'
 import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
 
@@ -41,6 +43,7 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
     const [selectedTitle, setSelectedTitle] = useState<string | null>(null)
     const [replacementTitle, setReplacementTitle] = useState('')
     const [selectedOrder, setSelectedOrder] = useState<number | null>(null)
+    const [colour, setColour] = useState<string | null>(null)
 
     // Derived from store — mirrors Blazor's GetColumnIndexList() / OnParametersSet()
     // but reactive: always reflects current column count
@@ -54,6 +57,9 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
         }
         setSelectedTitle(title)
         setReplacementTitle(title) // Pre-fill with current title, mirrors Blazor
+        // And with its colour, so opening the picker does not read as "no colour"
+        // on a column that has one.
+        setColour(matches[0].colour)
     }
 
     const handleSubmit = async () => {
@@ -62,13 +68,21 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
         const column = columns.find(candidate => candidate.title === selectedTitle)
         if (!column) return
 
-        const patch: { title?: string; order?: number } = {}
+        const patch: { title?: string; order?: number; colour?: string; globalColour?: string } = {}
 
         if (replacementTitle.trim() && replacementTitle !== selectedTitle)
             patch.title = replacementTitle.trim()
 
         if (selectedOrder !== null && selectedOrder !== column.order)
             patch.order = selectedOrder
+
+        // Only when it changed, and only when it is a colour: clearing back to
+        // Default is not expressible as a patch yet, because the operation would
+        // have to send null and the server treats null as "leave it alone".
+        if (colour && colour !== column.colour) {
+            patch.colour = colour
+            patch.globalColour = colour
+        }
 
         if (Object.keys(patch).length === 0) {
             onClose()
@@ -81,6 +95,7 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
         setSelectedTitle(null)
         setReplacementTitle('')
         setSelectedOrder(null)
+        setColour(null)
         onClose()
     }
 
@@ -104,6 +119,11 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
                 <ArcExpandingSelector options={orderOptions}
                                       onSelect={value => setSelectedOrder(parseInt(value, 10))}
                                       placeholder="Select new order position" />
+
+                <ArcColourPicker value={colour}
+                                 onChange={setColour}
+                                 swatches={columnSwatches()}
+                                 label="Column colour" />
             </Stack>
         </ArcOverlay>
     )

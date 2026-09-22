@@ -24,10 +24,21 @@ import type { Card } from '../../../Entities/Card/Card.Types'
 import type { Column, Swimlane } from '../Board.Types'
 
 /** Where a card should end up: which cell, and how far down it. */
+/**
+ * Where one card ends up.
+ *
+ * The column and swimlane are narrowed to the three fields a move actually
+ * sends. A full Column would be a lie in the source-cell case below, which
+ * rebuilds one from the moving card's denormalised copy and has no way to know
+ * the column's colour — and the moment Column gained a colour, saying `Column`
+ * here stopped compiling, which is the type doing its job.
+ */
+type Placed = Pick<Column, 'id' | 'title' | 'order'>
+
 export interface CardPlacement {
     cardId: string
-    column: Column
-    swimlane: Swimlane
+    column: Placed
+    swimlane: Placed
     positionRank: number
 }
 
@@ -109,7 +120,10 @@ export function placementsForMove(cards: Card[],
         ? insertAt(target, moving, clamp(targetIndex, 0, target.length))
         : arrayMove(target, fromIndex, clamp(targetIndex, 0, target.length - 1))
 
-    const placements = arranged.map((card, index) => ({
+    // Annotated, not inferred: without it `placements` takes the shape of the
+    // target cell's full Column, and pushing the narrowed source-cell entries
+    // below fails on fields a move does not carry.
+    const placements: CardPlacement[] = arranged.map((card, index) => ({
         cardId: card.id,
         column,
         swimlane,

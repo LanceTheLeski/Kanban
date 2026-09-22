@@ -21,14 +21,24 @@
  * UpdateColumnOverlay bug comment acknowledged it. One object per item instead.
  */
 
+/**
+ * Columns and swimlanes are the same shape, but they are not the same thing and
+ * a shared `OrderedItem` type would let one be passed where the other is meant.
+ */
 export interface Column {
     id: string
     title: string
     order: number
+    /** The ground its name is written on. Null falls back to the ramp — see Board.Colours. */
+    colour: string | null
+    /** The colour it keeps across boards built from the same template. */
+    globalColour: string | null
 }
 
 export interface Swimlane {
     id: string
     title: string
     order: number
+    colour: string | null
+    globalColour: string | null
 }

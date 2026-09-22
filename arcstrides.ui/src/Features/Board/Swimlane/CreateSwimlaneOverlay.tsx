@@ -13,6 +13,8 @@ import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { createSwimlane } from '../Board.APIs'
 import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
+import { ArcColourPicker } from '../../../Components/ArcColourPicker'
+import { swimlaneSwatches } from '../Board.Colours'
 import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
 
@@ -30,6 +32,7 @@ export const CreateSwimlaneOverlay: React.FC<CreateSwimlaneOverlayProps> = ({ op
 
     const [title, setTitle] = useState('')
     const [orderInput, setOrderInput] = useState('')
+    const [colour, setColour] = useState<string | null>(null)
 
     const handleSubmit = async () => {
         if (!boardId || !title.trim()) return
@@ -38,12 +41,13 @@ export const CreateSwimlaneOverlay: React.FC<CreateSwimlaneOverlayProps> = ({ op
         const order = orderInput.trim() !== '' ? parseInt(orderInput, 10) : swimlanes.length
 
         const created = await run('Adding swimlane', () =>
-            createSwimlane(boardId, { title: title.trim(), order })
+            createSwimlane(boardId, { title: title.trim(), order, colour, globalColour: colour })
         )
         if (!created) return
 
         setTitle('')
         setOrderInput('')
+        setColour(null)
         onClose()
     }
 
@@ -67,6 +71,11 @@ export const CreateSwimlaneOverlay: React.FC<CreateSwimlaneOverlayProps> = ({ op
                            onChange={e => setOrderInput(e.target.value)}
                            inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
                            fullWidth />
+
+                <ArcColourPicker value={colour}
+                                 onChange={setColour}
+                                 swatches={swimlaneSwatches()}
+                                 label="Swimlane colour" />
             </Stack>
         </ArcOverlay>
     )

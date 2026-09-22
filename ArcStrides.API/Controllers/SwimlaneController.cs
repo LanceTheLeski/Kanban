@@ -267,14 +267,24 @@ public class SwimlaneController : ArcController
         // the transaction failed on "The given entities do not have a matching
         // RowKey".
         //
-        // A SwimlanePatchRequest has exactly two fields. Copying them explicitly is
-        // shorter than the mapper call it replaces and cannot be undone by a change
-        // in generated behaviour. Identity is not patchable and is never touched.
+        // Copying the patchable fields explicitly is shorter than the mapper call it
+        // replaces and cannot be undone by a change in generated behaviour. Identity
+        // is not patchable and is never touched.
+        //
+        // Every field here has to be added by hand, which is the cost of not using
+        // the mapper: the two colours below were on the model for a long time before
+        // anything carried them, and this is the line that would have been missed.
         if (convertedSwimlaneToUpdate.Title is not null)
             swimlaneToUpdate.Title = convertedSwimlaneToUpdate.Title;
 
         if (convertedSwimlaneToUpdate.Order is int patchedOrder)
             swimlaneToUpdate.SwimlaneOrder = patchedOrder;
+
+        if (convertedSwimlaneToUpdate.Color is not null)
+            swimlaneToUpdate.SwimlaneColor = convertedSwimlaneToUpdate.Color;
+
+        if (convertedSwimlaneToUpdate.GlobalColor is not null)
+            swimlaneToUpdate.GlobalSwimlaneColor = convertedSwimlaneToUpdate.GlobalColor;
 
         // GetTransactionEntities rather than indexing the dictionary: the indexer
         // throws KeyNotFoundException when no swimlane order changed, so a patch that

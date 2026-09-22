@@ -273,12 +273,32 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                                    display: 'flex',
                                    flexDirection: 'column',
                                    gap: 1 }}>
-                            <FormControlLabel control={
+                            {/*
+                                On card, with the box a smaller piece laid on it.
+
+                                It was a checkbox and a word standing directly on
+                                the glass — the last control in the popover with
+                                nothing under it. The tick is drawn by MUI, so
+                                what the card gives it is a ground to sit on and
+                                an edge, which is also what makes the hit target
+                                visible before you reach for it.
+                            */}
+                            <FormControlLabel className="card-stock"
+                                              sx={{ alignSelf: 'flex-start',
+                                                    m: 0,
+                                                    pr: 1.25,
+                                                    '& .MuiCheckbox-root': { color: 'arc.onPaperMuted' },
+                                                    '& .Mui-checked': { color: 'arc.paperAccent' } }}
+                                              control={
                                                   <Checkbox checked={isCompleted}
                                                             onChange={e => setIsCompleted(e.target.checked)}
                                                             size="small" />
                                               }
-                                              label={<Typography variant="body2">Completed</Typography>} />
+                                              label={<Typography variant="body2"
+                                                                 sx={{ color: 'arc.onPaperStrong',
+                                                                       fontWeight: 600 }}>
+                                                         Completed
+                                                     </Typography>} />
 
                             <ArcExpandingSelector options={orderOptions}
                                                   onSelect={v => setOrder(parseInt(v, 10) - 1)}
@@ -289,21 +309,24 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                                                   placeholder={task.taskType?.title ?? 'Select task type'} />
 
                             {/*
-                                A text link, not an outlined button. Creating a
-                                task *type* is a rare, secondary act — it was
-                                competing with the two selectors above it for
-                                attention while being the least likely thing
-                                anyone opened this popover to do.
+                                Neutral card, matching "+ New task" on the card
+                                overlay: both are the one "add a thing" action in
+                                their panel, and they should not be two different
+                                shapes. Quiet within that — creating a task *type*
+                                is the least likely thing anyone opened this
+                                popover to do.
                             */}
                             <Button size="small"
                                     variant="text"
+                                    className="card-stock"
                                     onClick={() => setCreateTaskTypeOpen(true)}
                                     sx={{ alignSelf: 'flex-start',
-                                          px: 0.5,
+                                          px: 1,
                                           fontSize: '0.65rem',
                                           textTransform: 'none',
-                                          color: 'arc.onGlassMuted',
-                                          '&:hover': { color: 'arc.onGlass', backgroundColor: 'arc.glassHover' } }}>
+                                          color: 'arc.onPaperMuted',
+                                          '&:hover': { color: 'arc.onPaperStrong',
+                                                       backgroundColor: 'transparent' } }}>
                                 + New task type
                             </Button>
                         </Box>

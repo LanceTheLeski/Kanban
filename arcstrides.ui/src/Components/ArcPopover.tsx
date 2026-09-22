@@ -72,6 +72,15 @@ export interface ArcPopoverProps {
      */
     triggerSx?: SxProps<Theme>
     /**
+     * A class for the trigger button — in practice one of the card stocks, for
+     * the triggers that are pieces of card rather than text on a pane.
+     *
+     * Separate from triggerSx because the stock is carried by plain CSS custom
+     * properties, and this app's stylesheet deliberately wins over sx at equal
+     * specificity; trying to say the same thing through sx would be overridden.
+     */
+    triggerClassName?: string
+    /**
      * Styling for the trigger while the popover is open, on top of triggerSx.
      *
      * The marker below says *that* a trigger is open; this says what that looks
@@ -117,6 +126,7 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
     onClose: controlledOnClose,
     triggerSize = 'medium',
     triggerSx,
+    triggerClassName,
     triggerOpenSx,
     title,
     titleStock,
@@ -170,6 +180,7 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
             <Button onClick={handleOpen}
                     size={triggerSize}
                     variant="text"
+                    className={triggerClassName}
                     aria-expanded={isOpen}
                     sx={{ fontFamily: MONO,
                           fontWeight: 400,

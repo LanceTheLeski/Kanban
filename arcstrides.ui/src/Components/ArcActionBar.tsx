@@ -216,21 +216,29 @@ export const ArcActionBar: React.FC<ArcActionBarProps> = ({
                    flexWrap: 'wrap',
                    gap: 1,
                    flexShrink: 0 }}>
-            {allActions.map(action => (
-                <Button key={action.label}
-                        size="small"
-                        variant="outlined"
-                        disabled={busy || action.disabled}
-                        onClick={() => handleAction(action)}
-                        sx={{ color: action.destructive ? 'arc.dangerOnGlass' : 'arc.onGlass',
-                              borderColor: action.destructive ? 'arc.dangerOnGlass' : 'arc.glassDivider',
-                              '&:hover': {
-                                  borderColor: action.destructive ? 'arc.dangerOnGlass' : 'arc.onGlassMuted',
-                                  backgroundColor: 'arc.glassHover',
-                              } }}>
-                    {action.label}
-                </Button>
-            ))}
+            {/*
+                The same engraved group Save and Discard sit in, rather than
+                outlined buttons floating on the pane.
+
+                "Delete Card" was the one control in the card overlay standing
+                directly on the glass with nothing under it, which is the thing
+                this whole pass has been removing. Its own group, not the one on
+                the right: a destructive action next to Save is a misclick.
+            */}
+            {allActions.length > 0 && (
+                <ButtonGroup className="glass-inner-engraved"
+                             variant="text"
+                             sx={{ borderRadius: radius, overflow: 'hidden' }}>
+                    {allActions.map(action => (
+                        <Button key={action.label}
+                                disabled={busy || action.disabled}
+                                onClick={() => handleAction(action)}
+                                sx={barButtonSx(action.destructive ? 'danger' : 'quiet')}>
+                            {action.label}
+                        </Button>
+                    ))}
+                </ButtonGroup>
+            )}
 
             {/* The gap that keeps destructive actions away from the corner. */}
             <Box sx={{ flex: 1, minWidth: 0 }} />

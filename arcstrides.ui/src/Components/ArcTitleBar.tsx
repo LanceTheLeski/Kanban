@@ -37,13 +37,22 @@ interface ArcTitleBarProps {
 }
 
 export const ArcTitleBar: React.FC<ArcTitleBarProps> = ({ children, stock = 'cream', caption }) => (
+    /*
+       A chip, not a bar. Full width, a heading is a strip of card with the title
+       in one corner and six inches of nothing after it — and on the task popover,
+       where the title is one word, that was most of the piece.
+
+       Left-aligned rather than centred: a label on the corner of a folder is
+       where a label goes, and it lines the heading up with the fields under it.
+    */
     <Box className={`card-stock${stock === 'cream' ? '' : ` paper-${stock}`}`}
-         sx={{ flexShrink: 0, px: 1, py: 0.5 }}>
+         sx={{ flexShrink: 0, alignSelf: 'flex-start', maxWidth: '100%', px: 1, py: 0.35 }}>
         <Typography component="h2"
                     sx={{ fontSize: '0.78rem',
                           fontWeight: 700,
-                          letterSpacing: '0.06em',
-                          textTransform: 'uppercase',
+                          // Sentence case. Letterspaced caps is signage, and these
+                          // are captions on pieces of card.
+                          letterSpacing: '0.01em',
                           color: 'arc.onPaperStrong' }}>
             {children}
         </Typography>

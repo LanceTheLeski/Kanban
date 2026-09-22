@@ -45,37 +45,54 @@ export const TimelineNode: React.FC<TimelineNodeProps> = ({ spec, value, isOpen,
     */
     return (
         <Tooltip title={spec.meaning} placement="top" describeChild>
+            {/*
+               Reached for or opened, the node becomes a piece of card rather
+               than a grey rectangle. MUI's hover shade covered the node's whole
+               column — a wash the width of a quarter of the rail, for pointing
+               at a 13px dot — and said nothing about the material everything
+               else in this panel is made of.
+
+               Opened is the same piece, raised. That also replaces the blue ring
+               the open dot used to wear: a ring around a disc that is already a
+               different colour when it is set was two marks competing to mean
+               two different things.
+            */}
             <ButtonBase onClick={onToggle}
                         aria-pressed={isOpen}
+                        className={isOpen ? 'card-stock' : undefined}
                         sx={{ flex: 1,
                               minWidth: 0,
                               flexDirection: 'column',
                               borderRadius: 1,
                               pt: `${NODE_PAD_Y}px`,
                               pb: 0.25,
-                              '&:hover': { backgroundColor: 'arc.paperHover' } }}>
+                              // Above the rail, so an opened node's own card does
+                              // not get a yellow strip drawn across it.
+                              position: 'relative',
+                              zIndex: isOpen ? 2 : undefined,
+                              '&:hover': { backgroundColor: 'transparent' },
+                              '&:hover .arc-node-dot': { transform: 'scale(1.18)' } }}>
 
                 {/*
-                    The dot is a disc punched from card and laid on the rail, in
-                    the same stock as everything else in the panel. A set point
-                    is cut from blue board, an unset one from the panel's own
-                    cream — so "has a date" reads as a different *material*
-                    rather than as a different fill, which is what keeps it
-                    legible at 13px.
+                    The dot is a disc punched from card and glued to the rail. A
+                    set point is cut from deep blue board, an unset one from grey —
+                    so "has a date" reads as a different *material* rather than
+                    as a different fill, which is what keeps it legible at 13px.
+
+                    Glued, not flat: card-stock-flat stands a ply proud and casts
+                    a shadow onto the strip just below it, which made every disc
+                    look like it was hovering under the line rather than sitting
+                    on it.
                 */}
                 <Box sx={{ height: DOT_ROW_HEIGHT,
                            display: 'flex',
                            alignItems: 'center',
                            justifyContent: 'center',
                            zIndex: 1 }}>
-                    <Box className={`card-stock-flat card-disc${isSet ? ' paper-blue' : ''}`}
+                    <Box className={`arc-node-dot card-stock-glued card-disc ${isSet ? 'paper-ink' : 'paper-grey'}`}
                          sx={{ width: DOT,
                                height: DOT,
-                               // The open node gets a ring rather than a fill, so
-                               // the selection reads on both stocks.
-                               outline: isOpen ? '2px solid' : 'none',
-                               outlineColor: 'arc.paperAccent',
-                               outlineOffset: '1px' }} />
+                               transition: 'transform .12s' }} />
                 </Box>
 
                 {/* Label */}

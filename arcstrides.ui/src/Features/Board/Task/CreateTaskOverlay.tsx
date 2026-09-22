@@ -158,20 +158,24 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
                            app uses for a primary action. Shorter, too — "Create New Task"
                            in a column of task titles read as another task.
                         */
+                        /*
+                           A piece of neutral card, like everything else in the
+                           tray. It used to be accent-coloured text standing
+                           directly on the tray floor — one of two controls in
+                           the card overlay with nothing under them.
+                        */
+                        triggerClassName="card-stock"
                         triggerSx={{
                             width: '100%',
                             justifyContent: 'flex-start',
-                            color: 'arc.accentOnGlass',
+                            color: 'arc.onPaperStrong',
                             fontWeight: 700,
-                            '&:hover': { backgroundColor: 'arc.glassHover' },
+                            px: 1,
+                            '&:hover': { backgroundColor: 'transparent' },
                         }}
-                        /*
-                           This one is still on the glass tray — it is the only
-                           thing in the list that is not a piece of card — so its
-                           open marker lightens, the way it always did.
-                        */
-                        triggerOpenSx={{ backgroundColor: 'arc.glassSelected',
-                                         color: 'arc.onGlassStrong' }}
+                        /* Card now, like the rows above it, so its open marker darkens. */
+                        triggerOpenSx={{ backgroundColor: 'arc.paperSelected',
+                                         color: 'arc.onPaperStrong' }}
                         title="New task"
                         titleStock="green"
                         onSubmit={handleSubmit}

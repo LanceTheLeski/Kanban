@@ -136,16 +136,28 @@ export const BoardCard: React.FC<BoardCardProps> = ({
                         {card.title}
                     </Typography>
 
-                    {/* Description — mirrors MudText height:100px font-size:x-small */}
+                    {/*
+                        Description — mirrors MudText height:100px font-size:x-small.
+
+                        `pre-line` so a description written as a list still reads
+                        as one. Without it every newline collapsed to a space and
+                        four bullet points arrived as one run-on sentence, which
+                        is the opposite of what the author typed them as.
+
+                        The blank lines between paragraphs go, though — see
+                        previewText. Three clamped lines is not enough room to
+                        spend one of them on nothing.
+                    */}
                     <Typography sx={{ fontSize: '0.65rem',
                                       display: '-webkit-box',
                                       WebkitLineClamp: 3,
                                       WebkitBoxOrient: 'vertical',
                                       overflow: 'hidden',
                                       overflowWrap: 'anywhere',
+                                      whiteSpace: 'pre-line',
                                       textAlign: 'left',
                                       opacity: 0.85 }}>
-                        {card.description}
+                        {previewText(card.description)}
                     </Typography>
                 </Box>
 
@@ -218,6 +230,24 @@ export const BoardCard: React.FC<BoardCardProps> = ({
             )}
         </>
     )
+}
+
+// ── Private ───────────────────────────────────────────────────────────────────
+
+/**
+ * A description as the tile shows it: line breaks kept, blank lines dropped.
+ *
+ * A card tile has three clamped lines. A description written as a bulleted list
+ * with a blank line between items would spend two of them on nothing and show
+ * two bullets; collapsing the runs shows three. Trailing spaces go too, because
+ * `pre-line` renders them and a stray one shifts the clamp's ellipsis.
+ */
+function previewText(description: string): string {
+    return description
+        .split('\n')
+        .map(line => line.trimEnd())
+        .filter(line => line.length > 0)
+        .join('\n')
 }
 
 export default BoardCard

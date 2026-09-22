@@ -580,8 +580,62 @@ body,
     --arc-paper-edge: rgba(84, 66, 20, .36);
 }
 
+/*
+   Gold — deeper than .paper-yellow, which is a *ground* colour and reads as
+   almost nothing when it is four pixels wide on another pale ground. The
+   timeline's rail is the one place that needs a stock to hold its own at that
+   size.
+*/
+.paper-gold {
+    --arc-paper: #d9ab3f;
+    --arc-paper-face: linear-gradient(178deg, #e7bf5f, #c6952c);
+    --arc-paper-edge: rgba(84, 58, 8, .5);
+}
+
+/*
+   Deep blue. .paper-blue is a *ground* — right under a panel of red tag pills,
+   and far too pale to answer "does this point have a date" from across a 13px
+   disc sitting on a green field.
+*/
+.paper-ink {
+    --arc-paper: #6ea3cf;
+    --arc-paper-face: linear-gradient(178deg, #86b6dd, #578fbd);
+    --arc-paper-edge: rgba(16, 48, 78, .5);
+}
+
+/* Greyboard — the unprinted stock. An empty timeline node is cut from it. */
+.paper-grey {
+    --arc-paper: #c3bfb6;
+    --arc-paper-face: linear-gradient(178deg, #d2cec5, #b3afa6);
+    --arc-paper-edge: rgba(48, 44, 38, .34);
+}
+
+/*
+   A piece glued flat to another piece.
+
+   .card-stock-flat still stands one ply proud and casts a shadow for it, which
+   is right for a task row on a tray and wrong for a disc punched out and stuck
+   onto a strip: the shadow fell across the strip just under each disc, and the
+   discs read as hovering below the line they are meant to be sitting on. Same
+   face, same cut edge, no lift.
+*/
+.card-stock-glued {
+    box-shadow:
+        inset 0 1px 0 0 rgba(255, 250, 236, .24),
+        inset 0 -1px 0 0 rgba(52, 36, 20, .16),
+        0 0 0 1px var(--arc-paper-edge);
+}
+
+/*
+   The face. Every depth below shares it, so a piece is described by what it is
+   made of in one place and by how far it stands off its ground in another.
+   Leaving .card-stock-glued out of this list was worth an hour: the rail and
+   its nodes had a cut edge and a shadow and no colour at all, and read as thin
+   grey outlines of themselves.
+*/
 .card-stock,
-.card-stock-flat {
+.card-stock-flat,
+.card-stock-glued {
     /*
        2px, not the 4px the recess used. A cut edge is square; the radius is
        there to take the aliasing off the corner, not to round it.
@@ -628,10 +682,22 @@ body,
    as an absence of light. Neutral, very slightly cool, reads as shadow over
    every ground this app has.
 */
+/*
+   ── The top edge is a cut, not a highlight ──────────────────────────────────
+   These carried `inset 0 1px 0 rgba(255,255,255,.85)` — a near-white specular
+   line along the top. That is what a curved glass or plastic edge does, and on
+   a large panel it passed; on the timeline's small coloured tabs it was a white
+   pinstripe across a piece of board, and the tabs stopped looking like board.
+
+   Cut card does not catch a specular. Its top edge shows the *core* of the
+   sheet, which is lighter and warmer than the printed face but nowhere near
+   white. So: a warm off-white at a third of the alpha, which reads as a cut
+   edge from a foot away and as nothing at all from further.
+*/
 .card-stock {
     box-shadow:
-        inset 0 1px 0 0 rgba(255, 255, 255, .85),
-        inset 0 -1px 0 0 rgba(52, 36, 20, .18),
+        inset 0 1px 0 0 rgba(255, 250, 236, .3),
+        inset 0 -1px 0 0 rgba(52, 36, 20, .2),
         0 0 0 1px var(--arc-paper-edge),
         0 1px 1.5px rgba(26, 24, 28, .3),
         0 4px 7px -3px rgba(26, 24, 28, .2),
@@ -640,8 +706,8 @@ body,
 
 .card-stock-flat {
     box-shadow:
-        inset 0 1px 0 0 rgba(255, 255, 255, .78),
-        inset 0 -1px 0 0 rgba(52, 36, 20, .15),
+        inset 0 1px 0 0 rgba(255, 250, 236, .26),
+        inset 0 -1px 0 0 rgba(52, 36, 20, .17),
         0 0 0 1px var(--arc-paper-edge),
         0 1px 1.5px rgba(26, 24, 28, .26),
         0 3px 6px -3px rgba(26, 24, 28, .16);
@@ -711,7 +777,7 @@ body,
     color: #22262c;
     border-radius: 3px;
     box-shadow:
-        inset 0 1px 0 0 rgba(255, 255, 255, .85),
+        inset 0 1px 0 0 rgba(255, 250, 236, .3),
         0 0 0 1px var(--arc-paper-edge),
         0 2px 4px rgba(26, 24, 28, .3),
         0 10px 20px -6px rgba(26, 24, 28, .3),
@@ -740,7 +806,7 @@ body,
     color: #22262c;
     font-weight: 600;
     box-shadow:
-        inset 0 1px 0 0 rgba(255, 255, 255, .7),
+        inset 0 1px 0 0 rgba(255, 250, 236, .26),
         0 0 0 1px var(--arc-paper-edge),
         0 1px 1.5px rgba(26, 24, 28, .26);
 }
@@ -749,7 +815,7 @@ body,
     /* Lifted rather than tinted: it is a piece of board, so reaching for it
        picks it up. */
     box-shadow:
-        inset 0 1px 0 0 rgba(255, 255, 255, .8),
+        inset 0 1px 0 0 rgba(255, 250, 236, .3),
         0 0 0 1px var(--arc-paper-edge),
         0 2px 4px rgba(26, 24, 28, .3),
         0 5px 9px -3px rgba(26, 24, 28, .2);
@@ -790,39 +856,32 @@ body,
     color: #12283c;
 }
 
-/* ── Aero strip ───────────────────────────────────────────────────────────────
-   The board's own furniture: column headers and swimlane labels.
+/* ── Board furniture ──────────────────────────────────────────────────────────
+   Column headers and swimlane labels.
 
-   These were flat blocks of colour — a MUI Paper on its default blue for the
-   columns, `lightcoral` for the lanes — carrying bold condensed black text.
-   That is what the Blazor original did and it is legible, but it is the only
-   thing on the board with no material to it, which showed once everything else
-   grew one.
+   These were a near-white aero strip, taken from the reference UI, which put a
+   blurred translucent film over the board. Against the linen wall that arrived
+   with it, the two read as grey glass on beige — no material, no colour, and
+   nothing tying them to the notes below.
 
-   The recipe is the reference UI's, which uses the same strip for both: a
-   near-white film over a blurred backdrop, a bright inner top edge, a hairline
-   all round, and a long soft shadow. Four inset highlights rather than one,
-   because what separates this from "a translucent rectangle" is that the light
-   catches the top edge, the bottom edge and the inside of the rim differently.
-
-   It is a *strip*, not a piece of card: the board furniture is part of the
-   window, and the cards are the things laid on it. Giving the headers card
-   stock too would have made the board one undifferentiated pile.
+   They are card now, like everything else that is a *thing* rather than a
+   surface, and they carry the colour of the column or lane they name. See
+   Board.Colours for where that colour comes from.
    ─────────────────────────────────────────────────────────────────────────── */
 
-.aero-strip {
-    border-radius: 5px;
-    border: 1px solid rgba(255, 255, 255, .7);
-    background: linear-gradient(rgba(255, 255, 255, .42), rgba(196, 220, 244, .22));
-    -webkit-backdrop-filter: blur(16px) saturate(1.4);
-    backdrop-filter: blur(16px) saturate(1.4);
+.board-label {
+    border-radius: 2px;
+    background-color: var(--arc-label);
+    background-image: var(--arc-paper-grain), linear-gradient(174deg, var(--arc-label-top), var(--arc-label-bottom));
+    color: #22262c;
+    text-shadow: none;
     box-shadow:
-        inset 0 1px 0 0 rgba(255, 255, 255, .98),
-        inset 0 0 0 1px rgba(255, 255, 255, .44),
-        inset 0 -1px 0 0 rgba(255, 255, 255, .58),
-        inset 0 20px 26px -22px rgba(255, 255, 255, .95),
-        0 0 0 1px rgba(30, 16, 10, .12),
-        0 10px 24px -14px rgba(30, 16, 10, .55);
+        inset 0 1px 0 0 rgba(255, 250, 236, .3),
+        inset 0 -1px 0 0 rgba(52, 36, 20, .2),
+        0 0 0 1px var(--arc-label-edge),
+        0 1px 1.5px rgba(26, 24, 28, .3),
+        0 4px 7px -3px rgba(26, 24, 28, .22),
+        0 10px 18px -8px rgba(26, 24, 28, .16);
 }
 
 /* ── The board ────────────────────────────────────────────────────────────────

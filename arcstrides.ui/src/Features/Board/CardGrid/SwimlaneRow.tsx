@@ -18,6 +18,7 @@
 import React from 'react'
 import { Box, Paper, Typography } from '@mui/material'
 import { CONDENSED } from '../../../Styles/Fonts'
+import { labelStyle, swimlaneColour } from '../Board.Colours'
 import { BOARD_GAP, STACK_LABEL_BELOW, SWIMLANE_LABEL_WIDTH } from '../Board.Layout'
 import { DroppableCell } from './DroppableCell'
 import { DraggableCard } from './DraggableCard'
@@ -30,6 +31,14 @@ interface SwimlaneRowProps {
     columns: Column[]
     cardsByCell: Map<string, Card[]>
     boardId: string
+    /*
+       Where this lane sits, and how many there are — the ramp in Board.Colours
+       spans the whole board, so a lane cannot work out its own default shade
+       from `swimlane.order` alone. Passed rather than derived here because the
+       grid is the only thing that knows the set.
+    */
+    laneIndex: number
+    laneCount: number
 }
 
 export const SwimlaneRow: React.FC<SwimlaneRowProps> = ({
@@ -37,6 +46,8 @@ export const SwimlaneRow: React.FC<SwimlaneRowProps> = ({
     columns,
     cardsByCell,
     boardId,
+    laneIndex,
+    laneCount,
 }) => (
     // Mirrors: MudPaper Style="background-color: wheat"
     <Box sx={{ backgroundColor: 'arc.swimlaneBand' }}>
@@ -67,14 +78,15 @@ export const SwimlaneRow: React.FC<SwimlaneRowProps> = ({
                 {/*
                     Was: MudPaper Width="110px" Style="background-color: lightcoral".
 
-                    The lane's colour is now a bar down its leading edge rather
-                    than a flat fill, which is how the reference carries it: the
-                    panel is the same strip the column headers use, so the two
-                    read as one system, and the colour marks the lane without
-                    being the whole of it.
+                    Now a piece of card in the lane's own colour, or its place on
+                    the red ramp when it has none — strongest at the top. The
+                    colour is the ground the name is written on, not a bar beside
+                    it: a 3px stripe was carrying the lane's identity in the part
+                    of the label you are least likely to look at.
                 */}
-                <Paper className="aero-strip"
+                <Paper className="board-label"
                        elevation={0}
+                       style={labelStyle(swimlaneColour(swimlane.colour, laneIndex, laneCount))}
                        sx={{ // Spread, not nested. SWIMLANE_LABEL_WIDTH is itself a
                              // breakpoint map, so `{ [STACK_LABEL_BELOW]: SWIMLANE_LABEL_WIDTH }`
                              // would hand MUI a map as a *value*; it cannot resolve that,
@@ -106,23 +118,6 @@ export const SwimlaneRow: React.FC<SwimlaneRowProps> = ({
                         disappearing, which matters most on exactly the narrow screens
                         where the label had to stack.
                     */}
-                    {/*
-                        The lane's colour, as a bar down its leading edge.
-
-                        A real element rather than a border or a box-shadow: both
-                        of those are already set by .aero-strip in plain CSS,
-                        which beats sx at equal specificity in this app — the
-                        first attempt set borderLeft from sx and it silently did
-                        nothing.
-                    */}
-                    <Box aria-hidden
-                         sx={{ position: 'absolute',
-                               left: 0,
-                               top: 0,
-                               bottom: 0,
-                               width: '3px',
-                               backgroundColor: 'arc.swimlaneLabel' }} />
-
                     <Typography sx={{ fontFamily: CONDENSED,
                                       fontSize: '0.78rem',
                                       fontWeight: 700,

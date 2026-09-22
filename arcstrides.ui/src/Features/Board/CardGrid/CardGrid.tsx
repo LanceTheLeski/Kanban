@@ -58,12 +58,14 @@ export const CardGrid: React.FC<CardGridProps> = ({ boardId }) => {
                             onDragStart={handleDragStart}
                             onDragEnd={handleDragEnd}
                             onDragCancel={handleDragCancel}>
-                    {swimlanes.map(swimlane => (
+                    {swimlanes.map((swimlane, index) => (
                         <SwimlaneRow key={swimlane.id}
                                      swimlane={swimlane}
                                      columns={columns}
                                      cardsByCell={cardsByCell}
-                                     boardId={boardId} />
+                                     boardId={boardId}
+                                     laneIndex={index}
+                                     laneCount={swimlanes.length} />
                     ))}
 
                     {/*

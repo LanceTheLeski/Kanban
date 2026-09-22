@@ -126,6 +126,8 @@ interface OrderedItemResponse {
     title: string | null
     order: number | null
     boardID: string | null
+    color: string | null
+    globalColor: string | null
 }
 
 /** Mirrors ArcStrides.Contracts.Response.BoardResponse */
@@ -210,6 +212,10 @@ function mapOrderedItem(response: OrderedItemResponse): Column {
         id: response.id ?? '',
         title: response.title ?? '',
         order: response.order ?? 0,
+        // Null, not '', so "has no colour" is a value the ramp can answer rather
+        // than an empty string something downstream might try to paint.
+        colour: response.color ?? null,
+        globalColour: response.globalColor ?? null,
     }
 }
 
@@ -359,13 +365,19 @@ export function deleteCard(boardId: string, cardId: string): Promise<void> {
 export interface ColumnCreateRequest {
     title: string
     order: number
+    /** Omitted means "no opinion", and the board falls back to the ramp. */
+    colour?: string | null
+    globalColour?: string | null
 }
 
 /** POST arcstrides/boards/:boardId/columns */
 export async function createColumn(boardId: string, request: ColumnCreateRequest): Promise<Column> {
     const response = await apiClient.post<OrderedItemResponse>(
         `${ARC}/boards/${boardId}/columns`,
-        { Title: request.title, Order: request.order }
+        { Title: request.title,
+          Order: request.order,
+          Color: request.colour ?? null,
+          GlobalColor: request.globalColour ?? null }
     )
     return mapOrderedItem(response)
 }
@@ -373,6 +385,8 @@ export async function createColumn(boardId: string, request: ColumnCreateRequest
 export interface OrderedItemPatchRequest {
     title?: string
     order?: number
+    colour?: string
+    globalColour?: string
 }
 
 /**
@@ -397,7 +411,10 @@ export function deleteColumn(boardId: string, columnId: string): Promise<void> {
 export async function createSwimlane(boardId: string, request: ColumnCreateRequest): Promise<Swimlane> {
     const response = await apiClient.post<OrderedItemResponse>(
         `${ARC}/boards/${boardId}/swimlanes`,
-        { Title: request.title, Order: request.order }
+        { Title: request.title,
+          Order: request.order,
+          Color: request.colour ?? null,
+          GlobalColor: request.globalColour ?? null }
     )
     return mapOrderedItem(response)
 }
@@ -421,6 +438,12 @@ function orderedItemOperations(patch: OrderedItemPatchRequest): PatchOperation[]
 
     if (patch.order !== undefined)
         operations.push({ op: 'replace', path: '/order', value: patch.order })
+
+    if (patch.colour !== undefined)
+        operations.push({ op: 'replace', path: '/color', value: patch.colour })
+
+    if (patch.globalColour !== undefined)
+        operations.push({ op: 'replace', path: '/globalColor', value: patch.globalColour })
 
     return operations
 }

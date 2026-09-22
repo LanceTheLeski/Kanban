@@ -86,6 +86,9 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
     */
     const showRail = active.length > 1
 
+    /** The stock the chosen tab is cut from, which the section below shares. */
+    const activeStock = MODES.find(option => option.value === mode)?.stock ?? ''
+
     return (
         <Paper className="card-stock"
                sx={{ p: 1,
@@ -132,6 +135,22 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                     )
                 })}
             </Box>
+
+            {/*
+                ── The mode's own ground ────────────────────────────────────────
+                Everything below the tabs sits on a piece of card cut from the
+                same stock as the tab that is chosen. So the panel answers "which
+                mode is this card in" twice — once by which tab stands proud, and
+                once by the colour of everything under it — and the second answer
+                is the one you get without looking at the tabs at all.
+            */}
+            <Box className={`card-stock-flat ${activeStock}`}
+                 sx={{ flex: 1,
+                       minHeight: 0,
+                       display: 'flex',
+                       flexDirection: 'column',
+                       gap: 1,
+                       p: 0.75 }}>
 
             {/* ── The rail ──────────────────────────────────────────────────── */}
             {showRail && (
@@ -224,6 +243,7 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                     Select a point to set its date and time.
                 </Typography>
             )}
+            </Box>
         </Paper>
     )
 
