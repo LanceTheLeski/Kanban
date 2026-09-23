@@ -54,7 +54,7 @@ import { createTheme } from '@mui/material/styles'
  * property, so these are used as strings:
  *
  *     backgroundColor: 'arc.cell'          ✅  resolves palette.arc.cell
- *     borderColor: 'arc.swimlaneBand'      ✅
+ *     color: 'arc.onPaperStrong'           ✅
  *
  * `outline`, `border` and other shorthands are NOT colour-scaled — sx passes
  * them through untouched, so a path in one is written to the DOM verbatim and
@@ -72,10 +72,9 @@ import { createTheme } from '@mui/material/styles'
  */
 export interface ArcPalette {
     // ── Board grid ────────────────────────────────────────────────────────────
-    // The wall itself is .board-surface in ArcStyles.css, because it is a woven
-    // texture rather than a colour. What is left here is the chrome around it.
-    /** The gutters down each side of a swimlane row. */
-    swimlaneBand: string
+    // The lanes are .board-surface and the columns .column-glass in
+    // ArcStyles.css, because both are materials rather than colours. What is left
+    // here is the chrome.
     /** The bar marking a swimlane's name block. */
     swimlaneLabel: string
     /** The ring drawn round a cell that would accept the drop. */
@@ -201,7 +200,6 @@ export interface ArcPalette {
  * wrote them, and `wheat` carries more than `#F5DEB3` does.
  */
 const arcSurfaces: ArcPalette = {
-    swimlaneBand: '#b9ae97',
     swimlaneLabel: 'lightcoral',
     cellActiveEdge: '#3f8f4a',
     overflowBadge: 'rgba(0, 0, 0, 0.55)',

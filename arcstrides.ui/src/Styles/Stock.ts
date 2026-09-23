@@ -20,15 +20,45 @@ import type { CSSProperties } from 'react'
 
 export type Rgb = [number, number, number]
 
-/** The four custom properties .board-label paints itself from. */
+/**
+ * The three custom properties .board-label paints itself from: a face, and the
+ * lit and shaded ends of it. There used to be a fourth, for a drawn edge; card
+ * has no line round it, so it went — see "How a piece of card is lit".
+ */
 export function labelStyle(colour: string): CSSProperties {
     const base = parse(colour) ?? [216, 210, 198]
     return {
         '--arc-label': rgb(base),
         '--arc-label-top': rgb(shift(base, 14)),
         '--arc-label-bottom': rgb(shift(base, -12)),
-        '--arc-label-edge': rgba(shift(base, -78), 0.45),
     } as CSSProperties
+}
+
+/**
+ * A column's colour as tinted glass: the colour at partial strength, so the
+ * frosting under it still shows.
+ *
+ * .55 because glass that is any more opaque than that reads as painted, and any
+ * less loses the pale end of the column ramp against the white film it sits on.
+ */
+export function glassStyle(colour: string): CSSProperties {
+    const base = parse(colour) ?? [216, 210, 198]
+    return { '--arc-glass-tint': rgba(base, 0.55) } as CSSProperties
+}
+
+/**
+ * Any colour this app stores, as `#rrggbb` — which is the one form the colour
+ * picker takes.
+ *
+ * Stored colours are not all hex: the ramps produce `rgb(…)`, and so did the
+ * swatch picker this replaced, so a board coloured before today holds that form.
+ * Anything unparseable comes back as the fallback rather than as black, because
+ * black is a colour and would be written back on the next save.
+ */
+export function toHex(colour: string | null | undefined, fallback = '#d8d2c6'): string {
+    const parsed = colour ? parse(colour) : null
+    if (!parsed) return fallback
+    return '#' + parsed.map(channel => channel.toString(16).padStart(2, '0')).join('')
 }
 
 export function rgb([r, g, b]: Rgb): string {

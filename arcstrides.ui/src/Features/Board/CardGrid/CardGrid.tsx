@@ -23,6 +23,7 @@ import { useBoardStore } from '../Board.Store'
 import { BoardCard } from '../BoardCard'
 import { ColumnHeaderRow } from './ColumnHeaderRow'
 import { SwimlaneRow } from './SwimlaneRow'
+import { ColumnGlass } from './ColumnGlass'
 import { groupCardsByCell } from './CardGrid.Cells'
 import { useCardDrag } from './useCardDrag'
 
@@ -51,7 +52,17 @@ export const CardGrid: React.FC<CardGridProps> = ({ boardId }) => {
             the same width and share one horizontal scroll container.
         */
         <Box sx={{ overflowX: 'auto' }}>
-            <Box sx={{ display: 'inline-flex', flexDirection: 'column', minWidth: '100%' }}>
+            <Box sx={{ display: 'inline-flex',
+                       flexDirection: 'column',
+                       minWidth: '100%',
+                       // The glass is positioned against this, so it spans the
+                       // header and every lane.
+                       position: 'relative',
+                       // Room below the last lane for the glass to finish on the
+                       // window, the way it starts on it above the first.
+                       pb: 1 }}>
+                <ColumnGlass columns={columns} />
+
                 <ColumnHeaderRow columns={columns} />
 
                 <DndContext sensors={sensors}

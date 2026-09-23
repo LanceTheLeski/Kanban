@@ -10,7 +10,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Box, Typography } from '@mui/material'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { BOARD_GAP, CELL_MAX_HEIGHT, CELL_MIN_HEIGHT, COLUMN_WIDTH } from '../Board.Layout'
+import { BOARD_GAP, CELL_MAX_HEIGHT, CELL_MIN_HEIGHT, COLUMN_WIDTH, STACK_LABEL_BELOW } from '../Board.Layout'
 
 interface DroppableCellProps {
     identifier: string
@@ -72,6 +72,15 @@ export const DroppableCell: React.FC<DroppableCellProps> = ({ identifier, cardId
                  gap: BOARD_GAP,
                  p: BOARD_GAP,
                  '--arc-cell-ring': theme.palette.arc.cellActiveEdge,
+                 // Above the column's glass (z-index 1), so the cards, the drop
+                 // highlight and the scroll bar are not frosted along with the
+                 // lane under them.
+                 position: 'relative',
+                 zIndex: 2,
+                 borderRadius: '4px',
+                 // Stacked, there is no column axis for ColumnGlass to follow, so
+                 // the cell carries its own pane of the same glass instead.
+                 backgroundColor: { xs: 'rgba(255, 255, 255, 0.3)', [STACK_LABEL_BELOW]: 'transparent' },
              })}>
 
             {/*

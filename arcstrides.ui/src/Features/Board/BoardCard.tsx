@@ -42,7 +42,6 @@ import { useBoardActions } from './useBoardActions'
 import { deleteCard } from './Board.APIs'
 import { useBoardStore } from './Board.Store'
 import { CARD_MIN_HEIGHT, DRAG_PREVIEW_WIDTH } from './Board.Layout'
-import { noteClass } from './Board.Notes'
 import { CARD_ACTIONS_MAX_HEIGHT } from '../../Styles/Measures'
 import type { Card } from '../../Entities/Card/Card.Types'
 
@@ -87,11 +86,11 @@ export const BoardCard: React.FC<BoardCardProps> = ({
             {/* Mirrors: MudPaper width=120px height=200px background-color=lightyellow */}
             <Paper {...(dragProps ?? {})}
                    /*
-                      A square of paper with adhesive along one edge, in the
-                      colour of the lane it is pinned to — see Board.Notes and
-                      the .note rules.
+                      A square of paper with adhesive along one edge — see .note.
+                      One colour for every card: the lane is already said by
+                      where the note is.
                    */
-                   className={noteClass(card.swimlaneNumber)}
+                   className="note"
                    sx={{ // Fills the cell rather than sitting at a fixed 120px inside a
                          // 300px column. A card is mostly text, and the old width cut
                          // titles off after about four words with most of the column

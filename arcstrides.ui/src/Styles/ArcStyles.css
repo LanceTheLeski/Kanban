@@ -540,9 +540,6 @@ body,
        read as hand-laid rather than rendered.
     */
     --arc-paper-face: linear-gradient(178deg, #fdf9f0, #f0ead9);
-    /* The cut edge. Darker than the stock, and takes its hue, so coloured board
-       does not get a brown rim. */
-    --arc-paper-edge: rgba(40, 26, 14, .32);
 }
 
 /* ── Coloured stock ───────────────────────────────────────────────────────────
@@ -559,25 +556,21 @@ body,
 .paper-blue {
     --arc-paper: #cfdfef;
     --arc-paper-face: linear-gradient(178deg, #dceaf8, #c2d5e8);
-    --arc-paper-edge: rgba(26, 52, 78, .34);
 }
 
 .paper-red {
     --arc-paper: #e8b5ac;
     --arc-paper-face: linear-gradient(178deg, #f2c8c0, #dda69c);
-    --arc-paper-edge: rgba(92, 32, 24, .4);
 }
 
 .paper-green {
     --arc-paper: #cfe6dc;
     --arc-paper-face: linear-gradient(178deg, #dcf0e7, #c1dbcf);
-    --arc-paper-edge: rgba(22, 66, 54, .32);
 }
 
 .paper-yellow {
     --arc-paper: #ecdca6;
     --arc-paper-face: linear-gradient(178deg, #f6e9bd, #e0cd94);
-    --arc-paper-edge: rgba(84, 66, 20, .36);
 }
 
 /*
@@ -589,7 +582,6 @@ body,
 .paper-gold {
     --arc-paper: #d9ab3f;
     --arc-paper-face: linear-gradient(178deg, #e7bf5f, #c6952c);
-    --arc-paper-edge: rgba(84, 58, 8, .5);
 }
 
 /*
@@ -600,14 +592,12 @@ body,
 .paper-ink {
     --arc-paper: #6ea3cf;
     --arc-paper-face: linear-gradient(178deg, #86b6dd, #578fbd);
-    --arc-paper-edge: rgba(16, 48, 78, .5);
 }
 
 /* Greyboard — the unprinted stock. An empty timeline node is cut from it. */
 .paper-grey {
     --arc-paper: #c3bfb6;
     --arc-paper-face: linear-gradient(178deg, #d2cec5, #b3afa6);
-    --arc-paper-edge: rgba(48, 44, 38, .34);
 }
 
 /*
@@ -620,10 +610,7 @@ body,
    face, same cut edge, no lift.
 */
 .card-stock-glued {
-    box-shadow:
-        inset 0 1px 0 0 rgba(255, 250, 236, .24),
-        inset 0 -1px 0 0 rgba(52, 36, 20, .16),
-        0 0 0 1px var(--arc-paper-edge);
+    box-shadow: inset 0 -1px 0 0 color-mix(in srgb, var(--arc-paper) 68%, #5a4630);
 }
 
 /*
@@ -657,60 +644,44 @@ body,
 }
 
 /*
-   ── The shadow ramp, and the way it was wrong ───────────────────────────────
-   A real shadow is darkest where the piece touches down and fades as it
-   spreads: the contact shadow is nearly opaque and a pixel wide, the penumbra
-   is wide and almost nothing. The first version of this had that backwards —
-   the widest blur carried the *highest* alpha, .62 against .4 and .38 for the
-   two tighter ones.
+   ── How a piece of card is lit ──────────────────────────────────────────────
+   Two things, and only two.
 
-   What that produces is not a shadow, it is a dark band sitting a fixed
-   distance below every panel, with an edge of its own. Over the board's olive
-   cells it went muddy yellow-brown, and where the task tray's lip cut across
-   it the band ended in a straight line. That line is what it looks like when a
-   shadow is opaque enough to have a silhouette.
+   1. A soft shadow straight down — the recipe the app bar already uses, which
+      is the one surface in the app that was reported as looking most like card.
+      Nothing to the side: every other shadow on the page falls straight down,
+      and a directional one here was rendered and read as a different light.
 
-   So: alpha falls as blur grows, across three stops.
-     · a hairline ring, which is the cut edge of the board — not a shadow;
-     · a tight contact shadow, where the piece touches down;
-     · two wider, fainter ones for the penumbra.
+   2. The board's thickness. Card is a sheet with a side to it, and from slightly
+      above you see that side as a band along the bottom edge in the board's own
+      hue, darker. That band — not an outline — is what makes a stack of flat
+      things read as sheets of something.
 
-   ── And why the colour is no longer warm ────────────────────────────────────
-   It was rgba(18, 9, 5, …) — a warm near-black, which is right for card on
-   card. These fall on glass, and through the glass on whatever the board is
-   showing. A warm shadow over a saturated olive cell reads as dirt rather than
-   as an absence of light. Neutral, very slightly cool, reads as shadow over
-   every ground this app has.
-*/
-/*
-   ── The top edge is a cut, not a highlight ──────────────────────────────────
-   These carried `inset 0 1px 0 rgba(255,255,255,.85)` — a near-white specular
-   line along the top. That is what a curved glass or plastic edge does, and on
-   a large panel it passed; on the timeline's small coloured tabs it was a white
-   pinstripe across a piece of board, and the tabs stopped looking like board.
+   What was here before and is not any more, both reported as making the pieces
+   look fake:
 
-   Cut card does not catch a specular. Its top edge shows the *core* of the
-   sheet, which is lighter and warmer than the printed face but nowhere near
-   white. So: a warm off-white at a third of the alpha, which reads as a cut
-   edge from a foot away and as nothing at all from further.
+     · a 1px ring all round in a dark edge colour. A drawn outline is what a
+       diagram does to a shape; real card has no line around it, only where one
+       sheet ends and whatever is under it begins.
+     · a white line along the top. Even softened it read as a specular
+       highlight, which is what glass and plastic do and card does not.
+
+   The side band is mixed from the piece's own stock, so a blue tag and a cream
+   panel each get a side of their own colour rather than one brown for all.
 */
 .card-stock {
     box-shadow:
-        inset 0 1px 0 0 rgba(255, 250, 236, .3),
-        inset 0 -1px 0 0 rgba(52, 36, 20, .2),
-        0 0 0 1px var(--arc-paper-edge),
-        0 1px 1.5px rgba(26, 24, 28, .3),
-        0 4px 7px -3px rgba(26, 24, 28, .2),
-        0 12px 22px -8px rgba(26, 24, 28, .14);
+        inset 0 -2px 0 0 color-mix(in srgb, var(--arc-paper) 72%, #5a4630),
+        0 2px 4px -1px rgba(30, 24, 16, .22),
+        0 4px 5px 0 rgba(30, 24, 16, .12),
+        0 1px 10px 0 rgba(30, 24, 16, .1);
 }
 
 .card-stock-flat {
     box-shadow:
-        inset 0 1px 0 0 rgba(255, 250, 236, .26),
-        inset 0 -1px 0 0 rgba(52, 36, 20, .17),
-        0 0 0 1px var(--arc-paper-edge),
-        0 1px 1.5px rgba(26, 24, 28, .26),
-        0 3px 6px -3px rgba(26, 24, 28, .16);
+        inset 0 -1.5px 0 0 color-mix(in srgb, var(--arc-paper) 72%, #5a4630),
+        0 1px 2px 0 rgba(30, 24, 16, .2),
+        0 2px 4px -1px rgba(30, 24, 16, .12);
 }
 
 /*
@@ -777,11 +748,10 @@ body,
     color: #22262c;
     border-radius: 3px;
     box-shadow:
-        inset 0 1px 0 0 rgba(255, 250, 236, .3),
-        0 0 0 1px var(--arc-paper-edge),
-        0 2px 4px rgba(26, 24, 28, .3),
-        0 10px 20px -6px rgba(26, 24, 28, .3),
-        0 24px 48px -12px rgba(26, 24, 28, .22);
+        inset 0 -2px 0 0 color-mix(in srgb, var(--arc-paper) 72%, #5a4630),
+        0 5px 5px -3px rgba(30, 24, 16, .2),
+        0 8px 10px 1px rgba(30, 24, 16, .14),
+        0 3px 14px 2px rgba(30, 24, 16, .12);
 }
 
 /* The month name, the arrows, and the weekday initials. */
@@ -806,19 +776,17 @@ body,
     color: #22262c;
     font-weight: 600;
     box-shadow:
-        inset 0 1px 0 0 rgba(255, 250, 236, .26),
-        0 0 0 1px var(--arc-paper-edge),
-        0 1px 1.5px rgba(26, 24, 28, .26);
+        inset 0 -1.5px 0 0 color-mix(in srgb, var(--arc-paper) 72%, #5a4630),
+        0 1px 2px 0 rgba(30, 24, 16, .2);
 }
 
 .MuiPickersDay-root:not(.MuiPickersDay-hiddenDaySpacingFiller):hover {
     /* Lifted rather than tinted: it is a piece of board, so reaching for it
        picks it up. */
     box-shadow:
-        inset 0 1px 0 0 rgba(255, 250, 236, .3),
-        0 0 0 1px var(--arc-paper-edge),
-        0 2px 4px rgba(26, 24, 28, .3),
-        0 5px 9px -3px rgba(26, 24, 28, .2);
+        inset 0 -1.5px 0 0 color-mix(in srgb, var(--arc-paper) 72%, #5a4630),
+        0 2px 4px -1px rgba(30, 24, 16, .24),
+        0 4px 6px 0 rgba(30, 24, 16, .14);
 }
 
 /* Today is outlined; chosen is cut from the blue stock. */
@@ -832,7 +800,6 @@ body,
 .MuiPickersDay-root.Mui-selected:focus {
     --arc-paper: #a9c9e6;
     --arc-paper-face: linear-gradient(178deg, #bcd8ef, #93b8db);
-    --arc-paper-edge: rgba(26, 52, 78, .45);
     color: #12283c;
 }
 
@@ -864,9 +831,9 @@ body,
    with it, the two read as grey glass on beige — no material, no colour, and
    nothing tying them to the notes below.
 
-   They are card now, like everything else that is a *thing* rather than a
-   surface, and they carry the colour of the column or lane they name. See
-   Board.Colours for where that colour comes from.
+   Swimlane labels are card, and carry the colour of the lane they name — see
+   Board.Colours. Column headers are not card any more: see .column-glass
+   below, and the principle it follows.
    ─────────────────────────────────────────────────────────────────────────── */
 
 .board-label {
@@ -876,59 +843,100 @@ body,
     color: #22262c;
     text-shadow: none;
     box-shadow:
-        inset 0 1px 0 0 rgba(255, 250, 236, .3),
-        inset 0 -1px 0 0 rgba(52, 36, 20, .2),
-        0 0 0 1px var(--arc-label-edge),
-        0 1px 1.5px rgba(26, 24, 28, .3),
-        0 4px 7px -3px rgba(26, 24, 28, .22),
-        0 10px 18px -8px rgba(26, 24, 28, .16);
+        inset 0 -2px 0 0 color-mix(in srgb, var(--arc-label) 72%, #5a4630),
+        0 2px 4px -1px rgba(30, 24, 16, .22),
+        0 4px 5px 0 rgba(30, 24, 16, .12),
+        0 1px 10px 0 rgba(30, 24, 16, .1);
 }
 
 /* ── The board ────────────────────────────────────────────────────────────────
-   A wall you pin notes to, and the notes.
+   Glass, card, glass, paper — in that order, back to front.
 
-   ── What it was ─────────────────────────────────────────────────────────────
-   Each cell was its own block of #ECED7b, a bright yellow-olive, and each card
-   was `lightyellow`. Two tints of the same hue, one on top of the other, which
-   is why the board read as flat: a pale yellow note on a bright yellow ground
-   has nowhere to stand out to. The cells were also drawn as separate coloured
-   rectangles, so the board looked like a spreadsheet rather than like a surface
-   with things on it.
+     1. The board is a window: the glass pane everything else sits in.
+     2. Each swimlane is a strip of light sand card laid across it, with a gap
+        above and below so the window shows between one lane and the next.
+     3. Each column is a strip of frosted glass laid over all of that, top to
+        bottom — over the sand where it crosses a lane, over the window where it
+        crosses a gap. A cell is simply where a column's glass lies on a lane's
+        card.
+     4. Notes sit on top of everything.
 
-   ── What it is ──────────────────────────────────────────────────────────────
-   One continuous linen ground per swimlane, and the cells marked on it by a
-   hairline seam rather than by a fill. Nothing about a cell needs to be loud
-   until you are dragging something, and then it needs to be unmissable — which
-   is what the active state is for.
+   So the two axes of the board are two materials, and you can tell a column
+   from a lane by what it is made of rather than by which way it runs.
 
-   Linen rather than cork or charcoal, both of which were rendered and both of
-   which make the notes pop harder. The board sits in a bright glass window over
-   a photograph; a dark ground fights the chrome around it, and a brown one
-   muddies every note that is not yellow. Linen is the ground that leaves the
-   note colours telling the truth. Swapping it is two values here.
+   ── What it replaced ────────────────────────────────────────────────────────
+   A linen wall with the cells marked on it as hairline seams. The texture was
+   right and the colour read as brown, and with every lane butted against the
+   next the board was one undifferentiated sheet — nothing said where a lane
+   ended except a darker line.
    ─────────────────────────────────────────────────────────────────────────── */
 
 :root {
-    --arc-linen: #dbd3c2;
-    --arc-linen-weave: url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22240%22%20height=%22240%22%3E%3Cfilter%20id=%22a%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.9%22%20numOctaves=%225%22%20stitchTiles=%22stitch%22/%3E%3CfeColorMatrix%20type=%22saturate%22%20values=%220%22/%3E%3C/filter%3E%3Cfilter%20id=%22b%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.045%22%20numOctaves=%223%22%20stitchTiles=%22stitch%22/%3E%3CfeColorMatrix%20type=%22saturate%22%20values=%220%22/%3E%3C/filter%3E%3Crect%20width=%22240%22%20height=%22240%22%20filter=%22url(%23b)%22%20opacity=%220.11%22/%3E%3Crect%20width=%22240%22%20height=%22240%22%20filter=%22url(%23a)%22%20opacity=%220.17%22/%3E%3C/svg%3E");
+    --arc-sand: #eee3ca;
+    --arc-sand-face: linear-gradient(176deg, #f4ebd7, #e4d6b9);
 }
 
+/* 2. A lane: card, lit like every other piece of card in the app. */
 .board-surface {
-    background-color: var(--arc-linen);
-    background-image: var(--arc-linen-weave), linear-gradient(160deg, #e4ddcd, #cfc6b3);
+    border-radius: 3px;
+    background-color: var(--arc-sand);
+    background-image: var(--arc-paper-grain), var(--arc-sand-face);
     box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, .55),
-        inset 0 -2px 8px rgba(88, 74, 52, .22),
-        inset 0 0 0 1px rgba(88, 74, 52, .22);
+        inset 0 -2px 0 0 color-mix(in srgb, var(--arc-sand) 72%, #5a4630),
+        0 2px 4px -1px rgba(30, 24, 16, .22),
+        0 4px 5px 0 rgba(30, 24, 16, .12),
+        0 1px 10px 0 rgba(30, 24, 16, .1);
 }
 
 /*
-   A cell is a seam in the wall, not a box on it — until something is held over
-   it. Then it is the only thing on the board that matters, so it takes a wash
-   and a ring rather than a tint you have to look for.
+   3. A column: frosted glass.
+
+   Glass is the one material in this app that *should* catch a highlight, so it
+   keeps the bright inner rim the card lost.
+
+   The film is cool on purpose. A white film over warm sand only made the column
+   a lighter patch of the same stuff — rendered, the columns were carried almost
+   entirely by their rims. Cool glass over warm card is two materials, and the
+   blur finishes the job: under the glass the sand's grain is smoothed away, so a
+   column differs from a lane in texture as well as tone. Not so much blur that
+   the lane disappears under it; the lane has to stay legible through the column
+   crossing it, or the grid stops reading as a grid.
+*/
+.column-glass {
+    border-radius: 5px;
+    background: linear-gradient(180deg, rgba(244, 249, 255, .5), rgba(214, 230, 246, .36));
+    -webkit-backdrop-filter: blur(6px) saturate(1.05);
+    backdrop-filter: blur(6px) saturate(1.05);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, .4),
+        inset 1px 0 0 0 rgba(255, 255, 255, .35),
+        0 1px 8px rgba(20, 30, 45, .12);
+}
+
+/*
+   The top of a column, where its name is: the same glass, tinted with the
+   column's colour — its own if it has one, its place on the blue ramp if not.
+   --arc-glass-tint is set per column from Board.Colours.
+*/
+.column-cap {
+    border-radius: 5px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, .28), rgba(255, 255, 255, 0) 70%),
+        var(--arc-glass-tint);
+    -webkit-backdrop-filter: blur(6px) saturate(1.2);
+    backdrop-filter: blur(6px) saturate(1.2);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, .45),
+        0 2px 6px -1px rgba(20, 30, 45, .2);
+}
+
+/*
+   A cell is nothing of its own — the column's glass over the lane's card is
+   already the rectangle, and the sand showing between two columns is its edge.
+   It only exists visibly while something is held over it, and then it has to be
+   unmissable.
 */
 .board-cell {
-    box-shadow: inset 0 0 0 1px rgba(92, 78, 56, .17);
     transition: box-shadow .15s, background-color .15s;
 }
 
@@ -940,35 +948,36 @@ body,
 }
 
 /* ── Notes ────────────────────────────────────────────────────────────────────
-   A card is a square of paper with adhesive along one edge, so: square corners,
-   a face lit from above, and a shadow that is tight at the top and longer at
-   the bottom, because that is the edge that lifts.
+   Every card is the same pale yellow — the colour the board had before, and the
+   one it keeps. Colouring notes by swimlane was tried and taken out: a colour
+   that changes when you drag a note is a colour that means something, and the
+   lane was already said by where the note is.
 
-   The colour comes from the swimlane the card is in — see Board.Notes. It is a
-   real grouping rather than decoration, so the colour is telling the truth, and
-   dragging a card to another lane recolours it, which is the feedback you want
-   from a move.
+   What stayed from that pass is the shape: near-square corners, a face lit from
+   above, and a shadow tight at the top and longer at the bottom, because that is
+   the edge a note lifts from.
    ─────────────────────────────────────────────────────────────────────────── */
 
 .note {
+    --arc-note: #ffffe0;
     border-radius: 1px;
     background-color: var(--arc-note);
     background-image:
         url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22240%22%20height=%22240%22%3E%3Cfilter%20id=%22a%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.9%22%20numOctaves=%225%22%20stitchTiles=%22stitch%22/%3E%3CfeColorMatrix%20type=%22saturate%22%20values=%220%22/%3E%3C/filter%3E%3Cfilter%20id=%22b%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.05%22%20numOctaves=%223%22%20stitchTiles=%22stitch%22/%3E%3CfeColorMatrix%20type=%22saturate%22%20values=%220%22/%3E%3C/filter%3E%3Crect%20width=%22240%22%20height=%22240%22%20filter=%22url(%23b)%22%20opacity=%220.05%22/%3E%3Crect%20width=%22240%22%20height=%22240%22%20filter=%22url(%23a)%22%20opacity=%220.1%22/%3E%3C/svg%3E"),
-        linear-gradient(168deg, var(--arc-note-top) 0%, var(--arc-note) 42%, var(--arc-note-bottom) 100%);
+        linear-gradient(168deg, #fffff4 0%, var(--arc-note) 42%, #f5f0c4 100%);
     color: #2b2a20;
     box-shadow:
-        0 1px 1px rgba(28, 20, 6, .3),
-        0 4px 7px -3px rgba(28, 20, 6, .32),
-        0 12px 18px -10px rgba(20, 14, 4, .38);
+        0 1px 1px rgba(28, 20, 6, .26),
+        0 4px 7px -3px rgba(28, 20, 6, .28),
+        0 12px 18px -10px rgba(20, 14, 4, .34);
 }
 
 .note .MuiButtonGroup-root {
-    border-top-color: var(--arc-note-rule);
+    border-top-color: rgba(96, 84, 20, .2);
 }
 
-.note-canary  { --arc-note: #f2e15f; --arc-note-top: #f9f099; --arc-note-bottom: #e6d244; --arc-note-rule: rgba(90, 76, 12, .24); }
-.note-rose    { --arc-note: #f0a0b2; --arc-note-top: #f8c6d1; --arc-note-bottom: #e28698; --arc-note-rule: rgba(98, 32, 48, .24); }
-.note-sky     { --arc-note: #8fc9e8; --arc-note-top: #b8dff2; --arc-note-bottom: #6fb2d8; --arc-note-rule: rgba(14, 60, 86, .24); }
-.note-mint    { --arc-note: #a4d79c; --arc-note-top: #c6e9c0; --arc-note-bottom: #86c47e; --arc-note-rule: rgba(24, 66, 20, .24); }
-.note-apricot { --arc-note: #f4b97c; --arc-note-top: #fbd5a6; --arc-note-bottom: #e8a35f; --arc-note-rule: rgba(96, 54, 10, .24); }
+/* And the rule between the two buttons, which MUI draws in primary blue — the
+   one cold line on a warm note. */
+.note .MuiButtonGroup-grouped:not(:last-of-type) {
+    border-right-color: rgba(96, 84, 20, .2);
+}

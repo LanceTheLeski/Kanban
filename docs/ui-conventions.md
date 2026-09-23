@@ -168,6 +168,36 @@ width all fail that test. A one-off `gap: 1` does not.
 
 ---
 
+## Materials
+
+Everything on screen is one of three materials, and which one it is decides how
+it is lit. Check a new component against this before styling it.
+
+| material | what it is | lit by |
+|---|---|---|
+| **Glass** | the window, recesses in it, the board's columns | a translucent film, blur, and a bright rim — glass is the one material that should catch a highlight |
+| **Card** | panels, labels, task rows, the board's swimlanes | a soft shadow straight down, and its **thickness**: a band of its own hue, darker, along the bottom edge |
+| **Paper** | the notes on the board | a shadow tight at the top and longer at the bottom, where a note lifts |
+
+Two things card must never have, both reported as making it look fake:
+
+- **An outline.** A drawn ring is what a diagram does to a shape. Real card has
+  no line round it, only the place where one sheet ends and whatever is under it
+  begins.
+- **A white line along the top.** Even softened, it reads as a specular
+  highlight — glass and plastic, not card.
+
+### The board
+
+Glass, card, glass, paper — back to front. The board is a window; each swimlane
+is a strip of sand card laid across it, with the window showing in the gaps
+between lanes; each column is a strip of frosted glass laid over all of it, top
+to bottom; notes sit on top. So the two axes of the board are two materials:
+you can tell a column from a lane by what it is made of, not only by which way
+it runs.
+
+---
+
 ## Two grounds, two ramps
 
 An overlay has exactly two kinds of surface, and which one a component is

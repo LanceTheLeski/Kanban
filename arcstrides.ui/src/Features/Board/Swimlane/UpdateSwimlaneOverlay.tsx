@@ -15,7 +15,7 @@ import { updateSwimlane } from '../Board.APIs'
 import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
 import { ArcColourPicker } from '../../../Components/ArcColourPicker'
-import { swimlaneSwatches } from '../Board.Colours'
+import { swimlaneColour } from '../Board.Colours'
 import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
 
@@ -113,7 +113,7 @@ export const UpdateSwimlaneOverlay: React.FC<UpdateSwimlaneOverlayProps> = ({ op
 
                 <ArcColourPicker value={colour}
                                  onChange={setColour}
-                                 swatches={swimlaneSwatches()}
+                                 fallback={swimlaneColour(null, Math.max(swimlanes.findIndex(swimlane => swimlane.title === selectedTitle), 0), swimlanes.length)}
                                  label="Swimlane colour" />
             </Stack>
         </ArcOverlay>

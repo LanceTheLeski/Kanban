@@ -21,7 +21,7 @@ import { createColumn } from '../Board.APIs'
 import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
 import { ArcColourPicker } from '../../../Components/ArcColourPicker'
-import { columnSwatches } from '../Board.Colours'
+import { columnColour, landingIndex } from '../Board.Colours'
 import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
 
@@ -88,7 +88,7 @@ export const CreateColumnOverlay: React.FC<CreateColumnOverlayProps> = ({ open, 
                 */}
                 <ArcColourPicker value={colour}
                                  onChange={setColour}
-                                 swatches={columnSwatches()}
+                                 fallback={columnColour(null, landingIndex(orderInput, columns.length), columns.length + 1)}
                                  label="Column colour" />
             </Stack>
         </ArcOverlay>

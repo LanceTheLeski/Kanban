@@ -24,7 +24,7 @@ import { updateColumn } from '../Board.APIs'
 import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
 import { ArcColourPicker } from '../../../Components/ArcColourPicker'
-import { columnSwatches } from '../Board.Colours'
+import { columnColour } from '../Board.Colours'
 import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
 
@@ -122,7 +122,7 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
 
                 <ArcColourPicker value={colour}
                                  onChange={setColour}
-                                 swatches={columnSwatches()}
+                                 fallback={columnColour(null, Math.max(columns.findIndex(column => column.title === selectedTitle), 0), columns.length)}
                                  label="Column colour" />
             </Stack>
         </ArcOverlay>

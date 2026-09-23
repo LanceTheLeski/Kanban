@@ -55,15 +55,13 @@ export function swimlaneColour(stored: string | null | undefined, index: number,
 }
 
 /**
- * The ramp as swatches, for the colour pickers to offer.
+ * Where a column or swimlane being created will land: the position typed into
+ * the Order field if there is a usable one, otherwise the end.
  *
- * Six of each, because a picker with a hundred shades of blue asks the reader to
- * make a decision the ramp has already made well enough.
+ * The create overlays need it before the thing exists, to show the colour the
+ * ramp is about to give it.
  */
-export function columnSwatches(): string[] {
-    return Array.from({ length: 6 }, (_, i) => rgb(rampAt(COLUMN_RAMP, i, 6)))
-}
-
-export function swimlaneSwatches(): string[] {
-    return Array.from({ length: 6 }, (_, i) => rgb(rampAt(SWIMLANE_RAMP, i, 6)))
+export function landingIndex(orderInput: string, count: number): number {
+    const typed = parseInt(orderInput, 10)
+    return Number.isNaN(typed) ? count : Math.min(Math.max(typed, 0), count)
 }

@@ -11,7 +11,8 @@
 import React from 'react'
 import { Box, Paper, Typography } from '@mui/material'
 import { CONDENSED, SCRIPT } from '../../../Styles/Fonts'
-import { columnColour, labelStyle } from '../Board.Colours'
+import { columnColour } from '../Board.Colours'
+import { glassStyle } from '../../../Styles/Stock'
 import {
     BOARD_GAP,
     BOARD_TITLE_WIDTH,
@@ -52,13 +53,18 @@ export const ColumnHeaderRow: React.FC<ColumnHeaderRowProps> = ({ columns }) => 
 
         {columns.map((column, index) => (
             <Paper key={column.id}
-                   className="board-label"
+                   className="column-cap"
                    elevation={0}
                    /*
-                      The column's own colour when it has one, otherwise its place
-                      on the blue ramp — palest on the left. See Board.Colours.
+                      The top of the column's glass strip, tinted with the column's
+                      colour — its own when it has one, otherwise its place on the
+                      blue ramp, palest on the left. See Board.Colours.
+
+                      Glass, not card: this is the column's name, and the column is
+                      made of glass. The swimlane labels down the left are card,
+                      because the lanes are.
                    */
-                   style={labelStyle(columnColour(column.colour, index, columns.length))}
+                   style={glassStyle(columnColour(column.colour, index, columns.length))}
                    sx={{ width: COLUMN_WIDTH,
                          // rem, not 40: this floor exists to hold one line of the
                          // title, so it has to grow with it.
@@ -67,6 +73,9 @@ export const ColumnHeaderRow: React.FC<ColumnHeaderRowProps> = ({ columns }) => 
                          alignItems: 'center',
                          justifyContent: 'center',
                          flexShrink: 0,
+                         // Above the strip it caps, so the name is not frosted.
+                         position: 'relative',
+                         zIndex: 2,
                          px: 1,
                          py: 0.5 }}>
                 {/*
