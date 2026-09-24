@@ -65,6 +65,12 @@ export interface ArcOverlayProps {
     actions?: ArcAction[]
     /** "Save" by default. */
     submitLabel?: string
+    /**
+     * "Discard" by default. An overlay with nothing to save says "Close": there
+     * is no draft to throw away, and "Discard" on a read-only view makes the
+     * reader wonder what they are about to lose.
+     */
+    discardLabel?: string
     /** Colours the primary action as destructive. */
     submitDestructive?: boolean
 }
@@ -85,6 +91,7 @@ export const ArcOverlay: React.FC<ArcOverlayProps> = ({
     deleteConfirm,
     actions,
     submitLabel,
+    discardLabel,
     submitDestructive,
 }) => {
     return (
@@ -126,6 +133,7 @@ export const ArcOverlay: React.FC<ArcOverlayProps> = ({
                     */}
                     <ArcActionBar onSave={onSubmit}
                                   onDiscard={onClose}
+                                  discardLabel={discardLabel}
                                   saveLabel={submitLabel}
                                   saveDestructive={submitDestructive}
                                   onDelete={onDelete}

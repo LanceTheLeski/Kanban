@@ -49,7 +49,7 @@
  */
 
 import React, { useState } from 'react'
-import { AppBar, Box, Button, Menu, MenuItem, Toolbar, Typography } from '@mui/material'
+import { AppBar, Box, Button, Menu, MenuItem, Toolbar } from '@mui/material'
 import { CreateCardOverlay } from './Card/CreateCardOverlay'
 import { CreateColumnOverlay } from './Column/CreateColumnOverlay'
 import { DeleteColumnOverlay } from './Column/DeleteColumnOverlay'
@@ -137,7 +137,16 @@ const MENUS: MenuSpec[] = [
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export const BoardManagementNav: React.FC = () => {
+interface BoardManagementNavProps {
+    /**
+     * The app menu, at the leading edge of the bar. A slot rather than an
+     * import because it knows the app's routes and this feature should not —
+     * see Layouts/AppMenu.
+     */
+    menu?: React.ReactNode
+}
+
+export const BoardManagementNav: React.FC<BoardManagementNavProps> = ({ menu }) => {
     const [openOverlay, setOpenOverlay] = useState<OverlayKey | null>(null)
 
     // Which menu is dropped down, and from what. One piece of state rather than
@@ -168,10 +177,8 @@ export const BoardManagementNav: React.FC = () => {
                     Wrapping costs a second row on a phone and nothing anywhere else.
                 */}
                 <Toolbar variant="dense" sx={{ gap: 2, flexWrap: 'wrap', rowGap: 0.5, py: 0.5 }}>
-                    {/* MenuOverlay placeholder — mirrors Blazor's <MenuOverlay /> */}
-                    <Box sx={{ mr: 2 }}>
-                        <Typography variant="caption" sx={{ opacity: 0.6 }}>[Menu]</Typography>
-                    </Box>
+                    {/* Mirrors Blazor's <MenuOverlay /> */}
+                    {menu && <Box sx={{ mr: 1, display: 'flex' }}>{menu}</Box>}
 
                     {MENUS.map(menu => (
                         <React.Fragment key={menu.label}>

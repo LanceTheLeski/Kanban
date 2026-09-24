@@ -3,9 +3,8 @@
  *
  * Mirrors: ArcStrides.UI.Legacy/Models/Board/Task.cs and TaskType.cs
  *
- * Shared rather than board-owned: the legacy CalendarDate.razor renders a card's
- * tasks directly on the month grid, so Calendar will need this the moment it is
- * converted.
+ * Shared rather than board-owned: the calendar reads a card's tasks too — to
+ * count them on the month grid and to list their deadlines in a day's overlay.
  *
  * A Task references Timeline. Entities are allowed to reference each other where
  * the domain genuinely contains one in the other — Card holds Tasks, a Task holds

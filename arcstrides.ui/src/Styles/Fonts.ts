@@ -31,5 +31,14 @@ export const MONO = '"DM Mono", ui-monospace, monospace'
  */
 export const CONDENSED = "'Calibri Condensed', 'Bodoni MT Condensed', 'Bahnschrift Light Condensed', sans-serif"
 
-/** The board's own title. Decorative, and used nowhere else. */
+/** The page titles — "Honu Boards", and the month on the calendar. Decorative. */
 export const SCRIPT = "'Freestyle Script', cursive"
+
+/**
+ * The calendar's day numbers.
+ *
+ * Modern No. 20 is what the Blazor calendar set them in. A number on a calendar
+ * is read at a glance from across the grid, and a high-contrast serif figure
+ * holds its shape at that size where a condensed sans turns to a smudge.
+ */
+export const NUMERALS = "'Modern No. 20', 'Bodoni MT', Didot, Georgia, serif"

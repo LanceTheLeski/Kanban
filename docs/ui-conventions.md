@@ -146,7 +146,7 @@ off-the-shelf formatter — but the drift it was traded against is now caught.
 
 ## Shared values live in a module, not in the first file that needed them
 
-Three modules hold values that more than one component depends on, and a
+Four modules hold values that more than one component depends on, and a
 component may not restate one of them:
 
 | module | holds |
@@ -154,6 +154,7 @@ component may not restate one of them:
 | `Styles/Measures.ts` | every size that is not board geometry, and the `rem` helper |
 | `Styles/Fonts.ts` | the font stacks |
 | `Features/Board/Board.Layout.ts` | column widths, gaps, cell heights |
+| `Features/Calendar/Calendar.Layout.ts` | the month grid's gap, a day's height, notes per day |
 
 A value written inline at each use does not stay one value. The font stacks are
 what proved it: the column headers fell back through three condensed faces while
@@ -195,6 +196,19 @@ between lanes; each column is a strip of frosted glass laid over all of it, top
 to bottom; notes sit on top. So the two axes of the board are two materials:
 you can tell a column from a lane by what it is made of, not only by which way
 it runs.
+
+### The calendar
+
+The same grammar on the other two axes. Each week is a strip of the board's
+sand card; each weekday is a strip of its frosted glass; a day is where they
+cross, and the cards on it are the same paper notes. The strips start on the
+1st and stop on the last day of the month, so the slots either side are bare
+window — the neighbouring months' days are not drawn, because drawn the same
+way they read as part of this month.
+
+A day's number is a disc punched from card, like the days in the date pickers
+and the points on a timeline: a date looks like the same thing wherever the app
+shows one. Today is cut from ink.
 
 ---
 

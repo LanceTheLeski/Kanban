@@ -3,8 +3,8 @@
  *
  * Mirrors: ArcStrides.UI.Legacy/Models/Board/Card.cs
  *
- * Shared rather than board-owned: cards appear on the board and, once Calendar is
- * converted, on the month grid too.
+ * Shared rather than board-owned: cards appear on the board and on the calendar's
+ * month grid.
  *
  * `id` is the card's own ID; `positionId` is the ID of its CardPosition row — a
  * separate entity on the server. Moving a card PATCHes the *position*, so both IDs
@@ -26,6 +26,13 @@ import type { Timeline } from '../Timeline/Timeline.Types'
 export interface Card {
     id: string
     positionId: string
+    /**
+     * The board the card is on. The board page already knows this from its
+     * route and never reads it; the calendar does not, because one day can
+     * hold cards from several boards, and it needs the ID to open a card for
+     * editing against the right one.
+     */
+    boardId: string
     title: string
     description: string
     columnNumber: number

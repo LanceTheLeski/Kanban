@@ -11,8 +11,11 @@
  *   Routes             — renders the matched page
  *
  * Routes:
- *   /              → redirect to the demo board (a board picker is still to come)
- *   /board/:boardId → BoardPage, inside AppLayout (mirrors MainLayout.razor)
+ *   /                   → redirect to the demo board (a board picker is still to come)
+ *   /board/:boardId     → BoardPage, inside AppLayout (mirrors MainLayout.razor)
+ *   /calendar           → redirect to the demo month (the API cannot yet look a
+ *                         month up by year and month — see docs/api-gaps.md)
+ *   /calendar/:monthId  → CalendarPage
  *
  * The BrowserRouter lives here rather than in main.tsx so that App.tsx stays
  * self-contained and testable. If you later need a MemoryRouter for tests you
@@ -27,6 +30,7 @@ import { ArcErrorDisplay } from './Components/ArcErrorDisplay'
 import { arcTheme } from './Styles/Theme'
 import { AppLayout } from './Layouts/AppLayout'
 import { BoardPage } from './Pages/BoardPage'
+import { CalendarPage } from './Pages/CalendarPage'
 import './Styles/ArcStyles.css'
 
 function App() {
@@ -68,6 +72,15 @@ function App() {
 
                                 {/* /board/:boardId — the main Kanban board */}
                                 <Route path="/board/:boardId" element={<BoardPage />} />
+
+                                {/*
+                    /calendar → the month the Blazor calendar hard-coded, for
+                    the same reason / goes to the demo board.
+                  */}
+                                <Route path="/calendar"
+                                       element={<Navigate to="/calendar/6469d898-c468-4c84-82f9-6dcad60757a8" replace />} />
+
+                                <Route path="/calendar/:monthId" element={<CalendarPage />} />
 
                                 {/* Catch-all — send unknown URLs back to root */}
                                 <Route path="*" element={<Navigate to="/" replace />} />

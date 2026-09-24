@@ -112,10 +112,37 @@ or timeline" and "parented to a card or a task", and there is no value meaning
 "a proper timeline, parented to a task". The UI works around it by sending the
 parent kind and recovering the mode from the dates.
 
-### 8. Calendar has endpoints but no UI
+### 8. The calendar can read one month, by an ID nothing can look up
 
-`CalendarController.cs` is complete for months and dates. The Blazor calendar
-page has not been converted, so none of it is called.
+`ArcStrides.API/Controllers/CalendarController.cs`
+
+The calendar page is converted and reads `GET calendars/months/{ID}`. That one
+endpoint works; around it:
+
+- **No way to find a month.** There is no lookup by year and month and no
+  list, so `/calendar` redirects to the month GUID the Blazor calendar had
+  hard-coded, and the page has no previous/next month — there is no ID to go
+  to. This entry was earlier written as "complete for months and dates", which
+  it is not.
+- **`POST months` and `DELETE dates/{ID}` answer 418.** Both are `//todo`. A
+  month exists only as the dates that share its ID, so one can still be made by
+  posting its days one at a time to a fresh GUID — `CreateDate` does not check
+  the month exists — but a date cannot be taken back out.
+- **`FetchMonth` never sets `MonthResponse.ID` or `Title`.** The UI takes the
+  ID from the route and the month from the dates.
+- **`DateResponse` has no `MonthOrder`**, though the table stores it. The UI
+  recovers the month from `MonthName`, which only works while that is English.
+- **A day's cards arrive through tags.** `FetchMonth` walks the date's
+  `CardTagGroupID` → tag groups → tags → cards, so it depends on #1 and #2 —
+  and `CreateDate` writes `CardTagGroupID = Guid.Empty`, so a date created
+  through the API can never have a card on it until something can tag one.
+- **Deleting a card can break its month.** #3 deletes the card's position and
+  keeps the `Card` row, and the day's tag still points at the card. `FetchMonth`
+  then looks for a position that is gone, gets `null` from `SingleOrDefault`,
+  and passes it to `CardMapper.MapCardPositionToCardPositionResponse`, whose
+  parameter is non-nullable — nothing in between checks. Read, not reproduced:
+  there is no .NET SDK in the environment this was written in. The card editor
+  opens from the calendar, Delete included, so this is one click away.
 
 ---
 

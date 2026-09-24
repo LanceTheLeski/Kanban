@@ -41,6 +41,7 @@ import { useShallow } from 'zustand/react/shallow'
 import { BoardManagementNav } from '../Features/Board/BoardManagementNav'
 import { CardGrid } from '../Features/Board/CardGrid/CardGrid'
 import { useBoardStore } from '../Features/Board/Board.Store'
+import { AppMenu } from '../Layouts/AppMenu'
 
 export const BoardPage: React.FC = () => {
     const { boardId } = useParams<{ boardId: string }>()
@@ -84,7 +85,7 @@ export const BoardPage: React.FC = () => {
             <Paper className="glass" sx={{ width: '92%', mx: 'auto' }} elevation={0}>
                 {/* Mirrors: MudPaper Height="50px" Width="100%" Class="mud-theme-primary" */}
                 <Box sx={{ width: '100%' }}>
-                    <BoardManagementNav />
+                    <BoardManagementNav menu={<AppMenu />} />
                 </Box>
 
                 {/*

@@ -4,9 +4,9 @@
  * Types that belong to the board feature and nothing else.
  *
  * Card, Task, TaskType and Timeline used to live here too, but they are domain
- * entities the Calendar page will need as well — the legacy CalendarDate.razor
- * renders cards and tasks on the month grid. They now live under src/Entities/,
- * so Calendar can import them without reaching into this feature.
+ * entities the calendar uses as well — it puts cards on the month grid and
+ * lists their tasks' deadlines. They live under src/Entities/, so the calendar
+ * can import them without reaching into this feature.
  *
  * Columns and swimlanes stay here: they are how a *board* is arranged, and mean
  * nothing on a calendar.

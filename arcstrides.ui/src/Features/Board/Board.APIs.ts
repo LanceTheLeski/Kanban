@@ -14,8 +14,9 @@
  * ── Route prefix ──────────────────────────────────────────────────────────────
  * Every controller in ArcStrides.API is routed under "arcstrides/" — see the
  * [Route] attributes on BoardController, ColumnController, SwimlaneController,
- * TaskController and TimelineController. That prefix is applied once, here, via
- * the ARC constant, so it cannot drift endpoint by endpoint.
+ * TaskController, TimelineController and CalendarController. That prefix is the
+ * ARC constant in Lib/Client.ts, shared with Calendar.APIs, so it cannot drift
+ * endpoint by endpoint or feature by feature.
  *
  * ── Wire shapes vs domain types ───────────────────────────────────────────────
  * The `*Response` interfaces below describe what the server literally sends. They
@@ -54,14 +55,11 @@
  * gives no such guarantee — matching the wire names exactly is correct either way.
  */
 
-import { apiClient, type PatchOperation } from '../../Lib/Client'
+import { apiClient, ARC, type PatchOperation } from '../../Lib/Client'
 import type { Card } from '../../Entities/Card/Card.Types'
 import type { Task, TaskType } from '../../Entities/Task/Task.Types'
 import type { Timeline } from '../../Entities/Timeline/Timeline.Types'
 import type { Column, Swimlane } from './Board.Types'
-
-/** Route prefix shared by every ArcStrides.API controller. */
-const ARC = '/arcstrides'
 
 // ── Wire shapes ───────────────────────────────────────────────────────────────
 
@@ -110,8 +108,15 @@ interface CardPositionResponse {
     positionRank: number | null
 }
 
-/** Mirrors ArcStrides.Contracts.Response.CardResponse */
-interface CardResponse {
+/**
+ * Mirrors ArcStrides.Contracts.Response.CardResponse
+ *
+ * Exported, with mapCard, because a card reaches the UI by two routes: on its
+ * board, and nested inside a day of the calendar's MonthResponse. Both arrive
+ * in this shape, and a second copy of the mapping in Calendar.APIs would be a
+ * second place for the two quirks above to be handled differently.
+ */
+export interface CardResponse {
     id: string | null
     title: string | null
     description: string | null
@@ -228,12 +233,13 @@ function mapOrderedItem(response: OrderedItemResponse): Column {
  * Note the two different IDs: `response.id` is the card, `response.position.id`
  * is its CardPosition row. Moving a card patches the latter.
  */
-function mapCard(response: CardResponse): Card {
+export function mapCard(response: CardResponse): Card {
     const position = response.position
 
     return {
         id: response.id ?? '',
         positionId: position?.id ?? '',
+        boardId: position?.boardID ?? '',
         title: response.title ?? '',
         description: response.description ?? '',
         columnId: position?.columnID ?? '',

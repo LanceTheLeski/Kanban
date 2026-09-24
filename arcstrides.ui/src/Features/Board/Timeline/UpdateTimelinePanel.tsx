@@ -171,7 +171,13 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                                       color: 'arc.onPaperMuted',
                                       textAlign: 'center',
                                       maxWidth: '34ch' }}>
-                        No deadline or timeline set. This card will not appear on the calendar.
+                        {/*
+                            It used to add "This card will not appear on the
+                            calendar", written before the calendar was. It was
+                            never true: a card reaches a day through the day's
+                            tag group, not through a timeline.
+                        */}
+                        No deadline or timeline set.
                     </Typography>
                 </Box>
             )}

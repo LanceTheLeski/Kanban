@@ -34,6 +34,13 @@ if (!BASE_URL) {
     )
 }
 
+/**
+ * Route prefix shared by every ArcStrides.API controller — each one is routed
+ * under "arcstrides/". Declared once, below every feature's API module, so the
+ * board and the calendar cannot come to disagree about it.
+ */
+export const ARC = '/arcstrides'
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 /** A single JSON Patch operation (RFC 6902) */
