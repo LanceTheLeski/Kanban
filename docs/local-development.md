@@ -124,6 +124,28 @@ the seed on top. `--url` and `--board` override the endpoint and board ID.
 Note that the seeded board ID matches the one `arcstrides.ui` redirects to from `/`,
 so the app finds it without any further wiring.
 
+### And the calendar
+
+```bash
+node tools/seed-dev-month.mjs
+```
+
+Without it the calendar says *"No days are stored for this month yet."* Like the
+board, the calendar opens one fixed month ID. The API has no way to look a month
+up by date, so `/calendar` redirects to the ID the Blazor calendar hard-coded,
+and the month is whatever that ID's stored days say.
+
+The script adds a row for every day of this month (`--month 2025-01` for
+another) and pins the seeded board's cards to a few days around today. Run it
+after `seed-dev-board.mjs`. It is safe to repeat: existing days are skipped, and
+cards are pinned only while the month has none.
+
+The days go through the API. The cards cannot, because no endpoint links a card
+to a day, so that part writes three kinds of table row directly, to Azurite by
+default. The script reads the month back through the API afterwards and says so
+if the API is not seeing what it wrote. Its header has the details, and
+`docs/api-gaps.md` #8 has the reasons.
+
 ## 4. UI
 
 ```bash
@@ -158,6 +180,7 @@ and is rarely what just changed.
 ```bash
 node tools/dev-up.mjs --drop
 node tools/seed-dev-board.mjs
+node tools/seed-dev-month.mjs
 ```
 
 No need to restart Azurite or the API. To go further and discard the emulator's
@@ -172,6 +195,7 @@ Each step assumes the one before it:
 | 1 | `node tools/dev-up.mjs` | — |
 | 2 | `dotnet run --project ArcStrides.API` (or F5) | tables to exist |
 | 3 | `node tools/seed-dev-board.mjs` | the API running |
+| 3b | `node tools/seed-dev-month.mjs` | the board seeded, for cards to pin |
 | 4 | `npm run dev` in `arcstrides.ui` | the API running |
 
 Step 1 is safe to repeat and cheap when everything is already up, so it is the

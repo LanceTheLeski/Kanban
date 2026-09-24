@@ -136,13 +136,21 @@ endpoint works; around it:
   `CardTagGroupID` → tag groups → tags → cards, so it depends on #1 and #2 —
   and `CreateDate` writes `CardTagGroupID = Guid.Empty`, so a date created
   through the API can never have a card on it until something can tag one.
-- **Deleting a card can break its month.** #3 deletes the card's position and
-  keeps the `Card` row, and the day's tag still points at the card. `FetchMonth`
-  then looks for a position that is gone, gets `null` from `SingleOrDefault`,
-  and passes it to `CardMapper.MapCardPositionToCardPositionResponse`, whose
-  parameter is non-nullable — nothing in between checks. Read, not reproduced:
-  there is no .NET SDK in the environment this was written in. The card editor
-  opens from the calendar, Delete included, so this is one click away.
+- **No endpoint puts a card on a day**, for the same reasons.
+  `tools/seed-dev-month.mjs` writes those rows directly to fill a dev month;
+  its header lists the exact shapes.
+
+Two crashes in `FetchMonth` were reproduced against Azurite and are fixed. Each
+one returned 500 for the whole month, not just for the day:
+
+- **A deleted card.** #3 deletes the card's position and keeps the `Card` row,
+  and the day's tag still points at the card. `FetchMonth` found no position and
+  passed `null` to `MapCardPositionToCardPositionResponse`: a
+  `NullReferenceException`. The card editor opens from the calendar, Delete
+  included, so this was one click away. A card with no position is now skipped.
+- **A card on two days of the same month.** It was read once per tag, so its
+  position was read twice, and `SingleOrDefault` threw on the pair. The card IDs
+  are now de-duplicated before they are read.
 
 ---
 

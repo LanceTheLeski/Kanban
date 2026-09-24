@@ -60,7 +60,10 @@ public class CalendarController : Controller
         foreach (var tagID in tagIDsForMonth)
             tagsForMonth.AddRange (await _tagRepository.QueryTagsAsync (tag => tag.PartitionKey == tagID));
 
-        var cardIDsForMonth = tagsForMonth.Select (tag => tag.RowKey.ToString ());
+        // Distinct: a card tagged onto two days of the month has two tags, and
+        // without this it was read twice, its position was read twice, and the
+        // SingleOrDefault below threw on the pair — a 500 for the whole month.
+        var cardIDsForMonth = tagsForMonth.Select (tag => tag.RowKey.ToString ()).Distinct ();
         var cardsForMonth = new List<Card> ();
         foreach (var cardID in cardIDsForMonth)
             cardsForMonth.AddRange (await _cardRepository.QueryCardsAsync (card => card.RowKey == cardID));
@@ -81,6 +84,16 @@ public class CalendarController : Controller
             var cardResponses = new List<CardResponse> ();
             foreach (var card in cardsForDay) 
             {
+                // A card with no position has been deleted from its board: the
+                // delete removes the position and keeps the card row (see
+                // docs/api-gaps.md, #3), and the day's tag still points at it.
+                // Mapping a null position threw, which took the whole month
+                // down with it. It is not on a board any more, so it is not on
+                // the calendar either.
+                var cardPositionRow = cardPositionsForMonth.SingleOrDefault (cardPosition => cardPosition.RowKey == card.CardPositionID.ToString ());
+                if (cardPositionRow is null)
+                    continue;
+
                 var tasks = await _taskRepository.QueryTasksAsync (task => task.CardID == Guid.Parse(card.RowKey));
                 var taskTypes = await _taskRepository.QueryTaskTypesAsync (taskType => taskType.PartitionKey == card.PartitionKey);
 
@@ -98,7 +111,7 @@ public class CalendarController : Controller
                 var cardResponse = _cardMapper.MapCardToCardResponse (card);
                 cardResponse.Tasks = taskResponseList;
 
-                var cardPosition = _cardMapper.MapCardPositionToCardPositionResponse (cardPositionsForMonth.SingleOrDefault (cardPosition => cardPosition.RowKey == card.CardPositionID.ToString ()));
+                var cardPosition = _cardMapper.MapCardPositionToCardPositionResponse (cardPositionRow);
                 cardResponse.Position = cardPosition;
 
                 cardResponses.Add (cardResponse);
