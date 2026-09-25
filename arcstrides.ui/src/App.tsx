@@ -13,9 +13,8 @@
  * Routes:
  *   /                   → redirect to the demo board (a board picker is still to come)
  *   /board/:boardId     → BoardPage, inside AppLayout (mirrors MainLayout.razor)
- *   /calendar           → redirect to the demo month (the API cannot yet look a
- *                         month up by year and month — see docs/api-gaps.md)
- *   /calendar/:monthId  → CalendarPage
+ *   /calendar           → redirect to this month
+ *   /calendar/:year/:month → CalendarPage, month 1–12 as people write it
  *
  * The BrowserRouter lives here rather than in main.tsx so that App.tsx stays
  * self-contained and testable. If you later need a MemoryRouter for tests you
@@ -30,7 +29,8 @@ import { ArcErrorDisplay } from './Components/ArcErrorDisplay'
 import { arcTheme } from './Styles/Theme'
 import { AppLayout } from './Layouts/AppLayout'
 import { BoardPage } from './Pages/BoardPage'
-import { CalendarPage } from './Pages/CalendarPage'
+import { CalendarPage, CurrentMonth } from './Pages/CalendarPage'
+import { DEFAULT_BOARD_ID } from './Features/Board/Board.Defaults'
 import './Styles/ArcStyles.css'
 
 function App() {
@@ -67,20 +67,15 @@ function App() {
                     / → redirect to the demo board ID for now.
                     Replace with a real HomePage (board picker) later.
                   */}
-                                <Route path="/"
-                                       element={<Navigate to="/board/1cb0ce6e-6145-4fe7-833a-0b7c0545c449" replace />} />
+                                <Route path="/" element={<Navigate to={`/board/${DEFAULT_BOARD_ID}`} replace />} />
 
                                 {/* /board/:boardId — the main Kanban board */}
                                 <Route path="/board/:boardId" element={<BoardPage />} />
 
-                                {/*
-                    /calendar → the month the Blazor calendar hard-coded, for
-                    the same reason / goes to the demo board.
-                  */}
-                                <Route path="/calendar"
-                                       element={<Navigate to="/calendar/6469d898-c468-4c84-82f9-6dcad60757a8" replace />} />
+                                {/* /calendar → whichever month it is today */}
+                                <Route path="/calendar" element={<CurrentMonth />} />
 
-                                <Route path="/calendar/:monthId" element={<CalendarPage />} />
+                                <Route path="/calendar/:year/:month" element={<CalendarPage />} />
 
                                 {/* Catch-all — send unknown URLs back to root */}
                                 <Route path="*" element={<Navigate to="/" replace />} />

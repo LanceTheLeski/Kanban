@@ -4,10 +4,21 @@
  * HTTP API layer for the calendar.
  *
  * Replaces: ArcStrides.UI.Legacy/Repositories/CalendarRepository.cs, whose one
- * read was FetchMonthAsync. The API's other calendar endpoints — create a month,
- * create, patch and delete a date — have no caller in the UI yet, and two of
- * them answer 418 (see docs/api-gaps.md), so they are not wrapped here until a
- * screen needs them.
+ * read was FetchMonthAsync — by a month ID the Blazor page had to hard-code,
+ * because nothing could look one up.
+ *
+ * ── A month is addressed by the month, not by an ID ──────────────────────────
+ * The three calls here name a month the way a person does, year and month, and
+ * a day as year, month and day. The API stores a month only as the rows of the
+ * days something was put on, sharing an ID it mints with the first of them; the
+ * UI never needs that ID, and never has to create a month before using it.
+ *
+ *   fetchMonthOf        what is stored for a month — often nothing
+ *   addCardToDate       put a card on a day, creating the day if need be
+ *   removeCardFromDate  take it off again
+ *
+ * Months run 0–11 here, as dayjs counts them, and 1–12 on the wire, as the API
+ * takes them. The conversion happens in this file and nowhere else.
  *
  * ── Wire shapes vs domain types ───────────────────────────────────────────────
  * The same arrangement as Board.APIs: the `*Response` interfaces are what the
@@ -35,8 +46,7 @@ interface DateResponse {
 
 /** Mirrors ArcStrides.Contracts.Response.MonthResponse */
 interface MonthResponse {
-    // Declared by the contract, never set by CalendarController.FetchMonth —
-    // which is why Month takes its ID from the request instead.
+    // Null for a month nothing has been put on: its ID is minted with its first row.
     id: string | null
     title: string | null
     dates: DateResponse[] | null
@@ -45,17 +55,47 @@ interface MonthResponse {
 // ── Month ─────────────────────────────────────────────────────────────────────
 
 /**
- * GET arcstrides/calendars/months/:monthId
+ * GET arcstrides/calendars/months?year=&month=
  *
- * A month the API has no rows for is not an error: FetchMonth answers 200 with
- * no dates. The page says so rather than drawing a grid for a month it would
- * have to guess.
+ * A month with nothing stored answers 200 with no dates, which is the common
+ * case rather than an error.
  */
-export async function fetchMonth(monthId: string): Promise<Month> {
-    const response = await apiClient.get<MonthResponse>(`${ARC}/calendars/months/${monthId}`)
+export async function fetchMonthOf(year: number, month: number): Promise<Month> {
+    const response = await apiClient.get<MonthResponse>(`${ARC}/calendars/months?year=${year}&month=${month + 1}`)
+    return mapMonth(response, year, month)
+}
 
+/**
+ * POST arcstrides/calendars/dates/:year/:month/:day/cards
+ *
+ * Nothing has to exist first: the server writes the day's row, and the month's
+ * ID with it, if this is the first thing on either. Answers with the whole
+ * month as it now stands.
+ */
+export async function addCardToDate(year: number, month: number, day: number, cardId: string): Promise<Month> {
+    const response = await apiClient.post<MonthResponse>(`${datePath(year, month, day)}/cards`, { CardID: cardId })
+    return mapMonth(response, year, month)
+}
+
+/**
+ * DELETE arcstrides/calendars/dates/:year/:month/:day/cards/:cardId
+ *
+ * The server answers with the month, but apiClient.delete does not read bodies,
+ * so the month is read again. One extra GET on a click the user makes by hand.
+ */
+export async function removeCardFromDate(year: number, month: number, day: number, cardId: string): Promise<Month> {
+    await apiClient.delete(`${datePath(year, month, day)}/cards/${cardId}`)
+    return fetchMonthOf(year, month)
+}
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+function mapMonth(response: MonthResponse, year: number, month: number): Month {
     return {
-        id: response.id ?? monthId,
+        id: response.id ?? null,
+        year,
+        month,
         dates: (response.dates ?? [])
             .map(mapDate)
             .filter(date => date.day > 0)
@@ -63,8 +103,9 @@ export async function fetchMonth(monthId: string): Promise<Month> {
     }
 }
 
-// ── Private ───────────────────────────────────────────────────────────────────
-// Not exported, which is this language's `private`. Ordered by first use above.
+function datePath(year: number, month: number, day: number): string {
+    return `${ARC}/calendars/dates/${year}/${month + 1}/${day}`
+}
 
 function mapDate(response: DateResponse): CalendarDate {
     return {

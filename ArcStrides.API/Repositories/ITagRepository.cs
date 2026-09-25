@@ -47,6 +47,10 @@ public interface ITagRepository
 
     Task UpdateTagGroupAsync (TagGroup tagGroupToUpdate);
 
+    Task AddTagGroupAsync (TagGroup tagGroupToCreate);
+
+    Task DeleteTagGroupAsync (TagGroup tagGroupToDelete);
+
     #endregion Tag Group
 
     #region Tag Group Type

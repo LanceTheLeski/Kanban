@@ -12,4 +12,13 @@ public class DateValidators
 
         }
     }
+
+    public class DateCardCreateRequestValidator : AbstractValidator<DateCardCreateRequest>
+    {
+        public DateCardCreateRequestValidator ()
+        {
+            RuleFor (dateCardCreateRequest => dateCardCreateRequest.CardID)
+                .NotEmpty ();
+        }
+    }
 }

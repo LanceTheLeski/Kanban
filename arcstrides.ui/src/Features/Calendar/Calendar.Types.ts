@@ -26,8 +26,18 @@ export interface CalendarDate {
     cards: Card[]
 }
 
-/** A month as the API stores it: an ID and the days it has rows for. */
+/**
+ * What the API holds for one calendar month.
+ *
+ * Only the days something has been put on have rows, so `dates` is usually a
+ * handful and often empty — the grid draws every day from the calendar itself
+ * and lays these on top. `id` is null until the first thing is added, since a
+ * month's ID is born with its first row.
+ */
 export interface Month {
-    id: string
+    id: string | null
+    year: number
+    /** From 0, the way dayjs counts. */
+    month: number
     dates: CalendarDate[]
 }

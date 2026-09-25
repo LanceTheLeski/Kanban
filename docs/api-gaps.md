@@ -41,9 +41,13 @@ QueryColumnsAsync (column => column.RowKey == parentID.ToString ())
 any board anywhere have this column", not "does *this* board". The timeline fix
 took a `boardID` parameter for exactly this reason and this one should too.
 
-Not fixed in this commit on purpose: it is six branches of a validation check in
-a project with no .NET SDK available here, so it cannot be compiled or exercised
-before being pushed. It wants its own change, with the API actually run.
+Not fixed yet: it is part of the tag work, which is deferred.
+
+A third bug sat under both, and **is** fixed: `Tag` declared `RowKey` without
+`override`, so it hid the base property the table client reads, and every tag
+write failed with *"Value cannot be null. (Parameter 'RowKey')"*. With the
+parent check fixed, `POST /tags` would still have failed on that. Found when the
+calendar's add-card endpoint made the first tag write that got past validation.
 
 ### 2. Nothing can read the tags on a card
 
@@ -112,45 +116,52 @@ or timeline" and "parented to a card or a task", and there is no value meaning
 "a proper timeline, parented to a task". The UI works around it by sending the
 parent kind and recovering the mode from the dates.
 
-### 8. The calendar can read one month, by an ID nothing can look up
+### 8. The calendar: what is there, and what is still missing
 
 `ArcStrides.API/Controllers/CalendarController.cs`
 
-The calendar page is converted and reads `GET calendars/months/{ID}`. That one
-endpoint works; around it:
+A month is not stored as a thing of its own. It is the rows of the days
+something has been put on, and they share an ID minted with the first of them.
+So the calendar addresses months and days by the date, and never needs an ID:
 
-- **No way to find a month.** There is no lookup by year and month and no
-  list, so `/calendar` redirects to the month GUID the Blazor calendar had
-  hard-coded, and the page has no previous/next month — there is no ID to go
-  to. This entry was earlier written as "complete for months and dates", which
-  it is not.
-- **`POST months` and `DELETE dates/{ID}` answer 418.** Both are `//todo`. A
-  month exists only as the dates that share its ID, so one can still be made by
-  posting its days one at a time to a fresh GUID — `CreateDate` does not check
-  the month exists — but a date cannot be taken back out.
-- **`FetchMonth` never sets `MonthResponse.ID` or `Title`.** The UI takes the
-  ID from the route and the month from the dates.
+| call | does |
+|---|---|
+| `GET months?year=2026&month=9` | what is stored for a month; 200 with no dates if nothing |
+| `POST dates/2026/9/24/cards` `{ CardID }` | puts a card on a day, writing the day's row and the month's ID if they do not exist yet |
+| `DELETE dates/2026/9/24/cards/{cardID}` | takes it off |
+
+`month` runs 1–12 in these routes; the table's `MonthOrder` runs 0–11 and the
+conversion is in the controller. The two writes answer with the whole month.
+Cards reach a day through the same rows `FetchMonth` always read: the day's
+`CardTagGroupID` → a `TagGroups` row per tag → a `Tags` row whose RowKey is
+the card. The endpoints write them, so the tag endpoints (#1, #2) are not
+needed for this.
+
+Still missing:
+
+- **`POST months` and `DELETE dates/{ID}` answer 418.** Both are `//todo`, and
+  nothing needs them any more: the card endpoint creates what it needs.
+- **Two first writes to an empty month at the same moment** could each mint a
+  month ID. Reads match on year and month, not on the ID, so every day still
+  shows. Two rows for one *day* could hide one's cards; the write path prefers
+  the row that already has cards, which narrows it without closing it.
 - **`DateResponse` has no `MonthOrder`**, though the table stores it. The UI
   recovers the month from `MonthName`, which only works while that is English.
-- **A day's cards arrive through tags.** `FetchMonth` walks the date's
-  `CardTagGroupID` → tag groups → tags → cards, so it depends on #1 and #2 —
-  and `CreateDate` writes `CardTagGroupID = Guid.Empty`, so a date created
-  through the API can never have a card on it until something can tag one.
-- **No endpoint puts a card on a day**, for the same reasons.
-  `tools/seed-dev-month.mjs` writes those rows directly to fill a dev month;
-  its header lists the exact shapes.
 
-Two crashes in `FetchMonth` were reproduced against Azurite and are fixed. Each
-one returned 500 for the whole month, not just for the day:
+Fixed, each reproduced against Azurite first. The first two each returned 500
+for the whole month, not just the day:
 
 - **A deleted card.** #3 deletes the card's position and keeps the `Card` row,
   and the day's tag still points at the card. `FetchMonth` found no position and
   passed `null` to `MapCardPositionToCardPositionResponse`: a
-  `NullReferenceException`. The card editor opens from the calendar, Delete
-  included, so this was one click away. A card with no position is now skipped.
+  `NullReferenceException`. A card with no position is now skipped.
 - **A card on two days of the same month.** It was read once per tag, so its
   position was read twice, and `SingleOrDefault` threw on the pair. The card IDs
   are now de-duplicated before they are read.
+- **No timelines.** Every task reached the calendar with an empty timeline, so
+  a day's deadlines could never be listed. They are now matched on
+  `ParentObjectID`, the way `BoardController` does.
+- **`MonthResponse.ID` and `Title`** were never set. They are now.
 
 ---
 

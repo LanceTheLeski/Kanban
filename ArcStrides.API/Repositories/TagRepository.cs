@@ -129,6 +129,12 @@ public class TagRepository : ITagRepository
     public async Task UpdateTagGroupAsync (TagGroup tagGroupToUpdate)
         => await _tagGroupTable.UpdateEntityAsync (tagGroupToUpdate);
 
+    public async Task AddTagGroupAsync (TagGroup tagGroupToCreate)
+        => await _tagGroupTable.AddEntityAsync (tagGroupToCreate);
+
+    public async Task DeleteTagGroupAsync (TagGroup tagGroupToDelete)
+        => await _tagGroupTable.DeleteEntityAsync (tagGroupToDelete);
+
     #endregion Tag Group
 
     #region Tag Group Type

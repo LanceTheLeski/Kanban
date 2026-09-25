@@ -18,19 +18,25 @@
  * already the link between a day and its cards — and that waits on the tag
  * read path. See docs/api-gaps.md.
  *
- * ── Read-only, on purpose ────────────────────────────────────────────────────
- * Nothing here edits a day; the API's only date write is PATCH, and it changes
- * where a date sits, not what is on it. The cards open into their own editor,
- * which is where their tasks and dates are changed.
+ * ── What can be changed here ─────────────────────────────────────────────────
+ * Which cards are on the day: "+ Add card" puts one on, the × beside a card
+ * takes it off. Both show at once and upload behind — see Calendar.Store. The
+ * day does not have to be stored first; the server writes its row with its
+ * first card.
+ *
+ * The cards themselves open into their own editor, which is where their tasks
+ * and dates are changed.
  */
 
 import React from 'react'
-import { Box, ButtonBase, Paper, Typography } from '@mui/material'
+import { Box, ButtonBase, IconButton, Paper, Typography } from '@mui/material'
+import CloseIcon from '@mui/icons-material/Close'
 import { ArcOverlay } from '../../Components/ArcOverlay'
 import { ArcTitleBar } from '../../Components/ArcTitleBar'
 import { MONO } from '../../Styles/Fonts'
 import { rem } from '../../Styles/Measures'
 import { CalendarNote } from './CalendarNote'
+import { AddCardPicker } from './AddCardPicker'
 import dayjs, { type Dayjs } from 'dayjs'
 import type { Card } from '../../Entities/Card/Card.Types'
 import type { Task } from '../../Entities/Task/Task.Types'
@@ -40,9 +46,20 @@ interface DayOverlayProps {
     day: GridDay
     onClose: () => void
     onOpenCard: (card: Card) => void
+    onAddCard: (card: Card) => void
+    onRemoveCard: (card: Card) => void
+    /** Boards whose cards "+ Add card" offers — see useCardChoices. */
+    boardIds: string[]
 }
 
-export const DayOverlay: React.FC<DayOverlayProps> = ({ day, onClose, onOpenCard }) => {
+export const DayOverlay: React.FC<DayOverlayProps> = ({
+    day,
+    onClose,
+    onOpenCard,
+    onAddCard,
+    onRemoveCard,
+    boardIds,
+}) => {
     const cards = day.stored?.cards ?? []
     const deadlines = deadlinesOf(cards)
 
@@ -73,11 +90,30 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({ day, onClose, onOpenCard
                              gap: 1 }}>
                     <ArcTitleBar>Cards</ArcTitleBar>
 
-                    {cards.length === 0 && <Empty>Nothing is on this day.</Empty>}
+                    {cards.length === 0 && <Empty>Nothing is on this day yet.</Empty>}
 
+                    {/*
+                        The × sits beside the note on the panel, not on the note:
+                        the note is itself a button, and a button inside a button
+                        is two targets that cannot tell which one was meant.
+                    */}
                     {cards.map(card => (
-                        <CalendarNote key={card.id} card={card} size="medium" onOpen={() => onOpenCard(card)} />
+                        <Box key={card.id} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <CalendarNote card={card} size="medium" onOpen={() => onOpenCard(card)} />
+                            <IconButton size="small"
+                                        onClick={() => onRemoveCard(card)}
+                                        aria-label={`Take ${card.title} off this day`}
+                                        sx={{ flexShrink: 0,
+                                              color: 'arc.onPaperMuted',
+                                              '&:hover': { color: 'arc.paperDanger', backgroundColor: 'arc.paperHover' } }}>
+                                <CloseIcon sx={{ fontSize: '0.95rem' }} />
+                            </IconButton>
+                        </Box>
                     ))}
+
+                    <AddCardPicker boardIds={boardIds}
+                                   onDay={new Set(cards.map(card => card.id))}
+                                   onPick={onAddCard} />
                 </Paper>
 
                 {/*

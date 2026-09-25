@@ -26,7 +26,7 @@ const flag = (name, fallback) => {
 
 const FORCE = args.includes('--force')
 
-// The board the UI redirects to from "/" — see arcstrides.ui/src/App.tsx.
+// The board the UI opens by default — see arcstrides.ui/src/Features/Board/Board.Defaults.ts.
 const BOARD_ID = flag('board', '1cb0ce6e-6145-4fe7-833a-0b7c0545c449')
 
 // Task types are fetched unfiltered (TaskController queries `taskType => true`),

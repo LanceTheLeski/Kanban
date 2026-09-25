@@ -10,9 +10,11 @@
  * the page could only ever draw that one month, whatever the month ID it had
  * fetched said.
  *
- * Here the month comes from the stored dates themselves, and the grid is worked
- * out from it: which weekday the 1st falls on, how many days there are, and so
- * how many weeks it needs — four, five or six.
+ * Here the month comes from the route — this month, unless the reader has moved
+ * — and the grid is worked out from it: which weekday the 1st falls on, how many
+ * days there are, and so how many weeks it needs — four, five or six. None of
+ * that needs the server, so the grid is drawn before the server has answered,
+ * and whatever it has stored is laid over the days when it does.
  *
  * ── The days either side are not drawn ───────────────────────────────────────
  * The Blazor grid filled the leading and trailing slots with the neighbouring
@@ -23,7 +25,7 @@
  */
 
 import dayjs, { type Dayjs } from 'dayjs'
-import type { CalendarDate, Month } from './Calendar.Types'
+import type { CalendarDate } from './Calendar.Types'
 
 /** Sunday first, as DayOfTheWeekOrder counted them (Sunday = 0). */
 export const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -44,16 +46,6 @@ export interface Week {
     /** The first and last slot holding a day of this month. */
     first: number
     last: number
-}
-
-/**
- * The first of the month the stored dates belong to, or null when none of them
- * says — an empty month, or rows whose MonthName could not be read.
- */
-export function monthStart(month: Month): Dayjs | null {
-    const dated = month.dates.find(date => date.month !== null && date.year !== null)
-    if (!dated) return null
-    return dayjs(new Date(dated.year!, dated.month!, 1))
 }
 
 /**
