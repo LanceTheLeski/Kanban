@@ -51,8 +51,12 @@ export const ProgressLines: React.FC<ProgressLinesProps> = ({ slices, done, tota
                  viewBox={`0 0 ${W} ${H}`}
                  preserveAspectRatio="none"
                  sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}>
-                {/* The scale: all done along the top, none along the bottom. */}
-                <line x1={0} x2={W} y1={yOf(1)} y2={yOf(1)} stroke="rgba(52, 36, 20, 0.12)" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+                {/*
+                    The scale: all done along the top, none along the bottom. The
+                    top rule starts clear of the count in the corner, or it would
+                    strike it through.
+                */}
+                <line x1={showCount && total > 0 ? W * 0.3 : 0} x2={W} y1={yOf(1)} y2={yOf(1)} stroke="rgba(52, 36, 20, 0.12)" strokeWidth={1} vectorEffect="non-scaling-stroke" />
                 <line x1={0} x2={W} y1={yOf(0)} y2={yOf(0)} stroke="rgba(52, 36, 20, 0.28)" strokeWidth={1} vectorEffect="non-scaling-stroke" />
 
                 {slices.map(slice => {
