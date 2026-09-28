@@ -152,6 +152,11 @@ Still missing:
   the row that already has cards, which narrows it without closing it.
 - **`DateResponse` has no `MonthOrder`**, though the table stores it. The UI
   recovers the month from `MonthName`, which only works while that is English.
+- **A date has nothing to customise yet.** The Blazor day overlay had a
+  date-type selector over a hard-coded list and a palette swatch; neither was
+  wired, and `Date` has no field for either. What a date's type and colour mean
+  — and what they change on the calendar — is to be decided before they are
+  built. The day overlay's live copy of the day is where they would show.
 
 Fixed, each reproduced against Azurite first. The first two each returned 500
 for the whole month, not just the day:

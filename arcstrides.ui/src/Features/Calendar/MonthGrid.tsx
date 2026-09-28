@@ -1,33 +1,30 @@
 /**
  * MonthGrid
  *
- * The month: the weekday names across the top, a strip of card for each week,
- * and a strip of frosted glass down each weekday.
+ * The month: the weekday names across the top, then each day as a pane of glass
+ * of its own, seven to a row.
  *
- * Mirrors: Layouts/Calendar/CalendarLayout.razor.
+ * Mirrors: Layouts/Calendar/CalendarLayout.razor, which is where this now takes
+ * its layout from. Blazor put each CalendarDate on the page as its own `.glass`
+ * tile, under a row of blue weekday headers, and nothing behind them. An earlier
+ * version here borrowed the board's grammar instead — a sand strip for each week
+ * and a frosted strip down each weekday — and a day read as the place two strips
+ * crossed rather than as a thing of its own. See "The calendar" in ArcStyles.css.
  *
- * ── The same grammar as the board ────────────────────────────────────────────
- * On the board, lanes are card and columns are glass, so you can tell which
- * axis a strip runs along by what it is made of. A month has the same two axes
- * — weeks across, weekdays down — and gets the same two materials: a week is a
- * strip of the board's sand card, a weekday is a strip of the board's frosted
- * glass, and a day is where the two cross. A reader who has learned one page
- * has learned the other.
+ * ── The days either side are not drawn ───────────────────────────────────────
+ * The slots before the 1st and after the last day are empty: no tile. Blazor
+ * filled them with the neighbouring months' days, drawn exactly like this
+ * month's, and the 30th of December read as part of January.
  *
  * ── One set of tracks ────────────────────────────────────────────────────────
- * The names, the strips and the glass are three separate elements that have to
- * line up to the pixel. Rather than each computing a width, all three sit on the
- * same seven-track CSS grid: the names and strips as its items, the glass as an
- * overlay repeating its template. Seven equal fractions of whatever width there
- * is, so the month fills the window at any size — no sideways scroll, which the
- * board needs because its columns are user-defined and the month never does.
+ * Seven equal fractions of whatever width there is, so the month fills the
+ * window at any size and never scrolls sideways.
  */
 
 import React from 'react'
 import { Box, Paper, Typography } from '@mui/material'
 import { CONDENSED } from '../../Styles/Fonts'
-import { glassStyle } from '../../Styles/Stock'
-import { WeekStrip } from './WeekStrip'
+import { DayCell } from './DayCell'
 import { CALENDAR_GAP, NOTES_FROM } from './Calendar.Layout'
 import { WEEKDAYS, type Week } from './Calendar.Grid'
 
@@ -36,34 +33,31 @@ interface MonthGridProps {
 }
 
 export const MonthGrid: React.FC<MonthGridProps> = ({ weeks }) => (
-    <Box sx={{ ...TRACKS,
-               position: 'relative',
-               rowGap: 1.25,
-               // Room below the last week for the glass to finish on the window,
-               // the way it starts on it above the first.
-               pb: 1 }}>
-        <WeekdayGlass />
-
+    <Box sx={{ display: 'grid',
+               gridTemplateColumns: 'repeat(7, minmax(0, 1fr))',
+               columnGap: CALENDAR_GAP,
+               rowGap: CALENDAR_GAP,
+               alignItems: 'stretch',
+               px: CALENDAR_GAP,
+               pt: 1,
+               pb: 1.5 }}>
         {/*
-            The weekday names: the top of each weekday's glass, tinted. Blue for
-            the working days, as the Blazor header was (#2494E7, paled to sit on
-            glass), and the vermilion of the pagoda in the background for the
+            The weekday names, on paper: Blazor's were solid #2494E7 headers with
+            pale text. Blue card for the working days, the pagoda's red for the
             weekend — the week's two kinds of day told apart at the one place
             every column is named.
         */}
         {WEEKDAYS.map((name, index) => (
             <Paper key={name}
-                   className="column-cap"
+                   className={`card-stock tile ${index === 0 || index === 6 ? 'paper-red' : 'paper-ink'}`}
                    elevation={0}
-                   style={glassStyle(index === 0 || index === 6 ? WEEKEND_TINT : WEEKDAY_TINT)}
                    sx={{ gridRow: 1,
-                         minHeight: '2.25rem',
+                         minHeight: '2rem',
                          display: 'flex',
                          alignItems: 'center',
                          justifyContent: 'center',
-                         position: 'relative',
-                         zIndex: 2,
-                         px: 0.5 }}>
+                         px: 0.5,
+                         mb: 0.25 }}>
                 <Typography sx={{ fontFamily: CONDENSED,
                                   fontSize: '0.78rem',
                                   fontWeight: 700,
@@ -73,9 +67,7 @@ export const MonthGrid: React.FC<MonthGridProps> = ({ weeks }) => (
                     {/*
                         The whole name where it fits, three letters where it does
                         not, one on a phone — and only the one on screen is read
-                        out, since the others are display: none. Uppercase and
-                        letterspaced, like a column name: a heading over a stack
-                        of days.
+                        out, since the others are display: none.
                     */}
                     <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>{name}</Box>
                     <Box component="span" sx={{ display: { xs: 'none', [NOTES_FROM]: 'inline', md: 'none' } }}>
@@ -86,48 +78,12 @@ export const MonthGrid: React.FC<MonthGridProps> = ({ weeks }) => (
             </Paper>
         ))}
 
-        {weeks.map((week, index) => (
-            <WeekStrip key={week.key} week={week} row={index + 2} />
-        ))}
+        {weeks.flatMap((week, row) => week.days.map((day, slot) => day && (
+            <Box key={day.key} sx={{ gridRow: row + 2, gridColumn: slot + 1, minWidth: 0, display: 'flex' }}>
+                <DayCell day={day} />
+            </Box>
+        )))}
     </Box>
 )
 
 export default MonthGrid
-
-// ── Private ───────────────────────────────────────────────────────────────────
-// Not exported, which is this language's `private`. Ordered by first use above.
-
-/**
- * Seven equal tracks with the calendar's gap between them, and half a gap's
- * sand beyond the outer ones — the grid the names, the strips and the glass
- * all sit on.
- */
-const TRACKS = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(7, minmax(0, 1fr))',
-    columnGap: CALENDAR_GAP,
-    px: CALENDAR_GAP,
-    pt: 1,
-} as const
-
-/**
- * A strip of frosted glass down each weekday, top to bottom — over the sand
- * where it crosses a week, over the window where it crosses a gap. Behind the
- * days and the names, which sit above it at z-index 2.
- */
-function WeekdayGlass() {
-    return (
-        <Box aria-hidden
-             sx={{ ...TRACKS,
-                   position: 'absolute',
-                   inset: 0,
-                   zIndex: 1,
-                   pointerEvents: 'none' }}>
-            {WEEKDAYS.map(name => <Box key={name} className="column-glass" />)}
-        </Box>
-    )
-}
-
-const WEEKDAY_TINT = 'rgb(176, 206, 238)'
-
-const WEEKEND_TINT = 'rgb(238, 178, 160)'

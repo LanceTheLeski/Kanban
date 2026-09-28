@@ -9,7 +9,8 @@
  * charts were for was two things about the day's tasks: how far along they are,
  * and what kind of work they are. That is what these compute.
  *
- *   progress   done of total — a meter, because it is one ratio against a limit
+ *   progress   done of total for each type — a line per type, levelling out at
+ *              its share done, so the types can be compared (see ProgressLines)
  *   breakdown  tasks per type — a ring round the day's number, part-to-whole
  *
  * ── Colour follows the type, not its place in the day ────────────────────────
@@ -50,14 +51,12 @@ export const OTHER_COLOUR = '#bdb8ac'
  */
 export const MAX_SEGMENTS = 6
 
-/** The progress meter: one hue, the unfilled track a lighter step of it. */
-export const METER_FILL = '#2a78d6'
-export const METER_TRACK = '#b7d3f6'
-
 export interface TypeSlice {
     key: string
     title: string
     count: number
+    /** How many of `count` are done — each type's own progress. */
+    done: number
     colour: string
 }
 
@@ -86,9 +85,11 @@ export function dayStats(cards: Card[], colours: Map<number, string>): DayStats 
             key,
             title: type?.title || 'No type',
             count: 0,
+            done: 0,
             colour: type ? colourOf(type.id, colours) : UNTYPED_COLOUR,
         }
         slice.count += 1
+        if (task.isCompleted) slice.done += 1
         counts.set(key, slice)
     }
 
@@ -133,6 +134,7 @@ function capped(slices: TypeSlice[]): TypeSlice[] {
             key: 'other',
             title: `Other (${folded.map(slice => slice.title).join(', ')})`,
             count: folded.reduce((sum, slice) => sum + slice.count, 0),
+            done: folded.reduce((sum, slice) => sum + slice.done, 0),
             colour: OTHER_COLOUR,
         },
     ]

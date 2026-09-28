@@ -37,8 +37,24 @@ export interface ViewCard {
 
 export interface DayView {
     key: string
+    /** The whole name, for tooltips and screen readers. */
     label: string
+    /**
+     * The heading on the day itself: capitals, at most HEADING_LENGTH of them —
+     * "ALL", "OPEN", "FEAT". Written out per view rather than cut from `label`
+     * where cutting would mislead: "No type" is NONE, not NOTY. Meant to become
+     * something a user sets; until then these are the defaults.
+     */
+    short: string
     cards: ViewCard[]
+}
+
+/** The most characters a view's heading takes on a day. */
+export const HEADING_LENGTH = 4
+
+/** A heading from a name: capitals, no spaces, cut to HEADING_LENGTH. */
+export function headingOf(text: string): string {
+    return text.replace(/[^\p{L}\p{N}]/gu, '').toUpperCase().slice(0, HEADING_LENGTH) || '—'
 }
 
 /**
@@ -50,20 +66,24 @@ export interface DayView {
 export function viewsFor(cards: Card[], boardTitle: (boardId: string) => string | null): DayView[] {
     if (cards.length === 0) return []
 
-    const all: DayView = { key: 'all', label: 'All', cards: cards.map(card => ({ card, tasks: card.tasks })) }
+    const all: DayView = { key: 'all', label: 'All', short: 'ALL', cards: cards.map(card => ({ card, tasks: card.tasks })) }
 
-    const open = byTasks('open', 'Open', cards, task => !task.isCompleted)
+    const open = byTasks('open', 'Open', 'OPEN', cards, task => !task.isCompleted)
 
     const types = uniqueBy(cards.flatMap(card => card.tasks), task => task.taskType?.id ?? null)
         .map(task => task.taskType)
         .sort((a, b) => (a?.id ?? Infinity) - (b?.id ?? Infinity))
-        .map(type => byTasks(`type:${type?.id ?? 'none'}`, type?.title || 'No type', cards,
+        .map(type => byTasks(`type:${type?.id ?? 'none'}`,
+                             type?.title || 'No type',
+                             type ? headingOf(type.title) : 'NONE',
+                             cards,
                              task => (task.taskType?.id ?? null) === (type?.id ?? null)))
 
     const boardIds = uniqueBy(cards, card => card.boardId).map(card => card.boardId)
     const boards = boardIds.length < 2 ? [] : boardIds.map(boardId => ({
         key: `board:${boardId}`,
         label: boardTitle(boardId) || boardLabel(boardId),
+        short: boardTitle(boardId) ? headingOf(boardTitle(boardId)!) : boardId.slice(0, HEADING_LENGTH).toUpperCase(),
         cards: cards.filter(card => card.boardId === boardId).map(card => ({ card, tasks: card.tasks })),
     }))
 
@@ -89,10 +109,11 @@ export function boardLabel(boardId: string): string {
 // Not exported, which is this language's `private`. Ordered by first use above.
 
 /** Cards that have at least one task passing `keep`, showing only those tasks. */
-function byTasks(key: string, label: string, cards: Card[], keep: (task: Task) => boolean): DayView {
+function byTasks(key: string, label: string, short: string, cards: Card[], keep: (task: Task) => boolean): DayView {
     return {
         key,
         label,
+        short,
         cards: cards
             .map(card => ({ card, tasks: card.tasks.filter(keep) }))
             .filter(entry => entry.tasks.length > 0),

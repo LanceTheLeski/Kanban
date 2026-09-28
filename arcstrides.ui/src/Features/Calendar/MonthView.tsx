@@ -49,7 +49,9 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) => {
     const removeCard = useCalendarStore(state => state.removeCard)
     const { addError } = useArcError()
 
-    const [opened, setOpened] = useState<{ key: string; adding: boolean } | null>(null)
+    // `request` counts "Add a card…" choices, so choosing it again — from the
+    // live copy's ⋮ inside the overlay — opens the search again.
+    const [opened, setOpened] = useState<{ key: string; adding: boolean; request: number } | null>(null)
     const [openCard, setOpenCard] = useState<Card | null>(null)
 
     const weeks = useMemo(() => weeksOf(dayjs(new Date(year, month, 1)), stored?.dates ?? []),
@@ -81,7 +83,11 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) => {
         colours,
         boardTitle,
         openCard: handleOpenCard,
-        openDay: (day, options) => setOpened({ key: day.key, adding: options?.adding === true }),
+        openDay: (day, options) => setOpened(previous => ({
+            key: day.key,
+            adding: options?.adding === true,
+            request: (previous?.request ?? 0) + (options?.adding ? 1 : 0),
+        })),
         taskUpdated: () => { refresh() },
     }), [colours, boardTitle, handleOpenCard, refresh])
 
@@ -114,6 +120,7 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) => {
                 <DayOverlay day={openDay}
                             boardIds={boardIds}
                             startAdding={opened?.adding ?? false}
+                            addRequest={opened?.request ?? 0}
                             onClose={() => setOpened(null)}
                             onAddCard={card => handleAddCard(openDay, card)}
                             onRemoveCard={card => handleRemoveCard(openDay, card)} />

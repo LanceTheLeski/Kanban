@@ -199,23 +199,35 @@ it runs.
 
 ### The calendar
 
-The same grammar on the other two axes. Each week is a strip of the board's
-sand card; each weekday is a strip of its frosted glass; a day is where they
-cross, and the cards on it are the same paper notes. The strips start on the
-1st and stop on the last day of the month, so the slots either side are bare
-window — the neighbouring months' days are not drawn, because drawn the same
-way they read as part of this month.
+Glass, then paper — the Blazor calendar's own arrangement, not the board's.
+Each day is a pane of frosted glass of its own, laid straight on the page with
+no pane round the month and nothing behind the days: glass seen through glass
+was fog. The slots before the 1st and after the last day are empty — the
+neighbouring months' days are not drawn, because drawn the same way they read
+as part of this month. The weekday names are paper tiles: blue for the working
+days, red for the weekend.
 
-A day's number is a disc punched from card, like the days in the date pickers
-and the points on a timeline: a date looks like the same thing wherever the app
-shows one. Today is cut from ink.
+Across the top of a day is a header of tiles — a tablet start screen, cut from
+card, each tile its own colour and set edge to edge:
 
-A day keeps the shape of the Blazor date it replaces: along the top, the number
-inside a ring of its tasks by type, a progress meter, and the quick-actions ⋮;
-under that, ‹ view › arrows; then the view's cards, each a note wrapped round
-its tasks as green strips — the same strips, and the same popover behind them,
-as in the card editor. The views are a list in `Calendar.Views.ts`; the charts'
-numbers and colours are in `Calendar.Stats.ts`.
+| tile | stock | what it is |
+|---|---|---|
+| the date | a card disc, ringed | the number in gold foil, ringed with its tasks by type; today is oxblood |
+| progress | cream | a line per task type, levelling out at its share done |
+| ⋮ | yellow | quick actions |
+| ‹ › | blue | step through the day's views |
+| heading | oxblood | the view's name in gold foil, four capitals at most — ALL, OPEN, FEAT |
+
+How the tiles arrange is decided by the day's own width (a container query),
+not the window's, because the same day is also drawn as a live copy inside its
+overlay. Under the header, the view's cards, each a note wrapped round its tasks
+as green strips — the same strips, and the same popover behind them, as in the
+card editor. The views are a list in `Calendar.Views.ts`; the charts' numbers
+and colours are in `Calendar.Stats.ts`.
+
+**Gold** is `.gold-foil`: Blazor's `.gold-text` gradient with a dark drop-shadow
+under it so the letters keep an edge on light card. **Oxblood** is the one dark
+stock, and exists to carry gold.
 
 ### Chart colour
 

@@ -1,54 +1,45 @@
 /**
  * DayOverlay
  *
- * One day, opened up: its graphs at full size with what they count, its cards
- * wrapped round their tasks, and when those tasks are due.
+ * One day, opened up: the day as it shows on the calendar, its cards, its
+ * progress at full size, and its timeline.
  *
- * Mirrors: Layouts/Calendar/UpdateDateOverlay.razor, which began with the day's
- * own CalendarDate drawn large — its graphs included — and then listed its cards
- * and a timeline of their tasks ordered by end deadline. Those are all here; the
- * graphs gain the legend a 36px ring on the grid has no room for, which is where
- * each type's name and exact count can be read without matching colours. Left
- * behind is everything the overlay showed from no data:
+ * Mirrors: Layouts/Calendar/UpdateDateOverlay.razor —
  *
- *   · a date-type selector over a hard-coded list, whose choice was stored in a
- *     field nothing read;
- *   · a palette swatch with a comment saying it should one day open a picker;
- *   · a panel reading "Tag Canvas Placeholder :)";
- *   · a second timeline of six items titled "Event 1" to "Event 6".
+ *   `<CalendarDate @bind-Date="Date" />` inside the overlay → the live copy,
+ *       a DayCell drawn from the same data and the same view as the grid's, so
+ *       whatever is changed here shows on it as it will on the calendar
+ *   the card titles under it                               → Cards, editable
+ *   the timeline of tasks by end deadline                  → Timeline, every point
  *
- * Tags are the natural home for the first three — a date's CardTagGroupID is
- * already the link between a day and its cards — and that waits on the tag
- * read path. See docs/api-gaps.md.
+ * and the graphs gain what a day on the grid has no room for: the lines at a
+ * size where they can be compared closely, and a table of every type with its
+ * done and total, which is what lets the colours be only a link and never the
+ * only way to tell one type from another.
  *
- * ── What can be changed here ─────────────────────────────────────────────────
- * Which cards are on the day: "+ Add card" puts one on, the × beside a card
- * takes it off. Both show at once and upload behind — see Calendar.Store. The
- * day does not have to be stored first; the server writes its row with its
- * first card.
- *
- * The cards themselves open into their own editor, which is where their tasks
- * and dates are changed.
+ * Left behind, because they held no data: the date-type selector over a hard-
+ * coded list; the palette swatch; "Tag Canvas Placeholder :)"; and a second
+ * timeline of "Event 1" to "Event 6". The first two want deciding before they
+ * are built — see docs/api-gaps.md, #8.
  */
 
 import React from 'react'
-import { Box, ButtonBase, IconButton, Paper, Typography } from '@mui/material'
+import { Box, IconButton, Paper, Typography } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import { ArcOverlay } from '../../Components/ArcOverlay'
 import { ArcTitleBar } from '../../Components/ArcTitleBar'
-import { MONO } from '../../Styles/Fonts'
+import { MONO, NUMERALS } from '../../Styles/Fonts'
 import { rem } from '../../Styles/Measures'
+import { DayCell } from './DayCell'
 import { DayCard } from './DayCard'
+import { DayTimeline } from './DayTimeline'
 import { AddCardPicker } from './AddCardPicker'
 import { TypeRing } from './TypeRing'
-import { ProgressMeter } from './ProgressMeter'
+import { ProgressLines } from './ProgressLines'
 import { dayStats, type DayStats } from './Calendar.Stats'
-import { useCalendarActions } from './Calendar.Context'
 import { boardLabel } from './Calendar.Views'
-import { NUMERALS } from '../../Styles/Fonts'
-import dayjs, { type Dayjs } from 'dayjs'
+import { useCalendarActions } from './Calendar.Context'
 import type { Card } from '../../Entities/Card/Card.Types'
-import type { Task } from '../../Entities/Task/Task.Types'
 import type { GridDay } from './Calendar.Grid'
 
 interface DayOverlayProps {
@@ -60,6 +51,11 @@ interface DayOverlayProps {
     boardIds: string[]
     /** Opened from "Add a card…": the search is already open. */
     startAdding?: boolean
+    /**
+     * Bumped each time "Add a card…" is chosen, including from the live copy's
+     * own ⋮ while the overlay is already open, so the search opens again.
+     */
+    addRequest?: number
 }
 
 export const DayOverlay: React.FC<DayOverlayProps> = ({
@@ -69,25 +65,40 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
     onRemoveCard,
     boardIds,
     startAdding = false,
+    addRequest = 0,
 }) => {
-    const { colours, openCard, boardTitle } = useCalendarActions()
+    const { colours, boardTitle } = useCalendarActions()
     const cards = day.stored?.cards ?? []
-    const manyBoards = new Set(cards.map(card => card.boardId)).size > 1
-    const deadlines = deadlinesOf(cards)
     const stats = dayStats(cards, colours)
+    const manyBoards = new Set(cards.map(card => card.boardId)).size > 1
 
     return (
         <ArcOverlay open
                     onClose={onClose}
                     title={day.date.format('dddd D MMMM YYYY')}
-                    titleStock={day.isToday ? 'blue' : 'cream'}
+                    titleStock={day.isToday ? 'red' : 'cream'}
                     titleCaption={day.isToday ? 'Today' : undefined}
                     discardLabel="Close"
                     width={DAY_OVERLAY_WIDTH}>
-            <Box sx={{ display: 'flex',
-                       flexDirection: { xs: 'column', md: 'row' },
-                       alignItems: 'stretch',
+            <Box sx={{ display: 'grid',
+                       gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: `${MINI_WIDTH} minmax(0, 1fr) minmax(0, 1fr)` },
+                       alignItems: 'start',
                        gap: 2 }}>
+                {/*
+                    The day as the calendar shows it — live. Its view is the
+                    grid's view, so stepping ‹ › here steps the day on the grid
+                    too; nothing in it opens the day again.
+                */}
+                <Box sx={{ display: 'flex',
+                           flexDirection: 'column',
+                           gap: 1,
+                           width: MINI_WIDTH,
+                           maxWidth: '100%',
+                           justifySelf: 'center' }}>
+                    <ArcTitleBar>On the calendar</ArcTitleBar>
+                    <DayCell day={day} mini />
+                </Box>
+
                 {/*
                     The cards: notes on blue, the way the tags panel puts its
                     pieces on blue — a pale coloured ground with something of a
@@ -95,20 +106,15 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
                 */}
                 <Paper className="card-stock paper-blue"
                        elevation={0}
-                       sx={{ flex: '1 1 0',
-                             minWidth: 0,
-                             p: 1.5,
-                             display: 'flex',
-                             flexDirection: 'column',
-                             gap: 1 }}>
+                       sx={{ minWidth: 0, p: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <ArcTitleBar>Cards</ArcTitleBar>
 
                     {cards.length === 0 && <Empty>Nothing is on this day yet.</Empty>}
 
                     {/*
-                        The × sits beside the note on the panel, not on the note:
-                        the note is itself a button, and a button inside a button
-                        is two targets that cannot tell which one was meant.
+                        The × sits beside the card on the panel, not on it: the
+                        card's title is itself a button, and a button inside a
+                        button is two targets that cannot tell which was meant.
                     */}
                     {cards.map(card => (
                         <Box key={card.id} sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
@@ -129,60 +135,27 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
                         </Box>
                     ))}
 
-                    <AddCardPicker boardIds={boardIds}
+                    <AddCardPicker key={addRequest}
+                                   boardIds={boardIds}
                                    onDay={new Set(cards.map(card => card.id))}
                                    onPick={onAddCard}
                                    startOpen={startAdding} />
                 </Paper>
 
-                <Box sx={{ flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <ProgressPanel day={day} stats={stats} />
+                <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <ProgressPanel day={day} stats={stats} />
 
-                {/*
-                    Deadlines on yellow, the stock the timeline panel cuts its
-                    Deadline tab from, strung on the same gold rail its points
-                    sit on — so a date here looks like the date it was set as.
-                */}
-                <Paper className="card-stock paper-yellow"
-                       elevation={0}
-                       sx={{ minWidth: 0,
-                             p: 1.5,
-                             display: 'flex',
-                             flexDirection: 'column',
-                             gap: 1 }}>
-                    <ArcTitleBar>Deadlines</ArcTitleBar>
-
-                    {deadlines.length === 0 && (
-                        <Empty>{cards.length === 0 ? 'No cards, so no deadlines.' : 'None of these tasks has one.'}</Empty>
-                    )}
-
-                    {deadlines.length > 0 && (
-                        <Box sx={{ position: 'relative',
-                                   display: 'flex',
-                                   flexDirection: 'column',
-                                   gap: 0.75 }}>
-                            {/* The rail, from the first point to the last. */}
-                            {deadlines.length > 1 && (
-                                <Box aria-hidden
-                                     className="card-stock-glued paper-gold"
-                                     sx={{ position: 'absolute',
-                                           left: RAIL_CENTRE - 2.5,
-                                           width: '5px',
-                                           top: '1.1rem',
-                                           bottom: '1.1rem' }} />
-                            )}
-
-                            {deadlines.map(({ task, card, due }) => (
-                                <DeadlineRow key={task.id}
-                                             task={task}
-                                             card={card}
-                                             due={due}
-                                             day={day.date}
-                                             onOpen={() => openCard(card)} />
-                            ))}
-                        </Box>
-                    )}
-                </Paper>
+                    {/*
+                        The timeline on yellow, the stock the task timeline panel
+                        cuts its Deadline tab from, on the same gold rail its
+                        points sit on.
+                    */}
+                    <Paper className="card-stock paper-yellow"
+                           elevation={0}
+                           sx={{ minWidth: 0, p: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <ArcTitleBar>Timeline</ArcTitleBar>
+                        <DayTimeline day={day} cards={cards} />
+                    </Paper>
                 </Box>
             </Box>
         </ArcOverlay>
@@ -194,14 +167,15 @@ export default DayOverlay
 // ── Private ───────────────────────────────────────────────────────────────────
 // Not exported, which is this language's `private`. Ordered by first use above.
 
-const DAY_OVERLAY_WIDTH = rem(820)
+const DAY_OVERLAY_WIDTH = rem(1120)
+
+/** The live copy's width: a day on a desktop grid, so it looks as it will there. */
+const MINI_WIDTH = rem(210)
 
 /**
- * The day's two graphs at full size: the type ring round the day's number, the
- * meter, and the legend the grid's ring has no room for — every type by name,
- * with its mark and its count. That list is what makes the colours optional:
- * several of them sit under 3:1 on this card, so they are never the only way to
- * tell one type from another. See Calendar.Stats.
+ * The day's graphs at full size: the type ring round the day's number, the
+ * progress lines at a height where close values can be told apart, and the
+ * table — every type by name, with its mark, its done and its total.
  */
 function ProgressPanel({ day, stats }: { day: GridDay; stats: DayStats }) {
     return (
@@ -213,62 +187,74 @@ function ProgressPanel({ day, stats }: { day: GridDay; stats: DayStats }) {
             {stats.total === 0 && <Empty>No tasks on this day's cards.</Empty>}
 
             {stats.total > 0 && (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, px: 0.5 }}>
-                    <TypeRing slices={stats.slices} size={64} thickness={7}>
-                        <Box className={`card-disc card-stock-flat${day.isToday ? ' paper-ink' : ''}`}
-                             sx={{ width: 42, height: 42, display: 'grid', placeItems: 'center' }}>
-                            <Typography component="span"
-                                        sx={{ fontFamily: NUMERALS, fontWeight: 700, fontSize: '1.15rem', color: 'arc.onPaperStrong' }}>
-                                {day.date.date()}
-                            </Typography>
+                <>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 0.5 }}>
+                        <TypeRing slices={stats.slices} size={64} thickness={7}>
+                            <Box className={`card-disc card-stock-flat${day.isToday ? ' paper-oxblood' : ''}`}
+                                 sx={{ width: 42, height: 42, display: 'grid', placeItems: 'center' }}>
+                                <Typography component="span"
+                                            className="gold-foil"
+                                            sx={{ fontFamily: NUMERALS, fontWeight: 700, fontSize: '1.2rem' }}>
+                                    {day.date.date()}
+                                </Typography>
+                            </Box>
+                        </TypeRing>
+
+                        <Box sx={{ flex: 1, minWidth: 0, height: 84, pr: 1 }}>
+                            <ProgressLines slices={stats.slices} done={stats.done} total={stats.total} weight="large" />
                         </Box>
-                    </TypeRing>
+                    </Box>
 
-                    <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-                        <ProgressMeter done={stats.done} total={stats.total} thickness={8} fontSize="0.72rem" />
-
-                        <Box component="ul" aria-label="Tasks by type" sx={{ m: 0, p: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+                    <Box component="table"
+                         aria-label="Tasks by type"
+                         sx={{ width: '100%', borderCollapse: 'collapse', '& td, & th': { py: 0.25, px: 0.5 } }}>
+                        <Box component="thead">
+                            <Box component="tr">
+                                {['Type', 'Done', 'Of', ''].map(heading => (
+                                    <Box component="th"
+                                         key={heading}
+                                         sx={{ textAlign: heading === 'Type' ? 'left' : 'right',
+                                               fontSize: '0.62rem',
+                                               fontWeight: 700,
+                                               letterSpacing: '0.06em',
+                                               textTransform: 'uppercase',
+                                               color: 'arc.onPaperMuted' }}>
+                                        {heading}
+                                    </Box>
+                                ))}
+                            </Box>
+                        </Box>
+                        <Box component="tbody">
                             {stats.slices.map(slice => (
-                                <Box component="li" key={slice.key} sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                                    <Box aria-hidden sx={{ width: 10, height: 10, borderRadius: '2px', flexShrink: 0, backgroundColor: slice.colour }} />
-                                    <Typography component="span" sx={{ flex: 1, minWidth: 0, fontSize: '0.74rem', color: 'arc.onPaperStrong' }}>
+                                <Box component="tr" key={slice.key}>
+                                    <Box component="td" sx={{ fontSize: '0.76rem', color: 'arc.onPaperStrong' }}>
+                                        <Box component="span"
+                                             aria-hidden
+                                             sx={{ display: 'inline-block', width: 10, height: 10, mr: 0.75, borderRadius: '2px', verticalAlign: '-1px', backgroundColor: slice.colour }} />
                                         {slice.title}
-                                    </Typography>
-                                    <Typography component="span" sx={{ fontFamily: MONO, fontSize: '0.7rem', color: 'arc.onPaper' }}>
-                                        {slice.count}
-                                    </Typography>
+                                    </Box>
+                                    <Box component="td" sx={NUMBER_CELL}>{slice.done}</Box>
+                                    <Box component="td" sx={NUMBER_CELL}>{slice.count}</Box>
+                                    <Box component="td" sx={{ ...NUMBER_CELL, color: 'arc.onPaperMuted' }}>
+                                        {Math.round((slice.done / slice.count) * 100)}%
+                                    </Box>
                                 </Box>
                             ))}
                         </Box>
                     </Box>
-                </Box>
+                </>
             )}
         </Paper>
     )
 }
 
-interface Deadline {
-    task: Task
-    card: Card
-    due: Dayjs
-}
-
-/**
- * Every task on these cards with an end date, soonest first.
- *
- * The end deadline where there is one, which is what the Blazor overlay sorted
- * on. A task in Timeline mode always has one; a task with only a preferred end
- * falls back to that, rather than vanishing from a list of when things are due.
- */
-function deadlinesOf(cards: Card[]): Deadline[] {
-    return cards
-        .flatMap(card => card.tasks.map(task => {
-            const at = task.timeline?.endDeadlineUTC ?? task.timeline?.endPreferenceUTC ?? null
-            return at ? { task, card, due: dayjs(at) } : null
-        }))
-        .filter((deadline): deadline is Deadline => deadline !== null)
-        .sort((a, b) => a.due.valueOf() - b.due.valueOf())
-}
+const NUMBER_CELL = {
+    textAlign: 'right',
+    fontFamily: MONO,
+    fontSize: '0.7rem',
+    fontVariantNumeric: 'tabular-nums',
+    color: 'arc.onPaper',
+} as const
 
 function Empty({ children }: { children: React.ReactNode }) {
     return (
@@ -277,81 +263,3 @@ function Empty({ children }: { children: React.ReactNode }) {
         </Typography>
     )
 }
-
-/** The rail's centre, in px from the list's left edge — where each point sits. */
-const RAIL_CENTRE = 13
-
-const DOT = 14
-
-/**
- * One deadline: a point on the rail, then a strip of card with the time, the
- * task and the card it belongs to. The whole strip opens the card.
- */
-function DeadlineRow({ task, card, due, day, onOpen }: { task: Task; card: Card; due: Dayjs; day: Dayjs; onOpen: () => void }) {
-    const done = task.isCompleted === true
-    // The day is the overlay's heading, so a deadline on it needs only its
-    // time; one on another day carries its date under the time, or it would
-    // read as today's.
-    const otherDay = !due.isSame(day, 'day')
-
-    return (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box aria-hidden
-                 className={`card-disc card-stock-glued ${done ? 'paper-ink' : 'paper-grey'}`}
-                 sx={{ width: DOT,
-                       height: DOT,
-                       flexShrink: 0,
-                       ml: `${RAIL_CENTRE - DOT / 2}px`,
-                       position: 'relative' }} />
-
-            {/*
-                Two columns and two lines: the time beside the task, the date
-                beside the card it is on. A grid rather than a flex row, so the
-                task titles start on one line down the list whatever width the
-                time before them is.
-            */}
-            <ButtonBase className="card-stock-flat card-tilt"
-                        onClick={onOpen}
-                        aria-label={`${task.title}, due ${due.format('D MMMM HH:mm')}${done ? ', done' : ''}. Open card ${card.title}`}
-                        sx={{ flex: 1,
-                              minWidth: 0,
-                              display: 'grid',
-                              gridTemplateColumns: 'minmax(3rem, auto) minmax(0, 1fr)',
-                              columnGap: 1,
-                              alignItems: 'baseline',
-                              justifyItems: 'start',
-                              px: 1,
-                              py: 0.6,
-                              textAlign: 'left',
-                              '&:hover': { backgroundColor: 'arc.paperHover' },
-                              '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 } }}>
-                <Typography component="span" sx={{ ...WHEN, color: 'arc.onPaper' }}>
-                    {due.format('HH:mm')}
-                </Typography>
-
-                <Typography component="span"
-                            sx={{ fontSize: '0.78rem',
-                                  fontWeight: 600,
-                                  color: done ? 'arc.onPaperMuted' : 'arc.onPaperStrong',
-                                  textDecoration: done ? 'line-through' : 'none',
-                                  overflowWrap: 'anywhere' }}>
-                    {task.title}
-                </Typography>
-
-                <Typography component="span" sx={{ ...WHEN, color: 'arc.onPaperMuted' }}>
-                    {otherDay ? due.format('DD MMM') : ''}
-                </Typography>
-
-                <Typography component="span"
-                            sx={{ fontSize: '0.66rem',
-                                  color: 'arc.onPaperMuted',
-                                  overflowWrap: 'anywhere' }}>
-                    {card.title}
-                </Typography>
-            </ButtonBase>
-        </Box>
-    )
-}
-
-/** The date and time down the left of a deadline: data, so set as data. */
-const WHEN = { fontFamily: MONO, fontSize: '0.68rem', lineHeight: 1.6 } as const

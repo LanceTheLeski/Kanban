@@ -58,8 +58,14 @@ export const CalendarPage: React.FC = () => {
 
     return (
         <Box sx={{ width: '100%', minHeight: '100vh', backgroundColor: 'transparent' }}>
-            {/* The same window the board is framed in. */}
-            <Paper className="glass" elevation={0} sx={{ width: '92%', mx: 'auto' }}>
+            {/*
+                No glass pane round the month, where the board has one. Blazor's
+                calendar had none: each day was a pane of glass of its own, laid
+                straight on the page. Framed in a pane as well, every day was
+                glass seen through glass, and the month went to fog; without
+                it, each day is a window onto the picture behind it.
+            */}
+            <Box sx={{ width: '92%', mx: 'auto', pt: '10px' }}>
                 <CalendarNav start={start}
                              busy={status === 'loading'}
                              onPrevious={() => go(start.subtract(1, 'month'))}
@@ -70,7 +76,7 @@ export const CalendarPage: React.FC = () => {
                 {status === 'error' && <ReadFailed error={error} onRetry={() => loadMonth(year, month)} />}
 
                 <MonthView year={year} month={month} />
-            </Paper>
+            </Box>
         </Box>
     )
 }

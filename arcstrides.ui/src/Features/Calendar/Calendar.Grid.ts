@@ -20,8 +20,7 @@
  * The Blazor grid filled the leading and trailing slots with the neighbouring
  * months' days, drawn exactly like this month's. With nothing to tell them
  * apart, the 30th of December read as part of January. Here those slots are
- * null, and MonthGrid leaves them as bare glass: the month is the card, and the
- * card stops where the month does.
+ * null, and MonthGrid leaves them empty.
  */
 
 import dayjs, { type Dayjs } from 'dayjs'
@@ -43,9 +42,6 @@ export interface Week {
     key: string
     /** Seven slots, Sunday first. Null where the slot belongs to another month. */
     days: (GridDay | null)[]
-    /** The first and last slot holding a day of this month. */
-    first: number
-    last: number
 }
 
 /**
@@ -80,9 +76,7 @@ export function weeksOf(start: Dayjs, dates: CalendarDate[], today: Dayjs = dayj
             }
         })
 
-        const first = days.findIndex(day => day !== null)
-        const last = days.length - 1 - [...days].reverse().findIndex(day => day !== null)
-        weeks.push({ key: days[first]!.key, days, first, last })
+        weeks.push({ key: days.find(day => day !== null)!.key, days })
     }
 
     return weeks

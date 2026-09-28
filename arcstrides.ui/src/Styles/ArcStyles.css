@@ -981,3 +981,76 @@ body,
 .note .MuiButtonGroup-grouped:not(:last-of-type) {
     border-right-color: rgba(96, 84, 20, .2);
 }
+
+/* ── The calendar ─────────────────────────────────────────────────────────────
+   Glass, then paper — the Blazor calendar's own arrangement. Each day was a
+   `.glass` tile of its own, sitting straight on the page, with its pieces laid
+   on it; there were no week strips and no weekday columns behind the days.
+   The React calendar tried the board's grammar instead — sand strips for weeks,
+   frosted glass down each weekday — and a day read as the crossing of two
+   things rather than as a thing of its own.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/*
+   One day: a pane of frosted glass with a bright rim, which is the outline —
+   glass is the one material that should catch a highlight. The film is the
+   Blazor tile's blue gradient, lightened, so the paper laid on it keeps its
+   colour rather than going grey under a dark film.
+*/
+.day-glass {
+    border-radius: 4px;
+    background: linear-gradient(140deg, rgba(226, 236, 245, .52), rgba(148, 186, 214, .38) 55%, rgba(118, 162, 196, .42) 100%);
+    -webkit-backdrop-filter: blur(8px) saturate(1.3);
+    backdrop-filter: blur(8px) saturate(1.3);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, .55),
+        inset 1px 1px 0 0 rgba(255, 255, 255, .35),
+        inset -1px -1px 0 0 rgba(40, 62, 92, .18),
+        0 1px 3px rgba(20, 30, 45, .28),
+        0 4px 12px -4px rgba(20, 30, 45, .25);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .day-glass { background: rgba(214, 228, 240, .82); }
+}
+
+/*
+   Oxblood — the dark red the Blazor "ALL" button was painted (#630000), as a
+   stock. The one dark paper in the app: it exists to carry gold.
+*/
+.paper-oxblood {
+    --arc-paper: #6e1d1d;
+    --arc-paper-face: linear-gradient(178deg, #812727, #5a1414);
+}
+
+/*
+   A tile: a piece of card cut square, for the tablet-style header across the
+   top of a day. Square because tiles are — the 2px radius of .card-stock is
+   for a sheet's cut corner, and a grid of tiles with rounded corners reads as
+   buttons, not as a mosaic.
+*/
+.tile {
+    border-radius: 1px;
+}
+
+/*
+   Gold foil. The Blazor .gold-text — a metallic gradient clipped to the
+   letters — with one change: a crisp dark drop-shadow under it. The original
+   was set on a dark tile; on cream card its pale stops disappear, and the
+   shadow is what gives the letters an edge on either ground. A drop-shadow
+   filter, not text-shadow: text-shadow paints over a clipped background and
+   would hide the gold it is meant to frame.
+*/
+.gold-foil {
+    background: linear-gradient(-45deg, #fff4c4, #f4c430 20%, #a8740a 42%, #f2c94c 62%, #fff0b3 80%, #e8b923);
+    background-size: 120% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 1px 0 rgba(72, 44, 0, .75));
+}
+
+.paper-oxblood .gold-foil {
+    filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .55));
+}

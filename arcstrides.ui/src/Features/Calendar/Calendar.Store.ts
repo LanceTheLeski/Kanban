@@ -50,6 +50,15 @@ interface CalendarState {
     taskTypes: TaskType[]
 
     /**
+     * Which view each day is on, by day key ('2026-09-30' → 'type:123'). Held
+     * here rather than in each day so the day on the grid and its live copy in
+     * the day overlay are the same day: step the view in one and the other
+     * follows. Not stored on the server; a day with no entry is on All.
+     */
+    dayViews: Record<string, string>
+    setDayView: (dayKey: string, viewKey: string) => void
+
+    /**
      * Shows a month and reads what is stored for it. `silent` keeps what is
      * already laid on top while it re-reads, for a refresh after an edit.
      */
@@ -72,6 +81,9 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
     status: 'idle',
     error: null,
     taskTypes: [],
+    dayViews: {},
+
+    setDayView: (dayKey, viewKey) => set(state => ({ dayViews: { ...state.dayViews, [dayKey]: viewKey } })),
 
     loadMonth: async (year, month, options) => {
         loadTaskTypesOnce(types => set({ taskTypes: types }))
