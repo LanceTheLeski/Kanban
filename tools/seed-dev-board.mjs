@@ -86,8 +86,19 @@ async function main() {
         console.log(`  swimlane  ${title}`)
     }
 
+    // Task types are shared by every board — TaskController lists them all,
+    // unfiltered — so a second seeded board reuses the first one's rather than
+    // making a second "Bug". Duplicates cannot be cleaned up afterwards: the API
+    // has no way to delete a task type (docs/api-gaps.md, #5).
+    const existingTypes = await get(`/arcstrides/tasks/types?TaskTypeIDs=0`)
     const taskTypes = {}
     for (const title of TASK_TYPES) {
+        const found = (existingTypes ?? []).find(type => type.title === title)
+        if (found) {
+            taskTypes[title] = found.id
+            console.log(`  task type ${title} (exists)`)
+            continue
+        }
         const created = await post(`/arcstrides/taggroups/${TAG_GROUP_ID}/tasks/types`, { Title: title })
         taskTypes[title] = created.id
         console.log(`  task type ${title}`)

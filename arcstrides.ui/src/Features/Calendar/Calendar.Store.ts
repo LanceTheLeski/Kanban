@@ -25,7 +25,9 @@
 
 import { create } from 'zustand'
 import { addCardToDate, fetchMonthOf, removeCardFromDate } from './Calendar.APIs'
+import { fetchTaskTypes } from '../Board/Board.APIs'
 import type { Card } from '../../Entities/Card/Card.Types'
+import type { TaskType } from '../../Entities/Task/Task.Types'
 import type { CalendarDate, Month } from './Calendar.Types'
 
 export type CalendarStatus = 'idle' | 'loading' | 'ready' | 'error'
@@ -39,6 +41,13 @@ interface CalendarState {
     /** The state of the read — not of the month, which is always drawable. */
     status: CalendarStatus
     error: string | null
+
+    /**
+     * Every task type in the app, which is where a type's colour comes from —
+     * see Calendar.Stats. Read once, with the first month; a failure leaves it
+     * empty and every typed task in the Other grey rather than blocking the page.
+     */
+    taskTypes: TaskType[]
 
     /**
      * Shows a month and reads what is stored for it. `silent` keeps what is
@@ -62,8 +71,11 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
     stored: null,
     status: 'idle',
     error: null,
+    taskTypes: [],
 
     loadMonth: async (year, month, options) => {
+        loadTaskTypesOnce(types => set({ taskTypes: types }))
+
         const silent = options?.silent === true
         const sameMonth = get().year === year && get().month === month
 
@@ -87,6 +99,9 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
     refresh: async () => {
         const { year, month, loadMonth } = get()
         if (year === null || month === null) return
+        // A refresh follows an edit, and the edit may have been a new task type
+        // made from a task's popover; read the types again with the month.
+        taskTypesRequested = false
         await loadMonth(year, month, { silent: true })
     },
 
@@ -125,6 +140,23 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
 
 // ── Private ───────────────────────────────────────────────────────────────────
 // Not exported, which is this language's `private`. Ordered by first use above.
+
+let taskTypesRequested = false
+
+/**
+ * Task types change rarely and colour every day, so they are read with the first
+ * month and again only on a refresh — which is what follows an edit.
+ */
+function loadTaskTypesOnce(apply: (types: TaskType[]) => void) {
+    if (taskTypesRequested) return
+    taskTypesRequested = true
+    fetchTaskTypes([0])
+        .then(apply)
+        .catch(error => {
+            taskTypesRequested = false
+            console.error('Could not load task types', error)
+        })
+}
 
 function isShowing(state: CalendarState, year: number, month: number): boolean {
     return state.year === year && state.month === month

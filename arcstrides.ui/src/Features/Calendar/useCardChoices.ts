@@ -16,6 +16,7 @@
 
 import { useEffect, useState } from 'react'
 import { fetchBoard } from '../Board/Board.APIs'
+import { boardLabel } from './Calendar.Views'
 import type { Card } from '../../Entities/Card/Card.Types'
 
 export interface CardChoice {
@@ -51,7 +52,7 @@ export function useCardChoices(boardIds: string[], enabled: boolean): CardChoice
                     key,
                     choices: boards.flatMap(board => board.cards.map(card => ({
                         card,
-                        boardTitle: board.title || 'Untitled board',
+                        boardTitle: board.title || boardLabel(board.id),
                     }))),
                     // Some boards read is still a list worth showing; say what is missing.
                     error: failed === 0 ? null : `${failed} of ${outcomes.length} boards could not be read.`,

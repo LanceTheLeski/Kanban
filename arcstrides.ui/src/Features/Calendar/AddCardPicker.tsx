@@ -11,7 +11,7 @@
  * it — see Calendar.Store.
  */
 
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Autocomplete, Button, TextField } from '@mui/material'
 import { paperField } from '../../Styles/Paper'
 import { useCardChoices, type CardChoice } from './useCardChoices'
@@ -23,11 +23,29 @@ interface AddCardPickerProps {
     /** Cards already on the day, left out of the list. */
     onDay: Set<string>
     onPick: (card: Card) => void
+    /** Open straight away — for a day opened from its "Add a card…" quick action. */
+    startOpen?: boolean
 }
 
-export const AddCardPicker: React.FC<AddCardPickerProps> = ({ boardIds, onDay, onPick }) => {
-    const [open, setOpen] = useState(false)
+export const AddCardPicker: React.FC<AddCardPickerProps> = ({ boardIds, onDay, onPick, startOpen = false }) => {
+    const [open, setOpen] = useState(startOpen)
     const { choices, loading, error } = useCardChoices(boardIds, open)
+
+    /*
+       Focus the search once it is open, a frame late.
+
+       `autoFocus` alone lost a race when the picker opened with its overlay —
+       the "Add a card…" quick action: the overlay's focus trap runs after the
+       field mounts and takes focus back to itself. Focus then was not in the
+       search at all, so the first Escape went to the overlay and closed the
+       whole day instead of just backing out of the search.
+    */
+    const inputRef = useRef<HTMLInputElement>(null)
+    useEffect(() => {
+        if (!open) return
+        const frame = requestAnimationFrame(() => inputRef.current?.focus())
+        return () => cancelAnimationFrame(frame)
+    }, [open])
 
     const available = choices.filter(choice => !onDay.has(choice.card.id))
     const grouped = new Set(available.map(choice => choice.boardTitle)).size > 1
@@ -59,6 +77,9 @@ export const AddCardPicker: React.FC<AddCardPickerProps> = ({ boardIds, onDay, o
             autoHighlight
             groupBy={grouped ? choice => choice.boardTitle : undefined}
             getOptionLabel={choice => choice.card.title || 'Untitled'}
+            // Keyed by card, not by label: two boards can each have a card of
+            // the same name, and the label is the default key.
+            getOptionKey={choice => choice.card.id}
             isOptionEqualToValue={(option, value) => option.card.id === value.card.id}
             loadingText="Reading cards…"
             // The list is a piece of card set down over the panel, like the
@@ -82,7 +103,7 @@ export const AddCardPicker: React.FC<AddCardPickerProps> = ({ boardIds, onDay, o
                            // No label, so no room kept above the text for one.
                            hiddenLabel
                            sx={field.sx}
-                           autoFocus
+                           inputRef={inputRef}
                            placeholder="Find a card"
                            inputProps={{ ...params.inputProps, 'aria-label': 'Find a card to add to this day' }}
                            InputProps={{ ...params.InputProps,

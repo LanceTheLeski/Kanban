@@ -1,12 +1,15 @@
 /**
  * DayOverlay
  *
- * One day, opened up: the cards on it, and when their tasks are due.
+ * One day, opened up: its graphs at full size with what they count, its cards
+ * wrapped round their tasks, and when those tasks are due.
  *
- * Mirrors: Layouts/Calendar/UpdateDateOverlay.razor. Carried across are the two
- * things it showed from real data — the date as its heading, and a timeline of
- * the day's tasks ordered by their end deadline. Left behind is everything it
- * showed from none:
+ * Mirrors: Layouts/Calendar/UpdateDateOverlay.razor, which began with the day's
+ * own CalendarDate drawn large — its graphs included — and then listed its cards
+ * and a timeline of their tasks ordered by end deadline. Those are all here; the
+ * graphs gain the legend a 36px ring on the grid has no room for, which is where
+ * each type's name and exact count can be read without matching colours. Left
+ * behind is everything the overlay showed from no data:
  *
  *   · a date-type selector over a hard-coded list, whose choice was stored in a
  *     field nothing read;
@@ -35,8 +38,14 @@ import { ArcOverlay } from '../../Components/ArcOverlay'
 import { ArcTitleBar } from '../../Components/ArcTitleBar'
 import { MONO } from '../../Styles/Fonts'
 import { rem } from '../../Styles/Measures'
-import { CalendarNote } from './CalendarNote'
+import { DayCard } from './DayCard'
 import { AddCardPicker } from './AddCardPicker'
+import { TypeRing } from './TypeRing'
+import { ProgressMeter } from './ProgressMeter'
+import { dayStats, type DayStats } from './Calendar.Stats'
+import { useCalendarActions } from './Calendar.Context'
+import { boardLabel } from './Calendar.Views'
+import { NUMERALS } from '../../Styles/Fonts'
 import dayjs, { type Dayjs } from 'dayjs'
 import type { Card } from '../../Entities/Card/Card.Types'
 import type { Task } from '../../Entities/Task/Task.Types'
@@ -45,23 +54,27 @@ import type { GridDay } from './Calendar.Grid'
 interface DayOverlayProps {
     day: GridDay
     onClose: () => void
-    onOpenCard: (card: Card) => void
     onAddCard: (card: Card) => void
     onRemoveCard: (card: Card) => void
     /** Boards whose cards "+ Add card" offers — see useCardChoices. */
     boardIds: string[]
+    /** Opened from "Add a card…": the search is already open. */
+    startAdding?: boolean
 }
 
 export const DayOverlay: React.FC<DayOverlayProps> = ({
     day,
     onClose,
-    onOpenCard,
     onAddCard,
     onRemoveCard,
     boardIds,
+    startAdding = false,
 }) => {
+    const { colours, openCard, boardTitle } = useCalendarActions()
     const cards = day.stored?.cards ?? []
+    const manyBoards = new Set(cards.map(card => card.boardId)).size > 1
     const deadlines = deadlinesOf(cards)
+    const stats = dayStats(cards, colours)
 
     return (
         <ArcOverlay open
@@ -98,8 +111,13 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
                         is two targets that cannot tell which one was meant.
                     */}
                     {cards.map(card => (
-                        <Box key={card.id} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <CalendarNote card={card} size="medium" onOpen={() => onOpenCard(card)} />
+                        <Box key={card.id} sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
+                            <DayCard card={card}
+                                     tasks={card.tasks}
+                                     size="medium"
+                                     boardCaption={manyBoards
+                                         ? boardTitle(card.boardId) || boardLabel(card.boardId)
+                                         : undefined} />
                             <IconButton size="small"
                                         onClick={() => onRemoveCard(card)}
                                         aria-label={`Take ${card.title} off this day`}
@@ -113,8 +131,12 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
 
                     <AddCardPicker boardIds={boardIds}
                                    onDay={new Set(cards.map(card => card.id))}
-                                   onPick={onAddCard} />
+                                   onPick={onAddCard}
+                                   startOpen={startAdding} />
                 </Paper>
+
+                <Box sx={{ flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <ProgressPanel day={day} stats={stats} />
 
                 {/*
                     Deadlines on yellow, the stock the timeline panel cuts its
@@ -123,8 +145,7 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
                 */}
                 <Paper className="card-stock paper-yellow"
                        elevation={0}
-                       sx={{ flex: '1 1 0',
-                             minWidth: 0,
+                       sx={{ minWidth: 0,
                              p: 1.5,
                              display: 'flex',
                              flexDirection: 'column',
@@ -157,11 +178,12 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
                                              card={card}
                                              due={due}
                                              day={day.date}
-                                             onOpen={() => onOpenCard(card)} />
+                                             onOpen={() => openCard(card)} />
                             ))}
                         </Box>
                     )}
                 </Paper>
+                </Box>
             </Box>
         </ArcOverlay>
     )
@@ -172,7 +194,58 @@ export default DayOverlay
 // ── Private ───────────────────────────────────────────────────────────────────
 // Not exported, which is this language's `private`. Ordered by first use above.
 
-const DAY_OVERLAY_WIDTH = rem(760)
+const DAY_OVERLAY_WIDTH = rem(820)
+
+/**
+ * The day's two graphs at full size: the type ring round the day's number, the
+ * meter, and the legend the grid's ring has no room for — every type by name,
+ * with its mark and its count. That list is what makes the colours optional:
+ * several of them sit under 3:1 on this card, so they are never the only way to
+ * tell one type from another. See Calendar.Stats.
+ */
+function ProgressPanel({ day, stats }: { day: GridDay; stats: DayStats }) {
+    return (
+        <Paper className="card-stock"
+               elevation={0}
+               sx={{ minWidth: 0, p: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <ArcTitleBar>Progress</ArcTitleBar>
+
+            {stats.total === 0 && <Empty>No tasks on this day's cards.</Empty>}
+
+            {stats.total > 0 && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, px: 0.5 }}>
+                    <TypeRing slices={stats.slices} size={64} thickness={7}>
+                        <Box className={`card-disc card-stock-flat${day.isToday ? ' paper-ink' : ''}`}
+                             sx={{ width: 42, height: 42, display: 'grid', placeItems: 'center' }}>
+                            <Typography component="span"
+                                        sx={{ fontFamily: NUMERALS, fontWeight: 700, fontSize: '1.15rem', color: 'arc.onPaperStrong' }}>
+                                {day.date.date()}
+                            </Typography>
+                        </Box>
+                    </TypeRing>
+
+                    <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                        <ProgressMeter done={stats.done} total={stats.total} thickness={8} fontSize="0.72rem" />
+
+                        <Box component="ul" aria-label="Tasks by type" sx={{ m: 0, p: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+                            {stats.slices.map(slice => (
+                                <Box component="li" key={slice.key} sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                                    <Box aria-hidden sx={{ width: 10, height: 10, borderRadius: '2px', flexShrink: 0, backgroundColor: slice.colour }} />
+                                    <Typography component="span" sx={{ flex: 1, minWidth: 0, fontSize: '0.74rem', color: 'arc.onPaperStrong' }}>
+                                        {slice.title}
+                                    </Typography>
+                                    <Typography component="span" sx={{ fontFamily: MONO, fontSize: '0.7rem', color: 'arc.onPaper' }}>
+                                        {slice.count}
+                                    </Typography>
+                                </Box>
+                            ))}
+                        </Box>
+                    </Box>
+                </Box>
+            )}
+        </Paper>
+    )
+}
 
 interface Deadline {
     task: Task

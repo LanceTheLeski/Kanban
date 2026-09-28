@@ -15,18 +15,17 @@ import { rem } from '../../Styles/Measures'
 export const CALENDAR_GAP = 1
 
 /**
- * A day's floor. Tall enough on a wide screen for three notes and the count
- * under them; on a phone a day is forty pixels wide and holds a number and a
- * tally, so it is allowed to be short.
+ * A day's floor: the header, the view row and a card, on a desktop. On a phone
+ * a day is forty pixels wide and holds a number and a tally, so it may be short.
  */
-export const DAY_MIN_HEIGHT = { xs: rem(56), sm: rem(118), md: rem(136) }
+export const DAY_MIN_HEIGHT = { xs: rem(56), sm: rem(118), md: rem(150) }
 
 /**
- * Notes drawn in a day before the rest become "+ n more". Three is what fits
- * the floor above without a day growing taller than its neighbours for one
- * busy date.
+ * The ceiling on a day's cards before they scroll — the Blazor date's 120px
+ * carousel, given more room. Without one, the busiest day would set the height
+ * of its whole week.
  */
-export const NOTES_PER_DAY = 3
+export const DAY_BODY_MAX_HEIGHT = { sm: rem(170), md: rem(210) }
 
-/** Below this a day is too narrow for a title, and shows a count instead. */
+/** Below this a day is too narrow for its header and cards, and shows a count. */
 export const NOTES_FROM = 'sm'

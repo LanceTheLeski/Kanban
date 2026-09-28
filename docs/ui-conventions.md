@@ -210,6 +210,22 @@ A day's number is a disc punched from card, like the days in the date pickers
 and the points on a timeline: a date looks like the same thing wherever the app
 shows one. Today is cut from ink.
 
+A day keeps the shape of the Blazor date it replaces: along the top, the number
+inside a ring of its tasks by type, a progress meter, and the quick-actions ⋮;
+under that, ‹ view › arrows; then the view's cards, each a note wrapped round
+its tasks as green strips — the same strips, and the same popover behind them,
+as in the card editor. The views are a list in `Calendar.Views.ts`; the charts'
+numbers and colours are in `Calendar.Stats.ts`.
+
+### Chart colour
+
+A task type's colour is its slot in the eight-hue categorical palette, taken
+from the app's whole type list in ID order — never from what is on one day, so
+a type is the same colour everywhere. Untyped tasks are grey. The palette was
+validated against the frosted sand a day sits on; five hues are under 3:1 there,
+so colour is never the only way to tell a type: the day overlay lists every
+type by name with its count, and each task row carries its type's mark and name.
+
 ---
 
 ## Two grounds, two ramps

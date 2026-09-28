@@ -238,6 +238,14 @@ public class CalendarController : Controller
             ? []
             : await _timelineRepository.QueryTimelinesAsync (timeline => true);
 
+        // Every task type, unfiltered, as BoardController reads them. This used to
+        // ask for the types whose PartitionKey was the card's — the board ID — but
+        // a task type is filed under its tag group, so the query matched nothing and
+        // every task reached the calendar with no type. Also read once, not per card.
+        var taskTypes = cardsForMonth.Count is 0
+            ? []
+            : await _taskRepository.QueryTaskTypesAsync (taskType => true);
+
         var dateList = new List<DateResponse> ();
         foreach (var date in dates)
         {
@@ -261,7 +269,6 @@ public class CalendarController : Controller
                     continue;
 
                 var tasks = await _taskRepository.QueryTasksAsync (task => task.CardID == Guid.Parse(card.RowKey));
-                var taskTypes = await _taskRepository.QueryTaskTypesAsync (taskType => taskType.PartitionKey == card.PartitionKey);
 
                 var taskResponseList = new List<TaskResponse> ();
                 foreach (var task in tasks.ToList ())

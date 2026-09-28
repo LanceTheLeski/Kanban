@@ -29,16 +29,13 @@ import { CONDENSED } from '../../Styles/Fonts'
 import { glassStyle } from '../../Styles/Stock'
 import { WeekStrip } from './WeekStrip'
 import { CALENDAR_GAP, NOTES_FROM } from './Calendar.Layout'
-import { WEEKDAYS, type GridDay, type Week } from './Calendar.Grid'
-import type { Card } from '../../Entities/Card/Card.Types'
+import { WEEKDAYS, type Week } from './Calendar.Grid'
 
 interface MonthGridProps {
     weeks: Week[]
-    onOpenDay: (day: GridDay) => void
-    onOpenCard: (card: Card) => void
 }
 
-export const MonthGrid: React.FC<MonthGridProps> = ({ weeks, onOpenDay, onOpenCard }) => (
+export const MonthGrid: React.FC<MonthGridProps> = ({ weeks }) => (
     <Box sx={{ ...TRACKS,
                position: 'relative',
                rowGap: 1.25,
@@ -90,11 +87,7 @@ export const MonthGrid: React.FC<MonthGridProps> = ({ weeks, onOpenDay, onOpenCa
         ))}
 
         {weeks.map((week, index) => (
-            <WeekStrip key={week.key}
-                       week={week}
-                       row={index + 2}
-                       onOpenDay={onOpenDay}
-                       onOpenCard={onOpenCard} />
+            <WeekStrip key={week.key} week={week} row={index + 2} />
         ))}
     </Box>
 )

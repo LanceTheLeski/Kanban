@@ -59,6 +59,13 @@ export interface ArcPopoverProps {
      */
     open?: boolean
     onClose?: () => void
+    /**
+     * Called when the trigger opens the popover. For a component that has
+     * something to fetch before it is useful, so it can wait until then rather
+     * than fetching on mount — which, for a trigger rendered once per task on a
+     * month grid, is once per task whether anyone opens one or not.
+     */
+    onOpen?: () => void
     /** Mirrors PopoverBaseMudSize */
     triggerSize?: ButtonProps['size']
     /**
@@ -123,6 +130,7 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
     children,
     onSubmit,
     open: controlledOpen,
+    onOpen,
     onClose: controlledOnClose,
     triggerSize = 'medium',
     triggerSx,
@@ -148,6 +156,7 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
 
     const handleOpen = (e: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(e.currentTarget)
+        onOpen?.()
     }
 
     const handleClose = () => {

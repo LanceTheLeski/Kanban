@@ -21,7 +21,7 @@
  * When real HTTP is wired in, serialize this as a JSON Patch array.
  */
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { Box, Button, Checkbox, FormControlLabel, TextField, Typography } from '@mui/material'
 import { paperField } from '../../../Styles/Paper'
 import { ArcPopover } from '../../../Components/ArcPopover'
@@ -84,12 +84,26 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
 
     const { run } = useBoardActions()
 
-    // Mirrors Blazor's OnAfterRenderAsync(firstRender)
-    useEffect(() => {
+    /*
+       Task types are read the first time the popover opens, not on mount.
+
+       Blazor read them in OnAfterRenderAsync(firstRender), and so did this, which
+       was one request per task row whether any popover was opened or not: a card
+       with five tasks asked five times on opening, and the calendar — which
+       renders a row per task across a whole month — would have asked dozens of
+       times to draw a page.
+    */
+    const typesRequested = useRef(false)
+    const loadTaskTypes = () => {
+        if (typesRequested.current) return
+        typesRequested.current = true
         fetchTaskTypes([0])
             .then(setTaskTypes)
-            .catch(error => console.error('Could not load task types', error))
-    }, [])
+            .catch(error => {
+                typesRequested.current = false
+                console.error('Could not load task types', error)
+            })
+    }
 
     const handleSetTaskType = (typeName: string) => {
         const matches = taskTypes.filter(taskType => taskType.title === typeName)
@@ -205,6 +219,7 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
     return (
         <>
             <ArcPopover triggerLabel={task.title}
+                        onOpen={loadTaskTypes}
                         onSubmit={handleSubmit}
                         triggerSize={triggerSize}
                         onClose={revertDraft}

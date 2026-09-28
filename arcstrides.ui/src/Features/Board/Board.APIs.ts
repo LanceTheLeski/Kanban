@@ -257,13 +257,18 @@ export function mapCard(response: CardResponse): Card {
 
 // ── Board ─────────────────────────────────────────────────────────────────────
 
+const BOARD_TITLE_PLACEHOLDER = 'Placeholder..'
+
 /** GET arcstrides/boards/:boardId */
 export async function fetchBoard(boardId: string): Promise<Board> {
     const response = await apiClient.get<BoardResponse>(`${ARC}/boards/${boardId}`)
 
     return {
         id: response.id ?? boardId,
-        title: response.title ?? '',
+        // BoardController.FetchBoard sends the literal "Placeholder..": there is
+        // no Boards table, so a board has no stored name (docs/api-gaps.md, #4).
+        // Mapped to no title here, so nothing downstream shows it as one.
+        title: response.title === BOARD_TITLE_PLACEHOLDER ? '' : response.title ?? '',
         columns: (response.columns ?? []).map(mapOrderedItem).sort((a, b) => a.order - b.order),
         swimlanes: (response.swimlanes ?? []).map(mapOrderedItem).sort((a, b) => a.order - b.order),
         cards: (response.cards ?? []).map(mapCard),

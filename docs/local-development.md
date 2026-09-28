@@ -119,7 +119,9 @@ through the HTTP API rather than writing rows directly, so it cannot drift from 
 entity shapes and it exercises the same create paths the UI does.
 
 It declines to run against a board that already has content; pass `--force` to add
-the seed on top. `--url` and `--board` override the endpoint and board ID.
+the seed on top. `--url` and `--board` override the endpoint and board ID. Seeding
+a second board with `--board` reuses the task types the first one made, since
+types are shared by every board and cannot be deleted once duplicated.
 
 Note that the seeded board ID matches the one `arcstrides.ui` redirects to from `/`,
 so the app finds it without any further wiring.

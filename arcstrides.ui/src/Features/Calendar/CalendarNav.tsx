@@ -41,7 +41,12 @@ export const CalendarNav: React.FC<CalendarNavProps> = ({ start, onPrevious, onN
         // Elevation 24 for the reason BoardManagementNav gives: MudPaper Elevation="25".
         <AppBar position="static" elevation={24} sx={{ backgroundColor: 'primary.main',
                                                        position: 'relative' }}>
-            <Toolbar variant="dense" sx={{ gap: 1, py: 0.5 }}>
+            {/*
+                Wraps, as the board's bar does: on a phone "Today", two arrows
+                and "September" in script are wider than the bar, and a toolbar
+                that does not wrap pushes the whole page sideways instead.
+            */}
+            <Toolbar variant="dense" sx={{ gap: { xs: 0.5, sm: 1 }, py: 0.5, flexWrap: 'wrap', rowGap: 0 }}>
                 {menu && <Box sx={{ display: 'flex', mr: 0.5 }}>{menu}</Box>}
 
                 {/*
@@ -69,7 +74,9 @@ export const CalendarNav: React.FC<CalendarNavProps> = ({ start, onPrevious, onN
                     you are looking at; the year is a detail of it.
                 */}
                 <Typography component="h1" sx={{ display: 'flex', alignItems: 'baseline', gap: 1, ml: 0.5 }}>
-                    <Box component="span" sx={{ fontFamily: SCRIPT, fontSize: '1.9rem', lineHeight: 1 }}>
+                    <Box component="span" sx={{ fontFamily: SCRIPT,
+                                                fontSize: { xs: '1.5rem', sm: '1.9rem' },
+                                                lineHeight: 1 }}>
                         {start.format('MMMM')}
                     </Box>
                     <Box component="span" sx={{ fontFamily: MONO, fontSize: '0.85rem', opacity: 0.85 }}>

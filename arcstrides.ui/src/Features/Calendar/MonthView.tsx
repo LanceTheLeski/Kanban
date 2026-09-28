@@ -16,9 +16,12 @@
  * A day is held by its key, not as the object, so an open day follows the
  * month as it changes under it: a card added, a card taken off, a re-read after
  * an edit.
+ *
+ * Every day reaches these — and the type colours, and the board names — through
+ * CalendarContext rather than props; see Calendar.Context for why.
  */
 
-import React, { useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import { useArcError } from '../../Components/useArcError'
 import { DEFAULT_BOARD_ID } from '../Board/Board.Defaults'
@@ -27,6 +30,9 @@ import { DayOverlay } from './DayOverlay'
 import { CalendarCardOverlay } from './CalendarCardOverlay'
 import { useCalendarStore } from './Calendar.Store'
 import { dayOf, weeksOf, type GridDay } from './Calendar.Grid'
+import { typeColours } from './Calendar.Stats'
+import { CalendarContext, type CalendarActions } from './Calendar.Context'
+import { useBoardTitles } from './useBoardTitles'
 import type { Card } from '../../Entities/Card/Card.Types'
 
 interface MonthViewProps {
@@ -37,17 +43,18 @@ interface MonthViewProps {
 
 export const MonthView: React.FC<MonthViewProps> = ({ year, month }) => {
     const stored = useCalendarStore(state => state.stored)
+    const taskTypes = useCalendarStore(state => state.taskTypes)
     const refresh = useCalendarStore(state => state.refresh)
     const addCard = useCalendarStore(state => state.addCard)
     const removeCard = useCalendarStore(state => state.removeCard)
     const { addError } = useArcError()
 
-    const [openDayKey, setOpenDayKey] = useState<string | null>(null)
+    const [opened, setOpened] = useState<{ key: string; adding: boolean } | null>(null)
     const [openCard, setOpenCard] = useState<Card | null>(null)
 
     const weeks = useMemo(() => weeksOf(dayjs(new Date(year, month, 1)), stored?.dates ?? []),
                           [year, month, stored])
-    const openDay = openDayKey ? dayOf(weeks, openDayKey) : null
+    const openDay = opened ? dayOf(weeks, opened.key) : null
 
     // The boards "+ Add card" offers cards from. See useCardChoices for why this
     // is a guess, and what would replace it.
@@ -56,7 +63,10 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) => {
         ...(stored?.dates ?? []).flatMap(date => date.cards.map(card => card.boardId)),
     ], [stored])
 
-    const handleOpenCard = (card: Card) => {
+    const colours = useMemo(() => typeColours(taskTypes), [taskTypes])
+    const boardTitle = useBoardTitles(boardIds)
+
+    const handleOpenCard = useCallback((card: Card) => {
         // The editor saves against the card's board. Without one there is
         // nowhere for a save to go, so say so rather than open a form that
         // cannot keep what is typed into it.
@@ -65,7 +75,15 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) => {
             return
         }
         setOpenCard(card)
-    }
+    }, [addError])
+
+    const actions = useMemo<CalendarActions>(() => ({
+        colours,
+        boardTitle,
+        openCard: handleOpenCard,
+        openDay: (day, options) => setOpened({ key: day.key, adding: options?.adding === true }),
+        taskUpdated: () => { refresh() },
+    }), [colours, boardTitle, handleOpenCard, refresh])
 
     const handleCloseCard = () => {
         setOpenCard(null)
@@ -89,21 +107,21 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) => {
     }
 
     return (
-        <>
-            <MonthGrid weeks={weeks} onOpenDay={day => setOpenDayKey(day.key)} onOpenCard={handleOpenCard} />
+        <CalendarContext.Provider value={actions}>
+            <MonthGrid weeks={weeks} />
 
             {openDay && (
                 <DayOverlay day={openDay}
                             boardIds={boardIds}
-                            onClose={() => setOpenDayKey(null)}
-                            onOpenCard={handleOpenCard}
+                            startAdding={opened?.adding ?? false}
+                            onClose={() => setOpened(null)}
                             onAddCard={card => handleAddCard(openDay, card)}
                             onRemoveCard={card => handleRemoveCard(openDay, card)} />
             )}
 
             {/* After the day, so a card opened from a day stacks above it. */}
             {openCard && <CalendarCardOverlay card={openCard} onClose={handleCloseCard} />}
-        </>
+        </CalendarContext.Provider>
     )
 }
 

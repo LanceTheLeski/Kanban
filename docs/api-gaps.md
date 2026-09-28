@@ -84,7 +84,12 @@ of it yet.
 
 `BoardController.cs` has `GET {ID}`, `POST`, `PATCH {ID}`, `DELETE {ID}`, and no
 `GET ""`. A client can only open a board whose id it already has — which is why
-`App.tsx` redirects `/` to one hard-coded board id.
+`/` redirects to one board id (`Board.Defaults.ts`).
+
+Nor does a board have a name. There is no Boards table: a board is only the ID
+its columns, swimlanes and cards share, and `FetchBoard` answers with the literal
+title `"Placeholder.."`. The UI maps that to no title, and the calendar's board
+views are labelled from the ID ("Board 1CB0") until there is a name to use.
 
 ### 5. Task types cannot be deleted
 
@@ -162,6 +167,10 @@ for the whole month, not just the day:
   a day's deadlines could never be listed. They are now matched on
   `ParentObjectID`, the way `BoardController` does.
 - **`MonthResponse.ID` and `Title`** were never set. They are now.
+- **No task types.** The month looked each card's task types up by the board
+  ID, but a type is filed under its tag group, so every task arrived untyped
+  and a day's type breakdown could only ever say "No type". It now reads every
+  type once for the month, the way `BoardController` does.
 
 ---
 

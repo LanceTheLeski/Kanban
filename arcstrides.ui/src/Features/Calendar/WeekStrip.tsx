@@ -20,18 +20,15 @@ import React from 'react'
 import { Paper } from '@mui/material'
 import { DayCell } from './DayCell'
 import { CALENDAR_GAP } from './Calendar.Layout'
-import type { Card } from '../../Entities/Card/Card.Types'
 import type { GridDay, Week } from './Calendar.Grid'
 
 interface WeekStripProps {
     week: Week
     /** The grid row the strip goes in. Row 1 is the weekday names. */
     row: number
-    onOpenDay: (day: GridDay) => void
-    onOpenCard: (card: Card) => void
 }
 
-export const WeekStrip: React.FC<WeekStripProps> = ({ week, row, onOpenDay, onOpenCard }) => {
+export const WeekStrip: React.FC<WeekStripProps> = ({ week, row }) => {
     // A month's days are contiguous, so this is the slots from `first` to `last`.
     const days = week.days.filter((day): day is GridDay => day !== null)
 
@@ -55,10 +52,7 @@ export const WeekStrip: React.FC<WeekStripProps> = ({ week, row, onOpenDay, onOp
                      gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))`,
                      columnGap: CALENDAR_GAP }}>
             {days.map(day => (
-                <DayCell key={day.key}
-                         day={day}
-                         onOpenDay={() => onOpenDay(day)}
-                         onOpenCard={onOpenCard} />
+                <DayCell key={day.key} day={day} />
             ))}
         </Paper>
     )
