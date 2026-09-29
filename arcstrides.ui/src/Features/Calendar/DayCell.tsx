@@ -24,8 +24,7 @@
  */
 
 import React, { useMemo } from 'react'
-import { Box, ButtonBase, Typography, useMediaQuery, useTheme } from '@mui/material'
-import { NUMERALS } from '../../Styles/Fonts'
+import { Box, ButtonBase, useMediaQuery, useTheme } from '@mui/material'
 import { TypeRing } from './TypeRing'
 import { DayHeader } from './DayHeader'
 import { DayCard } from './DayCard'
@@ -33,6 +32,7 @@ import { dayStats } from './Calendar.Stats'
 import { viewsFor } from './Calendar.Views'
 import { dayTypeOf } from './Calendar.DayTypes'
 import { DayArt } from './DayArt'
+import { DiscNumber } from './DiscNumber'
 import { useCalendarActions } from './Calendar.Context'
 import { useCalendarStore } from './Calendar.Store'
 import { DAY_BODY_MAX_HEIGHT, DAY_MIN_HEIGHT, NOTES_FROM } from './Calendar.Layout'
@@ -65,13 +65,7 @@ export const DayCell: React.FC<DayCellProps> = ({ day, mini = false }) => {
     const name = day.date.format('dddd D MMMM')
     const type = dayTypeOf(day.stored?.typeId)
 
-    const number = (
-        <Typography component="span"
-                    className="gold-foil"
-                    sx={{ fontFamily: NUMERALS, fontWeight: 700, fontSize: '0.66rem', lineHeight: 1 }}>
-            {day.date.date()}
-        </Typography>
-    )
+    const number = <DiscNumber value={day.date.date()} disc={PHONE_DISC} />
 
     return (
         // A group named for its date, so the buttons inside it — "Next view",
@@ -137,7 +131,10 @@ export const DayCell: React.FC<DayCellProps> = ({ day, mini = false }) => {
                         <TypeRing slices={type.ring ? stats.slices : []} size={28} thickness={3}>
                             {mini ? (
                                 <Box className={`card-disc card-stock-flat card-cut${day.isToday ? ' paper-oxblood' : ''}`}
-                                     sx={{ width: 22, height: 22, display: 'grid', placeItems: 'center' }}>
+                                     sx={{ width: PHONE_DISC,
+                                           height: PHONE_DISC,
+                                           display: 'grid',
+                                           placeItems: 'center' }}>
                                     {number}
                                 </Box>
                             ) : (
@@ -145,7 +142,7 @@ export const DayCell: React.FC<DayCellProps> = ({ day, mini = false }) => {
                                             onClick={() => openDay(day)}
                                             aria-label={`Open ${name}${day.isToday ? ', today' : ''}`}
                                             aria-current={day.isToday ? 'date' : undefined}
-                                            sx={{ width: 22, height: 22 }}>
+                                            sx={{ width: PHONE_DISC, height: PHONE_DISC }}>
                                     {number}
                                 </ButtonBase>
                             )}
@@ -182,3 +179,9 @@ export const DayCell: React.FC<DayCellProps> = ({ day, mini = false }) => {
 }
 
 export default DayCell
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+/** The date's disc on a phone, inside its 28px ring. */
+const PHONE_DISC = 22

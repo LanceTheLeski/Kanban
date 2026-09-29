@@ -18,10 +18,10 @@
 import React, { useState } from 'react'
 import { Box, ButtonBase, ListItemIcon, ListItemText, Menu, MenuItem, Typography } from '@mui/material'
 import CheckIcon from '@mui/icons-material/Check'
-import { NUMERALS } from '../../Styles/Fonts'
 import { rem } from '../../Styles/Measures'
 import { TagsPanel } from '../Board/Card/TagsPanel'
 import { DayArt } from './DayArt'
+import { DiscNumber } from './DiscNumber'
 import { DAY_TYPES, NO_DAY_TYPE, dayTypeOf } from './Calendar.DayTypes'
 import { useCalendarActions } from './Calendar.Context'
 import { useCalendarStore } from './Calendar.Store'
@@ -49,11 +49,7 @@ export const DayBand: React.FC<DayBandProps> = ({ day }) => {
                        alignSelf: 'center',
                        display: 'grid',
                        placeItems: 'center' }}>
-                <Typography component="span"
-                            className="gold-foil"
-                            sx={{ fontFamily: NUMERALS, fontWeight: 700, fontSize: '2.3rem', lineHeight: 1 }}>
-                    {day.date.date()}
-                </Typography>
+                <DiscNumber value={day.date.date()} disc={DISC} />
             </Box>
 
             {/* The date in words, and what kind of day it is. */}

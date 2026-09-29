@@ -274,7 +274,7 @@ glass, which still shows between the header and the cards under it:
 
 | tile | stock | what it is |
 |---|---|---|
-| the date | a card disc, ringed | the number in gold foil, ringed with its tasks by type; the disc fills the ring to its inner edge; today is oxblood |
+| the date | a card disc, ringed | the number in gold foil, as large as the disc takes — every day at the size at which the widest date's figures all but touch its edge (`DiscNumber`); ringed with its tasks by type; the disc fills the ring to its inner edge; today is oxblood |
 | middle | cream | the progress lines (no count in the corner), the day type's picture, or "+ Add card" — see below |
 | ⋮ | yellow | quick actions |
 | ‹ › | blue | step through the day's views; not drawn on a day with no cards |

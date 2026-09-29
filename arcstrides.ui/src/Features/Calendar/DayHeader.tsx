@@ -45,11 +45,12 @@
  */
 
 import React from 'react'
-import { Box, ButtonBase, IconButton, Typography } from '@mui/material'
+import { Box, ButtonBase, IconButton } from '@mui/material'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import AddIcon from '@mui/icons-material/Add'
-import { MONO, NUMERALS } from '../../Styles/Fonts'
+import { MONO } from '../../Styles/Fonts'
+import { DiscNumber } from './DiscNumber'
 import { TypeRing } from './TypeRing'
 import { ProgressLines } from './ProgressLines'
 import { DayActions } from './DayActions'
@@ -82,13 +83,7 @@ export const DayHeader: React.FC<DayHeaderProps> = ({ day, stats, views, current
     const view = views[current]
     const step = (by: number) => onView((current + by + count) % count)
 
-    const number = (
-        <Typography component="span"
-                    className="gold-foil"
-                    sx={{ fontFamily: NUMERALS, fontWeight: 700, fontSize: '0.95rem', lineHeight: 1 }}>
-            {day.date.date()}
-        </Typography>
-    )
+    const number = <DiscNumber value={day.date.date()} disc={DISC} />
 
     return (
         /*
