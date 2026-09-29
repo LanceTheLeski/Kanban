@@ -61,6 +61,11 @@ export function toHex(colour: string | null | undefined, fallback = '#d8d2c6'): 
     return '#' + parsed.map(channel => channel.toString(16).padStart(2, '0')).join('')
 }
 
+/** A `#rrggbb` palette colour as channels, for a ramp to blend. */
+export function rgbOf(colour: string): Rgb {
+    return parse(colour) ?? [216, 210, 198]
+}
+
 export function rgb([r, g, b]: Rgb): string {
     return `rgb(${r}, ${g}, ${b})`
 }

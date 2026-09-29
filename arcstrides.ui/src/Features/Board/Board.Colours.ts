@@ -17,6 +17,9 @@
  *   Swimlanes red, strongest at the top, fading downwards — the lane you put
  *             first is the one that shouts.
  *
+ * Both run between two steps of a ladder in Styles/Palette, ground and mid, so
+ * a board's headers and labels are the same papers as the rest of the app.
+ *
  * Inserting into the middle re-shades everything after it, which is a known and
  * accepted oddity: the ramp is over the *current* arrangement, not over an
  * identity, because a board with three columns and a board with nine should both
@@ -29,15 +32,16 @@
  * the only way the colour picker, a layer below, can share it.
  */
 
-import { labelStyle, rampAt, rgb, type Rgb } from '../../Styles/Stock'
+import { labelStyle, rampAt, rgb, rgbOf, type Rgb } from '../../Styles/Stock'
+import { LADDERS } from '../../Styles/Palette'
 
 export { labelStyle }
 
-/** The column ramp, palest first. */
-const COLUMN_RAMP: [Rgb, Rgb] = [[222, 234, 247], [124, 166, 209]]
+/** The column ramp, palest first: the blue ladder from its ground to its mid. */
+const COLUMN_RAMP: [Rgb, Rgb] = [rgbOf(LADDERS.blue.ground), rgbOf(LADDERS.blue.mid)]
 
-/** The swimlane ramp, strongest first. */
-const SWIMLANE_RAMP: [Rgb, Rgb] = [[224, 142, 142], [246, 222, 222]]
+/** The swimlane ramp, strongest first: the red ladder from its mid to its ground. */
+const SWIMLANE_RAMP: [Rgb, Rgb] = [rgbOf(LADDERS.red.mid), rgbOf(LADDERS.red.ground)]
 
 /**
  * A column's colour: its own if it has one, otherwise its place on the ramp.

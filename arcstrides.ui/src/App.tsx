@@ -21,12 +21,13 @@
  * only change this file.
  */
 
-import { ThemeProvider, CssBaseline, StyledEngineProvider } from '@mui/material'
+import { ThemeProvider, CssBaseline, GlobalStyles, StyledEngineProvider } from '@mui/material'
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { ArcErrorDisplay } from './Components/ArcErrorDisplay'
 import { arcTheme } from './Styles/Theme'
+import { PALETTE_VARIABLES } from './Styles/Palette'
 import { AppLayout } from './Layouts/AppLayout'
 import { BoardPage } from './Pages/BoardPage'
 import { CalendarPage, CurrentMonth } from './Pages/CalendarPage'
@@ -57,6 +58,8 @@ function App() {
             <StyledEngineProvider injectFirst>
             <ThemeProvider theme={arcTheme}>
                 <CssBaseline />
+                {/* The paper palette, as custom properties for ArcStyles.css — see Palette.ts. */}
+                <GlobalStyles styles={{ ':root': PALETTE_VARIABLES }} />
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <ArcErrorDisplay>
                         <Routes>

@@ -1,8 +1,8 @@
 /**
  * ColumnHeaderRow
  *
- * The strip of column titles above the grid, with the board's name at its left
- * where the swimlane labels begin.
+ * The strip of column titles above the grid, with the board's picture at its
+ * left where the swimlane labels begin.
  *
  * Every width here comes from Board.Layout, so a header stays over its cells.
  * Nothing in this file may state a width of its own.
@@ -10,8 +10,10 @@
 
 import React from 'react'
 import { Box, Paper, Typography } from '@mui/material'
-import { CONDENSED, SCRIPT } from '../../../Styles/Fonts'
+import { CONDENSED } from '../../../Styles/Fonts'
+import { rem } from '../../../Styles/Measures'
 import { columnColour } from '../Board.Colours'
+import { HonuArt } from '../BoardArt'
 import { glassStyle } from '../../../Styles/Stock'
 import {
     BOARD_GAP,
@@ -34,21 +36,21 @@ export const ColumnHeaderRow: React.FC<ColumnHeaderRowProps> = ({ columns }) => 
                gap: BOARD_GAP,
                px: BOARD_GAP,
                py: 1 }}>
-        {/* "Honu Boards" — mirrors Blazor's Freestyle Script styled MudText */}
+        {/*
+            The corner, where Blazor wrote "Honu Boards": a tile of cut paper,
+            a honu swimming over the sea floor. The title itself is in the bar
+            above, in gold on navy — see BoardManagementNav — where it has the
+            room to be one line, and where it still shows on a phone, which
+            this row does not. See BoardArt.
+        */}
         <Paper elevation={0}
+               className="card-stock tile"
+               aria-hidden
                sx={{ width: BOARD_TITLE_WIDTH,
-                     backgroundColor: 'transparent',
-                     display: 'flex',
-                     alignItems: 'center',
-                     justifyContent: 'center',
-                     flexShrink: 0 }}>
-            <Typography sx={{ fontFamily: SCRIPT,
-                              fontWeight: 'bold',
-                              fontSize: '1.6rem',
-                              color: 'arc.boardTitle',
-                              lineHeight: 1.1 }}>
-                Honu Boards
-            </Typography>
+                     height: TITLE_TILE_HEIGHT,
+                     flexShrink: 0,
+                     overflow: 'hidden' }}>
+            <HonuArt />
         </Paper>
 
         {columns.map((column, index) => (
@@ -102,3 +104,9 @@ export const ColumnHeaderRow: React.FC<ColumnHeaderRowProps> = ({ columns }) => 
 )
 
 export default ColumnHeaderRow
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+/** The corner tile: tall enough for the turtle to read as one. */
+const TITLE_TILE_HEIGHT = rem(56)

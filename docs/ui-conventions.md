@@ -188,6 +188,49 @@ Two things card must never have, both reported as making it look fake:
 - **A white line along the top.** Even softened, it reads as a specular
   highlight — glass and plastic, not card.
 
+### The palette
+
+Every colour with a hue is a step of one of four ladders, written down once in
+`src/Styles/Palette.ts` and set on `:root` as custom properties
+(`--arc-blue-ground`, `--arc-gold`, …) for `ArcStyles.css` to cut its stocks
+from. Each ladder is three steps of one hue, measured in OKLCH so a step is the
+same lightness whichever hue it is on:
+
+| hue | ground (L ≈ .90) | mid (L ≈ .72) | deep (L ≈ .40) |
+|---|---|---|---|
+| blue | `#cfdfef` `.paper-blue` | `#79aad8` `.paper-ink` | `#295074` `.paper-navy` |
+| green | `#cfe6dc` `.paper-green` | `#6cb69a` `.paper-sage` | `#175a45` `.paper-forest` |
+| red | `#f1cac3` `.paper-red` | `#d59185` `.paper-rose` | `#70322b` `.paper-oxblood` |
+| yellow | `#ecdca6` `.paper-yellow` | `#cfac5f` `.paper-gold` | `#5c4b14` |
+
+Roughly 60 / 30 / 10: mostly grounds, some mids, the deeps as accents. Gold is
+the yellow mid and oxblood the red deep — they were the two colours outside the
+family (gold about twice as saturated as any stock, oxblood the only dark), and
+on the ladders each has one. The neutrals — cream card, sand lanes, greyboard,
+the notes' pale yellow — sit beside the ladders with almost no hue.
+
+What goes where:
+
+- **Grounds** are panels and tiles: the paper you read things on.
+- **Mids** hold their own at a few pixels wide: rails, a node with a date, the
+  deepest column header, the swimlane ramp's strongest label.
+- **Deeps** anchor a page and carry gold, with cream text: the app bars (navy),
+  today's date and a view's name (oxblood), snackbars (by meaning).
+- **On glass**, the actions use grounds, since only a light colour reads there:
+  Save in the yellow ground, Delete in a red just past its ground.
+
+A stock sets only `--arc-paper`; its lit face is worked out from that colour
+(`oklch(from …)`), so a new stock is one line. The column and swimlane ramps
+run between a ladder's ground and mid, and the colour picker offers every
+ground and mid as a swatch. Chart colours are the one exception — see "Chart
+colour".
+
+The cut-paper pictures — the day types' scenes, the honu, the lanes' waves —
+draw from the same ladders, by name, through `src/Styles/Scenery.ts`, and share
+one frame, `Components/PaperScene.tsx`: flat shapes, each casting the same
+small shadow on the one behind. Nothing in a picture is a hue the rest of the
+app does not have.
+
 ### The board
 
 Glass, card, glass, paper — back to front. The board is a window; each swimlane
@@ -196,6 +239,13 @@ between lanes; each column is a strip of frosted glass laid over all of it, top
 to bottom; notes sit on top. So the two axes of the board are two materials:
 you can tell a column from a lane by what it is made of, not only by which way
 it runs.
+
+Along the foot of every lane runs a strip of cut-paper water — a swim lane —
+crisp beside the label and frosted wherever a column's glass crosses it. The
+corner above the labels is a tile of the same paper: a honu over the sea floor.
+"Honu Boards" itself is in the navy bar, in gold foil, where it has room for
+one line and still shows on a phone. A card with no dates shows the honu too,
+in its timeline panel. See `Features/Board/BoardArt.tsx`.
 
 ### The calendar
 
@@ -232,7 +282,7 @@ picture, or an offer to add a card (or a task, to a day whose cards have none).
 ### Day types
 
 A day has a type, and the type has a picture — a scene in cut paper, drawn by
-`DayArt.tsx`. The types are fixed, in `Calendar.DayTypes.ts`; the API stores
+`DayArt.tsx` from the palette's ladders. The types are fixed, in `Calendar.DayTypes.ts`; the API stores
 only the number.
 
 | type | picture | ring | lines | an empty day shows |
@@ -247,30 +297,15 @@ overlay, or use the Theme items in a day's ⋮. On a phone, where a day has no
 header, it is a strip along the day's foot. Leisure and Vacation are not
 working days, so work carried over from the day before steps past them.
 
-### Tonal ladders
-
-Each paper hue has three steps of the same hue: the **ground** — the paper
-stocks as they are — a **mid** at about the weight of ink, and a **deep** for
-text on colour and dark tiles. The day-type scenes are drawn from these and
-nothing else, which is what keeps them in the paper's family.
-
-| hue | ground | mid | deep |
-|---|---|---|---|
-| blue | `#cde1f5` | `#79aad8` | `#295074` |
-| green | `#c9e6da` | `#6cb69a` | `#175a45` |
-| red | `#f5d6d0` | `#d59185` | `#703c34` |
-| yellow | `#ecdeb1` | `#b8a365` | `#5c4b14` |
-
-Gold and oxblood are the two stocks outside the ladders: gold (`#d9ab3f`) is
-about twice as saturated as any other stock, which is why it jumps, and oxblood
-is the only deep. Moving them onto the ladders — gold as a yellow mid,
-`#cfac5f`, and oxblood as the red deep, `#70322b` — is proposed, not applied.
-
-**Gold** is `.gold-foil`: Blazor's `.gold-text` gradient with a dark drop-shadow
-under it so the letters keep an edge on light card. **Oxblood** is the one dark
-stock, and exists to carry gold.
+**Gold** is `.gold-foil`: Blazor's `.gold-text` gradient, re-cut from the
+yellow ladder (see "The palette"), with a dark drop-shadow under it so the
+letters keep an edge on light card. It reads best on the deeps — today's date on
+oxblood, the month and "Honu Boards" on the navy bars.
 
 ### Chart colour
+
+The one set of colours not on the ladders. Four soft hues cannot tell eight
+types apart at a glance, so the charts keep a categorical palette of their own.
 
 A task type's colour is its slot in the eight-hue categorical palette, taken
 from the app's whole type list in ID order — never from what is on one day, so

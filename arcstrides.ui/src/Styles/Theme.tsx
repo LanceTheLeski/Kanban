@@ -1,4 +1,5 @@
 import { createTheme } from '@mui/material/styles'
+import { GOLD, LADDERS, NAVY, NEUTRALS, ON_GLASS, OXBLOOD } from './Palette'
 
 /**
  * Faithful translation of MyMudThemeProvider.razor
@@ -25,6 +26,17 @@ import { createTheme } from '@mui/material/styles'
  *   #2494E7  (Primary)
  *   #F0EDE0  (Secondary)
  *   #B9E0A6  (Tertiary / success)
+ *
+ * ── Now the paper palette's ──────────────────────────────────────────────────
+ * Those five were the loudest colours on the page — the primary blue and the
+ * two backgrounds are each about twice as saturated as any paper stock. Each
+ * slot now takes the ladder step that does its job (see Styles/Palette.ts):
+ *
+ *   primary      the blue deep, navy — the app's bars, and MUI's own accents
+ *   secondary    cream, which is what #F0EDE0 nearly was
+ *   success      the green mid; error the red deep, oxblood
+ *   background   navy under everything; cream for MUI's own Paper, so a
+ *                menu or a popover is a sheet of card like everything else
  */
 
 // ── The arc palette ───────────────────────────────────────────────────────────
@@ -81,8 +93,6 @@ export interface ArcPalette {
     cellActiveEdge: string
     /** The "n cards" badge on a cell holding more than it can show. */
     overflowBadge: string
-    /** "Honu Boards", above the swimlane labels. */
-    boardTitle: string
 
     // ── On glass ──────────────────────────────────────────────────────────────
     // Glass is a dark translucent surface, so anything drawn on it is a white at
@@ -195,15 +205,14 @@ export interface ArcPalette {
 }
 
 /**
- * The values, unchanged from the literals they replace. Named CSS colours are
- * kept as names rather than resolved to hex: that is how the Blazor original
- * wrote them, and `wheat` carries more than `#F5DEB3` does.
+ * The values. The neutrals — text, hovers, the glass film — are unchanged; every
+ * colour with a hue is a step of a ladder from Palette.ts, which is what took
+ * lightcoral, aquamarine and the rest of the Blazor originals off the page.
  */
 const arcSurfaces: ArcPalette = {
-    swimlaneLabel: 'lightcoral',
-    cellActiveEdge: '#3f8f4a',
+    swimlaneLabel: LADDERS.red.mid,
+    cellActiveEdge: LADDERS.green.deep,
     overflowBadge: 'rgba(0, 0, 0, 0.55)',
-    boardTitle: 'aquamarine',
 
     onGlassStrong: 'rgba(255, 255, 255, 0.95)',
     onGlass: 'rgba(255, 255, 255, 0.9)',
@@ -214,8 +223,8 @@ const arcSurfaces: ArcPalette = {
     glassDivider: 'rgba(255, 255, 255, 0.15)',
     railLine: 'rgba(52, 36, 20, 0.38)',
     railNodeEmpty: 'var(--arc-paper)',
-    dangerOnGlass: '#ff8a80',
-    accentOnGlass: '#9ad9ff',
+    dangerOnGlass: ON_GLASS.danger,
+    accentOnGlass: ON_GLASS.accent,
 
     onPaperStrong: '#22262c',
     onPaper: '#2c3641',
@@ -224,16 +233,16 @@ const arcSurfaces: ArcPalette = {
     paperSelected: 'rgba(52, 36, 20, 0.12)',
     paperDivider: 'rgba(52, 36, 20, 0.18)',
     paperField: 'rgba(255, 255, 255, 0.55)',
-    paperAccent: '#2d6f9c',
-    paperDanger: '#a6392c',
+    paperAccent: NAVY,
+    paperDanger: OXBLOOD,
 
-    logCommand: '#1d5c86',
-    logResult: '#2c6a51',
-    logAlert: '#a6392c',
+    logCommand: NAVY,
+    logResult: LADDERS.green.deep,
+    logAlert: OXBLOOD,
 
-    timelineMode: '#5fc7ac',
-    deadlineMode: '#d8bc5a',
-    timelessMode: '#cd5c5c',
+    timelineMode: LADDERS.green.mid,
+    deadlineMode: GOLD,
+    timelessMode: LADDERS.red.mid,
 }
 
 /**
@@ -260,19 +269,22 @@ declare module '@mui/material/styles' {
 export const arcBoardDefaultTheme = createTheme({
     palette: {
         primary: {
-            main: '#2494E7',
+            main: NAVY,
         },
         secondary: {
-            main: '#F0EDE0',
+            main: NEUTRALS.cream,
         },
         success: {
             // Tertiary in MudBlazor has no direct MUI slot.
             // Mapped to success as the closest semantic equivalent.
-            main: '#B9E0A6',
+            main: LADDERS.green.mid,
+        },
+        error: {
+            main: OXBLOOD,
         },
         background: {
-            default: '#0F83DB', // BackgroundGray
-            paper: '#69B4EC', // Background
+            default: NAVY, // BackgroundGray
+            paper: NEUTRALS.cream, // Background
         },
         arc: arcSurfaces,
     },

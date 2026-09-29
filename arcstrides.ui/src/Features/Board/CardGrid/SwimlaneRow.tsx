@@ -23,6 +23,7 @@ import { BOARD_GAP, STACK_LABEL_BELOW, SWIMLANE_LABEL_WIDTH } from '../Board.Lay
 import { DroppableCell } from './DroppableCell'
 import { DraggableCard } from './DraggableCard'
 import { cellId } from './CardGrid.Cells'
+import { LaneWaves } from '../BoardArt'
 import type { Card } from '../../../Entities/Card/Card.Types'
 import type { Column, Swimlane } from '../Board.Types'
 
@@ -61,7 +62,26 @@ export const SwimlaneRow: React.FC<SwimlaneRowProps> = ({
     */
     <Paper className="board-surface"
            elevation={0}
-           sx={{ mt: 1.25 }}>
+           sx={{ mt: 1.25, position: 'relative' }}>
+        {/*
+            A swim lane, as water: waves of cut paper along the lane's foot,
+            under the labels and the cells, frosted wherever a column's glass
+            crosses them. Clipped to the lane's own rounded foot here rather
+            than by the lane, so the notes' shadows are not clipped with it.
+            See BoardArt.
+        */}
+        <Box aria-hidden
+             sx={{ position: 'absolute',
+                   left: 0,
+                   right: 0,
+                   bottom: 0,
+                   height: WAVE_HEIGHT,
+                   overflow: 'hidden',
+                   borderRadius: '0 0 3px 3px',
+                   pointerEvents: 'none' }}>
+            <LaneWaves />
+        </Box>
+
         {/*
             Wide screens put the label beside the cells; below
             STACK_LABEL_BELOW it moves above them, because a 76px label plus a
@@ -154,3 +174,9 @@ export const SwimlaneRow: React.FC<SwimlaneRowProps> = ({
 )
 
 export default SwimlaneRow
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+/** Low enough to stay under a cell's cards, which start from its top. */
+const WAVE_HEIGHT = 24

@@ -23,6 +23,7 @@ import React from 'react'
 import { Box, Button, Typography } from '@mui/material'
 import { HexColorInput, HexColorPicker } from 'react-colorful'
 import { labelStyle, toHex } from '../Styles/Stock'
+import { LADDERS } from '../Styles/Palette'
 
 interface ArcColourPickerProps {
     /** The chosen colour, or null for "let the board decide". */
@@ -69,6 +70,36 @@ export const ArcColourPicker: React.FC<ArcColourPickerProps> = ({ value, onChang
 
             <HexColorPicker color={shown} onChange={onChange} />
 
+            {/*
+                The paper palette's grounds and mids, one click each — so a
+                column or a lane coloured by hand can still be cut from the same
+                papers as everything else. The deeps are left out: a label's
+                name is dark text, and it would not read on them.
+            */}
+            <Box role="group" aria-label="Paper colours" sx={{ display: 'grid',
+                                                               gridTemplateColumns: 'repeat(8, 1fr)',
+                                                               gap: 0.5 }}>
+                {SWATCHES.map(swatch => (
+                    <Box key={swatch.colour}
+                         component="button"
+                         type="button"
+                         className="card-stock-flat"
+                         onClick={() => onChange(swatch.colour)}
+                         aria-label={swatch.name}
+                         aria-pressed={!isDefault && shown === swatch.colour}
+                         title={swatch.name}
+                         sx={{ height: 18,
+                               border: 'none',
+                               p: 0,
+                               cursor: 'pointer',
+                               '--arc-paper': swatch.colour,
+                               outline: !isDefault && shown === swatch.colour ? '2px solid' : 'none',
+                               outlineColor: 'arc.paperAccent',
+                               outlineOffset: 1,
+                               '&:focus-visible': { outline: '2px solid', outlineColor: 'arc.paperAccent' } }} />
+                ))}
+            </Box>
+
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 <Box component="label"
                      sx={{ display: 'flex',
@@ -103,3 +134,13 @@ export const ArcColourPicker: React.FC<ArcColourPickerProps> = ({ value, onChang
 }
 
 export default ArcColourPicker
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+/** Every ladder's ground, then every ladder's mid: pale row first, as in the palette. */
+const SWATCHES = (['ground', 'mid'] as const).flatMap(step =>
+    Object.entries(LADDERS).map(([hue, ladder]) => ({
+        colour: ladder[step],
+        name: `${hue[0].toUpperCase()}${hue.slice(1)} ${step === 'mid' && hue === 'yellow' ? 'gold' : step}`,
+    })))

@@ -50,6 +50,7 @@ import React, { useMemo, useState } from 'react'
 import { Box, Button, Paper, Typography } from '@mui/material'
 import { DatePicker, TimePicker } from '@mui/x-date-pickers'
 import { TimelineRail } from './TimelineRail'
+import { HonuArt } from '../BoardArt'
 import { MODES, NODES, NODES_FOR, modeOf, seedValues } from './Timeline.Nodes'
 import type { NodeId, NodeValue, NodeValues, TimelineMode } from './Timeline.Nodes'
 import type { TimelineDraft } from './Timeline.Draft'
@@ -163,10 +164,21 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
             {active.length === 0 && (
                 <Box sx={{ flexShrink: 0,
                            display: 'flex',
+                           flexDirection: 'column',
                            alignItems: 'center',
                            justifyContent: 'center',
+                           gap: 1,
                            px: 1,
-                           py: 2 }}>
+                           py: 1.5 }}>
+                    {/*
+                        A timeless card: a honu, which keeps no one's schedule.
+                        The board's own picture (BoardArt), cut small.
+                    */}
+                    <Box className="card-stock-flat tile"
+                         aria-hidden
+                         sx={{ width: 132, height: 70, overflow: 'hidden' }}>
+                        <HonuArt />
+                    </Box>
                     <Typography sx={{ fontSize: '0.68rem',
                                       color: 'arc.onPaperMuted',
                                       textAlign: 'center',

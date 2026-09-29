@@ -223,14 +223,12 @@ main {
 }
 
 /*
-   The one palette value that also has to be reachable from plain CSS.
-   `box-shadow` takes no theme path, and the open-popover marker on a trigger is
-   a shadow. Kept in step with arc.accentOnGlass in Theme.tsx by hand — there is
-   exactly one of these, and a second would be worth generating instead.
+   Every colour this file uses by name — `--arc-blue-ground`, `--arc-gold`,
+   `--arc-cream`, `--arc-accent-on-glass` — is set on :root by App.tsx, from
+   Styles/Palette.ts. That is the one place a colour is written down; nothing
+   below states one of its own except the shadows and the text, which are
+   neutral.
 */
-:root {
-    --arc-accent-on-glass: #9ad9ff;
-}
 
 html,
 body,
@@ -533,72 +531,54 @@ body,
        kept in step by hand.
     */
     --arc-paper-grain: url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22220%22%20height=%22220%22%3E%3Cfilter%20id=%22a%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.8%22%20numOctaves=%225%22%20stitchTiles=%22stitch%22/%3E%3CfeColorMatrix%20type=%22saturate%22%20values=%220%22/%3E%3C/filter%3E%3Cfilter%20id=%22b%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.045%22%20numOctaves=%223%22%20stitchTiles=%22stitch%22/%3E%3CfeColorMatrix%20type=%22saturate%22%20values=%220%22/%3E%3C/filter%3E%3Crect%20width=%22220%22%20height=%22220%22%20filter=%22url(%23b)%22%20opacity=%220.09%22/%3E%3Crect%20width=%22220%22%20height=%22220%22%20filter=%22url(%23a)%22%20opacity=%220.13%22/%3E%3C/svg%3E");
-    --arc-paper: #f6f1e4;
-    /*
-       Off-square by two degrees, so the light does not fall down the panel in a
-       perfectly straight line. With the tilt below, it is what makes a stack
-       read as hand-laid rather than rendered.
-    */
-    --arc-paper-face: linear-gradient(178deg, #fdf9f0, #f0ead9);
+    --arc-paper: var(--arc-cream);
 }
 
 /* ── Coloured stock ───────────────────────────────────────────────────────────
-   The same board, dyed. Each of these sets nothing but the three custom
-   properties, so a coloured piece keeps the grain, the lighting and both
-   depths without restating any of it — and a panel and the chips on it can be
-   different colours while still reading as the same material.
+   The same board, dyed. Each of these sets nothing but --arc-paper, one step of
+   one ladder from Palette.ts, so a coloured piece keeps the grain, the lighting
+   and both depths without restating any of it — and a panel and the chips on
+   it can be different colours while still reading as the same material.
 
-   They are pale on purpose. A saturated chip on a saturated panel is two
-   competing signals; a pale panel with a saturated chip on it is a panel with
+   The grounds are pale on purpose. A saturated chip on a saturated panel is two
+   competing signals; a pale panel with a stronger chip on it is a panel with
    something *on* it, which is the whole point of layering them.
+
+     ground   .paper-blue  .paper-green  .paper-red  .paper-yellow
+     mid      .paper-ink   .paper-sage   .paper-rose .paper-gold
+     deep     .paper-navy  .paper-forest .paper-oxblood
    ─────────────────────────────────────────────────────────────────────────── */
 
-.paper-blue {
-    --arc-paper: #cfdfef;
-    --arc-paper-face: linear-gradient(178deg, #dceaf8, #c2d5e8);
-}
-
-.paper-red {
-    --arc-paper: #e8b5ac;
-    --arc-paper-face: linear-gradient(178deg, #f2c8c0, #dda69c);
-}
-
-.paper-green {
-    --arc-paper: #cfe6dc;
-    --arc-paper-face: linear-gradient(178deg, #dcf0e7, #c1dbcf);
-}
-
-.paper-yellow {
-    --arc-paper: #ecdca6;
-    --arc-paper-face: linear-gradient(178deg, #f6e9bd, #e0cd94);
-}
+.paper-blue { --arc-paper: var(--arc-blue-ground); }
+.paper-green { --arc-paper: var(--arc-green-ground); }
+.paper-red { --arc-paper: var(--arc-red-ground); }
+.paper-yellow { --arc-paper: var(--arc-yellow-ground); }
 
 /*
-   Gold — deeper than .paper-yellow, which is a *ground* colour and reads as
-   almost nothing when it is four pixels wide on another pale ground. The
-   timeline's rail is the one place that needs a stock to hold its own at that
-   size.
+   The mids. .paper-blue and the rest are *grounds*, and read as almost nothing
+   at four pixels wide on another pale ground: the timeline's rail, a node that
+   has a date, a column's deepest header. A mid holds its own at that size.
+
+   Gold is the yellow mid — the weight of the blue ink, not a colour of its own
+   standing beside the palette.
 */
-.paper-gold {
-    --arc-paper: #d9ab3f;
-    --arc-paper-face: linear-gradient(178deg, #e7bf5f, #c6952c);
-}
+.paper-ink { --arc-paper: var(--arc-blue-mid); }
+.paper-sage { --arc-paper: var(--arc-green-mid); }
+.paper-rose { --arc-paper: var(--arc-red-mid); }
+.paper-gold { --arc-paper: var(--arc-yellow-mid); }
 
 /*
-   Deep blue. .paper-blue is a *ground* — right under a panel of red tag pills,
-   and far too pale to answer "does this point have a date" from across a 13px
-   disc sitting on a green field.
+   The deeps: the only dark stocks, cut for the few things that should anchor a
+   page — the app's bar, today's date, a view's name — and the ground gold reads
+   best on. Oxblood is the red deep, which is what ties it to the red paper.
+   Text on them is cream.
 */
-.paper-ink {
-    --arc-paper: #6ea3cf;
-    --arc-paper-face: linear-gradient(178deg, #86b6dd, #578fbd);
-}
+.paper-navy { --arc-paper: var(--arc-blue-deep); }
+.paper-forest { --arc-paper: var(--arc-green-deep); }
+.paper-oxblood { --arc-paper: var(--arc-red-deep); }
 
 /* Greyboard — the unprinted stock. An empty timeline node is cut from it. */
-.paper-grey {
-    --arc-paper: #c3bfb6;
-    --arc-paper-face: linear-gradient(178deg, #d2cec5, #b3afa6);
-}
+.paper-grey { --arc-paper: var(--arc-grey); }
 
 /*
    A piece glued flat to another piece.
@@ -622,6 +602,41 @@ body,
 */
 .card-stock,
 .card-stock-flat,
+.card-stock-glued,
+.MuiPickersPopper-paper,
+.MuiPickersPopper-root .MuiPaper-root,
+.MuiPickersDay-root {
+    /*
+       The top-lit face, worked out from the stock rather than written out per
+       stock: a shade lighter at the top, a shade darker at the foot, by the
+       same lightness whatever the colour — which is what lets a pale ground and
+       a deep take the same light. Off-square by two degrees, so the light does
+       not fall down the panel in a perfectly straight line; with the tilt
+       below, it is what makes a stack read as hand-laid rather than rendered.
+
+       Declared here, on the piece, and not on :root: a custom property holding
+       var(--arc-paper) is worked out where it is declared, so on :root every
+       piece would inherit the face of plain cream.
+    */
+    --arc-paper-face: linear-gradient(178deg,
+                                      oklch(from var(--arc-paper) calc(l + 0.03) c h),
+                                      oklch(from var(--arc-paper) calc(l - 0.035) c h));
+}
+
+/* Without relative colours, the flat stock and its grain, rather than no face at all. */
+@supports not (color: oklch(from red l c h)) {
+    .card-stock,
+    .card-stock-flat,
+    .card-stock-glued,
+    .MuiPickersPopper-paper,
+    .MuiPickersPopper-root .MuiPaper-root,
+    .MuiPickersDay-root {
+        --arc-paper-face: linear-gradient(transparent, transparent);
+    }
+}
+
+.card-stock,
+.card-stock-flat,
 .card-stock-glued {
     /*
        2px, not the 4px the recess used. A cut edge is square; the radius is
@@ -641,6 +656,16 @@ body,
        shadows its text for the opposite ground and would otherwise smear this.
     */
     text-shadow: none;
+}
+
+/* Cream on the deeps, which are the one ground dark text does not read on. */
+.card-stock.paper-navy,
+.card-stock-flat.paper-navy,
+.card-stock.paper-forest,
+.card-stock-flat.paper-forest,
+.card-stock.paper-oxblood,
+.card-stock-flat.paper-oxblood {
+    color: var(--arc-cream);
 }
 
 /*
@@ -791,16 +816,15 @@ body,
 
 /* Today is outlined; chosen is cut from the blue stock. */
 .MuiPickersDay-root.MuiPickersDay-today:not(.Mui-selected) {
-    outline: 2px solid rgba(45, 111, 156, .55);
+    outline: 2px solid color-mix(in srgb, var(--arc-navy) 55%, transparent);
     outline-offset: -2px;
 }
 
 .MuiPickersDay-root.Mui-selected,
 .MuiPickersDay-root.Mui-selected:hover,
 .MuiPickersDay-root.Mui-selected:focus {
-    --arc-paper: #a9c9e6;
-    --arc-paper-face: linear-gradient(178deg, #bcd8ef, #93b8db);
-    color: #12283c;
+    --arc-paper: color-mix(in oklab, var(--arc-blue-ground), var(--arc-blue-mid));
+    color: var(--arc-blue-deep);
 }
 
 /* A day outside the shown month, and a disabled one, are unprinted board. */
@@ -819,8 +843,8 @@ body,
 
 .MuiMultiSectionDigitalClockSection-item.Mui-selected,
 .MuiDigitalClock-item.Mui-selected {
-    background-color: #a9c9e6;
-    color: #12283c;
+    background-color: color-mix(in oklab, var(--arc-blue-ground), var(--arc-blue-mid));
+    color: var(--arc-blue-deep);
 }
 
 /* ── Board furniture ──────────────────────────────────────────────────────────
@@ -871,13 +895,11 @@ body,
    ended except a darker line.
    ─────────────────────────────────────────────────────────────────────────── */
 
-:root {
-    --arc-sand: #eee3ca;
-    --arc-sand-face: linear-gradient(176deg, #f4ebd7, #e4d6b9);
-}
-
 /* 2. A lane: card, lit like every other piece of card in the app. */
 .board-surface {
+    --arc-sand-face: linear-gradient(176deg,
+                                     oklch(from var(--arc-sand) calc(l + 0.025) c h),
+                                     oklch(from var(--arc-sand) calc(l - 0.03) c h));
     border-radius: 3px;
     background-color: var(--arc-sand);
     background-image: var(--arc-paper-grain), var(--arc-sand-face);
@@ -948,8 +970,9 @@ body,
 }
 
 /* ── Notes ────────────────────────────────────────────────────────────────────
-   Every card is the same pale yellow — the colour the board had before, and the
-   one it keeps. Colouring notes by swimlane was tried and taken out: a colour
+   Every card is the same pale yellow — the colour the board had before, moved
+   onto the yellow ladder's hue so it is the palest step of the same paper as
+   the yellow stock and the gold, rather than a lemon beside them. Colouring notes by swimlane was tried and taken out: a colour
    that changes when you drag a note is a colour that means something, and the
    lane was already said by where the note is.
 
@@ -959,12 +982,14 @@ body,
    ─────────────────────────────────────────────────────────────────────────── */
 
 .note {
-    --arc-note: #ffffe0;
     border-radius: 1px;
     background-color: var(--arc-note);
     background-image:
         url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22240%22%20height=%22240%22%3E%3Cfilter%20id=%22a%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.9%22%20numOctaves=%225%22%20stitchTiles=%22stitch%22/%3E%3CfeColorMatrix%20type=%22saturate%22%20values=%220%22/%3E%3C/filter%3E%3Cfilter%20id=%22b%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.05%22%20numOctaves=%223%22%20stitchTiles=%22stitch%22/%3E%3CfeColorMatrix%20type=%22saturate%22%20values=%220%22/%3E%3C/filter%3E%3Crect%20width=%22240%22%20height=%22240%22%20filter=%22url(%23b)%22%20opacity=%220.05%22/%3E%3Crect%20width=%22240%22%20height=%22240%22%20filter=%22url(%23a)%22%20opacity=%220.1%22/%3E%3C/svg%3E"),
-        linear-gradient(168deg, #fffff4 0%, var(--arc-note) 42%, #f5f0c4 100%);
+        linear-gradient(168deg,
+                        oklch(from var(--arc-note) calc(l + 0.02) calc(c * 0.4) h) 0%,
+                        var(--arc-note) 42%,
+                        oklch(from var(--arc-note) calc(l - 0.035) calc(c * 1.4) h) 100%);
     color: #2b2a20;
     box-shadow:
         0 1px 1px rgba(28, 20, 6, .26),
@@ -973,7 +998,7 @@ body,
 }
 
 .note .MuiButtonGroup-root {
-    border-top-color: rgba(96, 84, 20, .2);
+    border-top-color: color-mix(in srgb, var(--arc-yellow-deep) 22%, transparent);
 }
 
 /* And the rule between the two buttons, which MUI draws in primary blue — the
@@ -1015,15 +1040,6 @@ body,
 }
 
 /*
-   Oxblood — the dark red the Blazor "ALL" button was painted (#630000), as a
-   stock. The one dark paper in the app: it exists to carry gold.
-*/
-.paper-oxblood {
-    --arc-paper: #6e1d1d;
-    --arc-paper-face: linear-gradient(178deg, #812727, #5a1414);
-}
-
-/*
    A tile: a piece of card cut square, for the tablet-style header across the
    top of a day. Square because tiles are — the 2px radius of .card-stock is
    for a sheet's cut corner, and a grid of tiles with rounded corners reads as
@@ -1035,22 +1051,63 @@ body,
 
 /*
    Gold foil. The Blazor .gold-text — a metallic gradient clipped to the
-   letters — with one change: a crisp dark drop-shadow under it. The original
-   was set on a dark tile; on cream card its pale stops disappear, and the
+   letters — with two changes. A crisp dark drop-shadow under it: the original
+   was set on a dark tile, and on cream card its pale stops disappear, so the
    shadow is what gives the letters an edge on either ground. A drop-shadow
    filter, not text-shadow: text-shadow paints over a clipped background and
    would hide the gold it is meant to frame.
+
+   And the metal is the yellow ladder's, polished — its ground brightened for
+   the highlights, the gold itself, and the gold darkened toward the yellow deep
+   for the shadow in the fold — rather than the Blazor gradient's pure
+   #f4c430, which was the most saturated colour in the app.
 */
 .gold-foil {
-    background: linear-gradient(-45deg, #fff4c4, #f4c430 20%, #a8740a 42%, #f2c94c 62%, #fff0b3 80%, #e8b923);
+    background: linear-gradient(-45deg,
+                                color-mix(in oklab, var(--arc-yellow-ground), white 55%),
+                                color-mix(in oklab, var(--arc-gold), var(--arc-yellow-ground) 50%) 22%,
+                                color-mix(in oklab, var(--arc-gold), var(--arc-yellow-deep) 38%) 45%,
+                                color-mix(in oklab, var(--arc-gold), var(--arc-yellow-ground) 42%) 65%,
+                                color-mix(in oklab, var(--arc-yellow-ground), white 40%) 82%,
+                                var(--arc-gold));
     background-size: 120% auto;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 1px 0 rgba(72, 44, 0, .75));
+    filter: drop-shadow(0 1px 0 color-mix(in srgb, var(--arc-yellow-deep) 85%, transparent));
 }
 
 .paper-oxblood .gold-foil {
     filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .55));
+}
+
+/*
+   Snackbars — notistack's, which bring their own Material colours: #d32f2f,
+   #43a047, #ff9800, as saturated as anything the palette took out. Each variant
+   is a deep of the ladder that means the same thing, as a strip of card with
+   cream text. Two classes, because notistack's own rule is one generated class
+   injected after this file.
+*/
+.notistack-MuiContent.notistack-MuiContent-default,
+.notistack-MuiContent.notistack-MuiContent-info {
+    background-color: var(--arc-blue-deep);
+}
+
+.notistack-MuiContent.notistack-MuiContent-success {
+    background-color: var(--arc-green-deep);
+}
+
+.notistack-MuiContent.notistack-MuiContent-error {
+    background-color: var(--arc-red-deep);
+}
+
+.notistack-MuiContent.notistack-MuiContent-warning {
+    background-color: var(--arc-yellow-deep);
+}
+
+.notistack-SnackbarContainer .notistack-MuiContent {
+    color: var(--arc-cream);
+    background-image: var(--arc-paper-grain);
+    border-radius: 2px;
 }

@@ -49,7 +49,8 @@
  */
 
 import React, { useState } from 'react'
-import { AppBar, Box, Button, Menu, MenuItem, Toolbar } from '@mui/material'
+import { AppBar, Box, Button, Menu, MenuItem, Toolbar, Typography } from '@mui/material'
+import { SCRIPT } from '../../Styles/Fonts'
 import { CreateCardOverlay } from './Card/CreateCardOverlay'
 import { CreateColumnOverlay } from './Column/CreateColumnOverlay'
 import { DeleteColumnOverlay } from './Column/DeleteColumnOverlay'
@@ -164,11 +165,10 @@ export const BoardManagementNav: React.FC<BoardManagementNavProps> = ({ menu }) 
 
     return (
         <>
-            {/* Mirrors MudToolBar inside MudPaper Elevation=25.
-                MudPaper Elevation="25" has no MUI equivalent — the theme's shadow
-                scale stops at 24, and anything past it renders no shadow at all
-                and logs a warning. 24 is the deepest MUI offers. */}
-            <AppBar position="static" elevation={24} sx={{ backgroundColor: 'primary.main' }}>
+            {/* Mirrors MudToolBar inside MudPaper Elevation=25 — as a strip of navy
+                card, the blue ladder's deep, lit like every other piece of card
+                rather than floated on MUI's elevation shadow. See Styles/Palette. */}
+            <AppBar position="static" elevation={0} className="card-stock paper-navy">
                 {/*
                     The toolbar wraps rather than overflowing. Its buttons are words,
                     not icons, so below roughly 400px the four menus plus the [Menu]
@@ -179,6 +179,23 @@ export const BoardManagementNav: React.FC<BoardManagementNavProps> = ({ menu }) 
                 <Toolbar variant="dense" sx={{ gap: 2, flexWrap: 'wrap', rowGap: 0.5, py: 0.5 }}>
                     {/* Mirrors Blazor's <MenuOverlay /> */}
                     {menu && <Box sx={{ mr: 1, display: 'flex' }}>{menu}</Box>}
+
+                    {/*
+                        "Honu Boards", in the script Blazor set it in, in gold foil
+                        on the navy — as the calendar's bar sets its month. It was
+                        in the board's corner; that is a picture now (BoardArt).
+                    */}
+                    <Typography component="h1"
+                                className="gold-foil"
+                                sx={{ fontFamily: SCRIPT,
+                                      fontWeight: 'bold',
+                                      fontSize: { xs: '1.5rem', sm: '1.9rem' },
+                                      lineHeight: 1.15,
+                                      whiteSpace: 'nowrap',
+                                      px: 0.25,
+                                      mr: 1 }}>
+                        Honu Boards
+                    </Typography>
 
                     {MENUS.map(menu => (
                         <React.Fragment key={menu.label}>
