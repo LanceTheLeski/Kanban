@@ -12,7 +12,8 @@
  * are in the day overlay's legend, and in each segment's tooltip. Segments are
  * in palette order, not size order, so a type sits in the same place on every
  * day. A two-pixel gap separates them — left empty, so the ground shows through
- * — rather than a drawn line.
+ * — rather than a drawn line, and each casts the short shadow of a strip of
+ * paper laid on the sheet under it.
  */
 
 import React from 'react'
@@ -59,7 +60,12 @@ export const TypeRing: React.FC<TypeRingProps> = ({ slices, size, thickness, chi
                            inset: 0,
                            width: size,
                            height: size,
-                           transform: 'rotate(-90deg)' }}>
+                           transform: 'rotate(-90deg)',
+                           // Each segment a strip of paper laid on the sheet, with
+                           // the cut shadow the tiles beside it cast (.card-cut).
+                           // The filter is drawn before the quarter turn, so its
+                           // offset is written sideways to land straight down.
+                           filter: 'drop-shadow(-1px 0 0.6px rgba(38, 28, 10, .4))' }}>
                     {arcs.map(({ slice, dash, offset: start }) => (
                         <circle key={slice.key}
                                 cx={size / 2}

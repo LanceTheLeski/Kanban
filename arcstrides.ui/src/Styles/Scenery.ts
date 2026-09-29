@@ -2,8 +2,8 @@
  * Scenery.ts
  *
  * The colours the cut-paper pictures are cut from — the day types' scenes and
- * the board's — named for what they are in a picture rather than for where
- * they sit on a ladder.
+ * the board's waves — named for what they are in a picture rather than for
+ * where they sit on a ladder.
  *
  * Every one is a step of a ladder in Palette.ts, or a tint between two steps of
  * the same ladder. That is the whole rule, and it is what makes a picture look
@@ -29,7 +29,6 @@ export const SCENERY = {
     seaFar: blue.mid,
     seaNear: mix(blue.ground, blue.mid, 0.5),
     foam: mix(blue.ground, NEUTRALS.cream, 0.5),
-    seaDeep: mix(blue.mid, blue.deep, 0.45),
 
     sand: yellow.ground,
     sandShade: mix(yellow.ground, yellow.mid, 0.4),
@@ -60,11 +59,6 @@ export const SCENERY = {
     canvasStripe: red.ground,
     cord: red.deep,
     bow: yellow.ground,
-
-    // A turtle's shell and skin.
-    shell: mix(green.mid, green.deep, 0.5),
-    shellPlate: mix(green.ground, green.mid, 0.55),
-    skin: mix(green.ground, green.mid, 0.25),
 
     // Under every layer, the hairline shadow a sheet casts on the one behind it.
     cutShadow: mix(yellow.deep, '#000000', 0.55),

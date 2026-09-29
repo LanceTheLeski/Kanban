@@ -188,6 +188,12 @@ Two things card must never have, both reported as making it look fake:
 - **A white line along the top.** Even softened, it reads as a specular
   highlight — glass and plastic, not card.
 
+A piece **laid on another piece** — a tile on a day's header sheet, a chip on a
+panel, a button on the bar — is `.card-cut`, worn with `.card-stock-flat`: the
+short, crisp shadow each layer of the cut-paper pictures casts on the one
+behind it, rather than the softer lift of a strip standing off its panel. It is
+what makes a stack read as cuts of paper on paper.
+
 ### The palette
 
 Every colour with a hue is a step of one of four ladders, written down once in
@@ -215,17 +221,21 @@ What goes where:
 - **Mids** hold their own at a few pixels wide: rails, a node with a date, the
   deepest column header, the swimlane ramp's strongest label.
 - **Deeps** anchor a page and carry gold, with cream text: the app bars (navy),
-  today's date and a view's name (oxblood), snackbars (by meaning).
+  today's date and a view's name (oxblood), snackbars (by meaning). The bars
+  are the one place a deep is flat colour rather than card — on a strip that
+  dark the grain read as speckle — and their controls are pieces of cream card
+  laid on them (`.app-bar`, `.bar-piece`).
 - **On glass**, the actions use grounds, since only a light colour reads there:
   Save in the yellow ground, Delete in a red just past its ground.
 
 A stock sets only `--arc-paper`; its lit face is worked out from that colour
 (`oklch(from …)`), so a new stock is one line. The column and swimlane ramps
-run between a ladder's ground and mid, and the colour picker offers every
-ground and mid as a swatch. Chart colours are the one exception — see "Chart
-colour".
+run between a ladder's ground and mid. The colour picker offers every ground
+and mid as a chip of card, then the colours someone has saved (kept in the
+browser), and the full picker in a popover behind "Mix…". Chart colours are the
+one exception — see "Chart colour".
 
-The cut-paper pictures — the day types' scenes, the honu, the lanes' waves —
+The cut-paper pictures — the day types' scenes and the lanes' waves —
 draw from the same ladders, by name, through `src/Styles/Scenery.ts`, and share
 one frame, `Components/PaperScene.tsx`: flat shapes, each casting the same
 small shadow on the one behind. Nothing in a picture is a hue the rest of the
@@ -241,11 +251,10 @@ you can tell a column from a lane by what it is made of, not only by which way
 it runs.
 
 Along the foot of every lane runs a strip of cut-paper water — a swim lane —
-crisp beside the label and frosted wherever a column's glass crosses it. The
-corner above the labels is a tile of the same paper: a honu over the sea floor.
-"Honu Boards" itself is in the navy bar, in gold foil, where it has room for
-one line and still shows on a phone. A card with no dates shows the honu too,
-in its timeline panel. See `Features/Board/BoardArt.tsx`.
+crisp beside the label and frosted wherever a column's glass crosses it (see
+`Features/Board/BoardArt.tsx`). The corner above the labels is left empty for
+now; "Honu Boards" is in the navy bar, in gold foil, where it has room for one
+line and still shows on a phone.
 
 ### The calendar
 
@@ -258,12 +267,15 @@ as part of this month. The weekday names are paper tiles: blue for the working
 days, red for the weekend.
 
 Across the top of a day is a header of tiles — a tablet start screen, cut from
-card, each tile its own colour and set edge to edge:
+card, each tile its own colour, laid on a sheet of sand card with a hairline of
+the sheet showing between them. Each tile, the date's disc and its ring cast
+the cut shadow (`.card-cut`) on the sheet; the sheet casts its own on the day's
+glass, which still shows between the header and the cards under it:
 
 | tile | stock | what it is |
 |---|---|---|
 | the date | a card disc, ringed | the number in gold foil, ringed with its tasks by type; the disc fills the ring to its inner edge; today is oxblood |
-| middle | cream | the progress lines, the day type's picture, or "+ Add card" — see below |
+| middle | cream | the progress lines (no count in the corner), the day type's picture, or "+ Add card" — see below |
 | ⋮ | yellow | quick actions |
 | ‹ › | blue | step through the day's views; not drawn on a day with no cards |
 | heading | oxblood | the view's name in gold foil, four capitals at most — ALL, OPEN, FEAT |
@@ -294,7 +306,8 @@ only the number.
 
 The picture is how the type is changed: click it at the top of the day
 overlay, or use the Theme items in a day's ⋮. On a phone, where a day has no
-header, it is a strip along the day's foot. Leisure and Vacation are not
+header, it is a strip along the day's foot, and the date's disc sits on a scrap
+of the same sand sheet. Leisure and Vacation are not
 working days, so work carried over from the day before steps past them.
 
 **Gold** is `.gold-foil`: Blazor's `.gold-text` gradient, re-cut from the
@@ -319,11 +332,18 @@ type by name with its count, and each task row carries its type's mark and name.
 Laid out the way the Blazor one was: along the top, the number, the date in
 words, the type's picture and the tags; under them the timeline, which is the
 bulk of it, and the cards; down the right, a slim column of frosted glass with
-the day as the calendar shows it, the table of types, and the day's
+the day as the calendar shows it — exactly: the grid day's own width and
+height, measured (`useGridDaySize`), so its layout is the grid's too — the
+table of types, and the day's
 connections — the days either side, its cards' boards, other days with the same
 cards, and the days its tasks are due. Every day in it opens in the same
 overlay, crossing into another month if it has to. A panel with nothing in it
 is not drawn.
+
+The timeline's label is sage, the green ladder's mid — the one stock nothing
+else in the day view is cut from. The timeline does not mark the day itself:
+the panel is already the day's, so its own stops are at full strength and
+stops on other days are paler and carry their date.
 
 ---
 

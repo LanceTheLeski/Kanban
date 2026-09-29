@@ -165,10 +165,9 @@ export const BoardManagementNav: React.FC<BoardManagementNavProps> = ({ menu }) 
 
     return (
         <>
-            {/* Mirrors MudToolBar inside MudPaper Elevation=25 — as a strip of navy
-                card, the blue ladder's deep, lit like every other piece of card
-                rather than floated on MUI's elevation shadow. See Styles/Palette. */}
-            <AppBar position="static" elevation={0} className="card-stock paper-navy">
+            {/* Mirrors MudToolBar inside MudPaper Elevation=25 — a flat navy strip
+                with its menus laid on it as pieces of card. See .app-bar. */}
+            <AppBar position="static" elevation={0} className="app-bar">
                 {/*
                     The toolbar wraps rather than overflowing. Its buttons are words,
                     not icons, so below roughly 400px the four menus plus the [Menu]
@@ -199,10 +198,11 @@ export const BoardManagementNav: React.FC<BoardManagementNavProps> = ({ menu }) 
 
                     {MENUS.map(menu => (
                         <React.Fragment key={menu.label}>
-                            <Button color="inherit"
+                            <Button className="card-stock-flat card-cut bar-piece"
                                     onClick={event =>
                                         setOpenMenu({ label: menu.label, anchor: event.currentTarget })
-                                    }>
+                                    }
+                                    sx={BAR_PIECE_SX}>
                                 {menu.label}
                             </Button>
 
@@ -232,3 +232,19 @@ export const BoardManagementNav: React.FC<BoardManagementNavProps> = ({ menu }) 
 }
 
 export default BoardManagementNav
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+/** A menu on the bar, as a small piece of card: the same words, set as labels. */
+const BAR_PIECE_SX = {
+    minWidth: 0,
+    px: 1.25,
+    py: 0.35,
+    fontSize: '0.74rem',
+    fontWeight: 700,
+    letterSpacing: '0.06em',
+    lineHeight: 1.6,
+    color: 'arc.onPaperStrong',
+    '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'common.white', outlineOffset: 2 },
+} as const

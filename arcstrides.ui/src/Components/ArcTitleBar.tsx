@@ -27,7 +27,7 @@ import React from 'react'
 import { Box, Typography } from '@mui/material'
 
 /** Which stock the strip is cut from. Mirrors the .paper-* classes. */
-export type TitleStock = 'cream' | 'blue' | 'red' | 'green' | 'yellow'
+export type TitleStock = 'cream' | 'blue' | 'red' | 'green' | 'yellow' | 'sage'
 
 interface ArcTitleBarProps {
     children: React.ReactNode

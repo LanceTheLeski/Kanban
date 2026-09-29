@@ -6,9 +6,12 @@
  *
  * Mirrors: the top 50px of a Blazor CalendarDate — a donut, a 50px line chart,
  * a column holding the settings and expand icons above ← ALL →. The arrangement
- * is kept; the pieces are cut from card, each tile its own colour, set edge to
- * edge with a hairline of glass between them — the look of a tablet's start
- * screen, in paper.
+ * is kept; the pieces are cut from card, each tile its own colour, and laid on
+ * a sheet of sand card with a hairline of it showing between them — the look of
+ * a tablet's start screen, in paper. Each piece casts the short, crisp shadow a
+ * cut piece casts on the sheet under it (.card-cut), the way the layers of the
+ * day types' pictures do; the sheet itself stands on the day's glass, which
+ * still shows between the header and the cards below it.
  *
  *   wide day (a middle-width day moves ⋮ down beside ›)  narrow day
  *   ┌────┬───────────────────┬─┐     ┌────┬──────────┐
@@ -24,9 +27,9 @@
  * the chart, so here the icons' column is folded into a slim ⋮ tile and the view
  * row runs the full width underneath, which roughly doubles the chart.
  *
- * The date itself is not on a tile: it is a disc of card already, ringed with
- * its tasks by type, and it sits on the glass the way it always has. The disc
- * fills the ring to its inner edge, so the two read as one piece.
+ * The date is not on a tile: it is a disc of card already, ringed with its tasks
+ * by type, laid straight on the sheet. The disc fills the ring to its inner
+ * edge, so the two read as one piece.
  *
  * ── What the day's type changes ──────────────────────────────────────────────
  * The middle tile is the lines only where there is progress to show and the
@@ -36,8 +39,9 @@
  *   cards, but not one task yet       "+ Add a task"
  *   a Leisure or Vacation day         its picture, with what is on it counted
  *
- * so no day draws a graph of nothing. A day with no cards has no ‹ HEAD › row
- * either — there is nothing to page through — and ⋮ moves up beside the tile.
+ * so no day draws a graph of nothing, nor offers it faded: everything on the
+ * sheet is opaque paper. A day with no cards has no ‹ HEAD › row either — there
+ * is nothing to page through — and ⋮ moves up beside the tile.
  */
 
 import React from 'react'
@@ -96,8 +100,10 @@ export const DayHeader: React.FC<DayHeaderProps> = ({ day, stats, views, current
             grid, and as the live copy in its overlay. The day sets itself up as
             the container; see DayCell.
         */
-        <Box sx={{ display: 'grid',
+        <Box className="card-stock paper-sand"
+             sx={{ display: 'grid',
                    gap: '3px',
+                   p: '3px',
                    gridTemplateColumns: 'auto minmax(0, 1fr)',
                    gridTemplateAreas: paged ? '"date menu" "chart chart" "nav nav"' : '"date menu" "chart chart"',
                    gridTemplateRows: paged ? 'auto 1.9rem 1.15rem' : 'auto 1.9rem',
@@ -120,7 +126,7 @@ export const DayHeader: React.FC<DayHeaderProps> = ({ day, stats, views, current
             <Box sx={{ gridArea: 'date', display: 'grid', placeItems: 'center' }}>
                 <TypeRing slices={type.ring ? stats.slices : []} size={RING.size} thickness={RING.thickness}>
                     {mini ? (
-                        <Box className={`card-disc card-stock-flat${day.isToday ? ' paper-oxblood' : ''}`}
+                        <Box className={`card-disc card-stock-flat card-cut${day.isToday ? ' paper-oxblood' : ''}`}
                              sx={{ width: DISC,
                                    height: DISC,
                                    display: 'grid',
@@ -128,7 +134,7 @@ export const DayHeader: React.FC<DayHeaderProps> = ({ day, stats, views, current
                             {number}
                         </Box>
                     ) : (
-                        <ButtonBase className={`card-disc card-stock-flat${day.isToday ? ' paper-oxblood' : ''}`}
+                        <ButtonBase className={`card-disc card-stock-flat card-cut${day.isToday ? ' paper-oxblood' : ''}`}
                                     onClick={() => openDay(day)}
                                     aria-label={`Open ${name}${day.isToday ? ', today' : ''}`}
                                     aria-current={day.isToday ? 'date' : undefined}
@@ -144,16 +150,16 @@ export const DayHeader: React.FC<DayHeaderProps> = ({ day, stats, views, current
 
             {/* Progress, a line per type, where there is progress to show. */}
             {face === 'lines' && (
-                <Box className="card-stock-flat tile" sx={{ gridArea: 'chart',
+                <Box className="card-stock-flat card-cut tile" sx={{ gridArea: 'chart',
                                                             minWidth: 0,
                                                             px: 0.75,
                                                             py: 0.4 }}>
-                    <ProgressLines slices={stats.slices} done={stats.done} total={stats.total} />
+                    <ProgressLines slices={stats.slices} />
                 </Box>
             )}
 
             {face === 'scene' && type.scene && (
-                <Box className="card-stock-flat tile"
+                <Box className="card-stock-flat card-cut tile"
                      title={`${type.name} day`}
                      sx={{ gridArea: 'chart', minWidth: 0, position: 'relative', overflow: 'hidden', p: 0 }}>
                     <DayArt scene={type.scene} label={`${type.name} day`} />
@@ -172,7 +178,7 @@ export const DayHeader: React.FC<DayHeaderProps> = ({ day, stats, views, current
                 <Invite day={day} type={type} face={face} actions={actions} />
             )}
 
-            <Box className="card-stock-flat tile paper-yellow" sx={{ gridArea: 'menu',
+            <Box className="card-stock-flat card-cut tile paper-yellow" sx={{ gridArea: 'menu',
                                                                      display: 'flex',
                                                                      minWidth: 0 }}>
                 <DayActions day={day} mini={mini} />
@@ -188,15 +194,14 @@ export const DayHeader: React.FC<DayHeaderProps> = ({ day, stats, views, current
                 <Box sx={{ gridArea: 'nav',
                            display: 'flex',
                            gap: '3px',
-                           minWidth: 0,
-                           opacity: count < 2 ? EMPTY : 1 }}>
-                    <Box className="card-stock-flat tile paper-blue" sx={{ display: 'flex' }}>
+                           minWidth: 0 }}>
+                    <Box className="card-stock-flat card-cut tile paper-blue" sx={{ display: 'flex' }}>
                         <IconButton onClick={() => step(-1)} disabled={count < 2} aria-label="Previous view" sx={ARROW_SX}>
                             <ChevronLeftIcon sx={{ fontSize: '0.9rem' }} />
                         </IconButton>
                     </Box>
 
-                    <ButtonBase className="card-stock-flat tile paper-oxblood"
+                    <ButtonBase className="card-stock-flat card-cut tile paper-oxblood"
                                 onClick={() => onView(0)}
                                 disabled={current === 0}
                                 title={view ? `${view.label} — ${current + 1} of ${count}` : 'All'}
@@ -216,7 +221,7 @@ export const DayHeader: React.FC<DayHeaderProps> = ({ day, stats, views, current
                         </Box>
                     </ButtonBase>
 
-                    <Box className="card-stock-flat tile paper-blue" sx={{ display: 'flex' }}>
+                    <Box className="card-stock-flat card-cut tile paper-blue" sx={{ display: 'flex' }}>
                         <IconButton onClick={() => step(1)} disabled={count < 2} aria-label="Next view" sx={ARROW_SX}>
                             <ChevronRightIcon sx={{ fontSize: '0.9rem' }} />
                         </IconButton>
@@ -293,7 +298,7 @@ function Invite({ day, type, face, actions }: { day: GridDay; type: DayType; fac
     }
 
     return (
-        <ButtonBase className="card-stock-flat tile"
+        <ButtonBase className="card-stock-flat card-cut tile"
                     onClick={invite}
                     aria-label={`${label} to ${day.date.format('dddd D MMMM')}`}
                     sx={{ gridArea: 'chart',
@@ -302,9 +307,6 @@ function Invite({ day, type, face, actions }: { day: GridDay; type: DayType; fac
                           overflow: 'hidden',
                           justifyContent: type.scene ? 'flex-start' : 'center',
                           alignItems: type.scene ? 'flex-start' : 'center',
-                          opacity: type.scene ? 1 : QUIET,
-                          transition: 'opacity 120ms',
-                          '&:hover, &.Mui-focusVisible': { opacity: 1 },
                           '&:hover .invite-label': { color: 'arc.onPaperStrong' },
                           '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 } }}>
             {type.scene && (
@@ -322,7 +324,7 @@ function Invite({ day, type, face, actions }: { day: GridDay; type: DayType; fac
                          fontSize: '0.62rem',
                          fontWeight: 600,
                          lineHeight: 1.6,
-                         color: 'arc.onPaper',
+                         color: 'arc.onPaperMuted',
                          whiteSpace: 'nowrap' }}>
                 <AddIcon sx={{ fontSize: type.scene ? '0.62rem' : '0.75rem' }} />
                 {label}
@@ -330,12 +332,6 @@ function Invite({ day, type, face, actions }: { day: GridDay; type: DayType; fac
         </ButtonBase>
     )
 }
-
-/** How far an unthemed day's offer is faded until it is pointed at. */
-const QUIET = 0.62
-
-/** A view row with only All in it stays, faded: there is nowhere to page to. */
-const EMPTY = 0.55
 
 const ARROW_SX = {
     p: 0,

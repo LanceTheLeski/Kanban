@@ -6,8 +6,13 @@
  *
  * The Blazor calendar had no bar and no title — the month was whichever one
  * CalendarLayout had been written for, and the page did not say, or move. It is
- * the board's bar, the same blue and the same depth, so moving between the two
- * pages changes what is under the bar rather than the bar itself.
+ * the board's bar, the same navy with its controls laid on it as pieces of
+ * card, so moving between the two pages changes what is under the bar rather
+ * than the bar itself.
+ *
+ * There is no "Today": it only ever did one thing, go back to this month, and
+ * sat disabled on this month, which is where the calendar almost always is. The
+ * Calendar entry in the Honu menu goes to this month too.
  *
  * ── Why the arrows come before the title ─────────────────────────────────────
  * "May" and "September" are different widths. With the arrows after the title
@@ -16,10 +21,10 @@
  */
 
 import React from 'react'
-import { AppBar, Box, Button, IconButton, LinearProgress, Toolbar, Typography } from '@mui/material'
+import { AppBar, Box, IconButton, LinearProgress, Toolbar, Typography } from '@mui/material'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import dayjs, { type Dayjs } from 'dayjs'
+import type { Dayjs } from 'dayjs'
 import { MONO, SCRIPT } from '../../Styles/Fonts'
 
 interface CalendarNavProps {
@@ -27,44 +32,30 @@ interface CalendarNavProps {
     start: Dayjs
     onPrevious: () => void
     onNext: () => void
-    onToday: () => void
     /** True while what is stored for the month is still being read. */
     busy?: boolean
     /** The app menu — a slot, for the reason BoardManagementNav gives. */
     menu?: React.ReactNode
 }
 
-export const CalendarNav: React.FC<CalendarNavProps> = ({ start, onPrevious, onNext, onToday, busy = false, menu }) => {
-    const showingToday = start.isSame(dayjs(), 'month')
-
+export const CalendarNav: React.FC<CalendarNavProps> = ({ start, onPrevious, onNext, busy = false, menu }) => {
     return (
-        // Navy card, as the board's bar is — see BoardManagementNav.
-        <AppBar position="static" elevation={0} className="card-stock paper-navy" sx={{ position: 'relative' }}>
+        // Flat navy, as the board's bar is — see .app-bar.
+        <AppBar position="static" elevation={0} className="app-bar" sx={{ position: 'relative' }}>
             {/*
-                Wraps, as the board's bar does: on a phone "Today", two arrows
-                and "September" in script are wider than the bar, and a toolbar
+                Wraps, as the board's bar does: on a phone two arrows and
+                "September" in script can be wider than the bar, and a toolbar
                 that does not wrap pushes the whole page sideways instead.
             */}
             <Toolbar variant="dense" sx={{ gap: { xs: 0.5, sm: 1 }, py: 0.5, flexWrap: 'wrap', rowGap: 0 }}>
                 {menu && <Box sx={{ display: 'flex', mr: 0.5 }}>{menu}</Box>}
 
-                {/*
-                    Kept in place and disabled on this month, rather than removed,
-                    so the arrows beside it do not jump when it appears.
-                */}
-                <Button color="inherit"
-                        size="small"
-                        onClick={onToday}
-                        disabled={showingToday}
-                        sx={{ '&.Mui-disabled': { color: 'color-mix(in srgb, var(--arc-cream) 45%, transparent)' } }}>
-                    Today
-                </Button>
-
-                <IconButton color="inherit" size="small" onClick={onPrevious} aria-label="Previous month">
-                    <ChevronLeftIcon />
+                {/* The arrows, as two small pieces of card laid on the bar. */}
+                <IconButton className="card-stock-flat card-cut bar-piece" onClick={onPrevious} aria-label="Previous month" sx={ARROW_SX}>
+                    <ChevronLeftIcon fontSize="small" />
                 </IconButton>
-                <IconButton color="inherit" size="small" onClick={onNext} aria-label="Next month">
-                    <ChevronRightIcon />
+                <IconButton className="card-stock-flat card-cut bar-piece" onClick={onNext} aria-label="Next month" sx={ARROW_SX}>
+                    <ChevronRightIcon fontSize="small" />
                 </IconButton>
 
                 {/*
@@ -109,3 +100,14 @@ export const CalendarNav: React.FC<CalendarNavProps> = ({ start, onPrevious, onN
 }
 
 export default CalendarNav
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+/** An arrow on the bar: a small square of card. */
+const ARROW_SX = {
+    width: 30,
+    height: 28,
+    color: 'arc.onPaperStrong',
+    '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'common.white', outlineOffset: 2 },
+} as const

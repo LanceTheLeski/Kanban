@@ -1,8 +1,8 @@
 /**
  * ColumnHeaderRow
  *
- * The strip of column titles above the grid, with the board's picture at its
- * left where the swimlane labels begin.
+ * The strip of column titles above the grid, with an empty corner at its left
+ * where the swimlane labels begin.
  *
  * Every width here comes from Board.Layout, so a header stays over its cells.
  * Nothing in this file may state a width of its own.
@@ -11,9 +11,7 @@
 import React from 'react'
 import { Box, Paper, Typography } from '@mui/material'
 import { CONDENSED } from '../../../Styles/Fonts'
-import { rem } from '../../../Styles/Measures'
 import { columnColour } from '../Board.Colours'
-import { HonuArt } from '../BoardArt'
 import { glassStyle } from '../../../Styles/Stock'
 import {
     BOARD_GAP,
@@ -37,21 +35,11 @@ export const ColumnHeaderRow: React.FC<ColumnHeaderRowProps> = ({ columns }) => 
                px: BOARD_GAP,
                py: 1 }}>
         {/*
-            The corner, where Blazor wrote "Honu Boards": a tile of cut paper,
-            a honu swimming over the sea floor. The title itself is in the bar
-            above, in gold on navy — see BoardManagementNav — where it has the
-            room to be one line, and where it still shows on a phone, which
-            this row does not. See BoardArt.
+            The corner above the swimlane labels, kept empty and the labels'
+            width, so the column headers stay over their cells. "Honu Boards"
+            is in the bar above — see BoardManagementNav.
         */}
-        <Paper elevation={0}
-               className="card-stock tile"
-               aria-hidden
-               sx={{ width: BOARD_TITLE_WIDTH,
-                     height: TITLE_TILE_HEIGHT,
-                     flexShrink: 0,
-                     overflow: 'hidden' }}>
-            <HonuArt />
-        </Paper>
+        <Box aria-hidden sx={{ width: BOARD_TITLE_WIDTH, flexShrink: 0 }} />
 
         {columns.map((column, index) => (
             <Paper key={column.id}
@@ -104,9 +92,3 @@ export const ColumnHeaderRow: React.FC<ColumnHeaderRowProps> = ({ columns }) => 
 )
 
 export default ColumnHeaderRow
-
-// ── Private ───────────────────────────────────────────────────────────────────
-// Not exported, which is this language's `private`. Ordered by first use above.
-
-/** The corner tile: tall enough for the turtle to read as one. */
-const TITLE_TILE_HEIGHT = rem(56)

@@ -20,7 +20,8 @@
  *                                      the date in words, the tags
  *   the timeline by end deadline     → the timeline, every point, as the bulk
  *   the card titles                  → Cards, editable, under it
- *   `<CalendarDate>` in the column   → the live copy, top right, on glass
+ *   `<CalendarDate>` in the column   → the live copy, top right, on glass, at
+ *                                      exactly the size the grid draws it
  *   the second, placeholder timeline → Connections: nearby days, boards,
  *                                      other days, deadlines elsewhere
  *
@@ -54,6 +55,7 @@ import { stopsOf } from './Calendar.Stops'
 import { unfinished } from './Calendar.Moves'
 import { boardLabel } from './Calendar.Views'
 import { useCalendarActions } from './Calendar.Context'
+import { useGridDaySize } from './useGridDaySize'
 import type { Card } from '../../Entities/Card/Card.Types'
 import type { GridDay } from './Calendar.Grid'
 
@@ -87,6 +89,7 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
     const cards = day.stored?.cards ?? []
     const stats = dayStats(cards, colours)
     const type = dayTypeOf(day.stored?.typeId)
+    const gridDay = useGridDaySize(day.key)
     const manyBoards = new Set(cards.map(card => card.boardId)).size > 1
     const timed = stopsOf(cards).length > 0
     const carry = unfinished(cards)
@@ -94,7 +97,7 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
     return (
         <ArcOverlay open onClose={onClose} discardLabel="Close" width={DAY_OVERLAY_WIDTH}>
             <Box sx={{ display: 'grid',
-                       gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: `minmax(0, 1fr) ${SIDE_WIDTH}` },
+                       gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1fr) auto' },
                        gridTemplateAreas: { xs: '"band" "main" "side"', md: '"band side" "main side"' },
                        gridTemplateRows: { md: 'auto 1fr' },
                        alignItems: 'start',
@@ -114,7 +117,14 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
                         <Paper className="card-stock paper-yellow"
                                elevation={0}
                                sx={{ minWidth: 0, p: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                            <ArcTitleBar>Timeline</ArcTitleBar>
+                            {/*
+                                Sage — the green ladder's mid, which nothing else
+                                in the day view is cut from: a label of its own
+                                colour for the panel that is the bulk of the day,
+                                cool against the yellow it sits on and the gold
+                                of the rail under it.
+                            */}
+                            <ArcTitleBar stock="sage">Timeline</ArcTitleBar>
                             <DayTimeline day={day} cards={cards} />
                         </Paper>
                     )}
@@ -187,13 +197,27 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
                 */}
                 <Box className="day-glass"
                      sx={{ gridArea: 'side',
+                           // As slim as the column can be, and never narrower
+                           // than the grid's day plus the padding round it.
+                           width: { md: gridDay ? `max(${SIDE_WIDTH}, ${gridDay.width + SIDE_PADDING * 2}px)` : SIDE_WIDTH },
                            minWidth: 0,
                            p: 1,
                            display: 'flex',
                            flexDirection: 'column',
                            gap: 1.5,
                            alignSelf: 'stretch' }}>
-                    <DayCell day={day} mini />
+                    {/*
+                        The day exactly as the calendar draws it: the grid day's
+                        own width and height, so its layout is the grid's too.
+                    */}
+                    <Box sx={{ width: gridDay?.width ?? '100%',
+                               height: gridDay?.height,
+                               maxWidth: '100%',
+                               flexShrink: 0,
+                               alignSelf: 'center',
+                               display: 'flex' }}>
+                        <DayCell day={day} mini />
+                    </Box>
                     {(type.progress || type.ring) && stats.total > 0 && <TypesTable stats={stats} progress={type.progress} />}
                     <DayConnections day={day} />
                 </Box>
@@ -211,6 +235,9 @@ const DAY_OVERLAY_WIDTH = rem(1120)
 
 /** The slim column: a day on a desktop grid, and a little, so it looks as it will there. */
 const SIDE_WIDTH = rem(236)
+
+/** The side column's padding, in px — p: 1. */
+const SIDE_PADDING = 8
 
 /**
  * Every type on the day by name, with its mark and its count — and, on a day

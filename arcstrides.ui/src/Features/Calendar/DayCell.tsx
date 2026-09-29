@@ -12,8 +12,11 @@
  * The same component is the live copy in the day's own overlay (`mini`), which
  * is what the Blazor overlay did when it put a CalendarDate inside
  * UpdateDateOverlay: change the day there and the copy shows it as the grid
- * will. The view it is on is shared through the store, so stepping it in one
- * steps it in the other. In the copy nothing opens the day again.
+ * will. It is the grid's day exactly — the same layout, and drawn at the size
+ * the grid day is measured at (see useGridDaySize), so what the overlay shows
+ * is what the calendar shows. The view it is on is shared through the store,
+ * so stepping it in one steps it in the other. In the copy nothing opens the
+ * day again.
  *
  * On a phone a day is forty pixels wide: the number and its ring, a note with
  * the card count that opens the day, where there is room for the rest, and a
@@ -43,7 +46,7 @@ interface DayCellProps {
 
 export const DayCell: React.FC<DayCellProps> = ({ day, mini = false }) => {
     const { colours, boardTitle, openDay } = useCalendarActions()
-    const wide = useMediaQuery(useTheme().breakpoints.up(NOTES_FROM)) || mini
+    const wide = useMediaQuery(useTheme().breakpoints.up(NOTES_FROM))
 
     const cards = useMemo(() => day.stored?.cards ?? [], [day.stored])
     const stats = useMemo(() => dayStats(cards, colours), [cards, colours])
@@ -62,15 +65,26 @@ export const DayCell: React.FC<DayCellProps> = ({ day, mini = false }) => {
     const name = day.date.format('dddd D MMMM')
     const type = dayTypeOf(day.stored?.typeId)
 
+    const number = (
+        <Typography component="span"
+                    className="gold-foil"
+                    sx={{ fontFamily: NUMERALS, fontWeight: 700, fontSize: '0.66rem', lineHeight: 1 }}>
+            {day.date.date()}
+        </Typography>
+    )
+
     return (
         // A group named for its date, so the buttons inside it — "Next view",
         // "Quick actions" — are heard in the context of which day they act on.
         <Box role="group"
              aria-label={mini ? `${name}, as it shows on the calendar` : name}
              className="day-glass"
+             // How the overlay finds this day to measure it — see useGridDaySize.
+             data-day={mini ? undefined : day.key}
              sx={{ width: '100%',
+                   height: mini ? '100%' : undefined,
                    minWidth: 0,
-                   minHeight: mini ? 0 : DAY_MIN_HEIGHT,
+                   minHeight: DAY_MIN_HEIGHT,
                    display: 'flex',
                    flexDirection: 'column',
                    gap: 0.6,
@@ -100,7 +114,7 @@ export const DayCell: React.FC<DayCellProps> = ({ day, mini = false }) => {
                            flexDirection: 'column',
                            gap: 0.5,
                            minWidth: 0,
-                           maxHeight: mini ? 'none' : DAY_BODY_MAX_HEIGHT,
+                           maxHeight: DAY_BODY_MAX_HEIGHT,
                            overflowY: 'auto',
                            // Room for the notes' shadows inside the scroller.
                            pb: 0.5,
@@ -117,28 +131,31 @@ export const DayCell: React.FC<DayCellProps> = ({ day, mini = false }) => {
             */}
             {!wide && (
                 <>
-                    <Box sx={{ alignSelf: 'flex-start' }}>
+                    {/* On a scrap of the same sand sheet the wider days' headers sit on. */}
+                    <Box className="card-stock paper-sand"
+                         sx={{ alignSelf: 'stretch', display: 'flex', justifyContent: 'center', p: '2px' }}>
                         <TypeRing slices={type.ring ? stats.slices : []} size={28} thickness={3}>
-                            <ButtonBase className={`card-disc card-stock-flat${day.isToday ? ' paper-oxblood' : ''}`}
-                                        onClick={() => openDay(day)}
-                                        aria-label={`Open ${name}${day.isToday ? ', today' : ''}`}
-                                        aria-current={day.isToday ? 'date' : undefined}
-                                        sx={{ width: 22, height: 22 }}>
-                                <Typography component="span"
-                                            className="gold-foil"
-                                            sx={{ fontFamily: NUMERALS,
-                                                  fontWeight: 700,
-                                                  fontSize: '0.66rem',
-                                                  lineHeight: 1 }}>
-                                    {day.date.date()}
-                                </Typography>
-                            </ButtonBase>
+                            {mini ? (
+                                <Box className={`card-disc card-stock-flat card-cut${day.isToday ? ' paper-oxblood' : ''}`}
+                                     sx={{ width: 22, height: 22, display: 'grid', placeItems: 'center' }}>
+                                    {number}
+                                </Box>
+                            ) : (
+                                <ButtonBase className={`card-disc card-stock-flat card-cut${day.isToday ? ' paper-oxblood' : ''}`}
+                                            onClick={() => openDay(day)}
+                                            aria-label={`Open ${name}${day.isToday ? ', today' : ''}`}
+                                            aria-current={day.isToday ? 'date' : undefined}
+                                            sx={{ width: 22, height: 22 }}>
+                                    {number}
+                                </ButtonBase>
+                            )}
                         </TypeRing>
                     </Box>
 
                     {cards.length > 0 && (
                         <ButtonBase className="note"
                                     onClick={() => openDay(day)}
+                                    disabled={mini}
                                     aria-label={`${cards.length} ${cards.length === 1 ? 'card' : 'cards'} on ${name}`}
                                     sx={{ alignSelf: 'flex-start',
                                           minWidth: '1.2rem',

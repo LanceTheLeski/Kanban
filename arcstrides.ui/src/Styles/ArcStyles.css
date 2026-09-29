@@ -580,6 +580,9 @@ body,
 /* Greyboard — the unprinted stock. An empty timeline node is cut from it. */
 .paper-grey { --arc-paper: var(--arc-grey); }
 
+/* Sand — the swimlanes' card, as a stock: the sheet a day's tiles are laid on. */
+.paper-sand { --arc-paper: var(--arc-sand); }
+
 /*
    A piece glued flat to another piece.
 
@@ -719,6 +722,24 @@ body,
 */
 .card-disc {
     border-radius: 50%;
+}
+
+/*
+   A piece cut out and laid flat on another piece of paper — the way the day
+   types' pictures are built, layer on layer.
+
+   .card-stock-flat is a strip lifted one ply off a panel, and its shadow is soft
+   and spread for it. A cut piece lies on the sheet under it: its shadow is the
+   one the pictures cast, short, crisp and straight down, a hairline darker
+   where the sheet's edge stands off the one beneath. Worn with .card-stock-flat,
+   for the face and the grain, and declared after it so its shadow is the one
+   that holds.
+*/
+.card-cut {
+    box-shadow:
+        inset 0 -1px 0 0 color-mix(in srgb, var(--arc-paper) 70%, #5a4630),
+        0 1px 0.6px rgba(38, 28, 10, .4),
+        0 2px 3px -1px rgba(38, 28, 10, .26);
 }
 
 /*
@@ -1110,4 +1131,36 @@ body,
     color: var(--arc-cream);
     background-image: var(--arc-paper-grain);
     border-radius: 2px;
+}
+
+/*
+   The app's bars — the board's and the calendar's.
+
+   Navy, the blue ladder's deep, and flat: no grain and no lit face. On a strip
+   that dark the paper grain read as speckle rather than as paper, so the bar is
+   plain colour, the ground things are laid on — and what is laid on it is
+   paper: its controls are pieces of cream card (.bar-piece), and the Honu
+   button is a disc of it.
+*/
+.app-bar {
+    background: var(--arc-navy);
+    color: var(--arc-cream);
+    border-radius: 2px;
+    box-shadow:
+        0 2px 4px -1px rgba(10, 18, 30, .3),
+        0 4px 10px 0 rgba(10, 18, 30, .18);
+}
+
+/* A control on the bar: a piece of card, lifted a little under the pointer. */
+.bar-piece {
+    transition: transform .12s, filter .12s;
+}
+
+.bar-piece:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.03);
+}
+
+.bar-piece.Mui-disabled {
+    filter: saturate(.4) opacity(.6);
 }

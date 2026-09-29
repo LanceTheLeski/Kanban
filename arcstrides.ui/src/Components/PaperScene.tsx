@@ -3,7 +3,7 @@
  *
  * The frame every cut-paper picture is drawn in: a sky, and a hairline shadow
  * for each layer to cast on the one behind it. What goes in front of the sky is
- * the caller's — see DayArt for the day types' scenes, BoardArt for the board's.
+ * the caller's — see DayArt for the day types' scenes.
  *
  * ── Cut paper, not illustration ──────────────────────────────────────────────
  * Every layer is a flat shape in one colour from Styles/Scenery, and each casts

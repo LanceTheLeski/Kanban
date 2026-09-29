@@ -21,42 +21,32 @@
  * on it; the scale is 0 at the baseline and all done at the faint top rule.
  *
  * Every value is also readable without the lines: the tooltip on each, and the
- * day overlay's table of types with done / total.
+ * day overlay's table of types with done / total. The tile carries no count of
+ * its own — a "4/8" in its corner was a second, smaller chart competing with
+ * the first for the same few pixels.
  */
 
 import React from 'react'
 import { Box } from '@mui/material'
-import { MONO } from '../../Styles/Fonts'
 import type { TypeSlice } from './Calendar.Stats'
 
 interface ProgressLinesProps {
     slices: TypeSlice[]
-    done: number
-    total: number
-    /** Show "done/total" in the top-left corner. */
-    showCount?: boolean
-    /** Line and dot weight — heavier for the overlay's larger chart. */
-    weight?: 'small' | 'large'
 }
 
-export const ProgressLines: React.FC<ProgressLinesProps> = ({ slices, done, total, showCount = true, weight = 'small' }) => {
-    const large = weight === 'large'
+export const ProgressLines: React.FC<ProgressLinesProps> = ({ slices }) => {
     const summary = slices.map(slice => `${slice.title} ${slice.done} of ${slice.count}`).join(', ')
 
     return (
         <Box role="img"
-             aria-label={total === 0 ? 'No tasks' : `Progress by type: ${summary}`}
-             sx={{ position: 'relative', width: '100%', height: '100%', minHeight: large ? 72 : 28 }}>
+             aria-label={slices.length === 0 ? 'No tasks' : `Progress by type: ${summary}`}
+             sx={{ position: 'relative', width: '100%', height: '100%', minHeight: 28 }}>
             <Box component="svg"
                  viewBox={`0 0 ${W} ${H}`}
                  preserveAspectRatio="none"
                  sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}>
-                {/*
-                    The scale: all done along the top, none along the bottom. The
-                    top rule starts clear of the count in the corner, or it would
-                    strike it through.
-                */}
-                <line x1={showCount && total > 0 ? W * 0.3 : 0} x2={W} y1={yOf(1)} y2={yOf(1)} stroke="rgba(52, 36, 20, 0.12)" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+                {/* The scale: all done along the top, none along the bottom. */}
+                <line x1={0} x2={W} y1={yOf(1)} y2={yOf(1)} stroke="rgba(52, 36, 20, 0.12)" strokeWidth={1} vectorEffect="non-scaling-stroke" />
                 <line x1={0} x2={W} y1={yOf(0)} y2={yOf(0)} stroke="rgba(52, 36, 20, 0.28)" strokeWidth={1} vectorEffect="non-scaling-stroke" />
 
                 {slices.map(slice => {
@@ -64,12 +54,12 @@ export const ProgressLines: React.FC<ProgressLinesProps> = ({ slices, done, tota
                     return (
                         <g key={slice.key}>
                             {/* The halo, in the tile's colour, under the line. */}
-                            <path d={d} fill="none" strokeWidth={large ? 6 : 4.5}
+                            <path d={d} fill="none" strokeWidth={4.5}
                                   // In style, not the attribute: a presentation
                                   // attribute is not reliably allowed a var().
                                   style={{ stroke: 'var(--arc-paper, #f6f1e4)' }}
                                   strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-                            <path d={d} fill="none" stroke={slice.colour} strokeWidth={large ? 2.5 : 2}
+                            <path d={d} fill="none" stroke={slice.colour} strokeWidth={2}
                                   strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
                             {/* A wide invisible stroke to hover, bigger than the line. */}
                             <path d={d} fill="none" stroke="transparent" strokeWidth={10} vectorEffect="non-scaling-stroke">
@@ -90,27 +80,13 @@ export const ProgressLines: React.FC<ProgressLinesProps> = ({ slices, done, tota
                      sx={{ position: 'absolute',
                            right: 0,
                            top: `${(yOf(slice.count === 0 ? 0 : slice.done / slice.count) / H) * 100}%`,
-                           width: large ? 9 : 6,
-                           height: large ? 9 : 6,
+                           width: 6,
+                           height: 6,
                            transform: 'translate(50%, -50%)',
                            borderRadius: '50%',
                            backgroundColor: slice.colour,
-                           boxShadow: `0 0 0 ${large ? 2 : 1.5}px var(--arc-paper, #f6f1e4)` }} />
+                           boxShadow: '0 0 0 1.5px var(--arc-paper, #f6f1e4)' }} />
             ))}
-
-            {showCount && total > 0 && (
-                <Box component="span"
-                     sx={{ position: 'absolute',
-                           left: 2,
-                           top: 0,
-                           fontFamily: MONO,
-                           fontSize: large ? '0.72rem' : '0.52rem',
-                           lineHeight: 1.2,
-                           color: 'arc.onPaper',
-                           fontVariantNumeric: 'tabular-nums' }}>
-                    {done}/{total}
-                </Box>
-            )}
         </Box>
     )
 }

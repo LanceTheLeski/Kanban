@@ -71,7 +71,6 @@ export const CalendarPage: React.FC = () => {
                              busy={status === 'loading'}
                              onPrevious={() => go(start.subtract(1, 'month'))}
                              onNext={() => go(start.add(1, 'month'))}
-                             onToday={() => go(dayjs())}
                              menu={<AppMenu />} />
 
                 {status === 'error' && <ReadFailed error={error} onRetry={() => loadMonth(year, month)} />}

@@ -34,7 +34,7 @@ export const AppMenu: React.FC = () => {
                 image laid straight onto the bar's blue — the bar is the one
                 strip the app bar paints, and a sticker reads as a thing on it.
             */}
-            <ButtonBase className="card-disc card-stock-flat"
+            <ButtonBase className="card-disc card-stock-flat card-cut"
                         onClick={event => setAnchor(event.currentTarget)}
                         aria-label="Open the app menu"
                         aria-haspopup="menu"

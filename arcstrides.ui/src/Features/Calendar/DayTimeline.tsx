@@ -14,9 +14,10 @@
  *
  * Each stop's dot is its task's type colour — the ring's and the lines' — and
  * the point's name and the card are written beside it, so the colour is a link
- * to the graphs, never the only thing saying which task it is. The day itself
- * is marked on the rail in gold on oxblood, before its own stops, or where they
- * would be if it has none; stops on other days carry their date.
+ * to the graphs, never the only thing saying which task it is. Stops on this
+ * day are at full strength; stops on other days are paler and carry their
+ * date. The day itself is not marked on the rail: the panel is already the
+ * day's, and a label for it was a second heading in a panel of paper.
  */
 
 import React from 'react'
@@ -45,12 +46,6 @@ export const DayTimeline: React.FC<DayTimelineProps> = ({ day, cards }) => {
         )
     }
 
-    // The day's marker goes before the first stop that is not before the day.
-    const markerAt = stops.findIndex(stop => !stop.at.isBefore(day.date, 'day'))
-    const position = markerAt === -1 ? stops.length : markerAt
-    const rows: ({ kind: 'stop'; stop: Stop } | { kind: 'day' })[] = stops.map(stop => ({ kind: 'stop', stop }))
-    rows.splice(position, 0, { kind: 'day' })
-
     return (
         <Box component="ol"
              aria-label="Timeline of this day's tasks"
@@ -70,34 +65,13 @@ export const DayTimeline: React.FC<DayTimelineProps> = ({ day, cards }) => {
                        top: '0.9rem',
                        bottom: '0.9rem' }} />
 
-            {rows.map(row => row.kind === 'day'
-                ? (
-                    <Box component="li" key="day" sx={{ display: 'flex',
-                                                        alignItems: 'center',
-                                                        position: 'relative' }}>
-                        <Box className="card-stock-flat tile paper-oxblood"
-                             sx={{ ml: `${RAIL_CENTRE - 22}px`, width: 44, py: 0.25, textAlign: 'center' }}>
-                            <Box component="span"
-                                 className="gold-foil"
-                                 sx={{ fontFamily: "Georgia, 'Times New Roman', serif",
-                                       fontWeight: 700,
-                                       fontSize: '0.62rem',
-                                       letterSpacing: '0.06em' }}>
-                                {day.date.format('D MMM').toUpperCase()}
-                            </Box>
-                        </Box>
-                        <Typography sx={{ ml: 1, fontSize: '0.66rem', color: 'arc.onPaperMuted' }}>
-                            {day.isToday ? 'Today' : 'This day'}
-                        </Typography>
-                    </Box>
-                )
-                : (
-                    <StopRow key={`${row.stop.task.id}:${row.stop.node.id}`}
-                             stop={row.stop}
-                             onDay={row.stop.at.isSame(day.date, 'day')}
-                             colour={colourOf(row.stop.task.taskType?.id, colours)}
-                             onOpen={() => openCard(row.stop.card)} />
-                ))}
+            {stops.map(stop => (
+                <StopRow key={`${stop.task.id}:${stop.node.id}`}
+                         stop={stop}
+                         onDay={stop.at.isSame(day.date, 'day')}
+                         colour={colourOf(stop.task.taskType?.id, colours)}
+                         onOpen={() => openCard(stop.card)} />
+            ))}
         </Box>
     )
 }
