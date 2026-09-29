@@ -8,7 +8,7 @@
  * because nothing could look one up.
  *
  * ── A month is addressed by the month, not by an ID ──────────────────────────
- * The three calls here name a month the way a person does, year and month, and
+ * The calls here name a month the way a person does, year and month, and
  * a day as year, month and day. The API stores a month only as the rows of the
  * days something was put on, sharing an ID it mints with the first of them; the
  * UI never needs that ID, and never has to create a month before using it.
@@ -16,6 +16,7 @@
  *   fetchMonthOf        what is stored for a month — often nothing
  *   addCardToDate       put a card on a day, creating the day if need be
  *   removeCardFromDate  take it off again
+ *   setDateType         say what kind of day it is — see Calendar.DayTypes
  *
  * Months run 0–11 here, as dayjs counts them, and 1–12 on the wire, as the API
  * takes them. The conversion happens in this file and nowhere else.
@@ -41,6 +42,7 @@ interface DateResponse {
     dayOfTheWeekOrder: number | null
     monthName: string | null
     yearOrder: number | null
+    dateTypeID: number | null
     cards: CardResponse[] | null
 }
 
@@ -88,6 +90,16 @@ export async function removeCardFromDate(year: number, month: number, day: numbe
     return fetchMonthOf(year, month)
 }
 
+/**
+ * PUT arcstrides/calendars/dates/:year/:month/:day/type
+ *
+ * Like adding a card, needs nothing to exist first. 0 clears the type.
+ */
+export async function setDateType(year: number, month: number, day: number, typeId: number): Promise<Month> {
+    const response = await apiClient.put<MonthResponse>(`${datePath(year, month, day)}/type`, { DateTypeID: typeId })
+    return mapMonth(response, year, month)
+}
+
 // ── Private ───────────────────────────────────────────────────────────────────
 // Not exported, which is this language's `private`. Ordered by first use above.
 
@@ -113,6 +125,7 @@ function mapDate(response: DateResponse): CalendarDate {
         day: response.dateOrder ?? 0,
         month: monthIndex(response.monthName),
         year: response.yearOrder ?? null,
+        typeId: response.dateTypeID ?? 0,
         cards: (response.cards ?? []).map(mapCard),
     }
 }

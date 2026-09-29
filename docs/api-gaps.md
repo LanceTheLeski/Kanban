@@ -134,9 +134,16 @@ So the calendar addresses months and days by the date, and never needs an ID:
 | `GET months?year=2026&month=9` | what is stored for a month; 200 with no dates if nothing |
 | `POST dates/2026/9/24/cards` `{ CardID }` | puts a card on a day, writing the day's row and the month's ID if they do not exist yet |
 | `DELETE dates/2026/9/24/cards/{cardID}` | takes it off |
+| `PUT dates/2026/9/24/type` `{ DateTypeID }` | says what kind of day it is, writing the day's row if need be; 0 clears it |
 
 `month` runs 1–12 in these routes; the table's `MonthOrder` runs 0–11 and the
-conversion is in the controller. The two writes answer with the whole month.
+conversion is in the controller. The writes answer with the whole month.
+
+A day's type is only a number on its row, `Date.DateTypeID`, sent back as
+`DateResponse.DateTypeID`. What each number means — Work, Leisure, Vacation,
+their pictures and what they change on the calendar — is defined by the UI, in
+`arcstrides.ui/src/Features/Calendar/Calendar.DayTypes.ts`, because each is
+drawn by code. Rows written before the field existed read as 0, no type.
 Cards reach a day through the same rows `FetchMonth` always read: the day's
 `CardTagGroupID` → a `TagGroups` row per tag → a `Tags` row whose RowKey is
 the card. The endpoints write them, so the tag endpoints (#1, #2) are not
@@ -152,11 +159,16 @@ Still missing:
   the row that already has cards, which narrows it without closing it.
 - **`DateResponse` has no `MonthOrder`**, though the table stores it. The UI
   recovers the month from `MonthName`, which only works while that is English.
-- **A date has nothing to customise yet.** The Blazor day overlay had a
-  date-type selector over a hard-coded list and a palette swatch; neither was
-  wired, and `Date` has no field for either. What a date's type and colour mean
-  — and what they change on the calendar — is to be decided before they are
-  built. The day overlay's live copy of the day is where they would show.
+- **A date has no tags.** The day overlay has the card editor's tags panel
+  beside the day's picture, held in the page for the session only, with the
+  same warning dot the card's carries. Unlike a card's (#2), there is nowhere
+  to write them either: a date's `CardTagGroupID` is its cards. A second group
+  ID on `Date` for its own tags, and a read of them on `DateResponse`, would do.
+- **Moving a card between days is two calls.** Carrying a day's unfinished
+  cards over puts each on the new day, then takes it off the old one — on
+  first, so a failure between the two leaves a card on both days rather than
+  on neither. One `POST dates/{y}/{m}/{d}/cards/{cardID}/move` would make it a
+  single write.
 
 Fixed, each reproduced against Azurite first. The first two each returned 500
 for the whole month, not just the day:

@@ -173,6 +173,44 @@ public class CalendarController : Controller
     }
 
     /// <summary>
+    /// Sets what kind of day a date is — <c>PUT dates/2026/9/24/type</c>, with
+    /// <c>{ "DateTypeID": 3 }</c>. 0 clears it.
+    /// </summary>
+    /// <remarks>
+    /// Like AddCardToDate, nothing has to exist first: a day that has never had
+    /// anything on it gets its row here. Answers with the whole month.
+    /// </remarks>
+    [HttpPut ("dates/{year:int}/{month:int}/{day:int}/type")]
+    public async Task<ActionResult> SetDateType (int year, int month, int day, [FromBody] DateTypeUpdateRequest dateTypeUpdateRequest)
+    {
+        var validationResult = new DateValidators.DateTypeUpdateRequestValidator ().Validate (dateTypeUpdateRequest);
+        if (validationResult.IsValid is false)
+            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (DateTypeUpdateRequest), validationResult.ToString ()));
+
+        if (IsCalendarDate (year, month, day) is false)
+            return BadRequest ($"{year}-{month}-{day} is not a date on the calendar.");
+
+        var monthDates = await QueryMonthAsync (year, month);
+        var date = DayOf (monthDates, day);
+        var typeID = dateTypeUpdateRequest.DateTypeID!.Value;
+
+        if (date is null)
+        {
+            date = NewDate (year, month, day, MonthIDOf (monthDates) ?? Guid.NewGuid ());
+            date.DateTypeID = typeID;
+            await _dateRepository.AddDateAsync (date);
+        }
+        else if (date.DateTypeID != typeID)
+        {
+            date.DateTypeID = typeID;
+            await _dateRepository.UpdateDateAsync (date);
+        }
+
+        var updated = await QueryMonthAsync (year, month);
+        return Ok (await BuildMonthResponseAsync (updated, MonthIDOf (updated), TitleOf (year, month)));
+    }
+
+    /// <summary>
     /// Takes a card off a calendar date — <c>DELETE dates/2026/9/24/cards/{cardID}</c>.
     /// </summary>
     /// <remarks>
@@ -456,13 +494,14 @@ public class CalendarController : Controller
 
     /// <summary>
     /// A day's row. If two were written for it, the one that already has cards,
-    /// then the one under the month's main ID.
+    /// then one with a type, then the one under the month's main ID.
     /// </summary>
     private static Date? DayOf (IReadOnlyList<Date> monthDates, int day)
     {
         var monthID = MonthIDOf (monthDates)?.ToString ();
         return monthDates.Where (date => date.DateOrder == day)
                          .OrderByDescending (date => date.CardTagGroupID != Guid.Empty)
+                         .ThenByDescending (date => date.DateTypeID != 0)
                          .ThenByDescending (date => date.RowKey == monthID)
                          .FirstOrDefault ();
     }

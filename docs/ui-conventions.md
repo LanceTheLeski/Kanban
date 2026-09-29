@@ -212,10 +212,10 @@ card, each tile its own colour and set edge to edge:
 
 | tile | stock | what it is |
 |---|---|---|
-| the date | a card disc, ringed | the number in gold foil, ringed with its tasks by type; today is oxblood |
-| progress | cream | a line per task type, levelling out at its share done |
+| the date | a card disc, ringed | the number in gold foil, ringed with its tasks by type; the disc fills the ring to its inner edge; today is oxblood |
+| middle | cream | the progress lines, the day type's picture, or "+ Add card" — see below |
 | ⋮ | yellow | quick actions |
-| ‹ › | blue | step through the day's views |
+| ‹ › | blue | step through the day's views; not drawn on a day with no cards |
 | heading | oxblood | the view's name in gold foil, four capitals at most — ALL, OPEN, FEAT |
 
 How the tiles arrange is decided by the day's own width (a container query),
@@ -224,6 +224,47 @@ overlay. Under the header, the view's cards, each a note wrapped round its tasks
 as green strips — the same strips, and the same popover behind them, as in the
 card editor. The views are a list in `Calendar.Views.ts`; the charts' numbers
 and colours are in `Calendar.Stats.ts`.
+
+No day draws a graph of nothing. The middle tile is the lines only where there
+is progress to show and the day's type measures it; otherwise it is the type's
+picture, or an offer to add a card (or a task, to a day whose cards have none).
+
+### Day types
+
+A day has a type, and the type has a picture — a scene in cut paper, drawn by
+`DayArt.tsx`. The types are fixed, in `Calendar.DayTypes.ts`; the API stores
+only the number.
+
+| type | picture | ring | lines | an empty day shows |
+|---|---|---|---|---|
+| no theme | — | yes | yes | "+ Add card" |
+| Work | a city | yes | yes | "+ Add card", on a chip over the skyline |
+| Leisure | a park | yes | no — the picture | the picture |
+| Vacation | a beach | no | no — the picture | the picture |
+
+The picture is how the type is changed: click it at the top of the day
+overlay, or use the Theme items in a day's ⋮. On a phone, where a day has no
+header, it is a strip along the day's foot. Leisure and Vacation are not
+working days, so work carried over from the day before steps past them.
+
+### Tonal ladders
+
+Each paper hue has three steps of the same hue: the **ground** — the paper
+stocks as they are — a **mid** at about the weight of ink, and a **deep** for
+text on colour and dark tiles. The day-type scenes are drawn from these and
+nothing else, which is what keeps them in the paper's family.
+
+| hue | ground | mid | deep |
+|---|---|---|---|
+| blue | `#cde1f5` | `#79aad8` | `#295074` |
+| green | `#c9e6da` | `#6cb69a` | `#175a45` |
+| red | `#f5d6d0` | `#d59185` | `#703c34` |
+| yellow | `#ecdeb1` | `#b8a365` | `#5c4b14` |
+
+Gold and oxblood are the two stocks outside the ladders: gold (`#d9ab3f`) is
+about twice as saturated as any other stock, which is why it jumps, and oxblood
+is the only deep. Moving them onto the ladders — gold as a yellow mid,
+`#cfac5f`, and oxblood as the red deep, `#70322b` — is proposed, not applied.
 
 **Gold** is `.gold-foil`: Blazor's `.gold-text` gradient with a dark drop-shadow
 under it so the letters keep an edge on light card. **Oxblood** is the one dark
@@ -237,6 +278,17 @@ a type is the same colour everywhere. Untyped tasks are grey. The palette was
 validated against the frosted sand a day sits on; five hues are under 3:1 there,
 so colour is never the only way to tell a type: the day overlay lists every
 type by name with its count, and each task row carries its type's mark and name.
+
+### The day overlay
+
+Laid out the way the Blazor one was: along the top, the number, the date in
+words, the type's picture and the tags; under them the timeline, which is the
+bulk of it, and the cards; down the right, a slim column of frosted glass with
+the day as the calendar shows it, the table of types, and the day's
+connections — the days either side, its cards' boards, other days with the same
+cards, and the days its tasks are due. Every day in it opens in the same
+overlay, crossing into another month if it has to. A panel with nothing in it
+is not drawn.
 
 ---
 

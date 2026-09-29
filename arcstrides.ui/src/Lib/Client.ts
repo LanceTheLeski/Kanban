@@ -159,6 +159,14 @@ export const apiClient = {
         }).then(r => r.json())
     },
 
+    /** PUT — sends JSON body, returns parsed JSON */
+    put<T>(path: string, body: unknown): Promise<T> {
+        return request(path, {
+            method: 'PUT',
+            body: JSON.stringify(body),
+        }).then(r => r.json())
+    },
+
     /**
      * PATCH — sends a JSON Patch document (RFC 6902).
      *

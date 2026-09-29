@@ -23,6 +23,8 @@ export interface CalendarDate {
     /** From 0, the way dayjs counts. Recovered from MonthName; null if that failed. */
     month: number | null
     year: number | null
+    /** What kind of day it is — see Calendar.DayTypes. 0 when none has been chosen. */
+    typeId: number
     cards: Card[]
 }
 

@@ -15,8 +15,9 @@
  * will. The view it is on is shared through the store, so stepping it in one
  * steps it in the other. In the copy nothing opens the day again.
  *
- * On a phone a day is forty pixels wide: the number and its ring, and a note
- * with the card count that opens the day, where there is room for the rest.
+ * On a phone a day is forty pixels wide: the number and its ring, a note with
+ * the card count that opens the day, where there is room for the rest, and a
+ * strip of its theme's picture along the foot.
  */
 
 import React, { useMemo } from 'react'
@@ -27,6 +28,8 @@ import { DayHeader } from './DayHeader'
 import { DayCard } from './DayCard'
 import { dayStats } from './Calendar.Stats'
 import { viewsFor } from './Calendar.Views'
+import { dayTypeOf } from './Calendar.DayTypes'
+import { DayArt } from './DayArt'
 import { useCalendarActions } from './Calendar.Context'
 import { useCalendarStore } from './Calendar.Store'
 import { DAY_BODY_MAX_HEIGHT, DAY_MIN_HEIGHT, NOTES_FROM } from './Calendar.Layout'
@@ -57,6 +60,7 @@ export const DayCell: React.FC<DayCellProps> = ({ day, mini = false }) => {
     const view = views[index]
 
     const name = day.date.format('dddd D MMMM')
+    const type = dayTypeOf(day.stored?.typeId)
 
     return (
         // A group named for its date, so the buttons inside it — "Next view",
@@ -114,12 +118,12 @@ export const DayCell: React.FC<DayCellProps> = ({ day, mini = false }) => {
             {!wide && (
                 <>
                     <Box sx={{ alignSelf: 'flex-start' }}>
-                        <TypeRing slices={stats.slices} size={28} thickness={3}>
+                        <TypeRing slices={type.ring ? stats.slices : []} size={28} thickness={3}>
                             <ButtonBase className={`card-disc card-stock-flat${day.isToday ? ' paper-oxblood' : ''}`}
                                         onClick={() => openDay(day)}
                                         aria-label={`Open ${name}${day.isToday ? ', today' : ''}`}
                                         aria-current={day.isToday ? 'date' : undefined}
-                                        sx={{ width: 18, height: 18 }}>
+                                        sx={{ width: 22, height: 22 }}>
                                 <Typography component="span"
                                             className="gold-foil"
                                             sx={{ fontFamily: NUMERALS,
@@ -144,6 +148,15 @@ export const DayCell: React.FC<DayCellProps> = ({ day, mini = false }) => {
                                           lineHeight: 1.6 }}>
                             {cards.length}
                         </ButtonBase>
+                    )}
+
+                    {/* The theme, as a strip of its picture along the foot. */}
+                    {type.scene && (
+                        <Box className="card-stock-flat tile"
+                             title={`${type.name} day`}
+                             sx={{ mt: 'auto', height: 12, overflow: 'hidden' }}>
+                            <DayArt scene={type.scene} label={`${type.name} day`} />
+                        </Box>
                     )}
                 </>
             )}

@@ -21,13 +21,11 @@
 
 import React from 'react'
 import { Box, ButtonBase, Typography } from '@mui/material'
-import dayjs, { type Dayjs } from 'dayjs'
 import { MONO } from '../../Styles/Fonts'
-import { NODES, type NodeSpec } from '../Board/Timeline/Timeline.Nodes'
 import { colourOf } from './Calendar.Stats'
+import { stopsOf, type Stop } from './Calendar.Stops'
 import { useCalendarActions } from './Calendar.Context'
 import type { Card } from '../../Entities/Card/Card.Types'
-import type { Task } from '../../Entities/Task/Task.Types'
 import type { GridDay } from './Calendar.Grid'
 
 interface DayTimelineProps {
@@ -108,23 +106,6 @@ export default DayTimeline
 
 // ── Private ───────────────────────────────────────────────────────────────────
 // Not exported, which is this language's `private`. Ordered by first use above.
-
-interface Stop {
-    task: Task
-    card: Card
-    node: NodeSpec
-    at: Dayjs
-}
-
-/** Every timeline point of every task on these cards, earliest first. */
-function stopsOf(cards: Card[]): Stop[] {
-    return cards
-        .flatMap(card => card.tasks.flatMap(task => NODES.flatMap(node => {
-            const at = task.timeline ? node.seed(task.timeline) : null
-            return at ? [{ task, card, node, at: dayjs(at) }] : []
-        })))
-        .sort((a, b) => a.at.valueOf() - b.at.valueOf())
-}
 
 /** The rail's centre, in px from the list's left edge — where each dot sits. */
 const RAIL_CENTRE = 24

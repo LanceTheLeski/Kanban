@@ -89,3 +89,8 @@ export function dayOf(weeks: Week[], key: string): GridDay | null {
             if (day?.key === key) return day
     return null
 }
+
+/** The address of the month a date is in: /calendar/2026/9, month from 1. */
+export function monthPath(date: Dayjs): string {
+    return `/calendar/${date.year()}/${date.month() + 1}`
+}

@@ -61,9 +61,11 @@ export interface CardTag {
 interface TagsPanelProps {
     tags: CardTag[]
     onChange: (tags: CardTag[]) => void
+    /** Why these are not saved, for the dot in the corner. A card's reason by default. */
+    unsavedNote?: string
 }
 
-export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange }) => {
+export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange, unsavedNote = CARD_NOTE }) => {
     const [draft, setDraft] = useState('')
 
     const add = () => {
@@ -99,7 +101,7 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange }) => {
                 would cost a third of the box, and the note is context rather
                 than content.
             */}
-            <Tooltip title="The API can create and delete tags but cannot yet list the tags on a card, so these are not saved. See the note in TagsPanel.tsx.">
+            <Tooltip title={unsavedNote}>
                 <Box aria-label="Tags are not saved yet"
                      sx={{ position: 'absolute',
                            top: 3,
@@ -203,3 +205,8 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange }) => {
 }
 
 export default TagsPanel
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+const CARD_NOTE = 'The API can create and delete tags but cannot yet list the tags on a card, so these are not saved. See the note in TagsPanel.tsx.'

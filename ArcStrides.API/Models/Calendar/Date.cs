@@ -47,4 +47,15 @@ public class Date : ArcCalendarsEntity
     /// Links to a group of Cards.
     /// </summary>
     public Guid CardTagGroupID { get; set; }
+
+    /// <summary>
+    /// What kind of day this is — its theme on the calendar. 0 is none chosen.
+    /// </summary>
+    /// <remarks>
+    /// The types themselves, with their art and what each changes about a day,
+    /// are defined by the UI (Calendar.DayTypes.ts): Work 1, Leisure 2,
+    /// Vacation 3. Only the number is stored, so a row written before this
+    /// field existed reads as 0.
+    /// </remarks>
+    public int DateTypeID { get; set; }
 }

@@ -26,6 +26,7 @@ import dayjs, { type Dayjs } from 'dayjs'
 import { CalendarNav } from '../Features/Calendar/CalendarNav'
 import { MonthView } from '../Features/Calendar/MonthView'
 import { useCalendarStore } from '../Features/Calendar/Calendar.Store'
+import { monthPath } from '../Features/Calendar/Calendar.Grid'
 import { AppMenu } from '../Layouts/AppMenu'
 
 export const CalendarPage: React.FC = () => {
@@ -88,10 +89,6 @@ export default CalendarPage
 
 // ── Private ───────────────────────────────────────────────────────────────────
 // Not exported, which is this language's `private`. Ordered by first use above.
-
-function monthPath(date: Dayjs): string {
-    return `/calendar/${date.year()}/${date.month() + 1}`
-}
 
 /**
  * The read failed: said on red card above the grid, which is still drawn. The

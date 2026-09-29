@@ -1,42 +1,57 @@
 /**
  * DayOverlay
  *
- * One day, opened up: the day as it shows on the calendar, its cards, its
- * progress at full size, and its timeline.
+ * One day, opened up.
  *
- * Mirrors: Layouts/Calendar/UpdateDateOverlay.razor —
+ *   ┌─────────────────────────────────────────────────┬──────────────┐
+ *   │ (30) [ picture ]  Tuesday 30 September   [tags] │  the day, as │
+ *   ├─────────────────────────────────────────────────┤  on the grid │
+ *   │ Timeline — the bulk of it                       │  Progress    │
+ *   │ Cards, and + Add card                           │  Connections │
+ *   └─────────────────────────────────────────────────┴──────────────┘
  *
- *   `<CalendarDate @bind-Date="Date" />` inside the overlay → the live copy,
- *       a DayCell drawn from the same data and the same view as the grid's, so
- *       whatever is changed here shows on it as it will on the calendar
- *   the card titles under it                               → Cards, editable
- *   the timeline of tasks by end deadline                  → Timeline, every point
+ * Mirrors: Layouts/Calendar/UpdateDateOverlay.razor, which was laid out the
+ * same way round — flex-row-reverse, the CalendarDate and its card titles in a
+ * column on the right, and on the left a header row (the date, the type, the
+ * swatch, the tags) over the timeline. Here:
  *
- * and the graphs gain what a day on the grid has no room for: the lines at a
- * size where they can be compared closely, and a table of every type with its
- * done and total, which is what lets the colours be only a link and never the
- * only way to tell one type from another.
+ *   the header row                   → DayBand: the number, the theme's
+ *                                      picture (click it to change the theme),
+ *                                      the date in words, the tags
+ *   the timeline by end deadline     → the timeline, every point, as the bulk
+ *   the card titles                  → Cards, editable, under it
+ *   `<CalendarDate>` in the column   → the live copy, top right, on glass
+ *   the second, placeholder timeline → Connections: nearby days, boards,
+ *                                      other days, deadlines elsewhere
  *
- * Left behind, because they held no data: the date-type selector over a hard-
- * coded list; the palette swatch; "Tag Canvas Placeholder :)"; and a second
- * timeline of "Event 1" to "Event 6". The first two want deciding before they
- * are built — see docs/api-gaps.md, #8.
+ * The right-hand column is slim and frosted, the grid's own material, because
+ * what is in it is the day as the calendar sees it and the ways out of it.
+ *
+ * ── What the day's type changes ──────────────────────────────────────────────
+ * A day that measures progress (see Calendar.DayTypes) gets the table of types
+ * with done and total; Leisure gets what is on, by type, without the done; a
+ * vacation gets neither, and if anything is on it, says so beside the offer to
+ * move it. Empty panels are not drawn: a day with no timeline has no Timeline
+ * panel, rather than one saying there is nothing in it.
  */
 
 import React from 'react'
-import { Box, IconButton, Paper, Typography } from '@mui/material'
+import { Box, Button, IconButton, Paper, Typography } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import { ArcOverlay } from '../../Components/ArcOverlay'
 import { ArcTitleBar } from '../../Components/ArcTitleBar'
-import { MONO, NUMERALS } from '../../Styles/Fonts'
+import { MONO } from '../../Styles/Fonts'
 import { rem } from '../../Styles/Measures'
+import { DayBand } from './DayBand'
 import { DayCell } from './DayCell'
 import { DayCard } from './DayCard'
 import { DayTimeline } from './DayTimeline'
+import { DayConnections } from './DayConnections'
 import { AddCardPicker } from './AddCardPicker'
-import { TypeRing } from './TypeRing'
-import { ProgressLines } from './ProgressLines'
 import { dayStats, type DayStats } from './Calendar.Stats'
+import { dayTypeOf } from './Calendar.DayTypes'
+import { stopsOf } from './Calendar.Stops'
+import { unfinished } from './Calendar.Moves'
 import { boardLabel } from './Calendar.Views'
 import { useCalendarActions } from './Calendar.Context'
 import type { Card } from '../../Entities/Card/Card.Types'
@@ -67,95 +82,120 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
     startAdding = false,
     addRequest = 0,
 }) => {
-    const { colours, boardTitle } = useCalendarActions()
+    const actions = useCalendarActions()
+    const { colours, boardTitle } = actions
     const cards = day.stored?.cards ?? []
     const stats = dayStats(cards, colours)
+    const type = dayTypeOf(day.stored?.typeId)
     const manyBoards = new Set(cards.map(card => card.boardId)).size > 1
+    const timed = stopsOf(cards).length > 0
+    const carry = unfinished(cards)
 
     return (
-        <ArcOverlay open
-                    onClose={onClose}
-                    title={day.date.format('dddd D MMMM YYYY')}
-                    titleStock={day.isToday ? 'red' : 'cream'}
-                    titleCaption={day.isToday ? 'Today' : undefined}
-                    discardLabel="Close"
-                    width={DAY_OVERLAY_WIDTH}>
+        <ArcOverlay open onClose={onClose} discardLabel="Close" width={DAY_OVERLAY_WIDTH}>
             <Box sx={{ display: 'grid',
-                       gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: `${MINI_WIDTH} minmax(0, 1fr) minmax(0, 1fr)` },
+                       gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: `minmax(0, 1fr) ${SIDE_WIDTH}` },
+                       gridTemplateAreas: { xs: '"band" "main" "side"', md: '"band side" "main side"' },
+                       gridTemplateRows: { md: 'auto 1fr' },
                        alignItems: 'start',
-                       gap: 2 }}>
-                {/*
-                    The day as the calendar shows it — live. Its view is the
-                    grid's view, so stepping ‹ › here steps the day on the grid
-                    too; nothing in it opens the day again.
-                */}
-                <Box sx={{ display: 'flex',
-                           flexDirection: 'column',
-                           gap: 1,
-                           width: MINI_WIDTH,
-                           maxWidth: '100%',
-                           justifySelf: 'center' }}>
-                    <ArcTitleBar>On the calendar</ArcTitleBar>
-                    <DayCell day={day} mini />
+                       columnGap: 2,
+                       rowGap: 2 }}>
+                <Box sx={{ gridArea: 'band', minWidth: 0 }}>
+                    <DayBand day={day} />
                 </Box>
 
-                {/*
-                    The cards: notes on blue, the way the tags panel puts its
-                    pieces on blue — a pale coloured ground with something of a
-                    different stock set down on it.
-                */}
-                <Paper className="card-stock paper-blue"
-                       elevation={0}
-                       sx={{ minWidth: 0, p: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    <ArcTitleBar>Cards</ArcTitleBar>
-
-                    {cards.length === 0 && <Empty>Nothing is on this day yet.</Empty>}
-
-                    {/*
-                        The × sits beside the card on the panel, not on it: the
-                        card's title is itself a button, and a button inside a
-                        button is two targets that cannot tell which was meant.
-                    */}
-                    {cards.map(card => (
-                        <Box key={card.id} sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
-                            <DayCard card={card}
-                                     tasks={card.tasks}
-                                     size="medium"
-                                     boardCaption={manyBoards
-                                         ? boardTitle(card.boardId) || boardLabel(card.boardId)
-                                         : undefined} />
-                            <IconButton size="small"
-                                        onClick={() => onRemoveCard(card)}
-                                        aria-label={`Take ${card.title} off this day`}
-                                        sx={{ flexShrink: 0,
-                                              color: 'arc.onPaperMuted',
-                                              '&:hover': { color: 'arc.paperDanger', backgroundColor: 'arc.paperHover' } }}>
-                                <CloseIcon sx={{ fontSize: '0.95rem' }} />
-                            </IconButton>
-                        </Box>
-                    ))}
-
-                    <AddCardPicker key={addRequest}
-                                   boardIds={boardIds}
-                                   onDay={new Set(cards.map(card => card.id))}
-                                   onPick={onAddCard}
-                                   startOpen={startAdding} />
-                </Paper>
-
-                <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <ProgressPanel day={day} stats={stats} />
-
+                <Box sx={{ gridArea: 'main', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                     {/*
                         The timeline on yellow, the stock the task timeline panel
                         cuts its Deadline tab from, on the same gold rail its
                         points sit on.
                     */}
-                    <Paper className="card-stock paper-yellow"
+                    {timed && (
+                        <Paper className="card-stock paper-yellow"
+                               elevation={0}
+                               sx={{ minWidth: 0, p: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <ArcTitleBar>Timeline</ArcTitleBar>
+                            <DayTimeline day={day} cards={cards} />
+                        </Paper>
+                    )}
+
+                    {/*
+                        The cards: notes on blue, the way the tags panel puts its
+                        pieces on blue — a pale coloured ground with something of a
+                        different stock set down on it.
+                    */}
+                    <Paper className="card-stock paper-blue"
                            elevation={0}
                            sx={{ minWidth: 0, p: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        <ArcTitleBar>Timeline</ArcTitleBar>
-                        <DayTimeline day={day} cards={cards} />
+                        <ArcTitleBar>Cards</ArcTitleBar>
+
+                        {cards.length === 0 && <Empty>{type.emptyNote}</Empty>}
+                        {cards.length > 0 && type.busyNote && <Empty>{type.busyNote}</Empty>}
+                        {cards.length > 0 && !timed && <Empty>None of these tasks has a timeline yet.</Empty>}
+
+                        {/*
+                            The × sits beside the card on the panel, not on it: the
+                            card's title is itself a button, and a button inside a
+                            button is two targets that cannot tell which was meant.
+                        */}
+                        {cards.map(card => (
+                            <Box key={card.id} sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
+                                <DayCard card={card}
+                                         tasks={card.tasks}
+                                         size="medium"
+                                         boardCaption={manyBoards
+                                             ? boardTitle(card.boardId) || boardLabel(card.boardId)
+                                             : undefined} />
+                                <IconButton size="small"
+                                            onClick={() => onRemoveCard(card)}
+                                            aria-label={`Take ${card.title} off this day`}
+                                            sx={{ flexShrink: 0,
+                                                  color: 'arc.onPaperMuted',
+                                                  '&:hover': { color: 'arc.paperDanger', backgroundColor: 'arc.paperHover' } }}>
+                                    <CloseIcon sx={{ fontSize: '0.95rem' }} />
+                                </IconButton>
+                            </Box>
+                        ))}
+
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1 }}>
+                            <Box sx={{ flex: '1 1 14rem', minWidth: 0 }}>
+                                <AddCardPicker key={addRequest}
+                                               boardIds={boardIds}
+                                               onDay={new Set(cards.map(card => card.id))}
+                                               onPick={onAddCard}
+                                               startOpen={startAdding} />
+                            </Box>
+
+                            {/* The evening chore: what is left, onto the next working day. */}
+                            {carry.length > 0 && (
+                                <Button size="small"
+                                        onClick={() => actions.carryOver(day)}
+                                        sx={{ color: 'arc.onPaperStrong',
+                                              textTransform: 'none',
+                                              fontSize: '0.74rem' }}>
+                                    Carry {carry.length} unfinished to {actions.carryTarget(day).format('ddd D MMM')}
+                                </Button>
+                            )}
+                        </Box>
                     </Paper>
+                </Box>
+
+                {/*
+                    The slim column, on glass: the day as the calendar shows it
+                    — live, so stepping ‹ › here steps it on the grid too — its
+                    numbers, and where it leads.
+                */}
+                <Box className="day-glass"
+                     sx={{ gridArea: 'side',
+                           minWidth: 0,
+                           p: 1,
+                           display: 'flex',
+                           flexDirection: 'column',
+                           gap: 1.5,
+                           alignSelf: 'stretch' }}>
+                    <DayCell day={day} mini />
+                    {(type.progress || type.ring) && stats.total > 0 && <TypesTable stats={stats} progress={type.progress} />}
+                    <DayConnections day={day} />
                 </Box>
             </Box>
         </ArcOverlay>
@@ -169,81 +209,68 @@ export default DayOverlay
 
 const DAY_OVERLAY_WIDTH = rem(1120)
 
-/** The live copy's width: a day on a desktop grid, so it looks as it will there. */
-const MINI_WIDTH = rem(210)
+/** The slim column: a day on a desktop grid, and a little, so it looks as it will there. */
+const SIDE_WIDTH = rem(236)
 
 /**
- * The day's graphs at full size: the type ring round the day's number, the
- * progress lines at a height where close values can be told apart, and the
- * table — every type by name, with its mark, its done and its total.
+ * Every type on the day by name, with its mark and its count — and, on a day
+ * that measures progress, its done and its share. What lets the ring's and the
+ * lines' colours be only a link, never the only way to tell types apart.
  */
-function ProgressPanel({ day, stats }: { day: GridDay; stats: DayStats }) {
+function TypesTable({ stats, progress }: { stats: DayStats; progress: boolean }) {
+    const headings = progress ? ['Type', 'Done', 'Of', ''] : ['Type', 'Tasks']
+
     return (
         <Paper className="card-stock"
                elevation={0}
-               sx={{ minWidth: 0, p: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <ArcTitleBar>Progress</ArcTitleBar>
+               sx={{ minWidth: 0, p: 1, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+            <ArcTitleBar>{progress ? `Progress · ${stats.done} of ${stats.total}` : 'What is on'}</ArcTitleBar>
 
-            {stats.total === 0 && <Empty>No tasks on this day's cards.</Empty>}
-
-            {stats.total > 0 && (
-                <>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 0.5 }}>
-                        <TypeRing slices={stats.slices} size={64} thickness={7}>
-                            <Box className={`card-disc card-stock-flat${day.isToday ? ' paper-oxblood' : ''}`}
-                                 sx={{ width: 42, height: 42, display: 'grid', placeItems: 'center' }}>
-                                <Typography component="span"
-                                            className="gold-foil"
-                                            sx={{ fontFamily: NUMERALS, fontWeight: 700, fontSize: '1.2rem' }}>
-                                    {day.date.date()}
-                                </Typography>
+            <Box component="table"
+                 aria-label="Tasks by type"
+                 sx={{ width: '100%', borderCollapse: 'collapse', '& td, & th': { py: 0.2, px: 0.4 } }}>
+                <Box component="thead">
+                    <Box component="tr">
+                        {headings.map(heading => (
+                            <Box component="th"
+                                 key={heading}
+                                 sx={{ textAlign: heading === 'Type' ? 'left' : 'right',
+                                       fontSize: '0.58rem',
+                                       fontWeight: 700,
+                                       letterSpacing: '0.06em',
+                                       textTransform: 'uppercase',
+                                       color: 'arc.onPaperMuted' }}>
+                                {heading}
                             </Box>
-                        </TypeRing>
-
-                        <Box sx={{ flex: 1, minWidth: 0, height: 84, pr: 1 }}>
-                            <ProgressLines slices={stats.slices} done={stats.done} total={stats.total} weight="large" />
-                        </Box>
+                        ))}
                     </Box>
-
-                    <Box component="table"
-                         aria-label="Tasks by type"
-                         sx={{ width: '100%', borderCollapse: 'collapse', '& td, & th': { py: 0.25, px: 0.5 } }}>
-                        <Box component="thead">
-                            <Box component="tr">
-                                {['Type', 'Done', 'Of', ''].map(heading => (
-                                    <Box component="th"
-                                         key={heading}
-                                         sx={{ textAlign: heading === 'Type' ? 'left' : 'right',
-                                               fontSize: '0.62rem',
-                                               fontWeight: 700,
-                                               letterSpacing: '0.06em',
-                                               textTransform: 'uppercase',
-                                               color: 'arc.onPaperMuted' }}>
-                                        {heading}
-                                    </Box>
-                                ))}
+                </Box>
+                <Box component="tbody">
+                    {stats.slices.map(slice => (
+                        <Box component="tr" key={slice.key}>
+                            <Box component="td" sx={{ fontSize: '0.72rem', color: 'arc.onPaperStrong' }}>
+                                <Box component="span"
+                                     aria-hidden
+                                     sx={{ display: 'inline-block',
+                                           width: 9,
+                                           height: 9,
+                                           mr: 0.6,
+                                           borderRadius: '2px',
+                                           verticalAlign: '-1px',
+                                           backgroundColor: slice.colour }} />
+                                {slice.title}
                             </Box>
-                        </Box>
-                        <Box component="tbody">
-                            {stats.slices.map(slice => (
-                                <Box component="tr" key={slice.key}>
-                                    <Box component="td" sx={{ fontSize: '0.76rem', color: 'arc.onPaperStrong' }}>
-                                        <Box component="span"
-                                             aria-hidden
-                                             sx={{ display: 'inline-block', width: 10, height: 10, mr: 0.75, borderRadius: '2px', verticalAlign: '-1px', backgroundColor: slice.colour }} />
-                                        {slice.title}
-                                    </Box>
-                                    <Box component="td" sx={NUMBER_CELL}>{slice.done}</Box>
-                                    <Box component="td" sx={NUMBER_CELL}>{slice.count}</Box>
-                                    <Box component="td" sx={{ ...NUMBER_CELL, color: 'arc.onPaperMuted' }}>
-                                        {Math.round((slice.done / slice.count) * 100)}%
-                                    </Box>
+                            {progress && <Box component="td" sx={NUMBER_CELL}>{slice.done}</Box>}
+                            <Box component="td" sx={NUMBER_CELL}>{slice.count}</Box>
+                            {progress && (
+                                <Box component="td" sx={{ ...NUMBER_CELL, color: 'arc.onPaperMuted' }}>
+                                    {Math.round((slice.done / slice.count) * 100)}%
                                 </Box>
-                            ))}
+                            )}
                         </Box>
-                    </Box>
-                </>
-            )}
+                    ))}
+                </Box>
+            </Box>
         </Paper>
     )
 }
@@ -251,7 +278,7 @@ function ProgressPanel({ day, stats }: { day: GridDay; stats: DayStats }) {
 const NUMBER_CELL = {
     textAlign: 'right',
     fontFamily: MONO,
-    fontSize: '0.7rem',
+    fontSize: '0.66rem',
     fontVariantNumeric: 'tabular-nums',
     color: 'arc.onPaper',
 } as const

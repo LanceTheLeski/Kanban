@@ -22,6 +22,7 @@
  */
 
 import React, { useCallback, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
 import { useArcError } from '../../Components/useArcError'
 import { DEFAULT_BOARD_ID } from '../Board/Board.Defaults'
@@ -29,8 +30,10 @@ import { MonthGrid } from './MonthGrid'
 import { DayOverlay } from './DayOverlay'
 import { CalendarCardOverlay } from './CalendarCardOverlay'
 import { useCalendarStore } from './Calendar.Store'
-import { dayOf, weeksOf, type GridDay } from './Calendar.Grid'
+import { dayOf, monthPath, weeksOf, type GridDay } from './Calendar.Grid'
 import { typeColours } from './Calendar.Stats'
+import { dayTypeOf } from './Calendar.DayTypes'
+import { nextWorkingDay, unfinished } from './Calendar.Moves'
 import { CalendarContext, type CalendarActions } from './Calendar.Context'
 import { useBoardTitles } from './useBoardTitles'
 import type { Card } from '../../Entities/Card/Card.Types'
@@ -47,7 +50,10 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) => {
     const refresh = useCalendarStore(state => state.refresh)
     const addCard = useCalendarStore(state => state.addCard)
     const removeCard = useCalendarStore(state => state.removeCard)
+    const setDayType = useCalendarStore(state => state.setDayType)
+    const moveCards = useCalendarStore(state => state.moveCards)
     const { addError } = useArcError()
+    const navigate = useNavigate()
 
     // `request` counts "Add a card…" choices, so choosing it again — from the
     // live copy's ⋮ inside the overlay — opens the search again.
@@ -89,7 +95,26 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) => {
             request: (previous?.request ?? 0) + (options?.adding ? 1 : 0),
         })),
         taskUpdated: () => { refresh() },
-    }), [colours, boardTitle, handleOpenCard, refresh])
+        setDayType: (day, typeId) => {
+            setDayType(day.date.date(), typeId).catch(error => {
+                addError(`Could not make ${day.date.format('D MMMM')} a ${dayTypeOf(typeId).name} day: ${messageOf(error)}`)
+            })
+        },
+        carryTarget: day => nextWorkingDay(day.date, stored),
+        carryOver: day => {
+            const cards = unfinished(day.stored?.cards ?? [])
+            const to = nextWorkingDay(day.date, stored)
+            moveCards(day.date.date(), to, cards).catch(error => {
+                addError(`Could not move ${day.date.format('D MMMM')}'s cards to ${to.format('D MMMM')}: ${messageOf(error)}`)
+            })
+        },
+        goToDay: date => {
+            // The open day is held by key, so it is found again once the
+            // other month is drawn — this component stays mounted across it.
+            setOpened(previous => ({ key: date.format('YYYY-MM-DD'), adding: false, request: previous?.request ?? 0 }))
+            if (date.year() !== year || date.month() !== month) navigate(monthPath(date))
+        },
+    }), [colours, boardTitle, handleOpenCard, refresh, setDayType, moveCards, stored, year, month, navigate, addError])
 
     const handleCloseCard = () => {
         setOpenCard(null)

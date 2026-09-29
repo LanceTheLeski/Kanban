@@ -24,9 +24,11 @@
  */
 
 import { create } from 'zustand'
-import { addCardToDate, fetchMonthOf, removeCardFromDate } from './Calendar.APIs'
+import type { Dayjs } from 'dayjs'
+import { addCardToDate, fetchMonthOf, removeCardFromDate, setDateType } from './Calendar.APIs'
 import { fetchTaskTypes } from '../Board/Board.APIs'
 import type { Card } from '../../Entities/Card/Card.Types'
+import type { CardTag } from '../Board/Card/TagsPanel'
 import type { TaskType } from '../../Entities/Task/Task.Types'
 import type { CalendarDate, Month } from './Calendar.Types'
 
@@ -72,6 +74,24 @@ interface CalendarState {
 
     /** Takes a card off a day now, then uploads that. Throws, rolled back, if it fails. */
     removeCard: (day: number, cardId: string) => Promise<void>
+
+    /** Sets what kind of day it is now, then uploads it. Throws, rolled back, if it fails. */
+    setDayType: (day: number, typeId: number) => Promise<void>
+
+    /**
+     * Moves cards from a day on screen to another day, which may be in another
+     * month. Shown moved at once where both days are on screen; on a failure
+     * part-way the month is re-read, so the screen shows what did move, and
+     * the error is thrown.
+     */
+    moveCards: (day: number, to: Dayjs, cards: Card[]) => Promise<void>
+
+    /**
+     * Each day's tags, by day key. Held for the session only: the API has no
+     * tags on a date yet — see docs/api-gaps.md, #8.
+     */
+    dayTags: Record<string, CardTag[]>
+    setDayTags: (dayKey: string, tags: CardTag[]) => void
 }
 
 export const useCalendarStore = create<CalendarState>((set, get) => ({
@@ -82,8 +102,11 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
     error: null,
     taskTypes: [],
     dayViews: {},
+    dayTags: {},
 
     setDayView: (dayKey, viewKey) => set(state => ({ dayViews: { ...state.dayViews, [dayKey]: viewKey } })),
+
+    setDayTags: (dayKey, tags) => set(state => ({ dayTags: { ...state.dayTags, [dayKey]: tags } })),
 
     loadMonth: async (year, month, options) => {
         loadTaskTypesOnce(types => set({ taskTypes: types }))
@@ -122,7 +145,10 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
         if (year === null || month === null) return
 
         const before = get().stored
-        set({ stored: withDay(before, year, month, day, cards => [...cards.filter(on => on.id !== card.id), card]) })
+        set({ stored: withDay(before, year, month, day, date => ({
+            ...date,
+            cards: [...date.cards.filter(on => on.id !== card.id), card],
+        })) })
 
         try {
             const stored = await addCardToDate(year, month, day, card.id)
@@ -138,7 +164,10 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
         if (year === null || month === null) return
 
         const before = get().stored
-        set({ stored: withDay(before, year, month, day, cards => cards.filter(on => on.id !== cardId)) })
+        set({ stored: withDay(before, year, month, day, date => ({
+            ...date,
+            cards: date.cards.filter(on => on.id !== cardId),
+        })) })
 
         try {
             const stored = await removeCardFromDate(year, month, day, cardId)
@@ -146,6 +175,50 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
         } catch (error) {
             if (isShowing(get(), year, month)) set({ stored: before })
             throw error
+        }
+    },
+
+    setDayType: async (day, typeId) => {
+        const { year, month } = get()
+        if (year === null || month === null) return
+
+        const before = get().stored
+        set({ stored: withDay(before, year, month, day, date => ({ ...date, typeId })) })
+
+        try {
+            const stored = await setDateType(year, month, day, typeId)
+            if (isShowing(get(), year, month)) set({ stored, status: 'ready', error: null })
+        } catch (error) {
+            if (isShowing(get(), year, month)) set({ stored: before })
+            throw error
+        }
+    },
+
+    moveCards: async (day, to, cards) => {
+        const { year, month, refresh } = get()
+        if (year === null || month === null || cards.length === 0) return
+
+        const moving = new Set(cards.map(card => card.id))
+        const here = to.year() === year && to.month() === month
+        let stored = withDay(get().stored, year, month, day, date => ({
+            ...date,
+            cards: date.cards.filter(card => !moving.has(card.id)),
+        }))
+        if (here) {
+            stored = withDay(stored, year, month, to.date(), date => ({
+                ...date,
+                cards: [...date.cards.filter(card => !moving.has(card.id)), ...cards],
+            }))
+        }
+        set({ stored })
+
+        // On first, then off: a failure between the two leaves a card on both
+        // days, which is visible and easy to undo, never on neither.
+        try {
+            for (const card of cards) await addCardToDate(to.year(), to.month(), to.date(), card.id)
+            for (const card of cards) await removeCardFromDate(year, month, day, card.id)
+        } finally {
+            if (isShowing(get(), year, month)) await refresh()
         }
     },
 }))
@@ -175,17 +248,15 @@ function isShowing(state: CalendarState, year: number, month: number): boolean {
 }
 
 /**
- * The month with one day's cards changed — adding the day if it had no row,
- * and the month if nothing had been read yet, which is exactly the state an
- * unstored month is in when its first card is added.
+ * The month with one day changed — adding the day if it had no row, and the
+ * month if nothing had been read yet, which is exactly the state an unstored
+ * month is in when its first card is added.
  */
 function withDay(stored: Month | null, year: number, month: number, day: number,
-                 change: (cards: Card[]) => Card[]): Month {
+                 change: (date: CalendarDate) => CalendarDate): Month {
     const base: Month = stored ?? { id: null, year, month, dates: [] }
     const existing = base.dates.find(date => date.day === day)
-    const updated: CalendarDate = existing
-        ? { ...existing, cards: change(existing.cards) }
-        : { id: '', day, month, year, cards: change([]) }
+    const updated = change(existing ?? { id: '', day, month, year, typeId: 0, cards: [] })
 
     return {
         ...base,
