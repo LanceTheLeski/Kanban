@@ -153,7 +153,7 @@ public class SwimlaneController : ArcController
     /// </summary>
     private async Task<IEnumerable<Swimlane>> FetchAndValidateAllExistingSwimlanesAsync (Guid boardID)
     {
-        try { return await _swimlaneRepository.GetAllBoardSwimlanes (boardID); }
+        try { return await _swimlaneRepository.GetAllBoardSwimlanesAsync (boardID); }
         catch (RequestFailedException reqFailedEx)
             { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (Swimlane), reqFailedEx.Status)); }
     }

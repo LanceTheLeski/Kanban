@@ -1,18 +1,16 @@
 /**
- * BoardArt
+ * LaneWaves
  *
- * The board's cut-paper pictures, in the style of the calendar's day types
- * (see DayArt) and from the same papers (see Styles/Scenery):
- *
- *   LaneWaves   the foot of every swimlane — a swim lane, as water: two layers
- *               of wave between two lines of foam, running the lane's length
- *               and frosted wherever a column's glass crosses it
+ * The foot of every swimlane, in cut paper — a swim lane, as water: two layers
+ * of wave between two lines of foam, running the lane's length and frosted
+ * wherever a column's glass crosses it. The style of the calendar's day types
+ * (see DayArt), from the same papers (see Styles/Scenery).
  *
  * Decoration, hidden from screen readers; the lanes' names are text beside it.
  *
- * There was a honu here too, in the board's corner and in a timeless card's
- * timeline panel; both were taken out to leave those places plain for now. It
- * is in the history, in the commit that added this file.
+ * This file was BoardArt.tsx, and held a honu too, for the board's corner and a
+ * timeless card's timeline panel; both were taken out to leave those places
+ * plain for now. It is in the history, in commit 8557165.
  */
 
 import React, { useId } from 'react'

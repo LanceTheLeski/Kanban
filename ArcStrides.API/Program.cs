@@ -77,12 +77,12 @@ builder.Services.AddCors (options =>
     });
 });
 
-var app = builder.Build();
+var app = builder.Build ();
 
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment () is false)
 {
-	// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-	app.UseHsts();
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts ();
 };
 
 if (app.Environment.IsDevelopment ())
@@ -98,8 +98,8 @@ app.UseRouting ();
 app.MapControllers ();
 app.MapControllerRoute 
 (
-	name: "default",
-	pattern: "{controller=Board}/{action=GetBoard}"
+    name: "default",
+    pattern: "{controller=Board}/{action=GetBoard}"
 );
 
 app.UseAntiforgery ();

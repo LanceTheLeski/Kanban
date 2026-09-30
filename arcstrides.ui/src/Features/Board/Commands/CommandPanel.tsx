@@ -178,6 +178,9 @@ export const CommandPanel: React.FC<CommandPanelProps> = ({ card }) => {
 
 export default CommandPanel
 
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
 // ── Presentation per kind ─────────────────────────────────────────────────────
 
 /**

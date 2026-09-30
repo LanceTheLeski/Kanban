@@ -269,7 +269,7 @@ public class CalendarController : Controller
 
         var cardPositionsForMonth = new List<CardPosition> ();
         foreach (var card in cardsForMonth)
-            cardPositionsForMonth.AddRange (await _cardRepository.QueryCardPositionsAsync (cardPosition => cardPosition.RowKey == card.CardPositionID.ToString()));
+            cardPositionsForMonth.AddRange (await _cardRepository.QueryCardPositionsAsync (cardPosition => cardPosition.RowKey == card.CardPositionID.ToString ()));
 
         // Read once for the month, and only when there is a card to use them.
         var timelines = cardsForMonth.Count is 0
@@ -306,7 +306,7 @@ public class CalendarController : Controller
                 if (cardPositionRow is null)
                     continue;
 
-                var tasks = await _taskRepository.QueryTasksAsync (task => task.CardID == Guid.Parse(card.RowKey));
+                var tasks = await _taskRepository.QueryTasksAsync (task => task.CardID == Guid.Parse (card.RowKey));
 
                 var taskResponseList = new List<TaskResponse> ();
                 foreach (var task in tasks.ToList ())

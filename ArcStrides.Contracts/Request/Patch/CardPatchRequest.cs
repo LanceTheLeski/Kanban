@@ -1,4 +1,4 @@
-namespace ArcStrides.Contracts.Request.Patch;
+﻿namespace ArcStrides.Contracts.Request.Patch;
 
 /// <summary>
 /// Patch shape for a card's own content.

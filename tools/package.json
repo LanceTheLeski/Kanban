@@ -2,13 +2,14 @@
   "name": "arcstrides-tools",
   "private": true,
   "type": "module",
-  "description": "Local development utilities. See ../docs/local-development.md.",
+  "description": "Local development utilities, and the C# style check. See ../docs/local-development.md and ../docs/csharp-conventions.md.",
   "scripts": {
     "up": "node dev-up.mjs",
     "provision": "node provision-azurite.mjs",
     "seed": "node seed-dev-board.mjs",
     "seed:month": "node seed-dev-month.mjs",
-    "inspect": "node inspect-board.mjs"
+    "inspect": "node inspect-board.mjs",
+    "check:csharp": "node check-csharp.test.mjs && node check-csharp.mjs"
   },
   "dependencies": {
     "@azure/data-tables": "^13.3.0"

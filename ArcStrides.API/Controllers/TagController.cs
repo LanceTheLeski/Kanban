@@ -111,7 +111,7 @@ public class TagController : Controller
     }
 
     [HttpGet ("types/{ID:guid}")]
-    public async Task<ActionResult> FetchTagTypeAsync (Guid ID)
+    public async Task<ActionResult> FetchTagType (Guid ID)
     {
         var tagTypeCollection = await _tagRepository.QueryTagTypesAsync (tagType => tagType.PartitionKey == ID.ToString ());
         if (tagTypeCollection.Count is 0)
@@ -125,7 +125,7 @@ public class TagController : Controller
     }
 
     [HttpGet ("groups/{ID:guid}")]
-    public async Task<ActionResult> FetchTagGroupAsync ([FromRoute] Guid ID)
+    public async Task<ActionResult> FetchTagGroup ([FromRoute] Guid ID)
     {
         var tagGroupCollection = await _tagRepository.QueryTagGroupsAsync (tagGroup => tagGroup.PartitionKey == ID.ToString ());
         if (tagGroupCollection.Count is 0)
@@ -139,18 +139,18 @@ public class TagController : Controller
     }
 
     [HttpGet ("groups")]
-    public async Task<ActionResult> FetchTagGroupAsync ()//Todo: make this better at some point. I.e. make it follow a pattern where we query for multiple or all TagGroups
+    public async Task<ActionResult> FetchTagGroup ()//Todo: make this better at some point. I.e. make it follow a pattern where we query for multiple or all TagGroups
     {
         var tagGroupCollection = await _tagRepository.QueryTagGroupsAsync (tagGroup => true);
 
         var tagGroupCollectionResponse = new List<TagGroupResponse> ();
         foreach (var tagGroup in tagGroupCollection)
-            tagGroupCollectionResponse.Add(_tagMapper.MapTagGroupToTagGroupResponse (tagGroup));
+            tagGroupCollectionResponse.Add (_tagMapper.MapTagGroupToTagGroupResponse (tagGroup));
         return Ok (tagGroupCollectionResponse);
     }
 
     [HttpGet ("groups/types/{ID:guid}")]
-    public async Task<ActionResult> FetchTagGroupTypeAsync (Guid ID)
+    public async Task<ActionResult> FetchTagGroupType (Guid ID)
     {
         var tagGroupTypeCollection = await _tagRepository.QueryTagGroupTypesAsync (tagGroupType => tagGroupType.PartitionKey == ID.ToString ());
         if (tagGroupTypeCollection.Count is 0)

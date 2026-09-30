@@ -49,7 +49,7 @@ import { Box, ButtonBase, IconButton } from '@mui/material'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import AddIcon from '@mui/icons-material/Add'
-import { MONO } from '../../Styles/Fonts'
+import { MONO, SERIF } from '../../Styles/Fonts'
 import { DiscNumber } from './DiscNumber'
 import { TypeRing } from './TypeRing'
 import { ProgressLines } from './ProgressLines'
@@ -207,7 +207,7 @@ export const DayHeader: React.FC<DayHeaderProps> = ({ day, stats, views, current
                         <Box component="span"
                              aria-live="polite"
                              className="gold-foil"
-                             sx={{ fontFamily: "Georgia, 'Times New Roman', serif",
+                             sx={{ fontFamily: SERIF,
                                    fontWeight: 700,
                                    fontSize: '0.62rem',
                                    letterSpacing: '0.08em',

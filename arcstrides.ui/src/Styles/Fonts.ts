@@ -42,3 +42,10 @@ export const SCRIPT = "'Freestyle Script', cursive"
  * holds its shape at that size where a condensed sans turns to a smudge.
  */
 export const NUMERALS = "'Modern No. 20', 'Bodoni MT', Didot, Georgia, serif"
+
+/**
+ * Words set large or in capitals on the calendar: a day's name at the top of
+ * its overlay, and a view's heading — ALL, OPEN — in gold on its oxblood tile.
+ * A book serif, because gold foil on a thin or condensed face breaks up.
+ */
+export const SERIF = "Georgia, 'Times New Roman', serif"

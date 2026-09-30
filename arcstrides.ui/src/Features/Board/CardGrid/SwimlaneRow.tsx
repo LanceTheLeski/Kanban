@@ -23,7 +23,7 @@ import { BOARD_GAP, STACK_LABEL_BELOW, SWIMLANE_LABEL_WIDTH } from '../Board.Lay
 import { DroppableCell } from './DroppableCell'
 import { DraggableCard } from './DraggableCard'
 import { cellId } from './CardGrid.Cells'
-import { LaneWaves } from '../BoardArt'
+import { LaneWaves } from '../LaneWaves'
 import type { Card } from '../../../Entities/Card/Card.Types'
 import type { Column, Swimlane } from '../Board.Types'
 
@@ -68,7 +68,7 @@ export const SwimlaneRow: React.FC<SwimlaneRowProps> = ({
             under the labels and the cells, frosted wherever a column's glass
             crosses them. Clipped to the lane's own rounded foot here rather
             than by the lane, so the notes' shadows are not clipped with it.
-            See BoardArt.
+            See LaneWaves.
         */}
         <Box aria-hidden
              sx={{ position: 'absolute',

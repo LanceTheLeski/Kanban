@@ -62,7 +62,7 @@ public class TimelineController : Controller
             return BadRequest (ErrorResponseMessages.NotFoundErrorResponse ("Parent"));
 
         var newTimeline = _timelineMapper.MapTimelineCreateRequestToTimeline (timelineCreateRequest);
-        newTimeline.PartitionKey = boardID.ToString();
+        newTimeline.PartitionKey = boardID.ToString ();
         newTimeline.RowKey = Guid.NewGuid ().ToString ();
         newTimeline = TimelineSpecifyKind (newTimeline);
 

@@ -28,7 +28,7 @@ public class SwimlaneRepository : ISwimlaneRepository
     public async Task<Swimlane?> GetSwimlaneAsync (Guid boardID, Guid swimlaneID)
         => await _swimlaneTable.GetEntityAsync (boardID, swimlaneID);
 
-    public async Task<Collection<Swimlane>> GetAllBoardSwimlanes (Guid boardID)
+    public async Task<Collection<Swimlane>> GetAllBoardSwimlanesAsync (Guid boardID)
         => await _swimlaneTable.GetEntitiesAsync (boardID);
 
     public async Task<Collection<Swimlane>> QuerySwimlanesAsync (Expression<Func<Swimlane, bool>> swimlaneQueryExpression)

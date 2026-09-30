@@ -57,7 +57,7 @@ export const ProgressLines: React.FC<ProgressLinesProps> = ({ slices }) => {
                             <path d={d} fill="none" strokeWidth={4.5}
                                   // In style, not the attribute: a presentation
                                   // attribute is not reliably allowed a var().
-                                  style={{ stroke: 'var(--arc-paper, #f6f1e4)' }}
+                                  style={{ stroke: 'var(--arc-paper, var(--arc-cream))' }}
                                   strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
                             <path d={d} fill="none" stroke={slice.colour} strokeWidth={2}
                                   strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
@@ -85,7 +85,7 @@ export const ProgressLines: React.FC<ProgressLinesProps> = ({ slices }) => {
                            transform: 'translate(50%, -50%)',
                            borderRadius: '50%',
                            backgroundColor: slice.colour,
-                           boxShadow: '0 0 0 1.5px var(--arc-paper, #f6f1e4)' }} />
+                           boxShadow: '0 0 0 1.5px var(--arc-paper, var(--arc-cream))' }} />
             ))}
         </Box>
     )

@@ -1,7 +1,10 @@
 # UI conventions
 
-Written down because the code was inconsistent about all three of these, and an
-unwritten convention is one nobody can follow.
+Written down because the code was inconsistent about them, and an unwritten
+convention is one nobody can follow. Most are checked, not just written down:
+`npm run check` runs the type checker, ESLint with this project's own rules, and
+the formatter. See "What checks it" at the end. The API's C# has conventions of
+its own, in `csharp-conventions.md`.
 
 ---
 
@@ -15,6 +18,7 @@ thing that is.
 | Component | `PascalCase.tsx` | `BoardCard.tsx`, `ArcOverlay.tsx` |
 | Hook | `camelCase.ts`, named for the hook | `useBoardActions.ts`, `useCardDrag.ts` |
 | Module of related helpers | `Feature.Thing.ts` | `Board.Store.ts`, `CardGrid.Cells.ts` |
+| Module that belongs to no feature | `PascalCase.ts` in `Styles/` or `Lib/`, named for what it holds | `Palette.ts`, `Fonts.ts`, `Client.ts` |
 
 The third case is the one that had drifted. A module has no single primary
 export to be named after, so it takes the feature it belongs to plus what it
@@ -27,6 +31,10 @@ Hooks stay camelCase deliberately. The file is named after its export like
 every other file here, and the export is `useCardDrag` — React's own convention
 requires the `use` prefix, and matching the file to it is what makes the import
 line read the same as the call.
+
+`main.tsx` is Vite's entry point and exports nothing. Checked by
+`arc/file-named-for-export`, which leaves out the dotted modules, `Styles/`,
+`Lib/` and `main.tsx`.
 
 ---
 
@@ -50,11 +58,22 @@ Mark the boundary so it is not accidental:
 // Not exported, which is this language's `private`. Ordered by first use above.
 ```
 
+**Types may sit above it.** A component's `Props`, a store's `State`, an API
+module's wire shapes: these describe the file's public surface and are what a
+reader wants first, whether or not they are exported. The rule is about runtime
+helpers and constants.
+
 **One hazard this introduces.** `function` declarations hoist, so a function at
 the bottom can be called by one above it. `const` does **not** — a `const`
 declared at the bottom and read during module evaluation throws. It is fine
 when only called at runtime, which is the normal case, but a constant used by a
-top-level initialiser has to stay above its use.
+top-level initialiser has to stay above its use. `Client.ts`'s `BASE_URL`, read
+by a top-level `if`, is one.
+
+Checked by `arc/private-last`. It knows both exceptions: types are never
+reported, and a `const` or `class` is left above the banner when something
+above the banner reads it while the module is evaluated. It also reports an
+export that has ended up below the banner.
 
 ---
 
@@ -123,7 +142,7 @@ convention means Prettier cannot be run over these files.
 That left a real cost, and this doc used to end by naming it: hand-aligned
 columns drift when an attribute is renamed, and nothing would catch it.
 
-### What catches it
+### What catches the formatting
 
 `arcstrides.ui/tools/reflow.py` applies all three rules above.
 
@@ -166,6 +185,11 @@ whichever the nearest file happened to have when the next one was written.
 The test for whether something belongs in one of these: would two files
 disagreeing about it be a bug? A fallback chain, a column width and a dialog's
 width all fail that test. A one-off `gap: 1` does not.
+
+Fonts are checked: `arc/fonts-from-fonts` reports any `fontFamily` written as a
+string outside `Styles/Fonts.ts`, `'inherit'` apart. `Fonts.ts` holds `CONDENSED`,
+`MONO`, `NUMERALS`, `SCRIPT` and `SERIF`. A new stack is added there, then
+imported.
 
 ---
 
@@ -235,6 +259,12 @@ and mid as a chip of card, then the colours someone has saved (kept in the
 browser), and the full picker in a popover behind "Mix…". Chart colours are the
 one exception — see "Chart colour".
 
+Checked by `arc/colours-from-palette`: outside `Styles/`, a hex colour, or an
+`rgb()` whose channels are more than 40 apart (a colour with a hue, not a grey
+or a shadow), is reported. Take it from `Palette.ts`, `Scenery.ts`, a
+`var(--arc-…)` property or a theme token instead. `Calendar.Stats.ts`, home of
+the chart palette, is the one file outside `Styles/` it leaves alone.
+
 The cut-paper pictures — the day types' scenes and the lanes' waves —
 draw from the same ladders, by name, through `src/Styles/Scenery.ts`, and share
 one frame, `Components/PaperScene.tsx`: flat shapes, each casting the same
@@ -252,7 +282,7 @@ it runs.
 
 Along the foot of every lane runs a strip of cut-paper water — a swim lane —
 crisp beside the label and frosted wherever a column's glass crosses it (see
-`Features/Board/BoardArt.tsx`). The corner above the labels is left empty for
+`Features/Board/LaneWaves.tsx`). The corner above the labels is left empty for
 now; "Honu Boards" is in the navy bar, in gold foil, where it has room for one
 line and still shows on a phone.
 
@@ -392,4 +422,39 @@ every tool in the JS ecosystem assumes `foo(bar)`, and mixing the two inside one
 repository is worse than either.
 
 Naming likewise: C# `PascalCase` methods, TypeScript `camelCase` functions.
-The boundary is the language, not the repository.
+The boundary is the language, not the repository. Checked, and fixable, by
+`arc/no-space-before-paren`. The C# side is written down in
+`csharp-conventions.md` and checked by `tools/check-csharp.mjs`.
+
+---
+
+## What checks it
+
+From `arcstrides.ui/`:
+
+```
+npm run check     # everything below, in order; exit 1 on the first failure
+npm run lint      # ESLint alone
+npm run format    # rewrite what the formatter would complain about
+```
+
+`npm run check` is the type checker (`tsc -b`), the tests for this project's
+own ESLint rules, ESLint, and `reflow.py --check`. The rules are in
+`tools/eslint-arc.js`, and each message names the section of this page it
+enforces:
+
+| rule | section |
+|---|---|
+| `arc/file-named-for-export` | File naming |
+| `arc/private-last` | Member ordering |
+| `arc/no-space-before-paren` | C# style is not carried across |
+| `arc/fonts-from-fonts` | Shared values live in a module |
+| `arc/colours-from-palette` | The palette |
+| `no-restricted-imports` (configured in `eslint.config.js`) | the layers: Pages and Layouts over Features over Entities over Components and Lib |
+
+A deliberate exception is an `// eslint-disable-next-line arc/…` with a comment
+saying why. None of the `arc/` rules has one today.
+
+What it does not check: the materials, the two grounds and their ramps, and
+anything else about how a thing looks. Those need someone looking at the
+screen, and this page is what they check it against.

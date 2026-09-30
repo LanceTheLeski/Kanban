@@ -37,12 +37,6 @@ import { LADDERS } from '../../Styles/Palette'
 
 export { labelStyle }
 
-/** The column ramp, palest first: the blue ladder from its ground to its mid. */
-const COLUMN_RAMP: [Rgb, Rgb] = [rgbOf(LADDERS.blue.ground), rgbOf(LADDERS.blue.mid)]
-
-/** The swimlane ramp, strongest first: the red ladder from its mid to its ground. */
-const SWIMLANE_RAMP: [Rgb, Rgb] = [rgbOf(LADDERS.red.mid), rgbOf(LADDERS.red.ground)]
-
 /**
  * A column's colour: its own if it has one, otherwise its place on the ramp.
  *
@@ -69,3 +63,12 @@ export function landingIndex(orderInput: string, count: number): number {
     const typed = parseInt(orderInput, 10)
     return Number.isNaN(typed) ? count : Math.min(Math.max(typed, 0), count)
 }
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+/** The column ramp, palest first: the blue ladder from its ground to its mid. */
+const COLUMN_RAMP: [Rgb, Rgb] = [rgbOf(LADDERS.blue.ground), rgbOf(LADDERS.blue.mid)]
+
+/** The swimlane ramp, strongest first: the red ladder from its mid to its ground. */
+const SWIMLANE_RAMP: [Rgb, Rgb] = [rgbOf(LADDERS.red.mid), rgbOf(LADDERS.red.ground)]

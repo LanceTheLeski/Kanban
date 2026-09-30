@@ -65,7 +65,7 @@ public class ColumnValidators
            => columnTitles.Distinct (StringComparer.InvariantCultureIgnoreCase).Count () == columnTitles.Count ();
 
         private bool ValidateDistinctColumnOrder (IEnumerable<int?> columnOrders)
-            => columnOrders.Distinct ().Count() == columnOrders.Count();
+            => columnOrders.Distinct ().Count () == columnOrders.Count ();
 
     }
 

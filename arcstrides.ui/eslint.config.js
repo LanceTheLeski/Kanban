@@ -4,6 +4,7 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
+import arc from './tools/eslint-arc.js'
 
 export default defineConfig([
   globalIgnores(['dist']),
@@ -18,6 +19,22 @@ export default defineConfig([
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
+    },
+  },
+
+  /*
+    This project's own conventions — docs/ui-conventions.md, as checks. See
+    tools/eslint-arc.js for what each rule holds and why.
+  */
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    plugins: { arc },
+    rules: {
+      'arc/file-named-for-export': 'error',
+      'arc/private-last': 'error',
+      'arc/no-space-before-paren': 'error',
+      'arc/fonts-from-fonts': 'error',
+      'arc/colours-from-palette': 'error',
     },
   },
 

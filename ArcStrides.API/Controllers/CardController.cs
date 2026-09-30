@@ -32,7 +32,7 @@ public class CardController : ControllerBase
     public async Task<ActionResult> FetchCard (Guid ID)
     {
         var cardList = new List<Card> ();
-        var cardsFromTable = await _cardRepository.GetCardsAsync(ID);
+        var cardsFromTable = await _cardRepository.GetCardsAsync (ID);
 
         if (cardList.Count () is 0)
             return NotFound ("The card you are searching for was not found.");
@@ -42,7 +42,7 @@ public class CardController : ControllerBase
         var cardFromDatabase = cardList.Single ();
         var cardToReturn = new CardResponse
         {
-            ID = Guid.Parse(cardFromDatabase.PartitionKey),
+            ID = Guid.Parse (cardFromDatabase.PartitionKey),
             Title = cardFromDatabase.Title,
             Description = cardFromDatabase.Description
         };

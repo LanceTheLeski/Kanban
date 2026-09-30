@@ -155,72 +155,12 @@ export interface Board {
 
 // ── Response → domain mapping ─────────────────────────────────────────────────
 
-/**
- * Converts ISO 8601 date strings from the server to Date | null.
- * The server stores and returns dates as UTC strings; we parse them here once so
- * all downstream code works with native Date objects.
- */
-function toDate(value: string | null | undefined): Date | null {
-    return value ? new Date(value) : null
-}
-
-function mapTimeline(response: TimelineResponse | null | undefined): Timeline | null {
-    if (!response) return null
-
-    /*
-       A timeline with no dates and no ID is not a timeline.
-
-       TaskResponse.Timeline is declared `= new TimelineResponse ()`, so the
-       server sends an object with every field null for a task that has none.
-       Taken at face value that is a timeline, and the panel opened every such
-       task in Deadline mode — a card with nothing scheduled claiming a deadline
-       it did not have. Timeless is what "no dates" means.
-    */
-    const hasAnything = response.id != null
-        || response.startPreferenceUTC != null || response.startDeadlineUTC != null
-        || response.endPreferenceUTC != null || response.endDeadlineUTC != null
-    if (!hasAnything) return null
-
-    return {
-        id: response.id ?? null,
-        startDependencyTagGroupId: response.startDependencyTagGroupID ?? null,
-        startPreferenceUTC: toDate(response.startPreferenceUTC),
-        startDeadlineUTC: toDate(response.startDeadlineUTC),
-        endDependencyTagGroupId: response.endDependencyTagGroupID ?? null,
-        endPreferenceUTC: toDate(response.endPreferenceUTC),
-        endDeadlineUTC: toDate(response.endDeadlineUTC),
-    }
-}
-
 export function mapTaskType(response: TaskTypeResponse | null | undefined): TaskType | null {
     if (!response || response.id == null) return null
     return {
         id: response.id,
         groupTagId: response.groupTagID ?? null,
         title: response.title ?? '',
-    }
-}
-
-function mapTask(response: TaskResponse): Task {
-    return {
-        id: response.id ?? '',
-        title: response.title ?? '',
-        order: response.order ?? 0,
-        taskType: mapTaskType(response.taskType),
-        isCompleted: response.isComplete ?? null,
-        timeline: mapTimeline(response.timeline),
-    }
-}
-
-function mapOrderedItem(response: OrderedItemResponse): Column {
-    return {
-        id: response.id ?? '',
-        title: response.title ?? '',
-        order: response.order ?? 0,
-        // Null, not '', so "has no colour" is a value the ramp can answer rather
-        // than an empty string something downstream might try to paint.
-        colour: response.color ?? null,
-        globalColour: response.globalColor ?? null,
     }
 }
 
@@ -256,8 +196,6 @@ export function mapCard(response: CardResponse): Card {
 }
 
 // ── Board ─────────────────────────────────────────────────────────────────────
-
-const BOARD_TITLE_PLACEHOLDER = 'Placeholder..'
 
 /** GET arcstrides/boards/:boardId */
 export async function fetchBoard(boardId: string): Promise<Board> {
@@ -440,25 +378,6 @@ export function deleteSwimlane(boardId: string, swimlaneId: string): Promise<voi
     return apiClient.delete(`${ARC}/boards/${boardId}/swimlanes/${swimlaneId}`)
 }
 
-/** Columns and swimlanes share an identical patch shape. */
-function orderedItemOperations(patch: OrderedItemPatchRequest): PatchOperation[] {
-    const operations: PatchOperation[] = []
-
-    if (patch.title !== undefined)
-        operations.push({ op: 'replace', path: '/title', value: patch.title })
-
-    if (patch.order !== undefined)
-        operations.push({ op: 'replace', path: '/order', value: patch.order })
-
-    if (patch.colour !== undefined)
-        operations.push({ op: 'replace', path: '/color', value: patch.colour })
-
-    if (patch.globalColour !== undefined)
-        operations.push({ op: 'replace', path: '/globalColor', value: patch.globalColour })
-
-    return operations
-}
-
 // ── Task ──────────────────────────────────────────────────────────────────────
 
 export interface TaskCreateRequest {
@@ -613,4 +532,88 @@ export function updateTimeline(
     operations: PatchOperation[]
 ): Promise<void> {
     return apiClient.patch(`${ARC}/boards/${boardId}/timelines/${timelineId}`, operations)
+}
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+/**
+ * Converts ISO 8601 date strings from the server to Date | null.
+ * The server stores and returns dates as UTC strings; we parse them here once so
+ * all downstream code works with native Date objects.
+ */
+function toDate(value: string | null | undefined): Date | null {
+    return value ? new Date(value) : null
+}
+
+function mapTimeline(response: TimelineResponse | null | undefined): Timeline | null {
+    if (!response) return null
+
+    /*
+       A timeline with no dates and no ID is not a timeline.
+
+       TaskResponse.Timeline is declared `= new TimelineResponse ()`, so the
+       server sends an object with every field null for a task that has none.
+       Taken at face value that is a timeline, and the panel opened every such
+       task in Deadline mode — a card with nothing scheduled claiming a deadline
+       it did not have. Timeless is what "no dates" means.
+    */
+    const hasAnything = response.id != null
+        || response.startPreferenceUTC != null || response.startDeadlineUTC != null
+        || response.endPreferenceUTC != null || response.endDeadlineUTC != null
+    if (!hasAnything) return null
+
+    return {
+        id: response.id ?? null,
+        startDependencyTagGroupId: response.startDependencyTagGroupID ?? null,
+        startPreferenceUTC: toDate(response.startPreferenceUTC),
+        startDeadlineUTC: toDate(response.startDeadlineUTC),
+        endDependencyTagGroupId: response.endDependencyTagGroupID ?? null,
+        endPreferenceUTC: toDate(response.endPreferenceUTC),
+        endDeadlineUTC: toDate(response.endDeadlineUTC),
+    }
+}
+
+function mapTask(response: TaskResponse): Task {
+    return {
+        id: response.id ?? '',
+        title: response.title ?? '',
+        order: response.order ?? 0,
+        taskType: mapTaskType(response.taskType),
+        isCompleted: response.isComplete ?? null,
+        timeline: mapTimeline(response.timeline),
+    }
+}
+
+function mapOrderedItem(response: OrderedItemResponse): Column {
+    return {
+        id: response.id ?? '',
+        title: response.title ?? '',
+        order: response.order ?? 0,
+        // Null, not '', so "has no colour" is a value the ramp can answer rather
+        // than an empty string something downstream might try to paint.
+        colour: response.color ?? null,
+        globalColour: response.globalColor ?? null,
+    }
+}
+
+const BOARD_TITLE_PLACEHOLDER = 'Placeholder..'
+
+/** Columns and swimlanes share an identical patch shape. */
+function orderedItemOperations(patch: OrderedItemPatchRequest): PatchOperation[] {
+    const operations: PatchOperation[] = []
+
+    if (patch.title !== undefined)
+        operations.push({ op: 'replace', path: '/title', value: patch.title })
+
+    if (patch.order !== undefined)
+        operations.push({ op: 'replace', path: '/order', value: patch.order })
+
+    if (patch.colour !== undefined)
+        operations.push({ op: 'replace', path: '/color', value: patch.colour })
+
+    if (patch.globalColour !== undefined)
+        operations.push({ op: 'replace', path: '/globalColor', value: patch.globalColour })
+
+    return operations
 }

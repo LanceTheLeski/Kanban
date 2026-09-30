@@ -50,6 +50,57 @@ export interface PatchOperation {
     value?: unknown
 }
 
+// ── Convenience methods ───────────────────────────────────────────────────────
+
+export const apiClient = {
+    /** GET — returns parsed JSON */
+    get<T>(path: string): Promise<T> {
+        return request(path, { method: 'GET' }).then(r => r.json())
+    },
+
+    /** POST — sends JSON body, returns parsed JSON */
+    post<T>(path: string, body: unknown): Promise<T> {
+        return request(path, {
+            method: 'POST',
+            body: JSON.stringify(body),
+        }).then(r => r.json())
+    },
+
+    /** PUT — sends JSON body, returns parsed JSON */
+    put<T>(path: string, body: unknown): Promise<T> {
+        return request(path, {
+            method: 'PUT',
+            body: JSON.stringify(body),
+        }).then(r => r.json())
+    },
+
+    /**
+     * PATCH — sends a JSON Patch document (RFC 6902).
+     *
+     * Content-Type is application/json-patch+json, which is what
+     * ASP.NET Core's [FromBody] JsonPatchDocument<T> expects.
+     * Returns parsed JSON if the server sends a body (e.g. updated entity),
+     * or null for 204 No Content responses.
+     */
+    async patch<T = void>(path: string, operations: PatchOperation[]): Promise<T> {
+        const response = await request(path, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json-patch+json' },
+            body: JSON.stringify(operations),
+        })
+        if (response.status === 204) return undefined as T
+        return response.json()
+    },
+
+    /** DELETE — expects no response body (204 No Content) */
+    async delete(path: string): Promise<void> {
+        await request(path, { method: 'DELETE' })
+    },
+}
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
 // ── Core fetch wrapper ────────────────────────────────────────────────────────
 
 /**
@@ -141,52 +192,4 @@ async function describeFailure(response: Response): Promise<string> {
     // Keep a snackbar readable; the full body is in the network tab either way.
     const trimmed = detail.replace(/\s+/g, ' ').trim()
     return trimmed.length > 300 ? `${trimmed.slice(0, 300)}…` : trimmed || status
-}
-
-// ── Convenience methods ───────────────────────────────────────────────────────
-
-export const apiClient = {
-    /** GET — returns parsed JSON */
-    get<T>(path: string): Promise<T> {
-        return request(path, { method: 'GET' }).then(r => r.json())
-    },
-
-    /** POST — sends JSON body, returns parsed JSON */
-    post<T>(path: string, body: unknown): Promise<T> {
-        return request(path, {
-            method: 'POST',
-            body: JSON.stringify(body),
-        }).then(r => r.json())
-    },
-
-    /** PUT — sends JSON body, returns parsed JSON */
-    put<T>(path: string, body: unknown): Promise<T> {
-        return request(path, {
-            method: 'PUT',
-            body: JSON.stringify(body),
-        }).then(r => r.json())
-    },
-
-    /**
-     * PATCH — sends a JSON Patch document (RFC 6902).
-     *
-     * Content-Type is application/json-patch+json, which is what
-     * ASP.NET Core's [FromBody] JsonPatchDocument<T> expects.
-     * Returns parsed JSON if the server sends a body (e.g. updated entity),
-     * or null for 204 No Content responses.
-     */
-    async patch<T = void>(path: string, operations: PatchOperation[]): Promise<T> {
-        const response = await request(path, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json-patch+json' },
-            body: JSON.stringify(operations),
-        })
-        if (response.status === 204) return undefined as T
-        return response.json()
-    },
-
-    /** DELETE — expects no response body (204 No Content) */
-    async delete(path: string): Promise<void> {
-        await request(path, { method: 'DELETE' })
-    },
 }

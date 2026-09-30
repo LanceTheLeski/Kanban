@@ -95,10 +95,6 @@ interface BoardState {
     removeCard: (cardId: string) => void
 }
 
-function sortByOrder<T extends { order: number }>(items: T[]): T[] {
-    return [...items].sort((a, b) => a.order - b.order)
-}
-
 export const useBoardStore = create<BoardState>((set, get) => ({
     boardId: null,
     title: '',
@@ -234,3 +230,10 @@ export const useBoardStore = create<BoardState>((set, get) => ({
             cards: state.cards.filter(card => card.id !== cardId),
         })),
 }))
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+function sortByOrder<T extends { order: number }>(items: T[]): T[] {
+    return [...items].sort((a, b) => a.order - b.order)
+}

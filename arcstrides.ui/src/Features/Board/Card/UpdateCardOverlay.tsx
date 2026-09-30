@@ -81,17 +81,6 @@ import {
 import type { Card } from '../../../Entities/Card/Card.Types'
 import type { Task } from '../../../Entities/Task/Task.Types'
 
-// The Blazor original was 1100px wide with a 400px and a 700px column. Only the
-// overall width is still a pixel value — and it is a *maximum*, not a size.
-//
-// The 4:7 those numbers described is now only where the split *starts*
-// (CARD_SPLIT_DEFAULT): the reader drags the bar between the two panes from
-// there. See ArcSplitPane.
-const OVERLAY_MAX_WIDTH = 1100
-
-// Below this the two columns stop being readable side by side and stack.
-const STACK_BELOW = 'md'
-
 interface UpdateCardOverlayProps {
     open: boolean
     onClose: () => void
@@ -112,7 +101,6 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
     // Local editable copies — mirrors Blazor's @bind-Value="ActiveCard.Title" etc.
     const [title, setTitle] = useState(card.title)
     const [description, setDescription] = useState(card.description)
-
 
     // Local only. The API can create and delete tags but cannot list the ones on
     // a card, so there is nothing to seed this from and nowhere to send it that
@@ -309,6 +297,22 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
         </ArcOverlay>
     )
 }
+
+export default UpdateCardOverlay
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+// The Blazor original was 1100px wide with a 400px and a 700px column. Only the
+// overall width is still a pixel value — and it is a *maximum*, not a size.
+//
+// The 4:7 those numbers described is now only where the split *starts*
+// (CARD_SPLIT_DEFAULT): the reader drags the bar between the two panes from
+// there. See ArcSplitPane.
+const OVERLAY_MAX_WIDTH = 1100
+
+// Below this the two columns stop being readable side by side and stack.
+const STACK_BELOW = 'md'
 
 // ── Pieces of the overlay ─────────────────────────────────────────────────────
 // Everything below is presentation for the arrangement above. Declared as
@@ -576,6 +580,3 @@ function DescriptionField({ value, onChange }: {
                          } }} />
     )
 }
-
-
-export default UpdateCardOverlay

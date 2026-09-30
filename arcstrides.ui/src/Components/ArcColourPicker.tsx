@@ -44,6 +44,7 @@ import PaletteOutlinedIcon from '@mui/icons-material/PaletteOutlined'
 import { HexColorInput, HexColorPicker } from 'react-colorful'
 import { labelStyle, rgbOf, toHex } from '../Styles/Stock'
 import { LADDERS } from '../Styles/Palette'
+import { MONO } from '../Styles/Fonts'
 
 interface ArcColourPickerProps {
     /** The chosen colour, or null for "let the board decide". */
@@ -192,7 +193,7 @@ export const ArcColourPicker: React.FC<ArcColourPickerProps> = ({ value, onChang
                            '& input': { flex: 1,
                                         minWidth: 0,
                                         font: 'inherit',
-                                        fontFamily: 'ui-monospace, monospace',
+                                        fontFamily: MONO,
                                         fontSize: '0.72rem',
                                         color: 'arc.onPaperStrong',
                                         padding: '3px 6px',
@@ -328,7 +329,7 @@ function Chip({ colour, name, tilt, chosen, onPick, onRemove }: {
                        '&:hover': { transform: chosen ? 'translateY(-3px)' : 'translateY(-1px)' },
                        '&:focus-visible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 2 } }}>
                 {chosen && <CheckIcon sx={{ fontSize: '0.85rem',
-                                            color: isLight(colour) ? '#22262c' : 'var(--arc-cream)' }} />}
+                                            color: isLight(colour) ? 'arc.onPaperStrong' : 'var(--arc-cream)' }} />}
             </Box>
 
             {onRemove && (

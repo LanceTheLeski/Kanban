@@ -42,9 +42,6 @@ export interface CardPlacement {
     positionRank: number
 }
 
-/** The separator is a character that cannot appear in a GUID. */
-const SEPARATOR = '|'
-
 export const cellId = (swimlaneId: string, columnId: string) =>
     `${swimlaneId}${SEPARATOR}${columnId}`
 
@@ -150,6 +147,9 @@ export function placementsForMove(cards: Card[],
 
 // ── Private ───────────────────────────────────────────────────────────────────
 // Not exported, which is this language's `private`. Ordered by first use above.
+
+/** The separator is a character that cannot appear in a GUID. */
+const SEPARATOR = '|'
 
 function byRank(a: Card, b: Card): number {
     // Title as the tiebreak, so two cards that somehow share a rank still come

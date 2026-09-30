@@ -28,7 +28,7 @@ public class ColumnRepository : IColumnRepository
     public async Task<Column?> GetColumnAsync (Guid boardID, Guid columnID)
         => await _columnTable.GetEntityAsync (boardID, columnID);
 
-    public async Task<Collection<Column>> GetAllBoardColumns (Guid boardID)
+    public async Task<Collection<Column>> GetAllBoardColumnsAsync (Guid boardID)
         => await _columnTable.GetEntitiesAsync (boardID);
 
     public async Task<Collection<Column>> QueryColumnsAsync (Expression<Func<Column, bool>> columnQueryExpression)
@@ -151,7 +151,7 @@ public class ColumnRepository : IColumnRepository
 
         if (columnToTransferCandidates.Count () is 0)
             return arcTransaction;
-        var columnToTransfer = columnToTransferCandidates.Count() is 2 ?
+        var columnToTransfer = columnToTransferCandidates.Count () is 2 ?
             columnToTransferCandidates.MaxBy (column => column.ColumnOrder)! :
             columnToTransferCandidates.Single ();
 

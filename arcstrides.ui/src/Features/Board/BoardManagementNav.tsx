@@ -82,16 +82,6 @@ type OverlayKey =
     | 'updateSwimlane'
     | 'deleteSwimlane'
 
-const OVERLAYS: Record<OverlayKey, OverlayComponent> = {
-    createCard: CreateCardOverlay,
-    createColumn: CreateColumnOverlay,
-    updateColumn: UpdateColumnOverlay,
-    deleteColumn: DeleteColumnOverlay,
-    createSwimlane: CreateSwimlaneOverlay,
-    updateSwimlane: UpdateSwimlaneOverlay,
-    deleteSwimlane: DeleteSwimlaneOverlay,
-}
-
 // ── What the bar contains ─────────────────────────────────────────────────────
 
 interface MenuItemSpec {
@@ -104,37 +94,6 @@ interface MenuSpec {
     label: string
     items: MenuItemSpec[]
 }
-
-const MENUS: MenuSpec[] = [
-    {
-        label: 'Cards',
-        items: [{ label: 'Add', overlay: 'createCard' }],
-    },
-    {
-        label: 'Swimlanes',
-        items: [
-            { label: 'Add', overlay: 'createSwimlane' },
-            { label: 'Edit', overlay: 'updateSwimlane' },
-            { label: 'Delete', overlay: 'deleteSwimlane' },
-        ],
-    },
-    {
-        label: 'Columns',
-        items: [
-            { label: 'Add', overlay: 'createColumn' },
-            { label: 'Edit', overlay: 'updateColumn' },
-            { label: 'Delete', overlay: 'deleteColumn' },
-        ],
-    },
-    {
-        // AddManageBoardOverlay has not been converted from Blazor yet, so this
-        // item closes the menu and does nothing — the same as it did before,
-        // now visible as a missing `overlay` rather than a handler that only
-        // calls handleClose.
-        label: 'Boards',
-        items: [{ label: 'Edit' }],
-    },
-]
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -182,7 +141,7 @@ export const BoardManagementNav: React.FC<BoardManagementNavProps> = ({ menu }) 
                     {/*
                         "Honu Boards", in the script Blazor set it in, in gold foil
                         on the navy — as the calendar's bar sets its month. It was
-                        in the board's corner; that is a picture now (BoardArt).
+                        in the board's corner, which is empty for now.
                     */}
                     <Typography component="h1"
                                 className="gold-foil"
@@ -248,3 +207,44 @@ const BAR_PIECE_SX = {
     color: 'arc.onPaperStrong',
     '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'common.white', outlineOffset: 2 },
 } as const
+
+const OVERLAYS: Record<OverlayKey, OverlayComponent> = {
+    createCard: CreateCardOverlay,
+    createColumn: CreateColumnOverlay,
+    updateColumn: UpdateColumnOverlay,
+    deleteColumn: DeleteColumnOverlay,
+    createSwimlane: CreateSwimlaneOverlay,
+    updateSwimlane: UpdateSwimlaneOverlay,
+    deleteSwimlane: DeleteSwimlaneOverlay,
+}
+
+const MENUS: MenuSpec[] = [
+    {
+        label: 'Cards',
+        items: [{ label: 'Add', overlay: 'createCard' }],
+    },
+    {
+        label: 'Swimlanes',
+        items: [
+            { label: 'Add', overlay: 'createSwimlane' },
+            { label: 'Edit', overlay: 'updateSwimlane' },
+            { label: 'Delete', overlay: 'deleteSwimlane' },
+        ],
+    },
+    {
+        label: 'Columns',
+        items: [
+            { label: 'Add', overlay: 'createColumn' },
+            { label: 'Edit', overlay: 'updateColumn' },
+            { label: 'Delete', overlay: 'deleteColumn' },
+        ],
+    },
+    {
+        // AddManageBoardOverlay has not been converted from Blazor yet, so this
+        // item closes the menu and does nothing — the same as it did before,
+        // now visible as a missing `overlay` rather than a handler that only
+        // calls handleClose.
+        label: 'Boards',
+        items: [{ label: 'Edit' }],
+    },
+]

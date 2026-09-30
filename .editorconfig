@@ -1,0 +1,24 @@
+# The C# house style's spacing, for the editor to type with. See
+# docs/csharp-conventions.md.
+#
+# Not for `dotnet format whitespace`: it would also pull the one-line
+# `{ return …; }` under a catch back to the catch's indent, and there is no
+# option to stop it. The house style is checked by tools/check-csharp.mjs.
+#
+# Only the API and its contracts. The legacy Blazor project is left as it is.
+
+root = true
+
+[{ArcStrides.API,ArcStrides.Contracts}/**.cs]
+charset = utf-8-bom
+indent_style = space
+indent_size = 4
+
+# Parse (value), Count (), new Card (), [Route ("…")], if (…)
+csharp_space_between_method_call_name_and_opening_parenthesis = true
+csharp_space_between_method_declaration_name_and_open_parenthesis = true
+csharp_space_after_cast = true
+csharp_preserve_single_line_statements = true
+csharp_preserve_single_line_blocks = true
+
+csharp_style_namespace_declarations = file_scoped:suggestion

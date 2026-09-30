@@ -105,27 +105,6 @@ export interface ArcActionBarProps {
     fullWidth?: boolean
 }
 
-/**
- * How a button in the engraved bar is coloured.
- *
- * `color="error"` and `color="primary"` are MUI's palette slots, picked to sit
- * on a white surface. The bar is dark slate, so both come out too dark to read —
- * these are the same roles lifted onto a dark ground. See arc.dangerOnGlass.
- *
- * The hierarchy is deliberate: the primary action is the brightest thing in the
- * bar, Discard is quiet, and destructive is the only warm colour on the surface.
- * Discard being as loud as Save is what made the pair read as two equal choices.
- */
-const barButtonSx = (tone: 'primary' | 'quiet' | 'danger') => ({
-    color:
-        tone === 'danger' ? 'arc.dangerOnGlass'
-        : tone === 'primary' ? 'arc.accentOnGlass'
-        : 'arc.onGlassMuted',
-    fontWeight: tone === 'primary' ? 600 : 400,
-    '&:hover': { backgroundColor: 'arc.glassHover' },
-    '&.Mui-disabled': { color: 'arc.onGlassMuted', opacity: 0.5 },
-})
-
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export const ArcActionBar: React.FC<ArcActionBarProps> = ({
@@ -266,3 +245,27 @@ export const ArcActionBar: React.FC<ArcActionBarProps> = ({
 }
 
 export default ArcActionBar
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+/**
+ * How a button in the engraved bar is coloured.
+ *
+ * `color="error"` and `color="primary"` are MUI's palette slots, picked to sit
+ * on a white surface. The bar is dark slate, so both come out too dark to read —
+ * these are the same roles lifted onto a dark ground. See arc.dangerOnGlass.
+ *
+ * The hierarchy is deliberate: the primary action is the brightest thing in the
+ * bar, Discard is quiet, and destructive is the only warm colour on the surface.
+ * Discard being as loud as Save is what made the pair read as two equal choices.
+ */
+const barButtonSx = (tone: 'primary' | 'quiet' | 'danger') => ({
+    color:
+        tone === 'danger' ? 'arc.dangerOnGlass'
+        : tone === 'primary' ? 'arc.accentOnGlass'
+        : 'arc.onGlassMuted',
+    fontWeight: tone === 'primary' ? 600 : 400,
+    '&:hover': { backgroundColor: 'arc.glassHover' },
+    '&.Mui-disabled': { color: 'arc.onGlassMuted', opacity: 0.5 },
+})

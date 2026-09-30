@@ -63,13 +63,13 @@ public class BoardController : Controller
     [HttpGet ("{ID:guid}")]
     public async Task<ActionResult> FetchBoard ([FromRoute] Guid ID)
     {
-        var columnCollection = await _columnRepository.GetAllBoardColumns (ID);
+        var columnCollection = await _columnRepository.GetAllBoardColumnsAsync (ID);
         var columnValidationResult = _boardColumnEnumerableValidator.Validate (columnCollection);
         if (columnValidationResult.IsValid is false)
             return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (Column), columnValidationResult.ToString ()));
         var columnCollectionOrdered = columnCollection.OrderBy (column => column.ColumnOrder);
 
-        var swimlaneCollection = await _swimlaneRepository.GetAllBoardSwimlanes (ID);
+        var swimlaneCollection = await _swimlaneRepository.GetAllBoardSwimlanesAsync (ID);
         var swimlaneValidationResult = _boardSwimlaneEnumerableValidator.Validate (swimlaneCollection);
         if (swimlaneValidationResult.IsValid is false)
             // swimlaneValidationResult, not columnValidationResult. Reporting the
@@ -113,8 +113,8 @@ public class BoardController : Controller
             var mappedTasks = cardTasks.Select (_taskMapper.MapTaskToTaskResponse).ToList ();
             foreach (var mappedTask in mappedTasks)
             {
-                var cardTask = cardTasks.Single (task => Guid.Parse(task.RowKey!) == mappedTask.ID);
-                var taskType = taskTypeCollection.SingleOrDefault (taskType => int.Parse(taskType.RowKey) == cardTask.TaskTypeID);
+                var cardTask = cardTasks.Single (task => Guid.Parse (task.RowKey!) == mappedTask.ID);
+                var taskType = taskTypeCollection.SingleOrDefault (taskType => int.Parse (taskType.RowKey) == cardTask.TaskTypeID);
                 mappedTask.TaskType = _taskMapper.MapTaskTypeToTaskTypeResponse (taskType);// Assumes TaskType is real
 
                 // Matched on the timeline's ParentObjectID, not on Task.TimelineID.

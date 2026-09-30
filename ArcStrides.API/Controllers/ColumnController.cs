@@ -154,7 +154,7 @@ public class ColumnController : ArcController
     /// </summary>
     private async Task<IEnumerable<Column>> FetchAndValidateAllExistingColumnsAsync (Guid boardID)
     {
-        try { return await _columnRepository.GetAllBoardColumns (boardID); }
+        try { return await _columnRepository.GetAllBoardColumnsAsync (boardID); }
         catch (RequestFailedException reqFailedEx)
             { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (Column), reqFailedEx.Status)); }
     }

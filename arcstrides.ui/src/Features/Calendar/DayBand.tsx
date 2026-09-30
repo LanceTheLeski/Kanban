@@ -18,6 +18,7 @@
 import React, { useState } from 'react'
 import { Box, ButtonBase, ListItemIcon, ListItemText, Menu, MenuItem, Typography } from '@mui/material'
 import CheckIcon from '@mui/icons-material/Check'
+import { SERIF } from '../../Styles/Fonts'
 import { rem } from '../../Styles/Measures'
 import { TagsPanel } from '../Board/Card/TagsPanel'
 import { DayArt } from './DayArt'
@@ -64,7 +65,7 @@ export const DayBand: React.FC<DayBandProps> = ({ day }) => {
                                           textShadow: '0 1px 2px rgba(0, 0, 0, 0.35)' }}>
                     <Box component="span"
                          sx={{ display: 'block',
-                               fontFamily: "Georgia, 'Times New Roman', serif",
+                               fontFamily: SERIF,
                                fontSize: '1.6rem',
                                fontWeight: 400,
                                lineHeight: 1.1 }}>

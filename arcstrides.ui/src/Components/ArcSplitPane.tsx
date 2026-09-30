@@ -40,17 +40,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, type Breakpoint } from '@mui/material'
 
-// ── Geometry ──────────────────────────────────────────────────────────────────
-
-/** The bar's hit area. Wider than the line it draws, because 2px is not a target. */
-const BAR_WIDTH = 11
-
-/** Past this share, the right pane is dropped rather than shown as a sliver. */
-const COLLAPSE_AT = 0.97
-
-/** How far one arrow key moves the split. */
-const KEY_STEP = 0.02
-
 export interface ArcSplitPaneProps {
     /** The left pane's share of the width, 0..1. */
     ratio: number
@@ -269,3 +258,17 @@ export const ArcSplitPane: React.FC<ArcSplitPaneProps> = ({
 }
 
 export default ArcSplitPane
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+// ── Geometry ──────────────────────────────────────────────────────────────────
+
+/** The bar's hit area. Wider than the line it draws, because 2px is not a target. */
+const BAR_WIDTH = 11
+
+/** Past this share, the right pane is dropped rather than shown as a sliver. */
+const COLLAPSE_AT = 0.97
+
+/** How far one arrow key moves the split. */
+const KEY_STEP = 0.02
