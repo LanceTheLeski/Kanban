@@ -31,18 +31,21 @@ import { unfinished } from './Calendar.Moves'
 import { useCalendarActions, type CalendarActions } from './Calendar.Context'
 import type { GridDay } from './Calendar.Grid'
 
-interface DayActionsProps {
+interface DayActionsProps
+{
     day: GridDay
     /** In the day's own overlay: leave out anything that would open the day. */
     mini?: boolean
 }
 
-export const DayActions: React.FC<DayActionsProps> = ({ day, mini = false }) => {
+export const DayActions: React.FC<DayActionsProps> = ({ day, mini = false }) =>
+{
     const actions = useCalendarActions()
     const [anchor, setAnchor] = useState<HTMLElement | null>(null)
     const available = ACTIONS.filter(action => !(mini && action.opensDay) && (action.shows?.(day) ?? true))
     const current = dayTypeOf(day.stored?.typeId)
-    const run = (then: () => void) => {
+    const run = (then: () => void) =>
+    {
         setAnchor(null)
         then()
     }
@@ -61,12 +64,19 @@ export const DayActions: React.FC<DayActionsProps> = ({ day, mini = false }) => 
                 <MoreVertIcon sx={{ fontSize: '0.95rem' }} />
             </ButtonBase>
 
-            <Menu anchorEl={anchor} open={anchor !== null} onClose={() => setAnchor(null)}>
-                {available.filter(action => !action.last).map(action => (
-                    <MenuItem key={action.key} dense onClick={() => run(() => action.run(actions, day))}>
-                        {action.label(actions, day)}
-                    </MenuItem>
-                ))}
+            <Menu anchorEl={anchor}
+                  open={anchor !== null} 
+                  onClose={() => setAnchor(null)}>
+                { available.filter(action => !action.last)
+                           .map(action => 
+                                (
+                                    <MenuItem key={action.key} 
+                                              dense 
+                                              onClick={() => run(() => action.run(actions, day))}>
+                                        { action.label(actions, day) }
+                                    </MenuItem>
+                                ))
+                }
 
                 <Divider />
                 <ListSubheader sx={{ lineHeight: 2.2,
@@ -102,12 +112,17 @@ export const DayActions: React.FC<DayActionsProps> = ({ day, mini = false }) => 
                     </MenuItem>
                 ))}
 
-                {available.some(action => action.last) && <Divider />}
-                {available.filter(action => action.last).map(action => (
-                    <MenuItem key={action.key} dense onClick={() => run(() => action.run(actions, day))}>
-                        {action.label(actions, day)}
-                    </MenuItem>
-                ))}
+                { available.some(action => action.last) && <Divider /> }
+                { available.filter(action => action.last)
+                           .map(action =>
+                                (
+                                    <MenuItem key={action.key}
+                                              dense
+                                              onClick={() => run(() => action.run(actions, day))}>
+                                        { action.label(actions, day) }
+                                    </MenuItem>
+                                ))
+                }
             </Menu>
         </>
     )
@@ -115,22 +130,26 @@ export const DayActions: React.FC<DayActionsProps> = ({ day, mini = false }) => 
 
 export default DayActions
 
-// ── Private ───────────────────────────────────────────────────────────────────
-// Not exported, which is this language's `private`. Ordered by first use above.
-
-interface DayAction {
+interface DayAction
+{
     key: string
+
     label: (actions: CalendarActions, day: GridDay) => string
+
     run: (actions: CalendarActions, day: GridDay) => void
+
     /** Leave the action out on days it would do nothing for. */
     shows?: (day: GridDay) => boolean
+
     /** Opens the day's overlay — pointless from inside it. */
     opensDay?: boolean
+
     /** Under the themes, at the foot of the menu, rather than above them. */
     last?: boolean
 }
 
-const ACTIONS: DayAction[] = [
+const ACTIONS: DayAction[] =
+[
     {
         key: 'add',
         label: () => 'Add a card…',
@@ -138,7 +157,8 @@ const ACTIONS: DayAction[] = [
     },
     {
         key: 'carry',
-        label: (actions, day) => {
+        label: (actions, day) =>
+        {
             const count = unfinished(day.stored?.cards ?? []).length
             return `Carry ${count} unfinished ${count === 1 ? 'card' : 'cards'} to ${actions.carryTarget(day).format('ddd D MMM')}`
         },

@@ -38,13 +38,15 @@ import { CalendarContext, type CalendarActions } from './Calendar.Context'
 import { useBoardTitles } from './useBoardTitles'
 import type { Card } from '../../Entities/Card/Card.Types'
 
-interface MonthViewProps {
+interface MonthViewProps
+{
     year: number
     /** From 0, as dayjs counts. */
     month: number
 }
 
-export const MonthView: React.FC<MonthViewProps> = ({ year, month }) => {
+export const MonthView: React.FC<MonthViewProps> = ({ year, month }) => 
+{
     const stored = useCalendarStore(state => state.stored)
     const taskTypes = useCalendarStore(state => state.taskTypes)
     const refresh = useCalendarStore(state => state.refresh)
@@ -66,7 +68,8 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) => {
 
     // The boards "+ Add card" offers cards from. See useCardChoices for why this
     // is a guess, and what would replace it.
-    const boardIds = useMemo(() => [
+    const boardIds = useMemo(() => 
+    [
         DEFAULT_BOARD_ID,
         ...(stored?.dates ?? []).flatMap(date => date.cards.map(card => card.boardId)),
     ], [stored])
@@ -74,41 +77,50 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) => {
     const colours = useMemo(() => typeColours(taskTypes), [taskTypes])
     const boardTitle = useBoardTitles(boardIds)
 
-    const handleOpenCard = useCallback((card: Card) => {
+    const handleOpenCard = useCallback((card: Card) =>
+    {
         // The editor saves against the card's board. Without one there is
         // nowhere for a save to go, so say so rather than open a form that
         // cannot keep what is typed into it.
-        if (!card.boardId) {
+        if (!card.boardId)
+        {
             addError(`"${card.title}" did not say which board it is on, so it cannot be opened here.`)
             return
         }
         setOpenCard(card)
     }, [addError])
 
-    const actions = useMemo<CalendarActions>(() => ({
+    const actions = useMemo<CalendarActions>(() =>
+    ({
         colours,
         boardTitle,
         openCard: handleOpenCard,
-        openDay: (day, options) => setOpened(previous => ({
+        openDay: (day, options) => setOpened(previous =>
+        ({
             key: day.key,
             adding: options?.adding === true,
             request: (previous?.request ?? 0) + (options?.adding ? 1 : 0),
         })),
         taskUpdated: () => { refresh() },
-        setDayType: (day, typeId) => {
-            setDayType(day.date.date(), typeId).catch(error => {
+        setDayType: (day, typeId) =>
+        {
+            setDayType(day.date.date(), typeId).catch(error =>
+            {
                 addError(`Could not make ${day.date.format('D MMMM')} a ${dayTypeOf(typeId).name} day: ${messageOf(error)}`)
             })
         },
         carryTarget: day => nextWorkingDay(day.date, stored),
-        carryOver: day => {
+        carryOver: day =>
+        {
             const cards = unfinished(day.stored?.cards ?? [])
             const to = nextWorkingDay(day.date, stored)
-            moveCards(day.date.date(), to, cards).catch(error => {
+            moveCards(day.date.date(), to, cards).catch(error =>
+            {
                 addError(`Could not move ${day.date.format('D MMMM')}'s cards to ${to.format('D MMMM')}: ${messageOf(error)}`)
             })
         },
-        goToDay: date => {
+        goToDay: date =>
+        {
             // The open day is held by key, so it is found again once the
             // other month is drawn — this component stays mounted across it.
             setOpened(previous => ({ key: date.format('YYYY-MM-DD'), adding: false, request: previous?.request ?? 0 }))
@@ -116,23 +128,32 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) => {
         },
     }), [colours, boardTitle, handleOpenCard, refresh, setDayType, moveCards, stored, year, month, navigate, addError])
 
-    const handleCloseCard = () => {
+    const handleCloseCard = () =>
+    {
         setOpenCard(null)
         refresh()
     }
 
-    const handleAddCard = async (day: GridDay, card: Card) => {
-        try {
+    const handleAddCard = async (day: GridDay, card: Card) =>
+    {
+        try
+        {
             await addCard(day.date.date(), card)
-        } catch (error) {
+        }
+        catch (error)
+        {
             addError(`Could not put "${card.title}" on ${day.date.format('D MMMM')}: ${messageOf(error)}`)
         }
     }
 
-    const handleRemoveCard = async (day: GridDay, card: Card) => {
-        try {
+    const handleRemoveCard = async (day: GridDay, card: Card) =>
+    {
+        try
+        {
             await removeCard(day.date.date(), card.id)
-        } catch (error) {
+        }
+        catch (error)
+        {
             addError(`Could not take "${card.title}" off ${day.date.format('D MMMM')}: ${messageOf(error)}`)
         }
     }
@@ -141,27 +162,28 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) => {
         <CalendarContext.Provider value={actions}>
             <MonthGrid weeks={weeks} />
 
-            {openDay && (
-                <DayOverlay day={openDay}
-                            boardIds={boardIds}
-                            startAdding={opened?.adding ?? false}
-                            addRequest={opened?.request ?? 0}
-                            onClose={() => setOpened(null)}
-                            onAddCard={card => handleAddCard(openDay, card)}
-                            onRemoveCard={card => handleRemoveCard(openDay, card)} />
-            )}
+            {
+                openDay && (<DayOverlay day={openDay}
+                                        boardIds={boardIds}
+                                        startAdding={opened?.adding ?? false}
+                                        addRequest={opened?.request ?? 0}
+                                        onClose={() => setOpened(null)}
+                                        onAddCard={card => handleAddCard(openDay, card)}
+                                        onRemoveCard={card => handleRemoveCard(openDay, card)} />)
+            }
 
             {/* After the day, so a card opened from a day stacks above it. */}
-            {openCard && <CalendarCardOverlay card={openCard} onClose={handleCloseCard} />}
+
+            { openCard && <CalendarCardOverlay card={openCard} onClose={handleCloseCard} /> }
         </CalendarContext.Provider>
     )
 }
 
 export default MonthView
 
-// ── Private ───────────────────────────────────────────────────────────────────
-// Not exported, which is this language's `private`. Ordered by first use above.
-
-function messageOf(error: unknown): string {
-    return error instanceof Error ? error.message : String(error)
+function messageOf (error: unknown) : string
+{
+    return error instanceof Error
+        ? error.message
+        : String(error)
 }
