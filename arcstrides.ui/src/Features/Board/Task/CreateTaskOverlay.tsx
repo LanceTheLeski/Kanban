@@ -259,7 +259,8 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
                         <Box sx={{ flex: '1 1 18rem', minWidth: 0, display: 'flex' }}>
                             <UpdateTimelinePanel timeline={null}
                                                  onDraftChange={setTimelineDraft}
-                                                 boardId={boardId} />
+                                                 boardId={boardId}
+                                                 subjectTitle={title || 'New task'} />
                         </Box>
                     </Box>
                 </Box>

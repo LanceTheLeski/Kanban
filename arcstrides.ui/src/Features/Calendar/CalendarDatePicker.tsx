@@ -4,7 +4,7 @@
  * Choosing when a timeline point is, from the calendar: the month first, then
  * the day.
  *
- *     [ Tue 14 Oct 2026 ]  [ 14:00 ]         the point, under its node
+ *     [ Tue 14 Oct 2026 ] [ 14:00–16:00 ] [ Day ]    the point, under its node
  *            │
  *            ▼
  *     the month (MiniMonth) — pick a day — the day (DayTimePicker)
@@ -15,7 +15,9 @@
  * with what is already timed on them, where a click puts the point — or a
  * typed time, or none. A time is not required; the day view is always shown.
  *
- * The button with the time opens the day straight away, to change only that.
+ * The piece with the time opens the day straight away, to change only that.
+ * Day opens the whole day as the calendar's day view draws it (DayPreview),
+ * with this point in it as it stands — so is "See the whole day" in the day.
  *
  * Mirrors: the MudDatePicker and MudTimePicker pair under each timeline mode
  * in UpdateTimelinePanel.razor, which said nothing about the days they chose
@@ -26,14 +28,16 @@ import React, { useRef, useState } from 'react'
 import { Box, ButtonBase, Popover, type PopoverActions } from '@mui/material'
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 import ScheduleIcon from '@mui/icons-material/Schedule'
+import OpenInFullIcon from '@mui/icons-material/OpenInFull'
 import dayjs, { type Dayjs } from 'dayjs'
 import { rem } from '../../Styles/Measures'
 import { MiniMonth } from './MiniMonth'
+import { DayPreview } from './DayPreview'
 import { DayTimePicker, type DayMark } from './DayTimePicker'
 import { dayOf } from './Calendar.Grid'
-import { stopsOn } from './Calendar.Stops'
+import { isSubjects, stopsOn, type Subject } from './Calendar.Stops'
 import { useMonthLoad } from './useMonthLoad'
-import type { NodeValue } from '../Board/Timeline/Timeline.Nodes'
+import { durationLabel, spanLabel, type NodeValue } from '../Board/Timeline/Timeline.Nodes'
 
 interface CalendarDatePickerProps
 {
@@ -47,18 +51,22 @@ interface CalendarDatePickerProps
     /** The board the task is on, so its deadlines count even with none of its cards on the calendar. */
     boardId?: string
 
-    /** The task being scheduled: its saved points are left out, and `others` drawn in their place. */
-    taskId?: string
+    /** The card or task being scheduled: its saved points are left out, and `others` drawn in their place. */
+    subject?: Subject
 
     /** The task's other points, as they stand in the editor. */
     others?: { label: string; value: NodeValue }[]
+
+    /** What is being scheduled, by name — the card's or the task's title — for the day's preview. */
+    title?: string
 }
 
-export const CalendarDatePicker: React.FC<CalendarDatePickerProps> = ({ name, value, onChange, boardId, taskId, others = [] }) =>
+export const CalendarDatePicker: React.FC<CalendarDatePickerProps> = ({ name, value, onChange, boardId, subject, others = [], title }) =>
 {
     const anchor = useRef<HTMLDivElement>(null)
     const position = useRef<PopoverActions>(null)
     const [step, setStep] = useState<'month' | 'day' | null>(null)
+    const [previewing, setPreviewing] = useState(false)
     const [shown, setShown] = useState<Dayjs>(() => (value.date ?? dayjs()).startOf('month'))
     const load = useMonthLoad(shown, boardId
         ? [boardId]
@@ -69,7 +77,7 @@ export const CalendarDatePicker: React.FC<CalendarDatePickerProps> = ({ name, va
         ? dayOf(load.weeks, date.format('YYYY-MM-DD'))?.stored ?? null
         : null
     const stops = date
-        ? stopsOn(load.cards, date).filter(stop => stop.task.id !== taskId)
+        ? stopsOn(load.cards, date).filter(stop => !isSubjects(stop, subject))
         : []
     const marks: DayMark[] = date
         ? others.flatMap(other => (other.value.date?.isSame(date, 'day')
@@ -77,9 +85,17 @@ export const CalendarDatePicker: React.FC<CalendarDatePickerProps> = ({ name, va
                  at: other.value.time
                      ? onDay(date, other.value.time)
                      : date,
-                 timed: other.value.time !== null }]
+                 timed: other.value.time !== null,
+                 duration: other.value.duration }]
             : []))
         : []
+
+    // "15:00–17:00", "No time", or "No time · 2 h".
+    const timeText = value.time
+        ? spanLabel(value.time, value.duration)
+        : `No time${value.duration
+            ? ` · ${durationLabel(value.duration)}`
+            : ''}`
 
     return (
         <>
@@ -99,13 +115,16 @@ export const CalendarDatePicker: React.FC<CalendarDatePickerProps> = ({ name, va
                 <Piece icon={<ScheduleIcon sx={{ fontSize: '0.95rem' }} />}
                        onClick={() => open('day')}
                        disabled={!date}
-                       label={`${name} time: ${value.time
-                           ? value.time.format('HH:mm')
-                           : 'none'}. Choose a time`}>
-                    { value.time
-                        ? value.time.format('HH:mm')
-                        : 'No time'
-                    }
+                       label={`${name} time: ${timeText}. Choose a time`}>
+                    { timeText }
+                </Piece>
+                <Piece icon={<OpenInFullIcon sx={{ fontSize: '0.85rem' }} />}
+                       onClick={() => setPreviewing(true)}
+                       disabled={!date}
+                       label={`See ${date
+                           ? date.format('dddd D MMMM')
+                           : 'the day'} as the calendar shows it, with the ${name.toLowerCase()} in it`}>
+                    Day
                 </Piece>
             </Box>
 
@@ -127,7 +146,7 @@ export const CalendarDatePicker: React.FC<CalendarDatePickerProps> = ({ name, va
                     <MiniMonth month={shown}
                                weeks={load.weeks}
                                colours={load.colours}
-                               dueOn={day => stopsOn(load.cards, day).filter(stop => stop.task.id !== taskId).length}
+                               dueOn={day => stopsOn(load.cards, day).filter(stop => !isSubjects(stop, subject)).length}
                                selected={date}
                                loading={load.loading}
                                onMonth={next => setShown(next.startOf('month'))}
@@ -144,12 +163,24 @@ export const CalendarDatePicker: React.FC<CalendarDatePickerProps> = ({ name, va
                                    stops={stops}
                                    marks={marks}
                                    colours={load.colours}
-                                   onTime={time => onChange({ date, time })}
+                                   duration={value.duration}
+                                   onChange={change => onChange({ ...value, date, ...change })}
                                    onBack={() => go('month')}
-                                   onDone={() => setStep(null)} />
+                                   onDone={() => setStep(null)}
+                                   onOpenDay={() => setPreviewing(true)} />
                 )
                 }
             </Popover>
+
+            { previewing && date && (
+                <DayPreview date={date}
+                            title={title || name}
+                            points={[{ name, value }, ...others.map(other => ({ name: other.label, value: other.value }))]}
+                            subject={subject}
+                            boardId={boardId}
+                            onClose={() => setPreviewing(false)} />
+            )
+            }
         </>
     )
 
@@ -165,7 +196,8 @@ export const CalendarDatePicker: React.FC<CalendarDatePickerProps> = ({ name, va
     /** A day picked: the point moves to it, keeping its time of day, and the day opens. */
     function pick(day: Dayjs)
     {
-        onChange({ date: day,
+        onChange({ ...value,
+                   date: day,
                    time: value.time
                        ? onDay(day, value.time)
                        : null })

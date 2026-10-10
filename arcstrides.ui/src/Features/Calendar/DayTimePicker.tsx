@@ -1,43 +1,51 @@
 /**
  * DayTimePicker
  *
- * The day a timeline point was just put on, opened up, to say when in it.
+ * The day a timeline point was just put on, opened up, to say when in it — and
+ * for how long.
  *
  *     ‹ October         Tuesday 14 October
  *     ┌───────────────────────────────────┐
  *     │ 08:00 ┃                           │   the day's hours, on the gold rail
- *     │       ● 09:30 Draft · Write up    │   what already has a time today
+ *     │       ● 09:30–11:00 Draft · …     │   what already has a time today
  *     │ 10:00 ┃                           │
- *     │       ◉ Deadline 14:00            │   the point being set
+ *     │       █ Deadline · 14:00–16:00    │   the point being set, as long as it lasts
  *     └───────────────────────────────────┘
- *     No time today: Review · Write up
- *     [ 14:00 ]   No time   Done
+ *     No time on this day: Review · Write up
+ *     [🕑 14:00 ]  No time
+ *     Lasts  —  15 min  30 min  1 h  2 h  3 h  4 h
+ *     See the whole day                  Done
  *
  * The day's timeline is the day overlay's, laid on an hour scale so that a
  * place on it is a time: click a place and the point goes there, to the
- * quarter hour. A time can be typed instead, and a point needs no time at all —
- * "No time" leaves it on the day, where the day overlay lists it under Due.
+ * quarter hour; drag down from it and the point lasts as long as the drag.
+ * A time can be typed instead, and a point needs no time at all — "No time"
+ * leaves it on the day, where the day overlay lists it under Due.
  *
  * Everything already timed on the day is on the rail, from every card the
- * calendar can read, so a deadline can be put beside — or away from — what is
- * already there. The task's own other points are drawn hollow, as they stand
- * in the editor rather than as last saved.
+ * calendar can read, each as long as it lasts, so a deadline can be put beside
+ * — or away from — what is already there. The task's own other points are
+ * drawn hollow, as they stand in the editor rather than as last saved. "See the
+ * whole day" opens the day as the calendar's day view draws it, with this point
+ * in it.
  *
  * The scale is one control: a slider over the day's minutes. Up and down move
- * the point a quarter hour, Page Up and Page Down an hour, and Delete takes
- * the time off. Midnight is not on it — a point at midnight reads back as one
- * with no time (see isTimed), so the scale runs from 00:15 to 23:45.
+ * the point a quarter hour, Page Up and Page Down an hour, Shift with up or
+ * down makes it last a quarter hour less or more, and Delete takes the time
+ * off. Midnight is not on it — a point at midnight reads back as one with no
+ * time (see isTimed), so the scale runs from 00:15 to 23:45.
  */
 
 import React, { useEffect, useRef, useState } from 'react'
-import { Box, Button, Typography } from '@mui/material'
+import { Box, Button, ButtonBase, InputBase, Typography } from '@mui/material'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
-import { TimePicker } from '@mui/x-date-pickers'
+import ScheduleIcon from '@mui/icons-material/Schedule'
+import OpenInFullIcon from '@mui/icons-material/OpenInFull'
 import type { Dayjs } from 'dayjs'
 import { MONO, SERIF } from '../../Styles/Fonts'
-import { paperPickerSx } from '../../Styles/Paper'
+import { durationLabel, spanLabel } from '../Board/Timeline/Timeline.Nodes'
 import { colourOf } from './Calendar.Stats'
-import { stopKey, type Stop } from './Calendar.Stops'
+import { stopDone, stopKey, stopTitle, stopTypeId, type Stop } from './Calendar.Stops'
 import { NO_DAY_TYPE, dayTypeOf } from './Calendar.DayTypes'
 import type { CalendarDate } from './Calendar.Types'
 
@@ -49,6 +57,16 @@ export interface DayMark
     at: Dayjs
 
     timed: boolean
+
+    duration: number | null
+}
+
+/** A change to the point: its time, how long it lasts, or both — a drag sets both. */
+export interface PointChange
+{
+    time?: Dayjs | null
+
+    duration?: number | null
 }
 
 interface DayTimePickerProps
@@ -64,24 +82,44 @@ interface DayTimePickerProps
     /** On `date`, or null for no time. */
     time: Dayjs | null
 
-    /** Everything on the day, from every card the calendar can read, without the task being scheduled. */
+    /** Minutes from `time`, or null for an instant. */
+    duration: number | null
+
+    /** Everything on the day, from every card the calendar can read, without the one being scheduled. */
     stops: Stop[]
 
     marks: DayMark[]
 
     colours: Map<number, string>
 
-    onTime: (time: Dayjs | null) => void
+    onChange: (change: PointChange) => void
 
     onBack: () => void
 
     onDone: () => void
+
+    /** Opens the whole day, as the calendar's day view draws it, with this point in it. */
+    onOpenDay?: () => void
 }
 
-export const DayTimePicker: React.FC<DayTimePickerProps> = ({ date, stored, name, time, stops, marks, colours, onTime, onBack, onDone }) =>
+export const DayTimePicker: React.FC<DayTimePickerProps> = ({
+    date,
+    stored,
+    name,
+    time,
+    duration,
+    stops,
+    marks,
+    colours,
+    onChange,
+    onBack,
+    onDone,
+    onOpenDay,
+}) =>
 {
     const scale = useRef<HTMLDivElement>(null)
     const [hover, setHover] = useState<number | null>(null)
+    const [drag, setDrag] = useState<{ from: number; to: number } | null>(null)
     const type = dayTypeOf(stored?.typeId)
     const timed = stops.filter(stop => stop.timed)
     const untimed = stops.filter(stop => !stop.timed)
@@ -116,6 +154,14 @@ export const DayTimePicker: React.FC<DayTimePickerProps> = ({ date, stored, name
             ? []
             : [{ key: 'point', minutes }]),
     ])
+
+    // While dragging, the point is drawn where the drag says, not where it was.
+    const shownFrom = drag
+        ? Math.min(drag.from, drag.to)
+        : minutes
+    const shownLength = drag
+        ? Math.abs(drag.to - drag.from)
+        : duration ?? 0
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -156,16 +202,20 @@ export const DayTimePicker: React.FC<DayTimePickerProps> = ({ date, stored, name
                  aria-valuenow={minutes ?? undefined}
                  aria-valuetext={minutes === null
                      ? 'No time'
-                     : clock(minutes)}
+                     : spanLabel(time, duration)}
                  onKeyDown={key}
-                 onClick={event => onTime(at(snap(pointerMinutes(event))))}
-                 onMouseMove={event => setHover(snap(pointerMinutes(event)))}
-                 onMouseLeave={() => setHover(null)}
+                 onPointerDown={press}
+                 onPointerMove={move}
+                 onPointerUp={release}
+                 onPointerCancel={() => setDrag(null)}
+                 onPointerLeave={() => setHover(null)}
                  className="card-stock-flat"
                  sx={{ position: 'relative',
                        height: VIEW,
                        overflowY: 'auto',
                        cursor: 'crosshair',
+                       touchAction: 'pan-y',
+                       userSelect: 'none',
                        borderRadius: '2px',
                        '&:focus-visible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 }
                     }}>
@@ -222,11 +272,14 @@ export const DayTimePicker: React.FC<DayTimePickerProps> = ({ date, stored, name
                                 (
                                     <Marker key={stopKey(stop)}
                                             minutes={minutesOf(stop.at)}
+                                            duration={stop.duration}
                                             labelTop={labels.get(stopKey(stop)) ?? 0}
-                                            colour={colourOf(stop.task.taskType?.id, colours)}
-                                            text={`${stop.at.format('HH:mm')} ${stop.task.title}`}
-                                            caption={stop.card.title}
-                                            done={stop.task.isCompleted === true} />
+                                            colour={colourOf(stopTypeId(stop), colours)}
+                                            text={`${spanLabel(stop.at, stop.duration)} ${stopTitle(stop)}`}
+                                            caption={stop.task
+                                                ? stop.card.title
+                                                : 'card'}
+                                            done={stopDone(stop)} />
                                 ))
                     }
                     { marks.filter(mark => mark.timed)
@@ -234,15 +287,16 @@ export const DayTimePicker: React.FC<DayTimePickerProps> = ({ date, stored, name
                                 (
                                     <Marker key={`mark:${mark.label}`}
                                             minutes={minutesOf(mark.at)}
+                                            duration={mark.duration}
                                             labelTop={labels.get(`mark:${mark.label}`) ?? 0}
                                             colour={null}
-                                            text={`${mark.at.format('HH:mm')} ${mark.label}`}
-                                            caption="this task" />
+                                            text={`${spanLabel(mark.at, mark.duration)} ${mark.label}`}
+                                            caption="this one" />
                                 ))
                     }
 
                     {/* Where the pointer would put the point. */}
-                    { hover !== null && hover !== minutes && (
+                    { hover !== null && !drag && hover !== minutes && (
                         <Box aria-hidden
                              sx={{ position: 'absolute',
                                    top: hover / 60 * HOUR,
@@ -266,14 +320,28 @@ export const DayTimePicker: React.FC<DayTimePickerProps> = ({ date, stored, name
                     )
                     }
 
-                    {/* The point being set. */}
-                    { minutes !== null && (
+                    {/* The point being set, as long as it lasts. */}
+                    { shownFrom !== null && (
                         <Box aria-hidden
                              sx={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+                            { shownLength > 0 && (
+                                <Box className="card-stock-flat paper-ink"
+                                     sx={{ position: 'absolute',
+                                           left: RAIL - 5,
+                                           width: 10,
+                                           top: shownFrom / 60 * HOUR,
+                                           height: shownLength / 60 * HOUR,
+                                           borderRadius: '5px',
+                                           opacity: drag
+                                               ? 0.6
+                                               : 0.85
+                                        }} />
+                            )
+                            }
                             <Box className="card-disc card-stock paper-ink"
                                  sx={{ position: 'absolute',
                                        left: RAIL - 7,
-                                       top: minutes / 60 * HOUR - 7,
+                                       top: shownFrom / 60 * HOUR - 7,
                                        width: 14,
                                        height: 14,
                                        borderRadius: '50%'
@@ -281,7 +349,9 @@ export const DayTimePicker: React.FC<DayTimePickerProps> = ({ date, stored, name
                             <Box className="card-stock-flat paper-blue"
                                  sx={{ position: 'absolute',
                                        left: TEXT,
-                                       top: labels.get('point') ?? 0,
+                                       top: drag
+                                           ? shownFrom / 60 * HOUR
+                                           : labels.get('point') ?? 0,
                                        transform: 'translateY(-50%)',
                                        px: 0.75,
                                        py: '1px',
@@ -290,7 +360,10 @@ export const DayTimePicker: React.FC<DayTimePickerProps> = ({ date, stored, name
                                        whiteSpace: 'nowrap',
                                        color: 'arc.onPaperStrong'
                                     }}>
-                                { name } · { clock(minutes) }
+                                { name } · { clock(shownFrom) }{ shownLength > 0
+                                    ? `–${clock(shownFrom + shownLength)}`
+                                    : ''
+                                                               }
                             </Box>
                         </Box>
                     )
@@ -306,8 +379,10 @@ export const DayTimePicker: React.FC<DayTimePickerProps> = ({ date, stored, name
                     </Box>
                     { ' ' }
                     { [
-                        ...untimed.map(stop => `${stop.task.title} · ${stop.card.title}`),
-                        ...marks.filter(mark => !mark.timed).map(mark => `${mark.label} (this task)`),
+                        ...untimed.map(stop => `${stopTitle(stop)} · ${stop.card.title}${stop.duration
+                            ? ` (${durationLabel(stop.duration)})`
+                            : ''}`),
+                        ...marks.filter(mark => !mark.timed).map(mark => `${mark.label} (this one)`),
                     ].join('; ')
                     }
                 </Box>
@@ -315,22 +390,52 @@ export const DayTimePicker: React.FC<DayTimePickerProps> = ({ date, stored, name
             }
 
             <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 0.75 }}>
-                <TimePicker value={time}
-                            onChange={typed => typedTime(typed)}
-                            ampm={false}
-                            label="Time"
-                            slotProps={{ textField: { size: 'small', sx: { ...paperPickerSx, flex: '1 1 7rem' } },
-                                         openPickerButton: { size: 'small' }
-                                      }} />
-                <Button size="small"
-                        aria-pressed={time === null}
-                        onClick={() => onTime(null)}
-                        className={time === null
-                            ? 'card-stock paper-yellow'
-                            : 'card-stock-flat'}
-                        sx={{ fontSize: '0.66rem', color: 'arc.onPaperStrong', px: 1 }}>
+                <TimePiece time={time}
+                           onTime={value => onChange({ time: at(value) })} />
+                <Piece chosen={time === null}
+                       onClick={() => onChange({ time: null })}>
                     No time
-                </Button>
+                </Piece>
+            </Box>
+
+            {/* How long it lasts, from its time — or some time in the day, with none. */}
+            <Box role="group"
+                 aria-label={`How long the ${name.toLowerCase()} lasts`}
+                 sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 0.5 }}>
+                <Typography component="span"
+                            sx={{ fontSize: '0.62rem', fontWeight: 700, color: 'arc.onPaper', mr: 0.25 }}>
+                    Lasts
+                </Typography>
+                <Piece chosen={duration === null}
+                       label="No length"
+                       onClick={() => onChange({ duration: null })}>
+                    —
+                </Piece>
+                { [...DURATIONS, ...(duration !== null && !DURATIONS.includes(duration)
+                    ? [duration]
+                    : [])]
+                    .map(choice =>
+                         (
+                             <Piece key={choice}
+                                    chosen={duration === choice}
+                                    onClick={() => onChange({ duration: choice })}>
+                                 { durationLabel(choice) }
+                             </Piece>
+                         ))
+                }
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                { onOpenDay && (
+                    <Button size="small"
+                            startIcon={<OpenInFullIcon sx={{ fontSize: '0.85rem !important' }} />}
+                            onClick={onOpenDay}
+                            sx={{ fontSize: '0.64rem', color: 'arc.onPaper', textTransform: 'none' }}>
+                        See the whole day
+                    </Button>
+                )
+                }
+                <Box sx={{ flex: 1 }} />
                 <Button size="small"
                         onClick={onDone}
                         className="card-stock paper-green"
@@ -345,18 +450,50 @@ export const DayTimePicker: React.FC<DayTimePickerProps> = ({ date, stored, name
     // Closures over the day and the scale above, so they stay with them.
 
     /** A time of day, in minutes, as an instant on the day — or no time, for midnight. */
-    function at(value: number): Dayjs | null
+    function at(value: number | null): Dayjs | null
     {
-        if (value <= 0)
+        if (value === null || value <= 0)
             return null
         return date.hour(Math.floor(value / 60)).minute(value % 60).second(0).millisecond(0)
     }
 
-    function pointerMinutes(event: React.MouseEvent<HTMLDivElement>): number
+    function pointerMinutes(event: React.PointerEvent<HTMLDivElement>): number
     {
         const box = event.currentTarget.getBoundingClientRect()
         const y = event.clientY - box.top + event.currentTarget.scrollTop
-        return y / HOUR * 60
+        return snap(y / HOUR * 60)
+    }
+
+    function press(event: React.PointerEvent<HTMLDivElement>)
+    {
+        // Not the scrollbar: it sits outside the content box, past clientWidth.
+        const box = event.currentTarget.getBoundingClientRect()
+        if (event.button !== 0 || event.clientX - box.left >= event.currentTarget.clientWidth)
+            return
+        const value = pointerMinutes(event)
+        setDrag({ from: value, to: value })
+        event.currentTarget.setPointerCapture(event.pointerId)
+    }
+
+    function move(event: React.PointerEvent<HTMLDivElement>)
+    {
+        const value = pointerMinutes(event)
+        setHover(value)
+        if (drag)
+            setDrag({ ...drag, to: value })
+    }
+
+    /** A click puts the point there and keeps its length; a drag sets both. */
+    function release()
+    {
+        if (!drag)
+            return
+        const start = Math.min(drag.from, drag.to)
+        const length = Math.abs(drag.to - drag.from)
+        setDrag(null)
+        onChange(length > 0
+            ? { time: at(start), duration: length }
+            : { time: at(start) })
     }
 
     function key(event: React.KeyboardEvent<HTMLDivElement>)
@@ -364,7 +501,18 @@ export const DayTimePicker: React.FC<DayTimePickerProps> = ({ date, stored, name
         if (event.key === 'Delete' || event.key === 'Backspace')
         {
             event.preventDefault()
-            onTime(null)
+            onChange({ time: null })
+            return
+        }
+        if (event.shiftKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown'))
+        {
+            event.preventDefault()
+            const next = (duration ?? 0) + (event.key === 'ArrowDown'
+                ? 15
+                : -15)
+            onChange({ duration: next > 0
+                           ? next
+                           : null })
             return
         }
         const by = KEY_MINUTES[event.key]
@@ -375,23 +523,12 @@ export const DayTimePicker: React.FC<DayTimePickerProps> = ({ date, stored, name
         const next = event.key === 'Home' || event.key === 'End'
             ? by
             : clamp(from + by)
-        onTime(at(next))
+        onChange({ time: at(next) })
         // Keep the point in sight as it moves.
         const top = next / 60 * HOUR
         const view = event.currentTarget
         if (top < view.scrollTop + HOUR || top > view.scrollTop + VIEW - HOUR)
             view.scrollTo({ top: Math.max(0, top - VIEW / 2) })
-    }
-
-    function typedTime(typed: Dayjs | null)
-    {
-        if (!typed)
-        {
-            onTime(null)
-            return
-        }
-        if (typed.isValid())
-            onTime(at(typed.hour() * 60 + typed.minute()))
     }
 }
 
@@ -435,6 +572,9 @@ const KEY_MINUTES: Record<string, number> =
     End: LAST,
 }
 
+/** The lengths offered in a click; a drag on the hours gives any other. */
+const DURATIONS = [15, 30, 60, 120, 180, 240]
+
 function minutesOf(time: Dayjs): number
 {
     return time.hour() * 60 + time.minute()
@@ -453,7 +593,7 @@ function clamp(value: number): number
 
 function clock(value: number): string
 {
-    return `${String(Math.floor(value / 60)).padStart(2, '0')}:${String(value % 60).padStart(2, '0')}`
+    return `${String(Math.floor(value / 60) % 24).padStart(2, '0')}:${String(value % 60).padStart(2, '0')}`
 }
 
 /**
@@ -473,13 +613,128 @@ function placeLabels(items: { key: string; minutes: number }[]): Map<string, num
     return placed
 }
 
+/**
+ * "9", "930", "9:30", "9.30", "21:05", "2105" — hours and minutes, as a time
+ * is typed. Null for anything that is not one.
+ */
+function parseClock(text: string): number | null
+{
+    const match = /^\s*(\d{1,2})(?:[:.]?(\d{2}))?\s*$/.exec(text)
+    if (!match)
+        return null
+    const hours = Number(match[1])
+    const minutes = Number(match[2] ?? 0)
+    return hours < 24 && minutes < 60
+        ? hours * 60 + minutes
+        : null
+}
+
+/**
+ * The time, typed, on a piece of card: what the point is set to, and where a
+ * new one is written — kept on Enter or on leaving it, put back on Escape. An
+ * empty piece is no time.
+ */
+function TimePiece({ time, onTime }: { time: Dayjs | null; onTime: (minutes: number | null) => void })
+{
+    const shown = time
+        ? time.format('HH:mm')
+        : ''
+    const [typed, setTyped] = useState<string | null>(null)
+    const [wrong, setWrong] = useState(false)
+
+    return (
+        <Box className="card-stock-flat"
+             sx={{ display: 'flex',
+                   alignItems: 'center',
+                   gap: 0.5,
+                   px: 0.75,
+                   py: 0.35,
+                   boxShadow: wrong
+                       ? 'inset 0 -2px 0 var(--arc-red-deep)'
+                       : undefined
+                }}>
+            <ScheduleIcon aria-hidden
+                          sx={{ fontSize: '0.95rem', color: 'arc.onPaperMuted' }} />
+            <InputBase value={typed ?? shown}
+                       placeholder="--:--"
+                       onFocus={() => setTyped(shown)}
+                       onChange={event => setTyped(event.target.value)}
+                       onBlur={keep}
+                       onKeyDown={event =>
+                       {
+                           if (event.key === 'Enter')
+                           {
+                               event.preventDefault()
+                               keep()
+                           }
+                       }}
+                       inputProps={{ 'aria-label': 'Time, as hours and minutes', 'aria-invalid': wrong, inputMode: 'numeric', maxLength: 5 }}
+                       sx={{ width: '5.4ch',
+                             fontFamily: MONO,
+                             fontSize: '0.82rem',
+                             fontWeight: 600,
+                             color: 'arc.onPaperStrong',
+                             '& input': { p: 0 },
+                             '& input::placeholder': { color: 'arc.onPaperMuted', opacity: 1 }
+                          }} />
+        </Box>
+    )
+
+    function keep()
+    {
+        if (typed === null)
+            return
+        const text = typed
+        setTyped(null)
+        if (text.trim() === '')
+        {
+            setWrong(false)
+            onTime(null)
+            return
+        }
+        const value = parseClock(text)
+        setWrong(value === null)
+        if (value !== null)
+            onTime(value)
+    }
+}
+
+/** A choice cut from card: raised and yellow when it is the one chosen. */
+function Piece({ chosen, onClick, label, children }: { chosen: boolean; onClick: () => void; label?: string; children: React.ReactNode })
+{
+    return (
+        <ButtonBase onClick={onClick}
+                    aria-pressed={chosen}
+                    aria-label={label}
+                    className={chosen
+                        ? 'card-stock paper-yellow'
+                        : 'card-stock-flat'}
+                    sx={{ px: 0.75,
+                          py: 0.35,
+                          fontSize: '0.64rem',
+                          fontWeight: chosen
+                              ? 700
+                              : 500,
+                          color: 'arc.onPaperStrong',
+                          '&:hover': { backgroundColor: chosen
+                                           ? undefined
+                                           : 'arc.paperHover' },
+                          '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 }
+                       }}>
+            { children }
+        </ButtonBase>
+    )
+}
+
 interface MarkerProps
 {
     minutes: number
 
+    duration: number | null
+
     labelTop: number
 
-    /** The task's type colour; null for one of the task's own points, drawn hollow. */
+    /** The task's type colour; null for one of the subject's own points, drawn hollow. */
     colour: string | null
 
     text: string
@@ -489,11 +744,26 @@ interface MarkerProps
     done?: boolean
 }
 
-function Marker({ minutes, labelTop, colour, text, caption, done = false }: MarkerProps)
+function Marker({ minutes, duration, labelTop, colour, text, caption, done = false }: MarkerProps)
 {
     return (
         <Box aria-hidden
              sx={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+            { duration && (
+                <Box sx={{ position: 'absolute',
+                           left: RAIL - 3,
+                           width: 6,
+                           top: minutes / 60 * HOUR,
+                           height: duration / 60 * HOUR,
+                           borderRadius: '3px',
+                           backgroundColor: colour ?? 'var(--arc-paper)',
+                           border: colour
+                               ? 'none'
+                               : '1px solid var(--arc-blue-deep)',
+                           opacity: 0.7
+                        }} />
+            )
+            }
             <Box sx={{ position: 'absolute',
                        left: RAIL - 5,
                        top: minutes / 60 * HOUR - 5,

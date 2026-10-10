@@ -23,13 +23,19 @@
  * day are at full strength; stops on other days are paler and carry their
  * date. The day itself is not marked on the rail: the panel is already the
  * day's, and a label for it was a second heading in a panel of paper.
+ *
+ * A preview of the day, opened from a timeline node, draws it read-only, with
+ * the point being edited — `pending`, as it stands in the editor — in its place
+ * among the rest, on a piece of blue.
  */
 
 import React from 'react'
 import { Box, ButtonBase, Typography } from '@mui/material'
+import type { Dayjs } from 'dayjs'
 import { MONO } from '../../Styles/Fonts'
+import { spanLabel } from '../Board/Timeline/Timeline.Nodes'
 import { colourOf } from './Calendar.Stats'
-import { pointName, stopKey, type Stop } from './Calendar.Stops'
+import { pointName, stopDone, stopKey, stopTitle, stopTypeId, type PendingPoint, type Stop } from './Calendar.Stops'
 import { useCalendarActions } from './Calendar.Context'
 import type { GridDay } from './Calendar.Grid'
 
@@ -39,11 +45,21 @@ interface DayTimelineProps
 
     /** In time order — see Calendar.Stops. */
     stops: Stop[]
+
+    /** Points as they stand in an editor, not saved yet: a preview's. */
+    pending?: PendingPoint[]
+
+    /** A preview: nothing opens. */
+    readOnly?: boolean
 }
 
-export const DayTimeline: React.FC<DayTimelineProps> = ({ day, stops }) =>
+export const DayTimeline: React.FC<DayTimelineProps> = ({ day, stops, pending = [], readOnly = false }) =>
 {
     const { colours, openCard } = useCalendarActions()
+    const rows = [
+        ...stops.map(stop => ({ key: stopKey(stop), at: stop.at, stop, point: null })),
+        ...pending.map(point => ({ key: `pending:${point.key}`, at: point.at, stop: null, point })),
+    ].sort((a, b) => a.at.valueOf() - b.at.valueOf())
 
     return (
         <Box component="ol"
@@ -66,14 +82,43 @@ export const DayTimeline: React.FC<DayTimelineProps> = ({ day, stops }) =>
                        bottom: '0.9rem'
                     }} />
 
-            { stops.map(stop =>
-                        (
-                            <StopRow key={stopKey(stop)}
-                                     stop={stop}
-                                     onDay={stop.at.isSame(day.date, 'day')}
-                                     colour={colourOf(stop.task.taskType?.id, colours)}
-                                     onOpen={() => openCard(stop.card)} />
-                        ))
+            { rows.map(row => (row.stop
+                ? (
+                      <Row key={row.key}
+                           at={row.stop.at}
+                           timed={row.stop.timed}
+                           duration={row.stop.duration}
+                           onDay={row.stop.at.isSame(day.date, 'day')}
+                           colour={colourOf(stopTypeId(row.stop), colours)}
+                           title={stopTitle(row.stop)}
+                           caption={`${pointName(row.stop)} · ${row.stop.task
+                               ? row.stop.card.title
+                               : 'card'}`}
+                           done={stopDone(row.stop)}
+                           label={`${stopTitle(row.stop)}, ${pointName(row.stop).toLowerCase()} ${row.stop.at.format(row.stop.timed
+                               ? 'D MMMM HH:mm'
+                               : 'D MMMM, no time')}${stopDone(row.stop)
+                                   ? ', done'
+                                   : ''}`}
+                           card={row.stop.card.title}
+                           onOpen={readOnly
+                               ? undefined
+                               : () => openCard(row.stop!.card)} />
+                  )
+                : (
+                      <Row key={row.key}
+                           at={row.point!.at}
+                           timed={row.point!.timed}
+                           duration={row.point!.duration}
+                           onDay
+                           colour={null}
+                           title={row.point!.title}
+                           caption={`${row.point!.name} · as in the editor, not saved yet`}
+                           label={`${row.point!.title}, ${row.point!.name.toLowerCase()} ${row.point!.at.format(row.point!.timed
+                               ? 'HH:mm'
+                               : '[no time]')}, as in the editor`}
+                           card={null} />
+                  )))
             }
         </Box>
     )
@@ -89,10 +134,89 @@ const RAIL_CENTRE = 24
 
 const DOT = 12
 
-function StopRow({ stop, onDay, colour, onOpen }: { stop: Stop; onDay: boolean; colour: string; onOpen: () => void })
+interface RowProps
 {
-    const done = stop.task.isCompleted === true
-    const point = pointName(stop).toLowerCase()
+    at: Dayjs
+
+    timed: boolean
+
+    duration: number | null
+
+    /** At full strength on the day; paler, and dated, on another. */
+    onDay: boolean
+
+    /** The task's type colour; null for a pending point, which is drawn hollow on blue. */
+    colour: string | null
+
+    title: string
+
+    caption: string
+
+    done?: boolean
+
+    label: string
+
+    /** The card it opens, by name; null for a pending point. */
+    card: string | null
+
+    /** Opens the card; absent, the row is not a button. */
+    onOpen?: () => void
+}
+
+function Row({ at, timed, duration, onDay, colour, title, caption, done = false, label, card, onOpen }: RowProps)
+{
+    const face =
+    {
+        flex: 1,
+        minWidth: 0,
+        display: 'grid',
+        gridTemplateColumns: 'minmax(3rem, auto) minmax(0, 1fr)',
+        columnGap: 1,
+        alignItems: 'baseline',
+        justifyItems: 'start',
+        px: 1,
+        py: 0.5,
+        textAlign: 'left',
+    } as const
+
+    const content = (
+        <>
+            <Typography component="span"
+                        sx={{ ...WHEN, color: 'arc.onPaper' }}>
+                { timed
+                    ? spanLabel(at, duration)
+                    : '—'
+                }
+            </Typography>
+            <Typography component="span"
+                        sx={{ fontSize: '0.76rem',
+                              fontWeight: 600,
+                              color: done
+                                  ? 'arc.onPaperMuted'
+                                  : 'arc.onPaperStrong',
+                              textDecoration: done
+                                  ? 'line-through'
+                                  : 'none',
+                              overflowWrap: 'anywhere'
+                           }}>
+                { title }
+            </Typography>
+            <Typography component="span"
+                        sx={{ ...WHEN, color: 'arc.onPaperMuted' }}>
+                { onDay
+                    ? ''
+                    : at.format('DD MMM')
+                }
+            </Typography>
+            <Typography component="span"
+                        sx={{ fontSize: '0.64rem',
+                              color: 'arc.onPaperMuted',
+                              overflowWrap: 'anywhere'
+                           }}>
+                { caption }
+            </Typography>
+        </>
+    )
 
     return (
         <Box component="li"
@@ -109,7 +233,10 @@ function StopRow({ stop, onDay, colour, onOpen }: { stop: Stop; onDay: boolean; 
                        ml: `${RAIL_CENTRE - DOT / 2}px`,
                        flexShrink: 0,
                        borderRadius: '50%',
-                       backgroundColor: colour,
+                       backgroundColor: colour ?? 'var(--arc-paper)',
+                       border: colour
+                           ? 'none'
+                           : '2px solid var(--arc-blue-deep)',
                        boxShadow: '0 0 0 2px var(--arc-paper), 0 1px 2px rgba(30, 24, 16, .3)',
                        position: 'relative'
                     }} />
@@ -119,61 +246,29 @@ function StopRow({ stop, onDay, colour, onOpen }: { stop: Stop; onDay: boolean; 
                 beside what the point is and which card. A grid, so the titles
                 start on one line down the list whatever width the time is.
             */}
-            <ButtonBase className="card-stock-flat card-tilt"
-                        onClick={onOpen}
-                        aria-label={`${stop.task.title}, ${point} ${stop.at.format(stop.timed
-                            ? 'D MMMM HH:mm'
-                            : 'D MMMM, no time')}${done
-                                ? ', done'
-                                : ''}. Open card ${stop.card.title}`}
-                        sx={{ flex: 1,
-                              minWidth: 0,
-                              display: 'grid',
-                              gridTemplateColumns: 'minmax(3rem, auto) minmax(0, 1fr)',
-                              columnGap: 1,
-                              alignItems: 'baseline',
-                              justifyItems: 'start',
-                              px: 1,
-                              py: 0.5,
-                              textAlign: 'left',
-                              '&:hover': { backgroundColor: 'arc.paperHover' },
-                              '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 }
-                           }}>
-                <Typography component="span"
-                            sx={{ ...WHEN, color: 'arc.onPaper' }}>
-                    { stop.timed
-                        ? stop.at.format('HH:mm')
-                        : '—'
-                    }
-                </Typography>
-                <Typography component="span"
-                            sx={{ fontSize: '0.76rem',
-                                  fontWeight: 600,
-                                  color: done
-                                      ? 'arc.onPaperMuted'
-                                      : 'arc.onPaperStrong',
-                                  textDecoration: done
-                                      ? 'line-through'
-                                      : 'none',
-                                  overflowWrap: 'anywhere'
-                               }}>
-                    { stop.task.title }
-                </Typography>
-                <Typography component="span"
-                            sx={{ ...WHEN, color: 'arc.onPaperMuted' }}>
-                    { onDay
-                        ? ''
-                        : stop.at.format('DD MMM')
-                    }
-                </Typography>
-                <Typography component="span"
-                            sx={{ fontSize: '0.64rem',
-                                  color: 'arc.onPaperMuted',
-                                  overflowWrap: 'anywhere'
-                               }}>
-                    { pointName(stop) } · { stop.card.title }
-                </Typography>
-            </ButtonBase>
+            { onOpen
+                ? (
+                      <ButtonBase className="card-stock-flat card-tilt"
+                                  onClick={onOpen}
+                                  aria-label={`${label}. Open card ${card}`}
+                                  sx={{ ...face,
+                                        '&:hover': { backgroundColor: 'arc.paperHover' },
+                                        '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 }
+                                     }}>
+                          { content }
+                      </ButtonBase>
+                  )
+                : (
+                      <Box className={card === null
+                               ? 'card-stock paper-blue'
+                               : 'card-stock-flat card-tilt'}
+                           aria-label={label}
+                           role="group"
+                           sx={face}>
+                          { content }
+                      </Box>
+                  )
+            }
         </Box>
     )
 }

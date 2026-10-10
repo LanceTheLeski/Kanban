@@ -2,7 +2,8 @@
  * DayCell
  *
  * One day of the month: a pane of frosted glass with its header of tiles along
- * the top and the current view's cards under it, each wrapped round its tasks.
+ * the top, what is due on the day under it (DayDueStrip), and the current
+ * view's cards under that, each wrapped round its tasks.
  *
  * Mirrors: Layouts/Calendar/CalendarDate.razor — a `.glass` tile per day, its
  * charts and buttons along the top (see DayHeader), and under them a frosted
@@ -28,6 +29,7 @@ import { Box, ButtonBase, useMediaQuery, useTheme } from '@mui/material'
 import { TypeRing } from './TypeRing'
 import { DayHeader } from './DayHeader'
 import { DayCard } from './DayCard'
+import { DayDueStrip } from './DayDueStrip'
 import { dayStats } from './Calendar.Stats'
 import { viewsFor } from './Calendar.Views'
 import { dayTypeOf } from './Calendar.DayTypes'
@@ -47,7 +49,9 @@ interface DayCellProps
 
 export const DayCell: React.FC<DayCellProps> = ({ day, mini = false }) =>
 {
-    const { colours, boardTitle, openDay } = useCalendarActions()
+    const { colours, boardTitle, openDay, stopsOnDay } = useCalendarActions()
+    // What falls due on the day, from every card the calendar can read — see DayDueStrip.
+    const due = stopsOnDay(day.key)
     const wide = useMediaQuery(useTheme().breakpoints.up(NOTES_FROM))
 
     const cards = useMemo(() => day.stored?.cards ?? [], [day.stored])
@@ -108,6 +112,11 @@ export const DayCell: React.FC<DayCellProps> = ({ day, mini = false }) =>
                            mini={mini}
                            onView={next => setDayView(day.key, views[next].key)} />
             )
+            }
+
+            { wide && due.length > 0 && <DayDueStrip day={day}
+                                                     stops={due}
+                                                     mini={mini} />
             }
 
             { wide && view && (
@@ -197,6 +206,25 @@ export const DayCell: React.FC<DayCellProps> = ({ day, mini = false }) =>
                                           lineHeight: 1.6
                                        }}>
                             { cards.length }
+                        </ButtonBase>
+                    )
+                    }
+
+                    {/* What is due on it, as a count on a scrap of the Deadline tab's yellow. */}
+                    { due.length > 0 && (
+                        <ButtonBase className="card-stock-flat paper-yellow"
+                                    onClick={() => openDay(day)}
+                                    disabled={mini}
+                                    aria-label={`${due.length} due on ${name}`}
+                                    sx={{ alignSelf: 'flex-start',
+                                          minWidth: '1.2rem',
+                                          px: 0.4,
+                                          fontSize: '0.62rem',
+                                          fontWeight: 700,
+                                          lineHeight: 1.6,
+                                          color: 'arc.onPaperStrong'
+                                       }}>
+                            { due.length }
                         </ButtonBase>
                     )
                     }

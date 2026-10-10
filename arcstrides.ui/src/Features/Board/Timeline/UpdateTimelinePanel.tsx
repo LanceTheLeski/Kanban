@@ -52,6 +52,7 @@ import React, { useMemo, useState } from 'react'
 import { Box, Button, Paper, Typography } from '@mui/material'
 import { TimelineRail } from './TimelineRail'
 import { CalendarDatePicker } from '../../Calendar/CalendarDatePicker'
+import type { Subject } from '../../Calendar/Calendar.Stops'
 import { MODES, NODES, NODES_FOR, modeOf, seedValues } from './Timeline.Nodes'
 import type { NodeId, NodeValue, NodeValues, TimelineMode } from './Timeline.Nodes'
 import type { TimelineDraft } from './Timeline.Draft'
@@ -69,11 +70,14 @@ interface UpdateTimelinePanelProps
     /** The board the card is on, so the calendar the points are chosen from counts its deadlines. */
     boardId?: string
 
-    /** The task this is the timeline of, whose saved points the calendar leaves out — they are being edited here. */
-    taskId?: string
+    /** The card or task this is the timeline of, whose saved points the calendar leaves out — they are being edited here. */
+    subject?: Subject
+
+    /** Its title, as it stands in the editor, for the day's preview. */
+    subjectTitle?: string
 }
 
-export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeline, onDraftChange, boardId, taskId }) =>
+export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeline, onDraftChange, boardId, subject, subjectTitle }) =>
 {
     const [mode, setMode] = useState<TimelineMode>(() => modeOf(timeline))
     const [values, setValues] = useState<NodeValues>(() => seedValues(timeline))
@@ -263,7 +267,8 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                                         value={values[openSpec.id]}
                                         onChange={value => setNode(openSpec.id, value)}
                                         boardId={boardId}
-                                        taskId={taskId}
+                                        subject={subject}
+                                        title={subjectTitle}
                                         others={activeNodes.filter(node => node.id !== openSpec.id)
                                                            .map(node => ({ label: node.label.join(' '), value: values[node.id] }))} />
 
@@ -329,6 +334,9 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
         const timeOf = (id: NodeId) => (on.includes(id)
             ? nextValues[id].time?.format('HH:mm') ?? null
             : null)
+        const durationOf = (id: NodeId) => (on.includes(id)
+            ? nextValues[id].duration
+            : null)
 
         onDraftChange?.({
             mode: nextMode,
@@ -340,6 +348,10 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
             preferredEndTime: timeOf('preferredEnd'),
             requiredEnd: dateOf('requiredEnd'),
             requiredEndTime: timeOf('requiredEnd'),
+            preferredStartDuration: durationOf('preferredStart'),
+            requiredStartDuration: durationOf('requiredStart'),
+            preferredEndDuration: durationOf('preferredEnd'),
+            requiredEndDuration: durationOf('requiredEnd'),
         })
     }
 }

@@ -35,6 +35,8 @@ import { typeColours } from './Calendar.Stats'
 import { dayTypeOf } from './Calendar.DayTypes'
 import { CalendarContext, type CalendarActions } from './Calendar.Context'
 import { useBoardTitles } from './useBoardTitles'
+import { useBoards } from './useBoards'
+import { stopsOf, uniqueCards, type Stop } from './Calendar.Stops'
 import type { Card } from '../../Entities/Card/Card.Types'
 
 interface MonthViewProps
@@ -66,8 +68,9 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) =>
         ? dayOf(weeks, opened.key)
         : null
 
-    // The boards "+ Add card" offers cards from. See useCardChoices for why this
-    // is a guess, and what would replace it.
+    // The boards the calendar knows: "+ Add card" offers their cards, and a day's
+    // deadlines are found among them. See useBoards for why this is a guess, and
+    // what would replace it.
     const boardIds = useMemo(() =>
     [
         DEFAULT_BOARD_ID,
@@ -76,6 +79,24 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) =>
 
     const colours = useMemo(() => typeColours(taskTypes), [taskTypes])
     const boardTitle = useBoardTitles(boardIds)
+
+    // Every card the calendar can read, and every point on each day: a task or a
+    // card is due on a day whether or not it was put on it. Read with the month,
+    // and again on each re-read of it, so an edit made from here shows here.
+    const revision = useCalendarStore(state => state.revision)
+    const { boards, loading: readingBoards } = useBoards(boardIds, true, revision)
+    const knownCards = useMemo(() => uniqueCards((stored?.dates ?? []).flatMap(date => date.cards),
+                                                 boards.flatMap(board => board.cards)), [stored, boards])
+    const stopsByDay = useMemo(() =>
+    {
+        const byDay = new Map<string, Stop[]>()
+        for (const stop of stopsOf(knownCards))
+        {
+            const key = stop.at.format('YYYY-MM-DD')
+            byDay.set(key, [...(byDay.get(key) ?? []), stop])
+        }
+        return byDay
+    }, [knownCards])
 
     const handleOpenCard = useCallback((card: Card) =>
     {
@@ -119,7 +140,10 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) =>
             if (date.year() !== year || date.month() !== month)
                 navigate(monthPath(date))
         },
-    }), [colours, boardTitle, handleOpenCard, refresh, setDayType, year, month, navigate, addError])
+        knownCards,
+        stopsOnDay: key => stopsByDay.get(key) ?? NO_STOPS,
+        readingBoards,
+    }), [colours, boardTitle, handleOpenCard, refresh, setDayType, year, month, navigate, addError, knownCards, stopsByDay, readingBoards])
 
     const handleCloseCard = () =>
     {
@@ -183,3 +207,6 @@ function messageOf(error: unknown): string
         ? error.message
         : String(error)
 }
+
+/** One empty list for every day with nothing on it, so a day's memo over it holds. */
+const NO_STOPS: Stop[] = []

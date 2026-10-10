@@ -60,10 +60,8 @@ import { DayConnections } from './DayConnections'
 import { AddCardPicker } from './AddCardPicker'
 import { dayStats, type DayStats } from './Calendar.Stats'
 import { dayTypeOf } from './Calendar.DayTypes'
-import { stopsOf, stopsOn, uniqueCards, uniqueStops } from './Calendar.Stops'
+import { stopsOf, uniqueStops } from './Calendar.Stops'
 import { DayDue } from './DayDue'
-import { useBoards } from './useBoards'
-import { useCalendarStore } from './Calendar.Store'
 import { boardLabel } from './Calendar.Views'
 import { useCalendarActions } from './Calendar.Context'
 import { useGridDaySize } from './useGridDaySize'
@@ -111,14 +109,12 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
     const gridDay = useGridDaySize(day.key)
     const manyBoards = new Set(cards.map(card => card.boardId)).size > 1
 
-    // Every card the calendar can read, the boards' copies winning: they are
-    // read with the month (see revision) and carry every task's timeline.
-    const revision = useCalendarStore(state => state.revision)
-    const { boards, loading: readingBoards } = useBoards(boardIds, true, revision)
-    const known = uniqueCards(cards, boards.flatMap(board => board.cards))
+    // Every card the calendar can read, and every point on this day — read with
+    // the month, by MonthView (see Calendar.Context).
+    const { knownCards, stopsOnDay, readingBoards } = actions
     const onDay = new Set(cards.map(card => card.id))
-    const placed = known.filter(card => onDay.has(card.id))
-    const today = stopsOn(known, day.date)
+    const placed = knownCards.filter(card => onDay.has(card.id))
+    const today = stopsOnDay(day.key)
     const due = today.filter(stop => !stop.timed)
     const railStops = uniqueStops([
         ...stopsOf(placed).filter(stop => stop.timed || !stop.at.isSame(day.date, 'day')),

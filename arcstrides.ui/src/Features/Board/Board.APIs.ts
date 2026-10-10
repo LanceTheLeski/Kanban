@@ -74,13 +74,21 @@ interface TimelineResponse
 
     startPreferenceUTC: string | null
 
+    startPreferenceDurationMinutes: number | null
+
     startDeadlineUTC: string | null
+
+    startDeadlineDurationMinutes: number | null
 
     endDependencyTagGroupID: string | null
 
     endPreferenceUTC: string | null
 
+    endPreferenceDurationMinutes: number | null
+
     endDeadlineUTC: string | null
+
+    endDeadlineDurationMinutes: number | null
 }
 
 /** Mirrors ArcStrides.Contracts.Response.TaskTypeResponse */
@@ -598,11 +606,19 @@ export interface TimelineCreateRequest
 
     startPreferenceUTC: Date | null
 
+    startPreferenceDurationMinutes: number | null
+
     startDeadlineUTC: Date | null
+
+    startDeadlineDurationMinutes: number | null
 
     endPreferenceUTC: Date | null
 
+    endPreferenceDurationMinutes: number | null
+
     endDeadlineUTC: Date | null
+
+    endDeadlineDurationMinutes: number | null
 }
 
 /**
@@ -619,9 +635,13 @@ export async function createTimeline(boardId: string, request: TimelineCreateReq
             ParentID: request.parentId,
             TimelineTypeID: request.timelineTypeId,
             StartPreferenceUTC: request.startPreferenceUTC?.toISOString() ?? null,
+            StartPreferenceDurationMinutes: request.startPreferenceDurationMinutes,
             StartDeadlineUTC: request.startDeadlineUTC?.toISOString() ?? null,
+            StartDeadlineDurationMinutes: request.startDeadlineDurationMinutes,
             EndPreferenceUTC: request.endPreferenceUTC?.toISOString() ?? null,
+            EndPreferenceDurationMinutes: request.endPreferenceDurationMinutes,
             EndDeadlineUTC: request.endDeadlineUTC?.toISOString() ?? null,
+            EndDeadlineDurationMinutes: request.endDeadlineDurationMinutes,
         }
     )
     return mapTimeline(response)
@@ -681,10 +701,14 @@ function mapTimeline(response: TimelineResponse | null | undefined): Timeline | 
         id: response.id ?? null,
         startDependencyTagGroupId: response.startDependencyTagGroupID ?? null,
         startPreferenceUTC: toDate(response.startPreferenceUTC),
+        startPreferenceDurationMinutes: response.startPreferenceDurationMinutes ?? null,
         startDeadlineUTC: toDate(response.startDeadlineUTC),
+        startDeadlineDurationMinutes: response.startDeadlineDurationMinutes ?? null,
         endDependencyTagGroupId: response.endDependencyTagGroupID ?? null,
         endPreferenceUTC: toDate(response.endPreferenceUTC),
+        endPreferenceDurationMinutes: response.endPreferenceDurationMinutes ?? null,
         endDeadlineUTC: toDate(response.endDeadlineUTC),
+        endDeadlineDurationMinutes: response.endDeadlineDurationMinutes ?? null,
     }
 }
 

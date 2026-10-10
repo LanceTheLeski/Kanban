@@ -21,7 +21,7 @@
 import React from 'react'
 import { Box, ButtonBase, Tooltip, Typography } from '@mui/material'
 import { MONO } from '../../../Styles/Fonts'
-import type { NodeSpec, NodeValue } from './Timeline.Nodes'
+import { spanLabel, type NodeSpec, type NodeValue } from './Timeline.Nodes'
 
 // ── Geometry ──────────────────────────────────────────────────────────────────
 // Exported because TimelineRail has to put its connector through the middle of
@@ -149,10 +149,10 @@ export const TimelineNode: React.FC<TimelineNodeProps> = ({ spec, value, isOpen,
                     ? value.date.format('DD MMM')
                     : '—'
                 }
-                { value.time && (
+                { (value.time || value.duration) && (
                     <>
                         <br />
-                        { value.time.format('HH:mm') }
+                        { spanLabel(value.time, value.duration) }
                     </>
                 )
                 }

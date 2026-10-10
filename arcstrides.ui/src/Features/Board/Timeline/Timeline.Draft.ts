@@ -10,6 +10,8 @@
  */
 
 import type { PatchOperation } from '../../../Lib/Client'
+import { createTimeline, updateTimeline } from '../Board.APIs'
+import type { Timeline } from '../../../Entities/Timeline/Timeline.Types'
 import type { TimelineMode } from './Timeline.Nodes'
 
 /**
@@ -39,6 +41,15 @@ export interface TimelineDraft
     requiredStartTime: string | null
 
     requiredEndTime: string | null
+
+    /** How long each point lasts from its time, in minutes; null for an instant. */
+    preferredStartDuration: number | null
+
+    preferredEndDuration: number | null
+
+    requiredStartDuration: number | null
+
+    requiredEndDuration: number | null
 }
 
 export interface TimelineDates
@@ -50,6 +61,14 @@ export interface TimelineDates
     endPreferenceUTC: Date | null
 
     endDeadlineUTC: Date | null
+
+    startPreferenceDurationMinutes: number | null
+
+    startDeadlineDurationMinutes: number | null
+
+    endPreferenceDurationMinutes: number | null
+
+    endDeadlineDurationMinutes: number | null
 }
 
 /**
@@ -64,6 +83,19 @@ export function draftToTimelineDates(draft: TimelineDraft): TimelineDates
         endPreferenceUTC: combine(draft.preferredEnd, draft.preferredEndTime),
         startDeadlineUTC: combine(draft.requiredStart, draft.requiredStartTime),
         endDeadlineUTC: combine(draft.requiredEnd, draft.requiredEndTime),
+        // A duration belongs to a point: with no day, there is nothing for it to last from.
+        startPreferenceDurationMinutes: draft.preferredStart
+            ? draft.preferredStartDuration
+            : null,
+        endPreferenceDurationMinutes: draft.preferredEnd
+            ? draft.preferredEndDuration
+            : null,
+        startDeadlineDurationMinutes: draft.requiredStart
+            ? draft.requiredStartDuration
+            : null,
+        endDeadlineDurationMinutes: draft.requiredEnd
+            ? draft.requiredEndDuration
+            : null,
     }
 }
 
@@ -109,7 +141,37 @@ export function timelineOperations(dates: TimelineDates): PatchOperation[]
         { op: 'replace', path: '/startDeadlineUTC', value: dates.startDeadlineUTC?.toISOString() ?? null },
         { op: 'replace', path: '/endPreferenceUTC', value: dates.endPreferenceUTC?.toISOString() ?? null },
         { op: 'replace', path: '/endDeadlineUTC', value: dates.endDeadlineUTC?.toISOString() ?? null },
+        { op: 'replace', path: '/startPreferenceDurationMinutes', value: dates.startPreferenceDurationMinutes },
+        { op: 'replace', path: '/startDeadlineDurationMinutes', value: dates.startDeadlineDurationMinutes },
+        { op: 'replace', path: '/endPreferenceDurationMinutes', value: dates.endPreferenceDurationMinutes },
+        { op: 'replace', path: '/endDeadlineDurationMinutes', value: dates.endDeadlineDurationMinutes },
     ]
+}
+
+/**
+ * Writes a timeline draft for a card or a task, and returns the timeline as it
+ * now stands.
+ *
+ * One that already exists is patched in place, every point at once, so a
+ * point taken off is cleared and Timeless clears them all rather than leaving
+ * the last schedule standing. (Until the API wrote nulls on a patch, neither
+ * stuck — see TimelinePatchMapper.) One that does not exist yet is created,
+ * unless the draft is Timeless and there is nothing to create.
+ */
+export async function saveTimeline(boardId: string,
+                                   parent: { id: string; kind: number },
+                                   existing: Timeline | null,
+                                   draft: TimelineDraft): Promise<Timeline | null>
+{
+    const dates = draftToTimelineDates(draft)
+    if (existing?.id)
+    {
+        await updateTimeline(boardId, existing.id, timelineOperations(dates))
+        return { ...existing, ...dates }
+    }
+    if (!hasTimeline(draft))
+        return null
+    return createTimeline(boardId, { parentId: parent.id, timelineTypeId: parent.kind, ...dates })
 }
 
 // ── Private ───────────────────────────────────────────────────────────────────

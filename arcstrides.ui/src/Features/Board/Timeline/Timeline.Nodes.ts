@@ -28,6 +28,9 @@ export interface NodeSpec
 
     /** Which timeline field seeds it. */
     seed: (timeline: Timeline) => Date | null
+
+    /** And how long it lasts, in minutes — see NodeValue. */
+    seedDuration: (timeline: Timeline) => number | null
 }
 
 /**
@@ -45,24 +48,28 @@ export const NODES: NodeSpec[] =
         label: ['Preferred', 'Start'],
         meaning: 'When this would ideally begin',
         seed: timeline => timeline.startPreferenceUTC,
+        seedDuration: timeline => timeline.startPreferenceDurationMinutes,
     },
     {
         id: 'requiredStart',
         label: ['Required', 'Start'],
         meaning: 'The latest this can begin',
         seed: timeline => timeline.startDeadlineUTC,
+        seedDuration: timeline => timeline.startDeadlineDurationMinutes,
     },
     {
         id: 'preferredEnd',
         label: ['Preferred', 'End'],
         meaning: 'When this would ideally be finished',
         seed: timeline => timeline.endPreferenceUTC,
+        seedDuration: timeline => timeline.endPreferenceDurationMinutes,
     },
     {
         id: 'requiredEnd',
         label: ['Required', 'End'],
         meaning: 'The hard deadline',
         seed: timeline => timeline.endDeadlineUTC,
+        seedDuration: timeline => timeline.endDeadlineDurationMinutes,
     },
 ]
 
@@ -100,21 +107,29 @@ export const MODES: { value: TimelineMode; label: string; stock: string }[] =
 
 // ── What a node is set to ─────────────────────────────────────────────────────
 
-/** One node's two halves, as the pickers hold them. */
+/** One node, as the pickers hold it: its day, its time, and how long it lasts. */
 export interface NodeValue
 {
     date: Dayjs | null
+
     time: Dayjs | null
+
+    /**
+     * Minutes, from the point's time — "starting takes about two hours". Null for
+     * a point that is an instant. A point with no time can still last a while:
+     * a two-hour job, some time that day.
+     */
+    duration: number | null
 }
 
 export type NodeValues = Record<NodeId, NodeValue>
 
 export const EMPTY: NodeValues =
 {
-    preferredStart: { date: null, time: null },
-    requiredStart: { date: null, time: null },
-    preferredEnd: { date: null, time: null },
-    requiredEnd: { date: null, time: null },
+    preferredStart: { date: null, time: null, duration: null },
+    requiredStart: { date: null, time: null, duration: null },
+    preferredEnd: { date: null, time: null, duration: null },
+    requiredEnd: { date: null, time: null, duration: null },
 }
 
 /**
@@ -137,7 +152,8 @@ export function seedValues(timeline: Timeline | null): NodeValues
             seeded[node.id] = { date: dayjs(at),
                                 time: isTimed(dayjs(at))
                                     ? dayjs(at)
-                                    : null }
+                                    : null,
+                                duration: node.seedDuration(timeline) }
     }
     return seeded
 }
@@ -156,6 +172,33 @@ export function isTimed(at: Dayjs): boolean
     return at.hour() !== 0 || at.minute() !== 0 || at.second() !== 0 || at.millisecond() !== 0
 }
 
+/** How long a point lasts, as it reads: "15 min", "1 h", "1 h 30", "2 h". */
+export function durationLabel(minutes: number): string
+{
+    const hours = Math.floor(minutes / 60)
+    const rest = minutes % 60
+    if (hours === 0)
+        return `${rest} min`
+    return rest === 0
+        ? `${hours} h`
+        : `${hours} h ${String(rest).padStart(2, '0')}`
+}
+
+/**
+ * A point's time as it reads: "15:00", or "15:00–17:00" when it lasts; for a
+ * point with no time, how long it lasts, if anything — "2 h".
+ */
+export function spanLabel(time: Dayjs | null, duration: number | null): string
+{
+    if (!time)
+        return duration
+            ? durationLabel(duration)
+            : ''
+    return duration
+        ? `${time.format('HH:mm')}–${time.add(duration, 'minute').format('HH:mm')}`
+        : time.format('HH:mm')
+}
+
 /**
  * Recovers the mode from the dates, because the server does not store it.
  *
@@ -166,7 +209,9 @@ export function isTimed(at: Dayjs): boolean
  */
 export function modeOf(timeline: Timeline | null): TimelineMode
 {
-    if (!timeline)
+    // A timeline whose points were all taken off is still a row, with an ID to
+    // patch; it is timeless all the same.
+    if (!timeline || NODES.every(node => !node.seed(timeline)))
         return 'timeless'
     return timeline.startPreferenceUTC || timeline.endPreferenceUTC
         ? 'timeline'

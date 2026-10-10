@@ -61,6 +61,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcSplitPane } from '../../../Components/ArcSplitPane'
 import { UpdateTimelinePanel } from '../Timeline/UpdateTimelinePanel'
+import { saveTimeline, TIMELINE_PARENT_CARD, type TimelineDraft } from '../Timeline/Timeline.Draft'
 import { UpdateTaskPopover } from '../Task/UpdateTaskPopover'
 import { CreateTaskOverlay } from '../Task/CreateTaskOverlay'
 import { CommandPanel } from '../Commands/CommandPanel'
@@ -107,6 +108,11 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
     const [title, setTitle] = useState(card.title)
     const [description, setDescription] = useState(card.description)
 
+    // The card's own timeline as edited, or null while it is untouched. It used to
+    // be shown and never saved: the panel had no onDraftChange, so a day and a time
+    // set here were gone when the card closed.
+    const [timelineDraft, setTimelineDraft] = useState<TimelineDraft | null>(null)
+
     // Local only. The API can create and delete tags but cannot list the ones on
     // a card, so there is nothing to seed this from and nowhere to send it that
     // could be read back. See TagsPanel for what would unblock it.
@@ -152,15 +158,23 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
         if (description !== card.description)
             patch.description = description
 
-        if (Object.keys(patch).length === 0)
+        if (Object.keys(patch).length === 0 && !timelineDraft)
         {
             onClose()
             return
         }
 
+        let timeline = card.timeline
         const updated = await run(
             'Saving card',
-            () => updateCard(boardId, card.id, patch),
+            async () =>
+            {
+                if (Object.keys(patch).length > 0)
+                    await updateCard(boardId, card.id, patch)
+                // Created, or patched in place — see saveTimeline.
+                if (timelineDraft)
+                    timeline = await saveTimeline(boardId, { id: card.id, kind: TIMELINE_PARENT_CARD }, card.timeline, timelineDraft)
+            },
             // The card is patched in local state below; nothing else on the board moved.
             { refresh: false }
         )
@@ -172,6 +186,7 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
             title: patch.title ?? card.title,
             description: patch.description ?? card.description,
             tasks,
+            timeline,
         })
         onClose()
     }
@@ -312,7 +327,10 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                            height: { [STACK_BELOW]: CARD_PANEL_ROW_HEIGHT }
                         }}>
                     <UpdateTimelinePanel timeline={card.timeline}
-                                         boardId={boardId} />
+                                         onDraftChange={setTimelineDraft}
+                                         boardId={boardId}
+                                         subject={{ kind: 'card', id: card.id }}
+                                         subjectTitle={title} />
                     <CommandPanel card={card} />
                 </Box>
 

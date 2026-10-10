@@ -424,10 +424,15 @@ glass, which still shows between the header and the cards under it:
 
 How the tiles arrange is decided by the day's own width (a container query),
 not the window's, because the same day is also drawn as a live copy inside its
-overlay. Under the header, the view's cards, each a note wrapped round its tasks
-as green strips — the same strips, and the same popover behind them, as in the
-card editor. The views are a list in `Calendar.Views.ts`; the charts' numbers
-and colours are in `Calendar.Stats.ts`.
+overlay. Under the header, what is due on the day (`DayDueStrip`): a piece of
+yellow, the Deadline tab's stock, with a line for each point that falls on the
+day, from any card or task the calendar can read. Each line is the time (or a
+dash for none) and what it is the point of, three lines at most and then
+"+ n more", which opens the day. On a phone, it is a count on a scrap of the same
+yellow, beside the card count. Under that, the view's cards, each a note wrapped
+round its tasks as green strips — the same strips, and the same popover behind
+them, as in the card editor. The views are a list in `Calendar.Views.ts`; the
+charts' numbers and colours are in `Calendar.Stats.ts`.
 
 No day draws a graph of nothing. The middle tile is the lines only where there
 is progress to show and the day's type measures it; otherwise it is the type's
@@ -486,12 +491,14 @@ the panel is already the day's, so its own stops are at full strength and
 stops on other days are paler and carry their date.
 
 **What is due on a day is not only what is on it.** A deadline belongs to a
-task, and the task's card may never have been put on the day. So the timeline
-and Due are read from every card the calendar can read: the day's own, and the
-boards it knows (the default board and the boards of the month's cards; see
-`useBoards`). The timeline has the day's cards' whole schedules, other days
-included, and anything with a time on this day. Due has whatever falls on this
-day with no time.
+card or a task, and the card may never have been put on the day. So the
+timeline and Due are read from every card the calendar can read: the day's own,
+and the boards it knows (the default board and the boards of the month's cards;
+see `useBoards`). `MonthView` reads them with the month, and again with each
+re-read of it, and hands every day its points through `Calendar.Context`. A
+card's own timeline counts as well as its tasks'. The timeline has the day's
+cards' whole schedules, other days included, and anything with a time on this
+day. Due has whatever falls on this day with no time.
 
 **Due and Cards** split the sheet under the timeline: one sheet of blue with
 two halves. Due, on the left, is a piece of yellow, the stock the timeline
@@ -520,12 +527,33 @@ A point on a card's or a task's timeline is chosen from the calendar
    days and across months.
 2. **The day** (`DayTimePicker`), which always follows a pick: the day's hours
    on the timeline's gold rail, with everything already timed on the day from
-   any board, and the task's own other points drawn hollow. A click on the
-   hours puts the point there, to the quarter hour; the arrow keys move it; a
-   time can be typed; "No time" leaves it on the day. Done closes it.
+   any board, each as long as it lasts, and the task's own other points drawn
+   hollow. A click on the hours puts the point there, to the quarter hour; a
+   drag down from it makes the point last as long as the drag. The arrow keys
+   move it, and Shift with up or down shortens or lengthens it. Under the hours:
+   - the time, typed on a piece of card (`9`, `930`, `9:30`, `21:05`), kept on
+     Enter or on leaving it, refused with a red underline if it is not a time;
+   - "No time", which leaves the point on the day;
+   - **Lasts**: no length, 15 min, 30 min, 1 h, 2 h, 3 h or 4 h, and any other
+     length a drag gave it. A point with no time can still last a while.
 
-Under the node are two pieces of card: the day, which opens the month, and the
-time, which opens the day directly.
+   "See the whole day" opens the preview below; Done closes the popup.
+
+Under the node are three pieces of card: the day, which opens the month; the
+time and its span (`15:00–17:00`, or "No time · 2 h"), which opens the day
+directly; and **Day**, which opens the preview.
+
+**The preview** (`DayPreview`) is the day as the day overlay draws it: the
+number and the date, the timeline, and Due beside Cards, from the same cards. It
+also shows the points being edited, in their places on blue, marked "as in the
+editor, not saved yet", so a time can be tried and seen against the rest of the
+day before anything is saved. It is read-only: it opens over a card or a task
+being edited, where opening another card, or changing the day, would bury that
+edit. The calendar is where the day itself is changed.
+
+A point lasts from its time forward: a deadline at 15:00 lasting 2 h fills
+15:00 to 17:00. The span shows wherever the time does: under the node, on the
+day overlay's timeline, and in the preview.
 
 ---
 

@@ -181,16 +181,57 @@ place the UI would change.
 
 ---
 
-## Not started: card timelines are not saved
+## Fixed: a cleared point never cleared
 
-A card has a timeline of its own (`Card.TimelineID`), and the card overlay
-shows `UpdateTimelinePanel` for it. Nothing saves what is chosen there: the
-overlay passes the panel no `onDraftChange`, so a card's points can be set in
-the editor and are gone when it closes. Only tasks' timelines are written,
-through `UpdateTaskPopover` and `CreateTaskOverlay`. Wiring the card's the same
-way is the missing piece: `createTimeline` with the card as its parent and
-`TIMELINE_PARENT_CARD`, then `updateTimeline` once it exists. The server already
-reads a card's timeline back by its parent (problem 3).
+Taking a point off a timeline, or making it Timeless, sends a PATCH replacing
+the point with null. The API answered 200 and kept the old date, for two
+reasons, one under the other:
+
+1. The patched request was copied onto the stored row by `TimelineMapper`,
+   which skips nulls (`AllowNullPropertyAssignment = false`). That is right
+   for the keys it must not touch, and wrong for a patch.
+2. Underneath that, `AzureTableService.UpdateEntityAsync` writes with Table
+   Storage's *merge*, and the SDK leaves a null property out of a merge
+   entirely. So even a null that reached the row was never sent.
+
+**Fixed** for timelines. A patch is applied by `TimelinePatchMapper`, which
+writes every field the patch request carries, nulls included. The row is then
+written with `ReplaceEntityAsync`, the whole row at once. The client sends
+Timeless as a patch of nulls (`saveTimeline` in `Timeline.Draft`), where it used
+to send nothing at all. A timeline with no points left still has its row and
+its ID, and reads back as Timeless.
+
+The merge underneath is the same for every entity. See `docs/api-gaps.md`, #9.
+
+---
+
+## Fixed: card timelines are saved
+
+A card has a timeline of its own, and the card overlay shows
+`UpdateTimelinePanel` for it. Until now nothing saved what was chosen there:
+the overlay gave the panel no `onDraftChange`. It now saves through
+`saveTimeline`, as the task popover does: created with the card as its parent
+(`TIMELINE_PARENT_CARD`), patched in place after that. A card's points are
+stops on the calendar like a task's, with no task (`Stop.task` is null).
+
+---
+
+## Durations
+
+A point can last a while: "starting takes about two hours". Each of the four
+points has a duration beside it, in minutes, from the point's time forward:
+
+| point | duration |
+|---|---|
+| `StartPreferenceUTC` | `StartPreferenceDurationMinutes` |
+| `StartDeadlineUTC` | `StartDeadlineDurationMinutes` |
+| `EndPreferenceUTC` | `EndPreferenceDurationMinutes` |
+| `EndDeadlineUTC` | `EndDeadlineDurationMinutes` |
+
+Null is an instant. The API takes 1 minute to a week (`TimelineValidators`);
+longer than a week is a timeline of its own. A point with no time can still have
+a duration: a two-hour job, some time that day. A duration with no point is
+dropped when the draft is saved (`draftToTimelineDates`).
 
 ---
 

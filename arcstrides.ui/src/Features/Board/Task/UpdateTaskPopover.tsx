@@ -29,14 +29,8 @@ import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
 import { UpdateTimelinePanel } from '../Timeline/UpdateTimelinePanel'
 import { CreateTaskTypeOverlay } from '../../TagGroup/TaskType/CreateTaskTypeOverlay'
 import { useBoardActions } from '../useBoardActions'
-import { createTimeline, fetchTaskTypes, updateTask, updateTimeline, type TaskPatch } from '../Board.APIs'
-import {
-    draftToTimelineDates,
-    hasTimeline,
-    timelineOperations,
-    TIMELINE_PARENT_TASK,
-    type TimelineDraft,
-} from '../Timeline/Timeline.Draft'
+import { fetchTaskTypes, updateTask, type TaskPatch } from '../Board.APIs'
+import { saveTimeline, TIMELINE_PARENT_TASK, type TimelineDraft } from '../Timeline/Timeline.Draft'
 import { TASK_PANEL_ROW_MIN_HEIGHT, TASK_POPOVER_WIDTH } from '../../../Styles/Measures'
 import type { Task, TaskType } from '../../../Entities/Task/Task.Types'
 import type { Timeline } from '../../../Entities/Timeline/Timeline.Types'
@@ -140,7 +134,8 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
             patch.isComplete = isCompleted
 
         const existingTimeline = initialTimeline.current
-        const timelineChanged = hasTimeline(timelineDraft)
+        // Any draft at all is a change: one taken back to Timeless clears the schedule.
+        const timelineChanged = timelineDraft !== null
         const orderChanged = patch.order !== undefined
 
         if (Object.keys(patch).length === 0 && !timelineChanged)
@@ -155,28 +150,10 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                 if (Object.keys(patch).length > 0)
                     await updateTask(boardId, cardId, task.id, patch)
 
-                // Timeline handling mirrors Blazor's create-vs-update branch:
-                //   - task has no existing timeline + mode != timeless → create
-                //   - task already has one → patch it in place
-                if (!timelineChanged)
-                    return
-
-                const dates = draftToTimelineDates(timelineDraft)
-
-                if (existingTimeline?.id)
-                {
-                    await updateTimeline(boardId, existingTimeline.id, timelineOperations(dates))
-                    savedTimeline = { ...existingTimeline, ...dates }
-                }
-                else
-                {
-                    savedTimeline = await createTimeline(boardId, {
-                        parentId: task.id,
-                        // The parent kind, not the mode — see timelineDraft.
-                    timelineTypeId: TIMELINE_PARENT_TASK,
-                        ...dates,
-                    })
-                }
+                // Created, or patched in place — see saveTimeline. The parent
+                // kind, not the mode: see TIMELINE_PARENT_TASK.
+                if (timelineDraft)
+                    savedTimeline = await saveTimeline(boardId, { id: task.id, kind: TIMELINE_PARENT_TASK }, existingTimeline, timelineDraft)
             },
             /*
                An order change is the one task edit the client cannot predict the
@@ -382,7 +359,8 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                             <UpdateTimelinePanel timeline={task.timeline}
                                                  onDraftChange={setTimelineDraft}
                                                  boardId={boardId}
-                                                 taskId={task.id} />
+                                                 subject={{ kind: 'task', id: task.id }}
+                                                 subjectTitle={title} />
                         </Box>
                     </Box>
                 </Box>

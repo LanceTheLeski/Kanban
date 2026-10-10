@@ -21,8 +21,9 @@
 
 import React from 'react'
 import { Box, ButtonBase, Typography } from '@mui/material'
+import { durationLabel } from '../Board/Timeline/Timeline.Nodes'
 import { colourOf } from './Calendar.Stats'
-import { pointName, stopKey, type Stop } from './Calendar.Stops'
+import { pointName, stopDone, stopKey, stopTitle, stopTypeId, type PendingPoint, type Stop } from './Calendar.Stops'
 import { boardLabel } from './Calendar.Views'
 import { useCalendarActions } from './Calendar.Context'
 
@@ -30,14 +31,20 @@ interface DayDueProps
 {
     /** This day's points with no time, from every card the calendar can read. */
     stops: Stop[]
+
+    /** Points as they stand in an editor, not saved yet: a preview's. */
+    pending?: PendingPoint[]
+
+    /** A preview: nothing opens. */
+    readOnly?: boolean
 }
 
-export const DayDue: React.FC<DayDueProps> = ({ stops }) =>
+export const DayDue: React.FC<DayDueProps> = ({ stops, pending = [], readOnly = false }) =>
 {
     const { colours, openCard, boardTitle } = useCalendarActions()
     const manyBoards = new Set(stops.map(stop => stop.card.boardId)).size > 1
 
-    if (stops.length === 0)
+    if (stops.length === 0 && pending.length === 0)
     {
         return (
             <Typography sx={{ fontSize: '0.75rem', color: 'arc.onPaperMuted', px: 0.5 }}>
@@ -56,15 +63,43 @@ export const DayDue: React.FC<DayDueProps> = ({ stops }) =>
                    flexDirection: 'column',
                    gap: 0.75
                 }}>
+            { pending.map(point =>
+                          (
+                              <DueRow key={`pending:${point.key}`}
+                                      colour={null}
+                                      title={point.title}
+                                      caption={[point.name, 'as in the editor, not saved yet', point.duration
+                                          ? durationLabel(point.duration)
+                                          : null].filter(Boolean)
+                                                 .join(' · ')}
+                                      label={`${point.title}, ${point.name.toLowerCase()}, no time, as in the editor`} />
+                          ))
+            }
             { stops.map(stop =>
                         (
                             <DueRow key={stopKey(stop)}
-                                    stop={stop}
-                                    colour={colourOf(stop.task.taskType?.id, colours)}
-                                    board={manyBoards
-                                        ? boardTitle(stop.card.boardId) || boardLabel(stop.card.boardId)
-                                        : null}
-                                    onOpen={() => openCard(stop.card)} />
+                                    colour={colourOf(stopTypeId(stop), colours)}
+                                    title={stopTitle(stop)}
+                                    done={stopDone(stop)}
+                                    // "Deadline · Write the report · 2 h · Board 1CB0": the point, whose it is, how long, and where.
+                                    caption={[pointName(stop),
+                                              stop.task
+                                                  ? stop.card.title
+                                                  : 'card',
+                                              stop.duration
+                                                  ? durationLabel(stop.duration)
+                                                  : null,
+                                              manyBoards
+                                                  ? boardTitle(stop.card.boardId) || boardLabel(stop.card.boardId)
+                                                  : null].filter(Boolean)
+                                                         .join(' · ')}
+                                    label={`${stopTitle(stop)}, ${pointName(stop).toLowerCase()}, no time${stopDone(stop)
+                                        ? ', done'
+                                        : ''}`}
+                                    card={stop.card.title}
+                                    onOpen={readOnly
+                                        ? undefined
+                                        : () => openCard(stop.card)} />
                         ))
             }
         </Box>
@@ -78,65 +113,105 @@ export default DayDue
 
 const DOT = 10
 
-function DueRow({ stop, colour, board, onOpen }: { stop: Stop; colour: string; board: string | null; onOpen: () => void })
+interface DueRowProps
 {
-    const done = stop.task.isCompleted === true
-    const point = pointName(stop).toLowerCase()
+    /** The task's type colour; null for a pending point, drawn hollow on blue. */
+    colour: string | null
+
+    title: string
+
+    caption: string
+
+    done?: boolean
+
+    label: string
+
+    /** The card it opens, by name. */
+    card?: string
+
+    /** Opens the card; absent, the row is not a button. */
+    onOpen?: () => void
+}
+
+function DueRow({ colour, title, caption, done = false, label, card, onOpen }: DueRowProps)
+{
+    const face =
+    {
+        flex: 1,
+        minWidth: 0,
+        display: 'grid',
+        gridTemplateColumns: `${DOT}px minmax(0, 1fr)`,
+        columnGap: 1,
+        alignItems: 'baseline',
+        justifyItems: 'start',
+        px: 1,
+        py: 0.5,
+        textAlign: 'left',
+    } as const
+
+    const content = (
+        <>
+            <Box aria-hidden
+                 sx={{ width: DOT,
+                       height: DOT,
+                       borderRadius: '50%',
+                       backgroundColor: colour ?? 'var(--arc-paper)',
+                       border: colour
+                           ? 'none'
+                           : '2px solid var(--arc-blue-deep)',
+                       boxShadow: '0 0 0 2px var(--arc-paper), 0 1px 2px rgba(30, 24, 16, .3)',
+                       alignSelf: 'center'
+                    }} />
+            <Typography component="span"
+                        sx={{ fontSize: '0.76rem',
+                              fontWeight: 600,
+                              color: done
+                                  ? 'arc.onPaperMuted'
+                                  : 'arc.onPaperStrong',
+                              textDecoration: done
+                                  ? 'line-through'
+                                  : 'none',
+                              overflowWrap: 'anywhere'
+                           }}>
+                { title }
+            </Typography>
+            <Box />
+            <Typography component="span"
+                        sx={{ fontSize: '0.64rem',
+                              color: 'arc.onPaperMuted',
+                              overflowWrap: 'anywhere'
+                           }}>
+                { caption }
+            </Typography>
+        </>
+    )
 
     return (
         <Box component="li"
              sx={{ display: 'flex' }}>
-            <ButtonBase className="card-stock-flat card-tilt"
-                        onClick={onOpen}
-                        aria-label={`${stop.task.title}, ${point}, no time${done
-                            ? ', done'
-                            : ''}. Open card ${stop.card.title}`}
-                        sx={{ flex: 1,
-                              minWidth: 0,
-                              display: 'grid',
-                              gridTemplateColumns: `${DOT}px minmax(0, 1fr)`,
-                              columnGap: 1,
-                              alignItems: 'baseline',
-                              justifyItems: 'start',
-                              px: 1,
-                              py: 0.5,
-                              textAlign: 'left',
-                              '&:hover': { backgroundColor: 'arc.paperHover' },
-                              '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 }
-                           }}>
-                <Box aria-hidden
-                     sx={{ width: DOT,
-                           height: DOT,
-                           borderRadius: '50%',
-                           backgroundColor: colour,
-                           boxShadow: '0 0 0 2px var(--arc-paper), 0 1px 2px rgba(30, 24, 16, .3)',
-                           alignSelf: 'center'
-                        }} />
-                <Typography component="span"
-                            sx={{ fontSize: '0.76rem',
-                                  fontWeight: 600,
-                                  color: done
-                                      ? 'arc.onPaperMuted'
-                                      : 'arc.onPaperStrong',
-                                  textDecoration: done
-                                      ? 'line-through'
-                                      : 'none',
-                                  overflowWrap: 'anywhere'
-                               }}>
-                    { stop.task.title }
-                </Typography>
-                <Box />
-                <Typography component="span"
-                            sx={{ fontSize: '0.64rem',
-                                  color: 'arc.onPaperMuted',
-                                  overflowWrap: 'anywhere'
-                               }}>
-                    { pointName(stop) } · { stop.card.title }{ board
-                        ? ` · ${board}`
-                        : ''
-                                                             }
-                </Typography>
-            </ButtonBase>
+            { onOpen
+                ? (
+                      <ButtonBase className="card-stock-flat card-tilt"
+                                  onClick={onOpen}
+                                  aria-label={`${label}. Open card ${card}`}
+                                  sx={{ ...face,
+                                        '&:hover': { backgroundColor: 'arc.paperHover' },
+                                        '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 }
+                                     }}>
+                          { content }
+                      </ButtonBase>
+                  )
+                : (
+                      <Box className={colour === null
+                               ? 'card-stock paper-blue'
+                               : 'card-stock-flat card-tilt'}
+                           role="group"
+                           aria-label={label}
+                           sx={face}>
+                          { content }
+                      </Box>
+                  )
+            }
         </Box>
     )
 }

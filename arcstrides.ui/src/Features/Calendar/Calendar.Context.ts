@@ -15,6 +15,7 @@ import { createContext, useContext } from 'react'
 import type { Dayjs } from 'dayjs'
 import type { Card } from '../../Entities/Card/Card.Types'
 import type { GridDay } from './Calendar.Grid'
+import type { Stop } from './Calendar.Stops'
 
 export interface CalendarActions
 {
@@ -40,6 +41,18 @@ export interface CalendarActions
      * month first, if it is not this one.
      */
     goToDay: (date: Dayjs) => void
+
+    /**
+     * Every card the calendar can read: the month's, and those on the boards it
+     * knows — where a day's deadlines are found. See useBoards and Calendar.Stops.
+     */
+    knownCards: Card[]
+
+    /** Every timeline point on a day of the month, by day key, from `knownCards`. */
+    stopsOnDay: (dayKey: string) => Stop[]
+
+    /** While the boards are first read, and a day's deadlines may not all be in yet. */
+    readingBoards: boolean
 }
 
 export const CalendarContext = createContext<CalendarActions | null>(null)
