@@ -4,6 +4,11 @@
  * Everything the day's tasks have scheduled, in time order, on one rail — and
  * where this day falls among it.
  *
+ * Which stops those are is the overlay's to say: every point of the tasks on
+ * the day's cards, and every point with a time that falls on this day from a
+ * task anywhere the calendar can read. A point on this day with no time is not
+ * here — it has no place on a line of times — but in the Due column under it.
+ *
  * Mirrors: the MudTimeline in UpdateDateOverlay.razor, which listed each task
  * of the day's cards as "{EndDeadlineUTC}: {Title}", ordered by that deadline.
  * A task's timeline holds up to four points — preferred and required, start
@@ -24,33 +29,21 @@ import React from 'react'
 import { Box, ButtonBase, Typography } from '@mui/material'
 import { MONO } from '../../Styles/Fonts'
 import { colourOf } from './Calendar.Stats'
-import { stopsOf, type Stop } from './Calendar.Stops'
+import { pointName, stopKey, type Stop } from './Calendar.Stops'
 import { useCalendarActions } from './Calendar.Context'
-import type { Card } from '../../Entities/Card/Card.Types'
 import type { GridDay } from './Calendar.Grid'
 
 interface DayTimelineProps
 {
     day: GridDay
-    cards: Card[]
+
+    /** In time order — see Calendar.Stops. */
+    stops: Stop[]
 }
 
-export const DayTimeline: React.FC<DayTimelineProps> = ({ day, cards }) =>
+export const DayTimeline: React.FC<DayTimelineProps> = ({ day, stops }) =>
 {
     const { colours, openCard } = useCalendarActions()
-    const stops = stopsOf(cards)
-
-    if (stops.length === 0)
-    {
-        return (
-            <Typography sx={{ fontSize: '0.75rem', color: 'arc.onPaperMuted', px: 0.5 }}>
-                { cards.length === 0
-                    ? 'No cards, so nothing scheduled.'
-                    : 'None of these tasks has a timeline yet.'
-                }
-            </Typography>
-        )
-    }
 
     return (
         <Box component="ol"
@@ -75,7 +68,7 @@ export const DayTimeline: React.FC<DayTimelineProps> = ({ day, cards }) =>
 
             { stops.map(stop =>
                         (
-                            <StopRow key={`${stop.task.id}:${stop.node.id}`}
+                            <StopRow key={stopKey(stop)}
                                      stop={stop}
                                      onDay={stop.at.isSame(day.date, 'day')}
                                      colour={colourOf(stop.task.taskType?.id, colours)}
@@ -99,7 +92,7 @@ const DOT = 12
 function StopRow({ stop, onDay, colour, onOpen }: { stop: Stop; onDay: boolean; colour: string; onOpen: () => void })
 {
     const done = stop.task.isCompleted === true
-    const point = stop.node.label.join(' ').toLowerCase()
+    const point = pointName(stop).toLowerCase()
 
     return (
         <Box component="li"
@@ -128,9 +121,11 @@ function StopRow({ stop, onDay, colour, onOpen }: { stop: Stop; onDay: boolean; 
             */}
             <ButtonBase className="card-stock-flat card-tilt"
                         onClick={onOpen}
-                        aria-label={`${stop.task.title}, ${point} ${stop.at.format('D MMMM HH:mm')}${done
-                            ? ', done'
-                            : ''}. Open card ${stop.card.title}`}
+                        aria-label={`${stop.task.title}, ${point} ${stop.at.format(stop.timed
+                            ? 'D MMMM HH:mm'
+                            : 'D MMMM, no time')}${done
+                                ? ', done'
+                                : ''}. Open card ${stop.card.title}`}
                         sx={{ flex: 1,
                               minWidth: 0,
                               display: 'grid',
@@ -146,7 +141,10 @@ function StopRow({ stop, onDay, colour, onOpen }: { stop: Stop; onDay: boolean; 
                            }}>
                 <Typography component="span"
                             sx={{ ...WHEN, color: 'arc.onPaper' }}>
-                    { stop.at.format('HH:mm') }
+                    { stop.timed
+                        ? stop.at.format('HH:mm')
+                        : '—'
+                    }
                 </Typography>
                 <Typography component="span"
                             sx={{ fontSize: '0.76rem',
@@ -173,7 +171,7 @@ function StopRow({ stop, onDay, colour, onOpen }: { stop: Stop; onDay: boolean; 
                                   color: 'arc.onPaperMuted',
                                   overflowWrap: 'anywhere'
                                }}>
-                    { stop.node.label.join(' ') } · { stop.card.title }
+                    { pointName(stop) } · { stop.card.title }
                 </Typography>
             </ButtonBase>
         </Box>

@@ -155,6 +155,45 @@ with its parent atomically.
 
 ---
 
+## A point with no time
+
+A point can be given a day and no time of day: "due Friday", not "due Friday
+at five". The model has nowhere to say so. Each point is one `DateTime`.
+
+**What the UI does.** A point with no time is saved at its day's local
+midnight, which is what folding a date with no time into a timestamp has
+always produced (`Timeline.Draft`). Midnight is read back as no time
+(`isTimed` in `Timeline.Nodes`): the editor shows the day with "No time", and
+the day overlay lists the point under Due rather than on the timeline. The
+picker keeps midnight off its hour scale, and a typed 00:00 means "no time".
+
+**What that costs.**
+
+- A deadline of exactly midnight cannot be saved. 23:45 or 00:15 is as near
+  as the picker goes.
+- "Local" is whichever time zone the browser saving it was in. A point saved
+  with no time in Chicago reads as 23:00 the day before in Denver, and as timed.
+
+**Suggested fix.** A flag beside each point (`StartPreferenceHasTime`, and so
+on), or a date-only field beside each timestamp. Either lets "no time" be
+stored as such, and leaves midnight as just another time. `isTimed` is the one
+place the UI would change.
+
+---
+
+## Not started: card timelines are not saved
+
+A card has a timeline of its own (`Card.TimelineID`), and the card overlay
+shows `UpdateTimelinePanel` for it. Nothing saves what is chosen there: the
+overlay passes the panel no `onDraftChange`, so a card's points can be set in
+the editor and are gone when it closes. Only tasks' timelines are written,
+through `UpdateTaskPopover` and `CreateTaskOverlay`. Wiring the card's the same
+way is the missing piece: `createTimeline` with the card as its parent and
+`TIMELINE_PARENT_CARD`, then `updateTimeline` once it exists. The server already
+reads a card's timeline back by its parent (problem 3).
+
+---
+
 ## Not started: dependency tag groups
 
 `StartDependencyTagGroupID` and `EndDependencyTagGroupID` are declared,

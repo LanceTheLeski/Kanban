@@ -35,10 +35,12 @@
  * TimelineDraft has exactly four date+time pairs, which is why it maps onto four
  * nodes without a translation step.
  *
- * ── DateRangePicker note ─────────────────────────────────────────────────────
- * MudDateRangePicker → @mui/x-date-pickers DateRangePicker requires the MUI X Pro
- * licence. Separate Date and Time pickers instead, which the rail suits anyway:
- * a range picker cannot express four independent points.
+ * ── Choosing a point's day and time ──────────────────────────────────────────
+ * From the calendar, not from a bare date picker: CalendarDatePicker opens the
+ * calendar's month, folded down, with what is already on each day; picking a
+ * day opens the day, where a click on its hours sets the time. A time is not
+ * required. One point at a time, still — a range picker could not express four
+ * independent points anyway (and MUI's needs the X Pro licence).
  *
  * ── Ref exposure ─────────────────────────────────────────────────────────────
  * In Blazor, UpdateTaskPopover.cs held @ref="updateTimelinePanel" and read its
@@ -48,12 +50,11 @@
 
 import React, { useMemo, useState } from 'react'
 import { Box, Button, Paper, Typography } from '@mui/material'
-import { DatePicker, TimePicker } from '@mui/x-date-pickers'
 import { TimelineRail } from './TimelineRail'
+import { CalendarDatePicker } from '../../Calendar/CalendarDatePicker'
 import { MODES, NODES, NODES_FOR, modeOf, seedValues } from './Timeline.Nodes'
 import type { NodeId, NodeValue, NodeValues, TimelineMode } from './Timeline.Nodes'
 import type { TimelineDraft } from './Timeline.Draft'
-import { paperPickerSx } from '../../../Styles/Paper'
 import { rem } from '../../../Styles/Measures'
 import type { Timeline } from '../../../Entities/Timeline/Timeline.Types'
 
@@ -61,15 +62,24 @@ interface UpdateTimelinePanelProps
 {
     /** Existing timeline data to pre-fill the nodes — mirrors @bind-Timeline */
     timeline: Timeline | null
+
     /** Called whenever any node changes */
     onDraftChange?: (draft: TimelineDraft) => void
+
+    /** The board the card is on, so the calendar the points are chosen from counts its deadlines. */
+    boardId?: string
+
+    /** The task this is the timeline of, whose saved points the calendar leaves out — they are being edited here. */
+    taskId?: string
 }
 
-export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeline, onDraftChange }) =>
+export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeline, onDraftChange, boardId, taskId }) =>
 {
     const [mode, setMode] = useState<TimelineMode>(() => modeOf(timeline))
     const [values, setValues] = useState<NodeValues>(() => seedValues(timeline))
-    const [selected, setSelected] = useState<NodeId | null>(null)
+    // A mode with one point has it open from the start, the way choosing that mode
+    // opens it: a deadline loaded back has its day showing, not an empty panel.
+    const [selected, setSelected] = useState<NodeId | null>(() => onlyNodeOf(modeOf(timeline)))
 
     const active = NODES_FOR[mode]
 
@@ -247,18 +257,15 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                         }
                     </Typography>
 
-                    <DatePicker value={values[openSpec.id].date}
-                                onChange={date => setNode(openSpec.id, { date })}
-                                format="DD MMM YYYY"
-                                slotProps={{ textField: { size: 'small', sx: { ...pickerFieldSx, flex: '1 1 9rem' } },
-                                             openPickerButton: { size: 'small' }
-                                          }} />
-
-                    <TimePicker value={values[openSpec.id].time}
-                                onChange={time => setNode(openSpec.id, { time })}
-                                slotProps={{ textField: { size: 'small', sx: { ...pickerFieldSx, flex: '1 1 7rem' } },
-                                             openPickerButton: { size: 'small' }
-                                          }} />
+                    <CalendarDatePicker name={showRail
+                                            ? openSpec.label.join(' ')
+                                            : 'Deadline'}
+                                        value={values[openSpec.id]}
+                                        onChange={value => setNode(openSpec.id, value)}
+                                        boardId={boardId}
+                                        taskId={taskId}
+                                        others={activeNodes.filter(node => node.id !== openSpec.id)
+                                                           .map(node => ({ label: node.label.join(' '), value: values[node.id] }))} />
 
                     <Button size="small"
                             onClick={() => setNode(openSpec.id, { date: null, time: null })}
@@ -296,10 +303,7 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
     {
         setMode(next)
         // Select the only node there is, so Deadline mode needs no second click.
-        const on = NODES_FOR[next]
-        setSelected(on.length === 1
-            ? on[0]
-            : null)
+        setSelected(onlyNodeOf(next))
         emit(values, next)
     }
 
@@ -343,13 +347,13 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
 export default UpdateTimelinePanel
 
 // ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
 
-/**
- * The pickers, which are the shared pair every card-stock date field uses.
- *
- * There used to be a paragraph here about MUI's outlined input being drawn for
- * a light surface and the engraved panel making it dark-on-dark. The panel is
- * card now, so the premise is gone and so is the local copy — see Styles/Paper,
- * which is where the six overlays that need the same thing read it from.
- */
-const pickerFieldSx = paperPickerSx
+/** The one point a mode puts in play, when it has only one — Deadline's. */
+function onlyNodeOf(mode: TimelineMode): NodeId | null
+{
+    const on = NODES_FOR[mode]
+    return on.length === 1
+        ? on[0]
+        : null
+}

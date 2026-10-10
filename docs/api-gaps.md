@@ -164,6 +164,12 @@ Still missing:
   same warning dot the card's carries. Unlike a card's (#2), there is nowhere
   to write them either: a date's `CardTagGroupID` is its cards. A second group
   ID on `Date` for its own tags, and a read of them on `DateResponse`, would do.
+- **Nothing lists what is due on a day.** A task is due on a day whether or
+  not its card was put on it, so the day overlay's Due column and the date
+  picker under a timeline node read every board the calendar knows, whole, and
+  look through every task's timeline. `GET calendars/months` returning the
+  month's timeline points, with their tasks and cards, would replace that with
+  one read, and would find deadlines on boards the calendar cannot name.
 
 Fixed, each reproduced against Azurite first. The first two each returned 500
 for the whole month, not just the day:

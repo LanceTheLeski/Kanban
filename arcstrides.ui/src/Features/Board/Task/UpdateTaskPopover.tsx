@@ -380,7 +380,9 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
 
                         <Box sx={{ flex: '1 1 18rem', minWidth: 0, display: 'flex' }}>
                             <UpdateTimelinePanel timeline={task.timeline}
-                                                 onDraftChange={setTimelineDraft} />
+                                                 onDraftChange={setTimelineDraft}
+                                                 boardId={boardId}
+                                                 taskId={task.id} />
                         </Box>
                     </Box>
                 </Box>

@@ -311,7 +311,8 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                            minHeight: CARD_PANEL_ROW_MIN_HEIGHT,
                            height: { [STACK_BELOW]: CARD_PANEL_ROW_HEIGHT }
                         }}>
-                    <UpdateTimelinePanel timeline={card.timeline} />
+                    <UpdateTimelinePanel timeline={card.timeline}
+                                         boardId={boardId} />
                     <CommandPanel card={card} />
                 </Box>
 

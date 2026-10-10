@@ -2,12 +2,11 @@
  * DayConnections
  *
  * Where an opened day leads: the days either side of it, the boards its cards
- * are on, the other days its cards are on, and the days its tasks are due.
+ * are on, and the other days its cards are on.
  *
  *   Nearby     ‹ Mon 29 Sep · Wed 1 Oct ›    step through the days, here
  *   Boards     each card's board              leave for the board itself
  *   Also on    Thu 2 Oct — Migrate auth       the same card, on another day
- *   Due        Fri 3 Oct — Cut over           a task's end, on another day
  *
  * Every day here opens in this overlay, over the calendar — moving the
  * calendar to its month first where it is in another — so a run of days can be
@@ -17,7 +16,8 @@
  * Mirrors: nothing that was built. UpdateDateOverlay.razor had a second
  * timeline of "Event 1" to "Event 6" beside the real one — a placeholder for
  * things beyond the day's own tasks. These are what the day's data can say
- * about that; "Due" is the deadlines part of it.
+ * about that. Deadlines were part of it too, as "Due"; they are the overlay's
+ * Due column now, beside the cards, where what is due on this day is listed.
  */
 
 import React from 'react'
@@ -27,7 +27,6 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import type { Dayjs } from 'dayjs'
 import { MONO } from '../../Styles/Fonts'
-import { stopsOf } from './Calendar.Stops'
 import { boardLabel } from './Calendar.Views'
 import { useCalendarActions } from './Calendar.Context'
 import { useCalendarStore } from './Calendar.Store'
@@ -57,11 +56,6 @@ export const DayConnections: React.FC<DayConnectionsProps> = ({ day }) =>
                 ? [{ at: day.date.date(date.day), what: shared.map(card => card.title).join(', ') }]
                 : []
         })
-
-    // The ends of this day's tasks that fall on other days: its deadlines elsewhere.
-    const due = stopsOf(cards)
-        .filter(stop => stop.node.id.endsWith('End') && !stop.at.isSame(day.date, 'day'))
-        .slice(0, MAX_DUE)
 
     const previous = day.date.subtract(1, 'day')
     const next = day.date.add(1, 'day')
@@ -113,22 +107,6 @@ export const DayConnections: React.FC<DayConnectionsProps> = ({ day }) =>
                 </Section>
             )
             }
-
-            { due.length > 0 && (
-                <Section title="Due">
-                    { due.map(stop =>
-                              (
-                                  <Row key={`${stop.task.id}:${stop.node.id}`}
-                                       when={stop.at}
-                                       label={stop.task.title}
-                                       caption={stop.node.label.join(' ').toLowerCase()}
-                                       onClick={() => goToDay(stop.at)}
-                                       aria-label={`Open ${stop.at.format('dddd D MMMM')}: ${stop.task.title}, ${stop.node.label.join(' ').toLowerCase()}`} />
-                              ))
-                    }
-                </Section>
-            )
-            }
         </Box>
     )
 }
@@ -137,9 +115,6 @@ export default DayConnections
 
 // ── Private ───────────────────────────────────────────────────────────────────
 // Not exported, which is this language's `private`. Ordered by first use above.
-
-/** Past this many, the rest of a day's deadlines are on its timeline. */
-const MAX_DUE = 6
 
 function Section({ title, children }: { title: string; children: React.ReactNode })
 {

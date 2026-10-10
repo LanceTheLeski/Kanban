@@ -471,20 +471,61 @@ type by name with its count, and each task row carries its type's mark and name.
 ### The day overlay
 
 Laid out the way the Blazor one was: along the top, the number, the date in
-words, the type's picture and the tags; under them the timeline, which is the
-bulk of it, and the cards; down the right, a slim column of frosted glass with
-the day as the calendar shows it — exactly: the grid day's own width and
-height, measured (`useGridDaySize`), so its layout is the grid's too — the
-table of types, and the day's
-connections — the days either side, its cards' boards, other days with the same
-cards, and the days its tasks are due. Every day in it opens in the same
-overlay, crossing into another month if it has to. A panel with nothing in it
-is not drawn.
+words, the type's picture and the tags; under them the timeline, and under
+that the day's Due and Cards side by side; down the right, a slim column of
+frosted glass with the day as the calendar shows it — exactly: the grid day's
+own width and height, measured (`useGridDaySize`), so its layout is the grid's
+too — the table of types, and the day's connections: the days either side, its
+cards' boards, and other days with the same cards. Every day in it opens in the
+same overlay, crossing into another month if it has to. A panel with nothing in
+it is not drawn.
 
 The timeline's label is sage, the green ladder's mid — the one stock nothing
 else in the day view is cut from. The timeline does not mark the day itself:
 the panel is already the day's, so its own stops are at full strength and
 stops on other days are paler and carry their date.
+
+**What is due on a day is not only what is on it.** A deadline belongs to a
+task, and the task's card may never have been put on the day. So the timeline
+and Due are read from every card the calendar can read: the day's own, and the
+boards it knows (the default board and the boards of the month's cards; see
+`useBoards`). The timeline has the day's cards' whole schedules, other days
+included, and anything with a time on this day. Due has whatever falls on this
+day with no time.
+
+**Due and Cards** split the sheet under the timeline: one sheet of blue with
+two halves. Due, on the left, is a piece of yellow, the stock the timeline
+panel's Deadline tab is cut from. It lists every point on this day with no time
+of day: the task, which point it is, and its card, opening the card. Cards, on
+the right, is the cards put on the day, as notes, with "+ Add card" under them.
+On a phone the two stack. Due replaces the Due list that was in the
+connections, which listed the day's tasks' ends on other days; those are on the
+timeline, paler and dated.
+
+A point "with no time" is one saved at midnight: see "A point with no time" in
+`docs/timeline-model.md`.
+
+### Choosing a day for a timeline point
+
+A point on a card's or a task's timeline is chosen from the calendar
+(`CalendarDatePicker`), in two steps in one popup:
+
+1. **The month** (`MiniMonth`), the calendar page folded down: each day its
+   number on a small disc (oxblood for today), ringed with its tasks by type,
+   which is the same ring the grid draws from the same cards. Under the ring,
+   each type's count beside a dot of its colour, three types at most and then
+   "+". A day with nothing on it is only its number. The strip under the month
+   names the types for the day pointed at or focused, so colour is never the
+   only key, and counts what is already due on it. The arrow keys move between
+   days and across months.
+2. **The day** (`DayTimePicker`), which always follows a pick: the day's hours
+   on the timeline's gold rail, with everything already timed on the day from
+   any board, and the task's own other points drawn hollow. A click on the
+   hours puts the point there, to the quarter hour; the arrow keys move it; a
+   time can be typed; "No time" leaves it on the day. Done closes it.
+
+Under the node are two pieces of card: the day, which opens the month, and the
+time, which opens the day directly.
 
 ---
 

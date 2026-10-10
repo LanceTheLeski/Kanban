@@ -121,7 +121,8 @@ export const EMPTY: NodeValues =
  * Seeds the four nodes from a stored timeline.
  *
  * Both halves of a node come from the same instant: the API stores one
- * timestamp per field and the pickers split it back apart.
+ * timestamp per field and the pickers split it back apart. An instant at
+ * midnight has no time half — see isTimed.
  */
 export function seedValues(timeline: Timeline | null): NodeValues
 {
@@ -133,9 +134,26 @@ export function seedValues(timeline: Timeline | null): NodeValues
     {
         const at = node.seed(timeline)
         if (at)
-            seeded[node.id] = { date: dayjs(at), time: dayjs(at) }
+            seeded[node.id] = { date: dayjs(at),
+                                time: isTimed(dayjs(at))
+                                    ? dayjs(at)
+                                    : null }
     }
     return seeded
+}
+
+/**
+ * Whether a point carries a time of day, or only a date.
+ *
+ * The API stores one timestamp per point, with nowhere to say "no time". A point
+ * given a date and no time is stored at that date's local midnight — which is
+ * what Timeline.Draft's combine has always done — so midnight is read back as no
+ * time. Choosing 00:00 means the same thing, and the pickers say so. See
+ * docs/timeline-model.md, "A point with no time".
+ */
+export function isTimed(at: Dayjs): boolean
+{
+    return at.hour() !== 0 || at.minute() !== 0 || at.second() !== 0 || at.millisecond() !== 0
 }
 
 /**

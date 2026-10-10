@@ -49,6 +49,13 @@ interface CalendarState
     error: string | null
 
     /**
+     * Counts the reads of a month that came back. Each edit made from the
+     * calendar ends in one, so anything read alongside the month — the boards
+     * a day's deadlines are found on, see useBoards — reads again when it moves.
+     */
+    revision: number
+
+    /**
      * Every task type in the app, which is where a type's colour comes from —
      * see Calendar.Stats. Read once, with the first month; a failure leaves it
      * empty and every typed task in the Other grey rather than blocking the page.
@@ -99,6 +106,7 @@ export const useCalendarStore = create<CalendarState>((set, get) =>
     stored: null,
     status: 'idle',
     error: null,
+    revision: 0,
     taskTypes: [],
     dayViews: {},
     dayTags: {},
@@ -132,7 +140,7 @@ export const useCalendarStore = create<CalendarState>((set, get) =>
             // Only the most recent request may write — see loadBoard.
             if (!isShowing(get(), year, month))
                 return
-            set({ stored, status: 'ready', error: null })
+            set(state => ({ stored, status: 'ready', error: null, revision: state.revision + 1 }))
         }
         catch (error)
         {
