@@ -23,7 +23,15 @@ public interface ITagRepository
 
     Task DeleteTagAsync (Tag tagToDelete);
 
-    Task<bool> ParentExistsAsync (Guid parentID, int taskTypeID);
+    Task<bool> ParentExistsAsync (Guid parentID, int parentTypeID);
+
+    Task<Collection<Tag>> GetLabelsAsync ();
+
+    Task<Collection<Tag>> GetLabelRowsAsync (Guid tagID);
+
+    Task<Collection<Tag>> GetLabelsOnParentAsync (Guid parentID);
+
+    Task<(Tag Tag, bool Created)?> AttachLabelAsync (Guid? tagID, string? title, Guid parentID, int parentTypeID);
 
     #endregion Tag
 

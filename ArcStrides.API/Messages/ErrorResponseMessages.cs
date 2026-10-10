@@ -32,6 +32,31 @@ public static class ErrorResponseMessages
     public static string NotFoundErrorResponse (string entity) 
         => $"The {entity} requested was not found by the service.";
 
+    /// <summary>
+    /// A board's last column cannot be deleted while it holds cards, because a card is always in a column. Add a column for them first.
+    /// </summary>
+    public static string LastColumnHoldsCardsErrorResponse ()
+        => "A board's last column cannot be deleted while it holds cards, because a card is always in a column. Add a column for them first.";
+
+    /// <summary>
+    /// This board has swimlanes, so a card on it needs one. Pass a SwimlaneID.
+    /// </summary>
+    /// <remarks>
+    /// A card goes in no swimlane only on a board that has none.
+    /// </remarks>
+    public static string SwimlaneRequiredErrorResponse ()
+        => "This board has swimlanes, so a card on it needs one. Pass a SwimlaneID.";
+
+    /// <summary>
+    /// The global colour {colour} is already {takenBy}'s. Each {entity} keeps a global colour of its own.
+    /// </summary>
+    /// <remarks>
+    /// Unique among columns, and among swimlanes, on every board; a column and a
+    /// swimlane may share one. The per-board colour is free to repeat.
+    /// </remarks>
+    public static string GlobalColourTakenErrorResponse (string entity, string colour, string takenBy)
+        => $"The global colour {colour} is already {takenBy}'s. Each {entity} keeps a global colour of its own.";
+
     #endregion 400 (Client error responses)
 
     #region 500 (Server error responses)

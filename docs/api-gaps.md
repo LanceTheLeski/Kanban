@@ -4,63 +4,79 @@ What the server does not do yet, and which of those the UI is already tripping
 over. Written after an endpoint-by-endpoint pass over the eight controllers;
 each entry names the file so the next person does not have to find it again.
 
-Nothing here is speculative — every item was read in the source, and the two
-marked **blocking** were reproduced.
+Nothing here is speculative — every item was read in the source, and each one
+marked fixed was reproduced against Azurite before and after.
 
 ---
 
 ## Blocking
 
-### 1. `TagRepository.ParentExistsAsync` is inverted
+Nothing, at the moment. The two that were here, both about tags, are fixed;
+they keep their numbers because code points at them.
+
+### 1. `TagRepository.ParentExistsAsync` was inverted — fixed
 
 `ArcStrides.API/Repositories/TagRepository.cs`
 
-Every one of its six branches returns `collection?.Count () is 0` — true when
-the parent does **not** exist. `TagController` then does:
+Every one of its six branches returned `collection?.Count () is 0` — true when
+the parent did **not** exist — so creating a tag on a real column, swimlane,
+card, task or date was rejected with "Parent not found", and creating one on a
+parent that did not exist succeeded. The card and task branches also read the
+parent ID as a *board* ID (`GetCardPositionsAsync`, `GetTasksAsync` take one),
+so they could not have found the parent either way. Each branch now looks the
+parent up by its own ID and answers `is not 0`. The parent types are named in
+`Models/Tag/TagParentTypes.cs`.
 
-```csharp
-var parentExists = await _tagRepository.ParentExistsAsync (...);
-if (parentExists is false)
-    return BadRequest (... NotFoundErrorResponse ("Parent"));
-```
+This note used to say the column and swimlane branches should take a board ID,
+as the timeline check does. They do not: a tag is on no board — a day is on
+none — and the IDs are GUIDs, so the parent's own ID names one row.
 
-So creating a tag on a real column, swimlane, card, task or date is rejected
-with "Parent not found", and creating one on a parent that does not exist
-succeeds. The feature cannot work in either direction.
+The validator turned every tag on a column away too: `NotEmpty` on the type
+treats 0, which is a column, as missing. It is `NotNull` and a range now.
 
-`TimelineRepository.ParentExistsAsync` had the same shape and was fixed to
-`is not null`; this is the same fix, six times.
+Under both sat `Tag.RowKey` without `override`, which hid the key the table
+client reads, so every tag write failed with *"Value cannot be null. (Parameter
+'RowKey')"*. Fixed earlier, when the calendar's add-card endpoint made the first
+tag write that got past validation.
 
-There is a second bug underneath it. Cases 0 and 1 query by `RowKey` alone:
+### 2. Nothing could read the tags on a card — fixed
 
-```csharp
-QueryColumnsAsync (column => column.RowKey == parentID.ToString ())
-```
+A tag is one ID (the PartitionKey) with a row for each thing it is on (the
+RowKey), so "Blocked" on a card and on its task is one tag with two rows. They
+are read now:
 
-`RowKey` is the column id and `PartitionKey` is the board, so this asks "does
-any board anywhere have this column", not "does *this* board". The timeline fix
-took a `boardID` parameter for exactly this reason and this one should too.
+| call | does |
+|---|---|
+| `GET tags` | every tag there is, each once — what the tags box suggests from as you type |
+| `GET tags?parentID=` | the tags on one thing |
+| `POST tags` `{ ParentID, TypeID, Title }` or `{ …, ID }` | puts a tag on: the one with that ID, or else the one with that title in any case, or else a new one. 201 when put on, 200 when it was on already |
+| `DELETE tags/{ID}/parents/{parentID}` | takes it off one thing |
+| `PATCH tags/{ID}` | renames it everywhere it is; refuses a title another tag has |
+| `DELETE tags/{ID}` | deletes it from everything |
+| `POST calendars/dates/2026/9/24/tags`, `DELETE …/tags/{tagID}` | a day's own tags, writing the day's row if need be; answer with the month |
 
-Not fixed yet: it is part of the tag work, which is deferred.
+And they arrive with what they are on: `CardResponse.Tags` and the new
+`TaskResponse.Tags` on the board and in the month, `DateResponse.Tags` in the
+month. `PATCH` used to require exactly one row and then write a `Tag` built
+from the patch alone, with no keys, which the table refused.
 
-A third bug sat under both, and **is** fixed: `Tag` declared `RowKey` without
-`override`, so it hid the base property the table client reads, and every tag
-write failed with *"Value cannot be null. (Parameter 'RowKey')"*. With the
-parent check fixed, `POST /tags` would still have failed on that. Found when the
-calendar's add-card endpoint made the first tag write that got past validation.
+**The calendar's rows are not tags.** The calendar links a day to its cards
+through this same table — a day names a tag group, and each tag in it has a card
+as its parent (#8). Those rows have a parent of type card too, so a card's tags
+would have included one per day it is on, titled with the card's own title.
+`Tag.IsLabel` tells them apart: true for a tag someone put on something, false
+for the calendar's links — which were written before it existed, and so read as
+false without being touched.
 
-### 2. Nothing can read the tags on a card
+Not done yet:
 
-`ArcStrides.API/Controllers/TagController.cs`
-
-`GET arcstrides/tags/{ID}` reads one tag by its own id — which a client cannot
-know without having read it from somewhere first. There is no
-`GET /tags?parentID=…`, and `CardResponse` carries no tags.
-
-So a tag written through the API can never be read back. `TagsPanel.tsx` holds
-tags in local state and shows a warning dot rather than writing rows the board
-could never show again; its header documents the two ways out. The smaller is to
-include the parent's tags on `CardResponse`, the way tasks already are.
+- **Deleting a card or a task leaves its tag rows.** As #3 leaves the card row.
+  Nothing reads a tag without its parent, so they are unseen, but they count
+  toward the list `GET tags` offers.
+- **Tags have no colour or group.** The red on the board is the same for all of
+  them; `TagGroup` and `TagType` exist and are not used for this yet.
+- **Columns and swimlanes** can carry tags (types 0 and 1); nothing in the UI
+  puts them on.
 
 ---
 
@@ -101,18 +117,24 @@ Note also that `GET /arcstrides/tags/groups` carries its own TODO —
 for multiple or all TagGroups"* — so the group listing is a one-off shape rather
 than the pattern the rest of the API uses.
 
-### 6. The global colours are not unique
+### 6. The global colours are not unique — fixed
 
-`Column.GlobalColumnColor` and `Swimlane.GlobalSwimlaneColor` now reach the
-client (this commit), and the create and edit overlays set them to the same
-value as the per-board colour.
+`Column.GlobalColumnColor` and `Swimlane.GlobalSwimlaneColor` identify a column
+(or a swimlane) across boards built from the same template, so no two columns
+may share one, on any board, and no two swimlanes; a column and a swimlane may.
+The per-board colour is free to repeat.
 
-The per-board colour is free to repeat; the global one is meant to identify a
-column across boards built from the same template, so it is not. Nothing
-enforces that. `ColumnController` and `SwimlaneController` already reject
-duplicate titles — see `ValidatorMessages.DuplicateFieldValidatorMessage` — so
-the shape of the check exists; it has to be run against every board rather than
-against the one being edited, which is a different query.
+`ColumnController` and `SwimlaneController` now refuse a create or a patch that
+gives one a global colour another already has, compared without case or
+surrounding space, with *"The global colour #79aad8 is already "Done"'s"*. Only
+when the global colour changes, so a column that shared one from before can
+still be renamed or moved. `GET columns/globalcolors` and `GET
+swimlanes/globalcolors` list who has which, and the overlays read them to offer
+a free shade before saving (see `GlobalColourPanel` in the UI).
+
+A colour is cleared by setting it to the empty string. A null is left out of the
+merge and would change nothing (#9); the UI reads an empty colour as none, and
+the uniqueness check ignores it.
 
 ### 7. `TimelineTypeID` carries two facts at once
 
@@ -159,11 +181,9 @@ Still missing:
   the row that already has cards, which narrows it without closing it.
 - **`DateResponse` has no `MonthOrder`**, though the table stores it. The UI
   recovers the month from `MonthName`, which only works while that is English.
-- **A date has no tags.** The day overlay has the card editor's tags panel
-  beside the day's picture, held in the page for the session only, with the
-  same warning dot the card's carries. Unlike a card's (#2), there is nowhere
-  to write them either: a date's `CardTagGroupID` is its cards. A second group
-  ID on `Date` for its own tags, and a read of them on `DateResponse`, would do.
+- ~~A date has no tags.~~ It does: a tag whose parent is the date's own ID,
+  written by `POST dates/…/tags` and sent back on `DateResponse.Tags` (#2). No
+  second group ID was needed — the parent is the row.
 - **Nothing lists what is due on a day.** A task is due on a day whether or
   not its card was put on it, so the day overlay's Due column and the date
   picker under a timeline node read every board the calendar knows, whole, and
@@ -206,6 +226,50 @@ once (see `docs/timeline-model.md`). Every other entity still merges, which
 matters wherever one of its fields is meant to be cleared. An entity read whole
 and written back can move to `ReplaceEntityAsync` the same way; one written from
 a partial copy must not, or it loses the fields it did not carry.
+
+### 10. The calendar's options
+
+`ArcStrides.API/Controllers/CalendarOptionsController.cs`
+
+| call | does |
+|---|---|
+| `GET calendars/options` | the weekend's days, the type a weekend day and any other day is with none of its own, and what has been changed about each type; the defaults when nothing is stored |
+| `PUT calendars/options` | replaces them, whole; a type left out goes back to the UI's own definition |
+
+Two new tables, `CalendarOptions` (one row) and `DateTypeOptions` (one per type
+changed), both keyed by `Guid.Empty`: there is one calendar, and when calendars
+have IDs this is keyed by one. `dev-up` creates them; a real storage account
+needs them made, as every table does. The types themselves are still defined
+by the UI; only what was changed about them is stored.
+
+A day's stored type is still only a number, and 0 still means none chosen — now
+"follow the options". Choosing "No theme" on a day stores 4, a type of its own,
+so it stands against a default.
+
+### 11. Deleting the last swimlane or column lost its cards — fixed
+
+`SwimlaneRepository` / `ColumnRepository`,
+`ApplyNewTitleAndOrderForExistingCardPositions`
+
+A deleted swimlane's cards moved to the swimlane that took its place, chosen
+among the swimlanes whose order the delete had changed. Deleting the *last*
+swimlane — by order — changes no other order, so the deleted swimlane was the
+only candidate, and its cards were moved into it: they kept the ID of a row
+that was gone, matched no lane, and disappeared from the board, while the
+calendar, which does not look at lanes, still showed them. Deleting the only
+swimlane did the same, and columns had the same shape. The cards were also
+matched by title, which a rename leaves stale.
+
+Now the cards go to the one after, or else the one before, among every swimlane
+the board keeps, matched by ID. With no swimlane left, they keep their columns
+and are in none: `CardPosition.SwimlaneID` is `Guid.Empty` (empty rather than
+null, for #9). Adding a swimlane to such a board puts every card in none into it,
+and so heals a board an earlier delete left that way. A card can be created on
+a board with no swimlanes, and is refused one without a swimlane on a board that
+has any.
+
+A card is never in no column: the last column cannot be deleted while it holds
+cards (400). The UI makes an "Orphaned" column for them first.
 
 ## Not a gap, but worth knowing
 

@@ -5,6 +5,7 @@ using ArcStrides.API.Models.Calendar;
 using ArcStrides.API.Models.Tag;
 using ArcStrides.API.Models.TagGroup;
 using ArcStrides.API.Repositories;
+using ArcStrides.API.Validators;
 using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Request.Patch;
 using ArcStrides.Contracts.Response;
@@ -30,11 +31,7 @@ public class CalendarController : Controller
     private readonly CardMapper _cardMapper;
     private readonly TaskMapper _taskMapper;
     private readonly TimelineMapper _timelineMapper;
-
-    /// <summary>
-    /// TagTypeID for a tag whose parent is a card — see TagRepository.ParentExistsAsync.
-    /// </summary>
-    private const int CardTagTypeID = 3;
+    private readonly TagMapper _tagMapper;
 
     public CalendarController (IDateRepository dateRepository,
                                ITagRepository tagRepository,
@@ -44,7 +41,8 @@ public class CalendarController : Controller
                                DateMapper dateMapper,
                                CardMapper cardMapper,
                                TaskMapper taskMapper,
-                               TimelineMapper timelineMapper)
+                               TimelineMapper timelineMapper,
+                               TagMapper tagMapper)
     {
         _dateRepository = dateRepository;
         _tagRepository = tagRepository;
@@ -56,6 +54,7 @@ public class CalendarController : Controller
         _cardMapper = cardMapper;
         _taskMapper = taskMapper;
         _timelineMapper = timelineMapper;
+        _tagMapper = tagMapper;
     }
 
     [HttpGet ("months/{ID:guid}")]
@@ -157,7 +156,7 @@ public class CalendarController : Controller
                 RowKey = cardID,
                 ParentObjectTypeName = nameof (Card),
                 Title = card.Title,
-                TagTypeID = CardTagTypeID,
+                TagTypeID = TagParentTypes.Card,
             });
             await _tagRepository.AddTagGroupAsync (new TagGroup
             {
@@ -170,6 +169,73 @@ public class CalendarController : Controller
 
         var updated = await QueryMonthAsync (year, month);
         return StatusCode (StatusCodes.Status201Created, await BuildMonthResponseAsync (updated, MonthIDOf (updated), TitleOf (year, month)));
+    }
+
+    /// <summary>
+    /// Puts a tag on a calendar day — <c>POST dates/2026/9/24/tags</c>, with
+    /// <c>{ "Title": "Offsite" }</c> or an existing tag's <c>{ "ID": … }</c>.
+    /// </summary>
+    /// <remarks>
+    /// The day's own tags, not its cards'. Like AddCardToDate, nothing has to exist
+    /// first: a day with nothing on it gets its row here, because a tag's parent is
+    /// the row's ID. The tag is found or made as TagRepository.AttachLabelAsync
+    /// says. Answers with the whole month: 201 when the tag was put on, 200 when it
+    /// was on already.
+    /// </remarks>
+    [HttpPost ("dates/{year:int}/{month:int}/{day:int}/tags")]
+    public async Task<ActionResult> AddTagToDate (int year, int month, int day, [FromBody] DateTagCreateRequest dateTagCreateRequest)
+    {
+        var validationResult = new TagValidators.DateTagCreateRequestValidator ().Validate (dateTagCreateRequest);
+        if (validationResult.IsValid is false)
+            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (DateTagCreateRequest), validationResult.ToString ()));
+
+        if (IsCalendarDate (year, month, day) is false)
+            return BadRequest ($"{year}-{month}-{day} is not a date on the calendar.");
+
+        var monthDates = await QueryMonthAsync (year, month);
+        var date = DayOf (monthDates, day);
+        if (date is null)
+        {
+            date = NewDate (year, month, day, MonthIDOf (monthDates) ?? Guid.NewGuid ());
+            await _dateRepository.AddDateAsync (date);
+        }
+
+        var attached = await _tagRepository.AttachLabelAsync (dateTagCreateRequest.ID, dateTagCreateRequest.Title, Guid.Parse (date.PartitionKey!), TagParentTypes.Date);
+        if (attached is null)
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Tag)));
+
+        var updated = await QueryMonthAsync (year, month);
+        var monthResponse = await BuildMonthResponseAsync (updated, MonthIDOf (updated), TitleOf (year, month));
+        return attached.Value.Created
+            ? StatusCode (StatusCodes.Status201Created, monthResponse)
+            : Ok (monthResponse);
+    }
+
+    /// <summary>
+    /// Takes a tag off a calendar day — <c>DELETE dates/2026/9/24/tags/{tagID}</c>.
+    /// The tag stays on anything else it is on. Answers with the whole month.
+    /// </summary>
+    [HttpDelete ("dates/{year:int}/{month:int}/{day:int}/tags/{tagID:guid}")]
+    public async Task<ActionResult> RemoveTagFromDate (int year, int month, int day, Guid tagID)
+    {
+        if (IsCalendarDate (year, month, day) is false)
+            return BadRequest ($"{year}-{month}-{day} is not a date on the calendar.");
+
+        var monthDates = await QueryMonthAsync (year, month);
+
+        var removed = 0;
+        foreach (var date in monthDates.Where (date => date.DateOrder == day))
+            foreach (var tag in (await _tagRepository.GetLabelsOnParentAsync (Guid.Parse (date.PartitionKey!))).Where (tag => tag.PartitionKey == tagID.ToString ()))
+            {
+                await _tagRepository.DeleteTagAsync (tag);
+                removed += 1;
+            }
+
+        if (removed is 0)
+            return NotFound ("That tag is not on that date.");
+
+        var updated = await QueryMonthAsync (year, month);
+        return Ok (await BuildMonthResponseAsync (updated, MonthIDOf (updated), TitleOf (year, month)));
     }
 
     /// <summary>
@@ -276,6 +342,12 @@ public class CalendarController : Controller
             ? []
             : await _timelineRepository.QueryTimelinesAsync (timeline => true);
 
+        // Every tag, read once and looked up by what it is on: the cards', their
+        // tasks', and the days' own. Read even with no cards, for the days.
+        var tagsByParent = dates.Any ()
+            ? (await _tagRepository.GetLabelsAsync ()).ToLookup (tag => tag.RowKey, StringComparer.OrdinalIgnoreCase)
+            : Enumerable.Empty<Tag> ().ToLookup (tag => tag.RowKey, StringComparer.OrdinalIgnoreCase);
+
         // Every task type, unfiltered, as BoardController reads them. This used to
         // ask for the types whose PartitionKey was the card's — the board ID — but
         // a task type is filed under its tag group, so the query matched nothing and
@@ -324,11 +396,14 @@ public class CalendarController : Controller
                     if (taskTimeline is not null)
                         taskResponse.Timeline = _timelineMapper.MapTimelineToTimelineResponse (taskTimeline);
 
+                    taskResponse.Tags = TagResponsesOf (tagsByParent, task.RowKey);
+
                     taskResponseList.Add (taskResponse);
                 }
 
                 var cardResponse = _cardMapper.MapCardToCardResponse (card);
                 cardResponse.Tasks = taskResponseList;
+                cardResponse.Tags = TagResponsesOf (tagsByParent, card.RowKey);
 
                 var cardPosition = _cardMapper.MapCardPositionToCardPositionResponse (cardPositionRow);
                 cardResponse.Position = cardPosition;
@@ -338,6 +413,7 @@ public class CalendarController : Controller
 
             var dateResponse = _dateMapper.MapDateToDateResponse (date);
             dateResponse.Cards = cardResponses;
+            dateResponse.Tags = TagResponsesOf (tagsByParent, date.PartitionKey);
 
             dateList.Add (dateResponse);
         }
@@ -530,6 +606,12 @@ public class CalendarController : Controller
             CardTagGroupID = Guid.Empty
         };
     }
+
+    /// <summary>The tags on one thing, from the month's lookup.</summary>
+    private List<TagResponse> TagResponsesOf (ILookup<string, Tag> tagsByParent, string? parentID)
+        => parentID is null
+            ? []
+            : tagsByParent [parentID].Select (_tagMapper.MapTagToTagResponse).ToList ();
 
     /// <summary>The tags in a day's group, each with the group row that holds it.</summary>
     private async Task<List<(TagGroup GroupRow, Tag Tag)>> TagsOnDayAsync (Date date)

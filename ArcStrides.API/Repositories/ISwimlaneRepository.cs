@@ -31,5 +31,7 @@ public interface ISwimlaneRepository
 
     ArcTransaction ApplyNewOrderForExistingCardPositions (IEnumerable<Swimlane> swimlaneEnumerable, IEnumerable<CardPosition> boardCardEnumerable, ArcTransaction arcTransaction);
 
-    ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Swimlane swimlaneToDelete, IEnumerable<Swimlane> swimlaneEnumerable, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction);
+    ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Swimlane swimlaneToDelete, IEnumerable<Swimlane> remainingSwimlanes, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction);
+
+    ArcTransaction AssignUnplacedCardPositions (Swimlane newSwimlane, IEnumerable<Swimlane> existingSwimlanes, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction);
 }

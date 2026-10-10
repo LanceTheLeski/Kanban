@@ -1,4 +1,5 @@
 ﻿using ArcStrides.API.Messages;
+using ArcStrides.API.Models.Tag;
 using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Request.Patch;
 using FluentValidation;
@@ -16,13 +17,32 @@ public class TagValidators
                 .NotEmpty ()
                 .WithMessage (ValidatorMessages.EmptyFieldValidatorMessage (nameof (TagCreateRequest.ParentID)));
 
+            // A title, unless the tag is named by its ID.
             RuleFor (tagCreateRequest => tagCreateRequest.Title)
                 .NotEmpty ()
+                .When (tagCreateRequest => tagCreateRequest.ID is null)
                 .WithMessage (ValidatorMessages.EmptyFieldValidatorMessage (nameof (TagCreateRequest.Title)));
 
+            // NotNull and a range rather than NotEmpty: 0 is a column, and NotEmpty
+            // turned every tag on a column away as a missing type.
             RuleFor (tagCreateRequest => tagCreateRequest.TypeID)
-                .NotEmpty ()
+                .NotNull ()
                 .WithMessage (ValidatorMessages.EmptyFieldValidatorMessage (nameof (TagCreateRequest.TypeID)));
+
+            RuleFor (tagCreateRequest => tagCreateRequest.TypeID)
+                .InclusiveBetween (TagParentTypes.Column, TagParentTypes.Tag)
+                .WithMessage (ValidatorMessages.FieldOutOfRangeValdiatorMessage (nameof (TagCreateRequest.TypeID)));
+        }
+    }
+
+    public class DateTagCreateRequestValidator : AbstractValidator<DateTagCreateRequest>
+    {
+        public DateTagCreateRequestValidator ()
+        {
+            RuleFor (dateTagCreateRequest => dateTagCreateRequest.Title)
+                .NotEmpty ()
+                .When (dateTagCreateRequest => dateTagCreateRequest.ID is null)
+                .WithMessage (ValidatorMessages.EmptyFieldValidatorMessage (nameof (DateTagCreateRequest.Title)));
         }
     }
 

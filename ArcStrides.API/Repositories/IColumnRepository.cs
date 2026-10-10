@@ -31,5 +31,5 @@ public interface IColumnRepository
 
     ArcTransaction ApplyNewOrderForExistingCardPositions (IEnumerable<Column> columnEnumerable, IEnumerable<CardPosition> boardCardEnumerable, ArcTransaction arcTransaction);
 
-    ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Column columnToDelete, IEnumerable<Column> columnEnumerable, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction);
+    ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Column columnToDelete, IEnumerable<Column> remainingColumns, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction);
 }

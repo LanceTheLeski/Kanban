@@ -20,4 +20,9 @@ public class DateResponse
     public int? DateTypeID { get; init; } = null;
 
     public IEnumerable<CardResponse>? Cards { get; set; } = null;
+
+    /// <summary>
+    /// The tags on the day itself, as distinct from its cards'.
+    /// </summary>
+    public IEnumerable<TagResponse>? Tags { get; set; } = null;
 }

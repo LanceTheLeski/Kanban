@@ -143,29 +143,41 @@ public class ColumnRepository : IColumnRepository
         return arcTransaction;
     }
 
-    public ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Column columnToDelete, IEnumerable<Column> columnEnumerable, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction)
+    /// <summary>
+    /// Moves the cards of a deleted column into the column that takes its place:
+    /// the one after it, or the one before it when it was the last.
+    /// </summary>
+    /// <remarks>
+    /// <paramref name="remainingColumns"/> is every column the board keeps, with the
+    /// orders they have after the delete. A card cannot be in no column, so the
+    /// controller refuses to delete the last one while it holds cards, and there is
+    /// always somewhere to move them.
+    ///
+    /// The candidates used to be only the columns whose order the delete had
+    /// changed, plus the deleted one. Deleting the rightmost column changes no
+    /// other order, so its cards were "moved" into the column being deleted, kept
+    /// an ID nothing on the board had, and disappeared from it. Cards are matched
+    /// on the column's ID rather than its title, which a rename leaves stale.
+    /// </remarks>
+    public ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Column columnToDelete, IEnumerable<Column> remainingColumns, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction)
     {
-        var columnToTransferCandidates = columnEnumerable.Where (column => column.PartitionKey == columnToDelete.PartitionKey
-                                                                           && (column.ColumnOrder == columnToDelete.ColumnOrder
-                                                                               || column.ColumnOrder == columnToDelete.ColumnOrder - 1));
-
-        if (columnToTransferCandidates.Count () is 0)
+        var columnToTransfer = remainingColumns.FirstOrDefault (column => column.ColumnOrder == columnToDelete.ColumnOrder)
+                               ?? remainingColumns.Where (column => column.ColumnOrder < columnToDelete.ColumnOrder)
+                                                  .MaxBy (column => column.ColumnOrder);
+        if (columnToTransfer is null)
             return arcTransaction;
-        var columnToTransfer = columnToTransferCandidates.Count () is 2 ?
-            columnToTransferCandidates.MaxBy (column => column.ColumnOrder)! :
-            columnToTransferCandidates.Single ();
 
-        var cardPositionsToTransfer = cardPositionEnumerable.Where (cardPosition => cardPosition.ColumnTitle == columnToDelete.Title)!;
-        if (cardPositionsToTransfer.Count () is 0) 
-            return arcTransaction;
+        var cardPositionsToTransfer = cardPositionEnumerable.Where (cardPosition => string.Equals (cardPosition.ColumnID.ToString (), columnToDelete.RowKey, StringComparison.OrdinalIgnoreCase));
         foreach (var cardPosition in cardPositionsToTransfer)
         {
-            cardPosition.ColumnID = Guid.Parse (columnToTransfer.RowKey);
+            var originalCardPosition = DeepCopier.Copy (cardPosition);
+
+            cardPosition.ColumnID = Guid.Parse (columnToTransfer.RowKey!);
             cardPosition.ColumnTitle = columnToTransfer.Title;
-            cardPosition.ColumnOrder = columnToTransfer.ColumnOrder.Value;
+            cardPosition.ColumnOrder = columnToTransfer.ColumnOrder!.Value;
 
             var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, cardPosition);
-            arcTransaction.Add (transaction, cardPosition);
+            arcTransaction.Add (transaction, originalCardPosition);
         }
 
         return arcTransaction;

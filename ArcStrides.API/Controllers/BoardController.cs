@@ -26,35 +26,41 @@ public class BoardController : Controller
     private readonly ICardRepository _cardRepository;
     private readonly ITaskRepository _taskRepository;
     private readonly ITimelineRepository _timelineRepository;
+    private readonly ITagRepository _tagRepository;
 
     private readonly SwimlaneMapper _swimlaneMapper;
     private readonly ColumnMapper _columnMapper;
     private readonly CardMapper _cardMapper;
     private readonly TaskMapper _taskMapper;
     private readonly TimelineMapper _timelineMapper;
+    private readonly TagMapper _tagMapper;
 
     public BoardController (IColumnRepository columnRepository,
                             ISwimlaneRepository swimlaneRepository,
                             ICardRepository cardRepository,
                             ITaskRepository taskRepository,
                             ITimelineRepository timelineRepository,
+                            ITagRepository tagRepository,
                             SwimlaneMapper swimlaneMapper,
                             ColumnMapper columnMapper,
                             CardMapper cardMapper,
                             TaskMapper taskMapper,
-                            TimelineMapper timelineMapper)
+                            TimelineMapper timelineMapper,
+                            TagMapper tagMapper)
     {
         _columnRepository = columnRepository;
         _swimlaneRepository = swimlaneRepository;
         _cardRepository = cardRepository;
         _taskRepository = taskRepository;
         _timelineRepository = timelineRepository;
+        _tagRepository = tagRepository;
 
         _swimlaneMapper = swimlaneMapper;
         _columnMapper = columnMapper;
         _cardMapper = new CardMapper ();
         _taskMapper = taskMapper;
         _timelineMapper = timelineMapper;
+        _tagMapper = tagMapper;
 
         _boardColumnEnumerableValidator = new BoardColumnEnumerableValidator (); 
         _boardSwimlaneEnumerableValidator = new BoardSwimlaneEnumerableValidator ();
@@ -101,6 +107,10 @@ public class BoardController : Controller
 
         var taskTypeCollection = await _taskRepository.QueryTaskTypesAsync (taskType => true);
         var timelineCollection = await _timelineRepository.QueryTimelinesAsync (timeline => true);
+
+        // Every tag, read once and looked up by what it is on, the way the
+        // timelines are. Without them a tag could be written and never read back.
+        var tagsByParent = (await _tagRepository.GetLabelsAsync ()).ToLookup (tag => tag.RowKey, StringComparer.OrdinalIgnoreCase);
         var cardResponse = new Collection<CardResponse> ();
         foreach (var card in cardCollection)
         {
@@ -129,11 +139,14 @@ public class BoardController : Controller
                 var taskTimeline = timelineCollection.SingleOrDefault (timeline => timeline.ParentObjectID.ToString () == cardTask.RowKey);
                 if (taskTimeline is not null)
                     mappedTask.Timeline = _timelineMapper.MapTimelineToTimelineResponse (taskTimeline);
+
+                mappedTask.Tags = tagsByParent [cardTask.RowKey!].Select (_tagMapper.MapTagToTagResponse).ToList ();
             }
 
             var mappedCard = _cardMapper.MapCardToCardResponse (card);
             mappedCard.Position = mappedCardPosition;
             mappedCard.Tasks = mappedTasks;
+            mappedCard.Tags = tagsByParent [card.RowKey].Select (_tagMapper.MapTagToTagResponse).ToList ();
 
             // A card can carry a timeline of its own, and this never sent one --
             // CardResponse.Timeline was left at its null default on every card the

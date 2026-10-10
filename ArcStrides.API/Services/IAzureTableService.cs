@@ -32,6 +32,12 @@ public interface IAzureTableService<T> where T : class, ITableEntity, new()
     /// </summary>
     Task ReplaceEntityAsync (T entityToReplace);
 
+    /// <summary>
+    /// Writes the entity whole, as ReplaceEntityAsync does, adding the row if it is
+    /// not there yet. For a row that is only ever written in full, such as a setting.
+    /// </summary>
+    Task UpsertEntityAsync (T entityToWrite);
+
     Task UpdateEntityBatchAsync (IEnumerable<T> entityEnumerable);
 
     Task DeleteEntityAsync (T entityToDelete);

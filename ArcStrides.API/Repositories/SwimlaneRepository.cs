@@ -155,31 +155,92 @@ public class SwimlaneRepository : ISwimlaneRepository
         return arcTransaction;
     }
 
-    public ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Swimlane swimlaneToDelete, IEnumerable<Swimlane> swimlaneEnumerable, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction)
+    /// <summary>
+    /// Moves the cards of a deleted swimlane into the swimlane that takes its place:
+    /// the one after it, or the one before it when it was the last. With no
+    /// swimlane left, the cards keep their columns and lose their swimlane.
+    /// </summary>
+    /// <remarks>
+    /// <paramref name="remainingSwimlanes"/> is every swimlane the board keeps, with
+    /// the orders they have after the delete.
+    ///
+    /// The candidates used to be only the swimlanes whose order the delete had
+    /// changed, plus the deleted one. Deleting the last swimlane changes no other
+    /// order, so the deleted swimlane was the only candidate, and its cards were
+    /// "moved" to it: they kept the ID of a row that no longer existed, matched no
+    /// lane on the board, and disappeared from it. Deleting the only swimlane did
+    /// the same. Cards are matched on the swimlane's ID rather than its title, for
+    /// the reason ApplyNewOrderForExistingCardPositions gives.
+    /// </remarks>
+    public ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Swimlane swimlaneToDelete, IEnumerable<Swimlane> remainingSwimlanes, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction)
     {
-        var swimlaneToTransferCandidates = swimlaneEnumerable.Where (swimlane => swimlane.PartitionKey == swimlaneToDelete.PartitionKey
-                                                                                 && (swimlane.SwimlaneOrder == swimlaneToDelete.SwimlaneOrder
-                                                                                     || swimlane.SwimlaneOrder == swimlaneToDelete.SwimlaneOrder - 1));
+        var swimlaneToTransfer = remainingSwimlanes.FirstOrDefault (swimlane => swimlane.SwimlaneOrder == swimlaneToDelete.SwimlaneOrder)
+                                 ?? remainingSwimlanes.Where (swimlane => swimlane.SwimlaneOrder < swimlaneToDelete.SwimlaneOrder)
+                                                      .MaxBy (swimlane => swimlane.SwimlaneOrder);
 
-        if (swimlaneToTransferCandidates.Count () is 0)
-            return arcTransaction;
-        var swimlaneToTransfer = swimlaneToTransferCandidates.Count () is 2 ?
-            swimlaneToTransferCandidates.MaxBy (swimlane => swimlane.SwimlaneOrder)! :
-            swimlaneToTransferCandidates.Single ();
-
-        var cardPositionsToTransfer = cardPositionEnumerable.Where (cardPosition => cardPosition.SwimlaneTitle == swimlaneToDelete.Title)!;
-        if (cardPositionsToTransfer.Count () is 0)
-            return arcTransaction;
+        var cardPositionsToTransfer = cardPositionEnumerable.Where (cardPosition => string.Equals (cardPosition.SwimlaneID.ToString (), swimlaneToDelete.RowKey, StringComparison.OrdinalIgnoreCase));
         foreach (var cardPosition in cardPositionsToTransfer)
         {
-            cardPosition.SwimlaneID = Guid.Parse (swimlaneToTransfer.RowKey);
-            cardPosition.SwimlaneTitle = swimlaneToTransfer.Title;
-            cardPosition.SwimlaneOrder = swimlaneToTransfer.SwimlaneOrder;
+            var originalCardPosition = DeepCopier.Copy (cardPosition);
+
+            if (swimlaneToTransfer is null)
+                ClearSwimlane (cardPosition);
+            else
+            {
+                cardPosition.SwimlaneID = Guid.Parse (swimlaneToTransfer.RowKey);
+                cardPosition.SwimlaneTitle = swimlaneToTransfer.Title;
+                cardPosition.SwimlaneOrder = swimlaneToTransfer.SwimlaneOrder;
+            }
 
             var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, cardPosition);
-            arcTransaction.Add (transaction, cardPosition);
+            arcTransaction.Add (transaction, originalCardPosition);
         }
 
         return arcTransaction;
+    }
+
+    /// <summary>
+    /// Puts every card that is in no swimlane into the one being added.
+    /// </summary>
+    /// <remarks>
+    /// A card is in no swimlane when the board had none (see
+    /// <see cref="CardPosition.SwimlaneID"/>), or when it names a swimlane that is not
+    /// on the board any more, which is what deleting the last swimlane left behind
+    /// before ApplyNewTitleAndOrderForExistingCardPositions moved cards on. Either
+    /// way the board drew those cards nowhere, and the new swimlane is the first
+    /// place there is to draw them.
+    /// </remarks>
+    public ArcTransaction AssignUnplacedCardPositions (Swimlane newSwimlane, IEnumerable<Swimlane> existingSwimlanes, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction)
+    {
+        var existingSwimlaneIDs = existingSwimlanes.Select (swimlane => swimlane.RowKey)
+                                                   .ToHashSet (StringComparer.OrdinalIgnoreCase);
+
+        foreach (var cardPosition in cardPositionEnumerable.Where (cardPosition => existingSwimlaneIDs.Contains (cardPosition.SwimlaneID.ToString ()) is false))
+        {
+            var originalCardPosition = DeepCopier.Copy (cardPosition);
+
+            cardPosition.SwimlaneID = Guid.Parse (newSwimlane.RowKey);
+            cardPosition.SwimlaneTitle = newSwimlane.Title;
+            cardPosition.SwimlaneOrder = newSwimlane.SwimlaneOrder;
+
+            var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, cardPosition);
+            arcTransaction.Add (transaction, originalCardPosition);
+        }
+
+        return arcTransaction;
+    }
+
+    /// <summary>
+    /// Takes a card out of every swimlane, on a board that has none left.
+    /// </summary>
+    /// <remarks>
+    /// The title is emptied rather than nulled: the write is a merge, and a merge
+    /// leaves a null property out, so the old title would stay (docs/api-gaps.md, #9).
+    /// </remarks>
+    private static void ClearSwimlane (CardPosition cardPosition)
+    {
+        cardPosition.SwimlaneID = Guid.Empty;
+        cardPosition.SwimlaneTitle = string.Empty;
+        cardPosition.SwimlaneOrder = 0;
     }
 }

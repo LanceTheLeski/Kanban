@@ -20,8 +20,9 @@ public class ColumnPatchRequest
     /// The colour this column keeps when a board is built from a template.
     ///
     /// Separate from Color because the per-board value is free to repeat and
-    /// this one is not: it is how a column is recognised across boards. The
-    /// uniqueness is not enforced yet — see docs/api-gaps.md.
+    /// this one is not: it is how a column is recognised across boards. No two
+    /// columns, on any board, may share one, and a write that would is refused;
+    /// an empty one is none, and clears it — see docs/api-gaps.md, #6.
     /// </summary>
     public string? GlobalColor { get; init; } = null;
 }

@@ -60,14 +60,27 @@ public class CardController : ControllerBase
             return BadRequest ("There was no Card Request passed in!");
         }
 
-        //An error should get thrown before this point if any of the ID's below are null. Will have a concrete validation later using ModelState or FluentValidation
-        var columnFromTable = await _columnRepository.GetColumnAsync (boardID, cardCreateRequest.ColumnID.Value);
-        if (columnFromTable is null)
-            return StatusCode (StatusCodes.Status500InternalServerError, "Could not find column.");
+        // A card is always in a column. `.Value` on a missing one threw, and came
+        // back as a 500 for what is the caller's mistake.
+        if (cardCreateRequest.ColumnID is not Guid columnID)
+            return BadRequest (ValidatorMessages.EmptyFieldValidatorMessage (nameof (CardCreateRequest.ColumnID)));
 
-        var swimlaneFromTable = await _swimlaneRepository.GetSwimlaneAsync (boardID, cardCreateRequest.SwimlaneID.Value);
-        if (swimlaneFromTable is null)
-            return StatusCode (StatusCodes.Status500InternalServerError, "Could not find swimlane.");
+        var columnFromTable = await _columnRepository.GetColumnAsync (boardID, columnID);
+        if (columnFromTable is null)
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Column)));
+
+        // A swimlane only when the board has any. On a board with none, the card
+        // goes straight into its column, as every card does once the last swimlane
+        // is deleted -- see CardPosition.SwimlaneID.
+        Swimlane? swimlaneFromTable = null;
+        if (cardCreateRequest.SwimlaneID is Guid swimlaneID && swimlaneID != Guid.Empty)
+        {
+            swimlaneFromTable = await _swimlaneRepository.GetSwimlaneAsync (boardID, swimlaneID);
+            if (swimlaneFromTable is null)
+                return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Swimlane)));
+        }
+        else if ((await _swimlaneRepository.GetAllBoardSwimlanesAsync (boardID)).Count is not 0)
+            return BadRequest (ErrorResponseMessages.SwimlaneRequiredErrorResponse ());
 
         var mapper = new CardMapper ();
 
@@ -88,16 +101,18 @@ public class CardController : ControllerBase
             //Title = columnFromTable.BoardTitle, //Should match swimlane's BoardTitle
             CardID = newCardID,
 
-            SwimlaneID = cardCreateRequest.SwimlaneID.Value,
-            SwimlaneTitle = swimlaneFromTable.Title,
-            SwimlaneOrder = swimlaneFromTable.SwimlaneOrder,
+            SwimlaneID = swimlaneFromTable is null
+                ? Guid.Empty
+                : Guid.Parse (swimlaneFromTable.RowKey),
+            SwimlaneTitle = swimlaneFromTable?.Title ?? string.Empty,
+            SwimlaneOrder = swimlaneFromTable?.SwimlaneOrder ?? 0,
 
             // The client sends where in the cell the card should land, because
             // it is the only party that knows what is already there. Defaults to
             // 0 -- the top of the cell -- when it says nothing.
             PositionRank = cardCreateRequest.PositionRank ?? 0,
 
-            ColumnID = cardCreateRequest.ColumnID.Value,
+            ColumnID = columnID,
             ColumnTitle = columnFromTable.Title,
             ColumnOrder = columnFromTable.ColumnOrder.Value,
 

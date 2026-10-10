@@ -37,6 +37,7 @@ builder.Services.AddTransient<ICardRepository, CardRepository> ();
 builder.Services.AddTransient<ITaskRepository, TaskRepository> ();
 builder.Services.AddTransient<ITimelineRepository, TimelineRepository> ();
 builder.Services.AddTransient<ITagRepository, TagRepository> ();
+builder.Services.AddTransient<ICalendarOptionsRepository, CalendarOptionsRepository> ();
 
 // Everything — requests, responses and JSON Patch documents — goes through
 // System.Text.Json.

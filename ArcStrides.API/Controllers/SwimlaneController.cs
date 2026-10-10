@@ -59,6 +59,27 @@ public class SwimlaneController : ArcController
             { return ArcErrorResponse (ex); }
     }
 
+    /// <summary>
+    /// Every swimlane, on every board, that has a global colour — <c>GET arcstrides/swimlanes/globalcolors</c>.
+    /// </summary>
+    /// <remarks>
+    /// The swimlanes' half of ColumnController.FetchGlobalColumnColors, and for the
+    /// same reason: no two swimlanes may share a global colour.
+    /// </remarks>
+    [HttpGet ("globalcolors")]
+    public async Task<ActionResult> FetchGlobalSwimlaneColors ()
+    {
+        try
+        {
+            var swimlanesWithGlobalColour = (await FetchAllSwimlanesAsync ()).Where (swimlane => string.IsNullOrWhiteSpace (swimlane.GlobalSwimlaneColor) is false);
+
+            var swimlaneResponses = swimlanesWithGlobalColour.Select (_swimlaneMapper.MapSwimlaneToSwimlaneResponse);
+            return Ok (swimlaneResponses);
+        }
+        catch (Exception ex)
+            { return ArcErrorResponse (ex); }
+    }
+
     [HttpPost ("/arcstrides/boards/{boardID:guid}/swimlanes")]
     public async Task<ActionResult> CreateBoardSwimlane ([FromRoute] Guid boardID,
                                                          [FromBody] SwimlaneCreateRequest swimlaneCreateRequest)
@@ -72,6 +93,8 @@ public class SwimlaneController : ArcController
             var newSwimlane = _swimlaneMapper.MapSwimlaneCreateRequestToSwimlane (swimlaneCreateRequest);
             newSwimlane.PartitionKey = boardID.ToString ();
             newSwimlane.RowKey = Guid.NewGuid ().ToString ();
+
+            await ValidateGlobalColourIsFreeAsync (newSwimlane.GlobalSwimlaneColor, newSwimlane.RowKey);
 
             await AddSwimlaneAndUpdateEffectedSwimlanesAndCardPositions (boardID, newSwimlane);
 
@@ -105,6 +128,10 @@ public class SwimlaneController : ArcController
             catch (JsonPatchException)
                 { return BadRequest (ErrorResponseMessages.PatchRequestIsInvalidErrorResponse (nameof (Swimlane))); }
             ValidateConvertedSwimlaneAgainstExistingSwimlanes (swimlaneToUpdate, convertedSwimlaneToUpdate, swimlanesFromDatabase);
+
+            // Only when it changes, as for columns.
+            if (string.Equals (convertedSwimlaneToUpdate.GlobalColor?.Trim (), swimlaneToUpdate.GlobalSwimlaneColor?.Trim (), StringComparison.OrdinalIgnoreCase) is false)
+                await ValidateGlobalColourIsFreeAsync (convertedSwimlaneToUpdate.GlobalColor, swimlaneToUpdate.RowKey);
 
             var updatedSwimlane = await UpdateSwimlaneAndUpdateEffectedSwimlanesAndCardPositions (boardID, swimlaneToUpdate, convertedSwimlaneToUpdate, swimlanesFromDatabase, cardPositionsFromDatabase, swimlanePatchRequest.Operations);
 
@@ -156,6 +183,34 @@ public class SwimlaneController : ArcController
         try { return await _swimlaneRepository.GetAllBoardSwimlanesAsync (boardID); }
         catch (RequestFailedException reqFailedEx)
             { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (Swimlane), reqFailedEx.Status)); }
+    }
+
+    /// <summary>
+    /// Every swimlane on every board.
+    /// </summary>
+    private async Task<IEnumerable<Swimlane>> FetchAllSwimlanesAsync ()
+    {
+        try { return await _swimlaneRepository.QuerySwimlanesAsync (swimlane => true); }
+        catch (RequestFailedException reqFailedEx)
+            { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (Swimlane), reqFailedEx.Status)); }
+    }
+
+    /// <summary>
+    /// Refuses a global colour that another swimlane, on any board, already has.
+    /// </summary>
+    /// <remarks>
+    /// As ColumnController's: without case or surrounding space, never for no
+    /// colour, and columns are not looked at.
+    /// </remarks>
+    private async Task ValidateGlobalColourIsFreeAsync (string? globalColour, string swimlaneID)
+    {
+        if (string.IsNullOrWhiteSpace (globalColour))
+            return;
+
+        var takenBy = (await FetchAllSwimlanesAsync ()).FirstOrDefault (swimlane => swimlane.RowKey != swimlaneID
+                                                                                    && string.Equals (swimlane.GlobalSwimlaneColor?.Trim (), globalColour.Trim (), StringComparison.OrdinalIgnoreCase));
+        if (takenBy is not null)
+            throw new RequestFailureWrapperException (nameof (BadRequest), ErrorResponseMessages.GlobalColourTakenErrorResponse ("swimlane", globalColour.Trim (), $"\"{takenBy.Title}\""));
     }
 
     /// <summary>
@@ -218,6 +273,12 @@ public class SwimlaneController : ArcController
         var cardPositionCollectionToUpdateOrder = cardPositionsFromBoard.Where (cardPosition => cardPosition.SwimlaneOrder >= newSwimlane.SwimlaneOrder
                                                                                                 && cardPosition.PartitionKey == newSwimlane.PartitionKey);
         createSwimlaneTransaction = _swimlaneRepository.ApplyNewOrderForExistingCardPositions (swimlaneCollectionToUpdateOrder, cardPositionCollectionToUpdateOrder, createSwimlaneTransaction);
+
+        // Cards in no swimlane -- every card, on a board that had none -- go into
+        // this one. The cards just renumbered above are all in a swimlane that
+        // exists, so no card is written twice.
+        var existingSwimlanes = await _swimlaneRepository.GetAllBoardSwimlanesAsync (boardID);
+        createSwimlaneTransaction = _swimlaneRepository.AssignUnplacedCardPositions (newSwimlane, existingSwimlanes, cardPositionsFromBoard, createSwimlaneTransaction);
 
         bool submitted;
         try { submitted = await _swimlaneRepository.SubmitArcTransactionAsync (createSwimlaneTransaction); }
@@ -311,20 +372,23 @@ public class SwimlaneController : ArcController
     {
         var deleteSwimlaneTransaction = new ArcTransaction ();
 
-        var swimlanesToUpdateOrder = await _swimlaneRepository.QuerySwimlanesAsync (swimlane => swimlane.SwimlaneOrder > swimlaneToDelete.SwimlaneOrder
-                                                                                                && swimlane.PartitionKey == swimlaneToDelete.PartitionKey);
+        // Every swimlane on the board, read once, so the ones renumbered below are
+        // the same instances as the ones the cards are moved between: the swimlane
+        // that takes the deleted one's place is found by its order after the delete.
+        var boardSwimlanes = await _swimlaneRepository.GetAllBoardSwimlanesAsync (boardID);
+        var swimlanesToUpdateOrder = boardSwimlanes.Where (swimlane => swimlane.SwimlaneOrder > swimlaneToDelete.SwimlaneOrder)
+                                                   .ToList ();
         deleteSwimlaneTransaction = _swimlaneRepository.DecrementExistingSwimlanesOrder (swimlanesToUpdateOrder, deleteSwimlaneTransaction);
 
         var allUpdatedSwimlanes = deleteSwimlaneTransaction.GetTransactionEntities<Swimlane> ().ToList ();
         var boardCardEnumerable = await _cardRepository.GetCardPositionsAsync (boardID);
         deleteSwimlaneTransaction = _swimlaneRepository.ApplyNewOrderForExistingCardPositions (allUpdatedSwimlanes, boardCardEnumerable, deleteSwimlaneTransaction);
 
-        allUpdatedSwimlanes.Add (swimlaneToDelete);
-
         var transaction = new TableTransactionAction (TableTransactionActionType.Delete, swimlaneToDelete);
         deleteSwimlaneTransaction.Add (transaction, swimlaneToDelete);
 
-        deleteSwimlaneTransaction = _swimlaneRepository.ApplyNewTitleAndOrderForExistingCardPositions (swimlaneToDelete, allUpdatedSwimlanes, boardCardEnumerable, deleteSwimlaneTransaction);
+        var remainingSwimlanes = boardSwimlanes.Where (swimlane => swimlane.RowKey != swimlaneToDelete.RowKey);
+        deleteSwimlaneTransaction = _swimlaneRepository.ApplyNewTitleAndOrderForExistingCardPositions (swimlaneToDelete, remainingSwimlanes, boardCardEnumerable, deleteSwimlaneTransaction);
 
         try { await _swimlaneRepository.SubmitArcTransactionAsync (deleteSwimlaneTransaction); }
         catch (RequestFailedException reqFailedEx)

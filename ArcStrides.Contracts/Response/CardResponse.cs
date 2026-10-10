@@ -14,5 +14,9 @@ public class CardResponse
 
     public TimelineResponse? Timeline { get; set; } = null;
 
+    /// <summary>
+    /// The tags on the card. Filled in by every read that sends cards: the board,
+    /// and the calendar's month.
+    /// </summary>
     public IEnumerable<TagResponse>? Tags { get; set; } = null;
 }
