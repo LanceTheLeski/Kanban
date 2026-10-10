@@ -192,6 +192,21 @@ for the whole month, not just the day:
 
 ---
 
+### 9. A field set to null is never cleared
+
+`AzureTableService.UpdateEntityAsync` writes with Table Storage's *merge*, and
+the SDK leaves a null property out of a merge. So a PATCH that sets a field to
+null answers 200, and the stored row keeps its old value. The card, column and
+task mappers skip nulls as well (`AllowNullPropertyAssignment = false`), for the
+keys they must not overwrite.
+
+Fixed for timelines, where a cleared point is everyday: they are patched with
+`TimelinePatchMapper` and written with `ReplaceEntityAsync`, the whole row at
+once (see `docs/timeline-model.md`). Every other entity still merges, which
+matters wherever one of its fields is meant to be cleared. An entity read whole
+and written back can move to `ReplaceEntityAsync` the same way; one written from
+a partial copy must not, or it loses the fields it did not carry.
+
 ## Not a gap, but worth knowing
 
 - `CardController` has no `GET` for a board's cards; they arrive nested on

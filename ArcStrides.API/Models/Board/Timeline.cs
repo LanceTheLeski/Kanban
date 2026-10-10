@@ -19,11 +19,23 @@ public class Timeline : ArcBoardsEntity
 
     public DateTime? StartPreferenceUTC { get; set; }
 
+    /// <summary>
+    /// How long the point lasts, in minutes, from its time. Null for a point that
+    /// is an instant. The same for the three points after it.
+    /// </summary>
+    public int? StartPreferenceDurationMinutes { get; set; }
+
     public DateTime? StartDeadlineUTC { get; set; }
+
+    public int? StartDeadlineDurationMinutes { get; set; }
 
     public Guid? EndDependencyTagGroupID { get; set; }
 
     public DateTime? EndPreferenceUTC { get; set; }
 
+    public int? EndPreferenceDurationMinutes { get; set; }
+
     public DateTime? EndDeadlineUTC { get; set; }
+
+    public int? EndDeadlineDurationMinutes { get; set; }
 }

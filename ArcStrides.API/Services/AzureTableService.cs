@@ -105,6 +105,12 @@ public class AzureTableService<T> : IAzureTableService<T> where T : class, ITabl
         ValidateResponse (response);
     }
 
+    public async Task ReplaceEntityAsync (T entityToReplace)
+    {
+        var response = await _table.UpdateEntityAsync (entityToReplace, ETag.All, TableUpdateMode.Replace);
+        ValidateResponse (response);
+    }
+
     public async Task UpdateEntityBatchAsync (IEnumerable<T> entityEnumerable)
     {
         var tableTransactionList = new List<TableTransactionAction> ();

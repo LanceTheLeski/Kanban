@@ -34,8 +34,13 @@ public class TimelineRepository : ITimelineRepository
     public async Task AddTimelineAsync (Timeline timelineToAdd)
         => await _timelineTable.AddEntityAsync (timelineToAdd);
 
+    /// <summary>
+    /// Replaced whole rather than merged: a timeline is always read in full before it
+    /// is written back, and a point taken off it is a property set to null, which a
+    /// merge would not send.
+    /// </summary>
     public async Task UpdateTimelineAsync (Timeline timelineToUpdate)
-        => await _timelineTable.UpdateEntityAsync (timelineToUpdate);
+        => await _timelineTable.ReplaceEntityAsync (timelineToUpdate);
 
     public async Task DeleteTimelineAsync (Timeline timelineToDelete)
         => await _timelineTable.DeleteEntityAsync (timelineToDelete);

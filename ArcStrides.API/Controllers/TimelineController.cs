@@ -23,6 +23,7 @@ public class TimelineController : Controller
     private readonly ITimelineRepository _timelineRepository;
 
     private readonly TimelineMapper _timelineMapper;
+    private readonly TimelinePatchMapper _timelinePatchMapper;
 
     public TimelineController (ITimelineRepository timelineRepository,
                                TimelineMapper timelineMapper)
@@ -34,6 +35,7 @@ public class TimelineController : Controller
         _timelineRepository = timelineRepository;
 
         _timelineMapper = timelineMapper;
+        _timelinePatchMapper = new TimelinePatchMapper ();
     }
 
     [HttpGet ("{timelineID:Guid}")]
@@ -81,7 +83,7 @@ public class TimelineController : Controller
     {
         var validationResult = _timelinePatchRequestDocumentValidator.Validate (timelinePatchRequestDocument);
         if (validationResult.IsValid is false)
-            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TagPatchRequest), validationResult.ToString ()));
+            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TimelinePatchRequest), validationResult.ToString ()));
 
         var timelineToUpdateCollection = await _timelineRepository.QueryTimelinesAsync (timeline => timeline.RowKey == timelineID.ToString ());
         if (timelineToUpdateCollection is null || timelineToUpdateCollection.Count () is 0)
@@ -97,10 +99,10 @@ public class TimelineController : Controller
 
         validationResult = _timelinePatchRequestValidator.Validate (timelinePatchRequest);
         if (validationResult.IsValid is false)
-            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TagPatchRequest), validationResult.ToString ()));
+            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TimelinePatchRequest), validationResult.ToString ()));
 
-        var convertedTimelineToUpdate = _timelineMapper.MapTimelinePatchRequestToTimeline (timelinePatchRequest); // Make sure that the response object is preserved if not mapped to
-        _timelineMapper.MapFieldsFromSourceToTarget (convertedTimelineToUpdate, timelineToUpdate);
+        // Nulls included: a point patched to null is a point cleared. See TimelinePatchMapper.
+        _timelinePatchMapper.ApplyTimelinePatchRequestToTimeline (timelinePatchRequest, timelineToUpdate);
 
         timelineToUpdate = TimelineSpecifyKind (timelineToUpdate);
 
