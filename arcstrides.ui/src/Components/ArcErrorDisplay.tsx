@@ -29,7 +29,8 @@ import { SnackbarProvider, type SnackbarProviderProps } from 'notistack'
 
 // ── Provider ─────────────────────────────────────────────────────────────────
 
-interface ArcErrorDisplayProps {
+interface ArcErrorDisplayProps
+{
     children: React.ReactNode
 }
 
@@ -38,8 +39,10 @@ interface ArcErrorDisplayProps {
  *   <MudSnackbarProvider /> (in MainLayout.razor)
  *   Snackbar.Configuration.PositionClass = TopCenter (in MyMudProviders.razor)
  */
-export const ArcErrorDisplay: React.FC<ArcErrorDisplayProps> = ({ children }) => {
-    const snackbarProps: SnackbarProviderProps = {
+export const ArcErrorDisplay: React.FC<ArcErrorDisplayProps> = ({ children }) =>
+{
+    const snackbarProps: SnackbarProviderProps =
+    {
         // Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter
         anchorOrigin: { vertical: 'top', horizontal: 'center' },
         // Snackbar.Configuration.MaxDisplayedSnackbars = 5
@@ -53,7 +56,7 @@ export const ArcErrorDisplay: React.FC<ArcErrorDisplayProps> = ({ children }) =>
         autoHideDuration: 4000,
     }
 
-    return <SnackbarProvider {...snackbarProps}>{children}</SnackbarProvider>
+    return <SnackbarProvider {...snackbarProps}>{ children }</SnackbarProvider>
 }
 
 export default ArcErrorDisplay

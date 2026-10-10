@@ -24,24 +24,31 @@ import React, { useId } from 'react'
 import { Box } from '@mui/material'
 import { SCENERY } from '../Styles/Scenery'
 
-interface PaperSceneProps {
+interface PaperSceneProps
+{
     /** The drawing's own units. */
     width: number
+
     height: number
+
     /** Top and bottom of the sky. */
     sky: [string, string]
+
     /**
      * Said to a screen reader. Left out where the picture is inside a control
      * whose own name already says what it shows.
      */
     label?: string
+
     /** Crop to fill the box (the default), or show the whole drawing inside it. */
     fit?: 'slice' | 'meet'
+
     /** The layers in front of the sky, given the filter that casts their shadows. */
     children: (cut: string) => React.ReactNode
 }
 
-export const PaperScene: React.FC<PaperSceneProps> = ({ width, height, sky, label, fit = 'slice', children }) => {
+export const PaperScene: React.FC<PaperSceneProps> = ({ width, height, sky, label, fit = 'slice', children }) =>
+{
     // An ID for this copy's filter and gradient, so the several scenes on a
     // page never pick up one another's. useId's own characters are not all
     // welcome inside url(#…).
@@ -51,9 +58,13 @@ export const PaperScene: React.FC<PaperSceneProps> = ({ width, height, sky, labe
         <Box component="svg"
              viewBox={`0 0 ${width} ${height}`}
              preserveAspectRatio={`xMidYMax ${fit}`}
-             role={label ? 'img' : undefined}
+             role={label
+                 ? 'img'
+                 : undefined}
              aria-label={label}
-             aria-hidden={label ? undefined : true}
+             aria-hidden={label
+                 ? undefined
+                 : true}
              sx={{ display: 'block', width: '100%', height: '100%' }}>
             <defs>
                 <filter id={`${id}-cut`} x="-5%" y="-10%" width="110%" height="130%">
@@ -67,13 +78,14 @@ export const PaperScene: React.FC<PaperSceneProps> = ({ width, height, sky, labe
 
             <rect width={width} height={height} fill={`url(#${id}-sky)`} />
 
-            {children(`url(#${id}-cut)`)}
+            { children(`url(#${id}-cut)`) }
         </Box>
     )
 }
 
 /** A low sun: a disc of gold paper on a paler halo. */
-export function Sun({ x, y, cut, size = 1 }: { x: number; y: number; cut: string; size?: number }) {
+export function Sun({ x, y, cut, size = 1 }: { x: number; y: number; cut: string; size?: number })
+{
     return (
         <g filter={cut}>
             <circle cx={x} cy={y} r={11 * size} fill={SCENERY.sunHalo} />

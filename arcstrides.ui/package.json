@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "format": "python3 tools/reflow.py",
+    "format": "node tools/format.mjs",
     "format:check": "python3 tools/reflow.py --check",
     "check": "tsc -b && node tools/eslint-arc.test.mjs && eslint . && python3 tools/reflow.py --check",
     "preview": "vite preview",

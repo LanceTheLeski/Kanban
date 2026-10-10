@@ -41,15 +41,20 @@ export const DOT_ROW_HEIGHT = 22
 /** The node's top padding, which the connector is positioned against. */
 export const NODE_PAD_Y = 2
 
-interface TimelineNodeProps {
+interface TimelineNodeProps
+{
     spec: NodeSpec
+
     value: NodeValue
+
     /** Whether this is the node whose pickers are on screen. */
     isOpen: boolean
+
     onToggle: () => void
 }
 
-export const TimelineNode: React.FC<TimelineNodeProps> = ({ spec, value, isOpen, onToggle }) => {
+export const TimelineNode: React.FC<TimelineNodeProps> = ({ spec, value, isOpen, onToggle }) =>
+{
     const isSet = Boolean(value.date)
     const name = spec.label.join(' ')
 
@@ -60,13 +65,15 @@ export const TimelineNode: React.FC<TimelineNodeProps> = ({ spec, value, isOpen,
                    flexDirection: 'column',
                    alignItems: 'center',
                    pt: `${NODE_PAD_Y}px`,
-                   pb: 0.25 }}>
+                   pb: 0.25
+                }}>
             <Box sx={{ height: DOT_ROW_HEIGHT,
                        display: 'flex',
                        alignItems: 'center',
                        justifyContent: 'center',
                        // Above the rail, so the strip runs under the discs.
-                       zIndex: 1 }}>
+                       zIndex: 1
+                    }}>
                 {/*
                     describeChild, because MUI's Tooltip defaults to acting as the
                     child's accessible *label* — and the label here is the node's
@@ -85,16 +92,25 @@ export const TimelineNode: React.FC<TimelineNodeProps> = ({ spec, value, isOpen,
                                 aria-pressed={isOpen}
                                 aria-label={name}
                                 disableRipple
-                                className={`card-disc ${isOpen ? 'card-stock' : 'card-stock-glued'} ${isSet ? 'paper-ink' : 'paper-grey'}`}
+                                className={`card-disc ${isOpen
+                                    ? 'card-stock'
+                                    : 'card-stock-glued'} ${isSet
+                                        ? 'paper-ink'
+                                        : 'paper-grey'}`}
                                 sx={{ width: DOT,
                                       height: DOT,
                                       borderRadius: '50%',
-                                      transform: isOpen ? 'scale(1.3)' : 'none',
+                                      transform: isOpen
+                                          ? 'scale(1.3)'
+                                          : 'none',
                                       transition: 'transform .12s',
-                                      '&:hover': { transform: isOpen ? 'scale(1.3)' : 'scale(1.18)' },
+                                      '&:hover': { transform: isOpen
+                                                       ? 'scale(1.3)'
+                                                       : 'scale(1.18)' },
                                       '&.Mui-focusVisible': { outline: '2px solid',
                                                               outlineColor: 'arc.paperAccent',
-                                                              outlineOffset: '2px' } }} />
+                                                              outlineOffset: '2px' }
+                                   }} />
                 </Tooltip>
             </Box>
 
@@ -104,11 +120,16 @@ export const TimelineNode: React.FC<TimelineNodeProps> = ({ spec, value, isOpen,
                               lineHeight: 1.25,
                               textAlign: 'center',
                               mt: 0.25,
-                              color: isOpen ? 'arc.onPaperStrong' : 'arc.onPaperMuted',
-                              fontWeight: isOpen ? 700 : 400 }}>
-                {spec.label[0]}
+                              color: isOpen
+                                  ? 'arc.onPaperStrong'
+                                  : 'arc.onPaperMuted',
+                              fontWeight: isOpen
+                                  ? 700
+                                  : 400
+                           }}>
+                { spec.label[0] }
                 <br />
-                {spec.label[1]}
+                { spec.label[1] }
             </Typography>
 
             {/* What it is set to. */}
@@ -116,16 +137,25 @@ export const TimelineNode: React.FC<TimelineNodeProps> = ({ spec, value, isOpen,
                               fontSize: '0.58rem',
                               lineHeight: 1.4,
                               textAlign: 'center',
-                              color: isSet ? 'arc.onPaper' : 'arc.onPaperMuted',
-                              fontWeight: isOpen ? 700 : 400,
-                              whiteSpace: 'nowrap' }}>
-                {value.date ? value.date.format('DD MMM') : '—'}
-                {value.time && (
+                              color: isSet
+                                  ? 'arc.onPaper'
+                                  : 'arc.onPaperMuted',
+                              fontWeight: isOpen
+                                  ? 700
+                                  : 400,
+                              whiteSpace: 'nowrap'
+                           }}>
+                { value.date
+                    ? value.date.format('DD MMM')
+                    : '—'
+                }
+                { value.time && (
                     <>
                         <br />
-                        {value.time.format('HH:mm')}
+                        { value.time.format('HH:mm') }
                     </>
-                )}
+                )
+                }
             </Typography>
         </Box>
     )

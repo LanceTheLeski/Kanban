@@ -33,14 +33,19 @@ import type { CalendarDate, Month } from './Calendar.Types'
 
 export type CalendarStatus = 'idle' | 'loading' | 'ready' | 'error'
 
-interface CalendarState {
+interface CalendarState
+{
     /** The month on screen. `month` from 0, as dayjs counts. */
     year: number | null
+
     month: number | null
+
     /** What the API holds for it, once read. Null until then, and after a failure. */
     stored: Month | null
+
     /** The state of the read — not of the month, which is always drawable. */
     status: CalendarStatus
+
     error: string | null
 
     /**
@@ -57,6 +62,7 @@ interface CalendarState {
      * follows. Not stored on the server; a day with no entry is on All.
      */
     dayViews: Record<string, string>
+
     setDayView: (dayKey: string, viewKey: string) => void
 
     /**
@@ -82,10 +88,12 @@ interface CalendarState {
      * tags on a date yet — see docs/api-gaps.md, #8.
      */
     dayTags: Record<string, CardTag[]>
+
     setDayTags: (dayKey: string, tags: CardTag[]) => void
 }
 
-export const useCalendarStore = create<CalendarState>((set, get) => ({
+export const useCalendarStore = create<CalendarState>((set, get) =>
+({
     year: null,
     month: null,
     stored: null,
@@ -99,7 +107,8 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
 
     setDayTags: (dayKey, tags) => set(state => ({ dayTags: { ...state.dayTags, [dayKey]: tags } })),
 
-    loadMonth: async (year, month, options) => {
+    loadMonth: async (year, month, options) =>
+    {
         loadTaskTypesOnce(types => set({ taskTypes: types }))
 
         const silent = options?.silent === true
@@ -109,78 +118,117 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
         // drawn, even for a frame, over days they do not belong to.
         set(silent && sameMonth
             ? { error: null }
-            : { year, month, stored: sameMonth ? get().stored : null, status: 'loading', error: null })
+            : { year,
+                month,
+                stored: sameMonth
+                    ? get().stored
+                    : null,
+                status: 'loading',
+                error: null })
 
-        try {
+        try
+        {
             const stored = await fetchMonthOf(year, month)
             // Only the most recent request may write — see loadBoard.
-            if (!isShowing(get(), year, month)) return
+            if (!isShowing(get(), year, month))
+                return
             set({ stored, status: 'ready', error: null })
-        } catch (error) {
-            if (!isShowing(get(), year, month)) return
-            set({ status: 'error', error: error instanceof Error ? error.message : String(error) })
+        }
+        catch (error)
+        {
+            if (!isShowing(get(), year, month))
+                return
+            set({ status: 'error',
+                  error: error instanceof Error
+                      ? error.message
+                      : String(error) })
         }
     },
 
-    refresh: async () => {
+    refresh: async () =>
+    {
         const { year, month, loadMonth } = get()
-        if (year === null || month === null) return
+        if (year === null || month === null)
+            return
         // A refresh follows an edit, and the edit may have been a new task type
         // made from a task's popover; read the types again with the month.
         taskTypesRequested = false
         await loadMonth(year, month, { silent: true })
     },
 
-    addCard: async (day, card) => {
+    addCard: async (day, card) =>
+    {
         const { year, month } = get()
-        if (year === null || month === null) return
+        if (year === null || month === null)
+            return
 
         const before = get().stored
-        set({ stored: withDay(before, year, month, day, date => ({
+        set({ stored: withDay(before, year, month, day, date =>
+        ({
             ...date,
             cards: [...date.cards.filter(on => on.id !== card.id), card],
         })) })
 
-        try {
+        try
+        {
             const stored = await addCardToDate(year, month, day, card.id)
-            if (isShowing(get(), year, month)) set({ stored, status: 'ready', error: null })
-        } catch (error) {
-            if (isShowing(get(), year, month)) set({ stored: before })
+            if (isShowing(get(), year, month))
+                set({ stored, status: 'ready', error: null })
+        }
+        catch (error)
+        {
+            if (isShowing(get(), year, month))
+                set({ stored: before })
             throw error
         }
     },
 
-    removeCard: async (day, cardId) => {
+    removeCard: async (day, cardId) =>
+    {
         const { year, month } = get()
-        if (year === null || month === null) return
+        if (year === null || month === null)
+            return
 
         const before = get().stored
-        set({ stored: withDay(before, year, month, day, date => ({
+        set({ stored: withDay(before, year, month, day, date =>
+        ({
             ...date,
             cards: date.cards.filter(on => on.id !== cardId),
         })) })
 
-        try {
+        try
+        {
             const stored = await removeCardFromDate(year, month, day, cardId)
-            if (isShowing(get(), year, month)) set({ stored, status: 'ready', error: null })
-        } catch (error) {
-            if (isShowing(get(), year, month)) set({ stored: before })
+            if (isShowing(get(), year, month))
+                set({ stored, status: 'ready', error: null })
+        }
+        catch (error)
+        {
+            if (isShowing(get(), year, month))
+                set({ stored: before })
             throw error
         }
     },
 
-    setDayType: async (day, typeId) => {
+    setDayType: async (day, typeId) =>
+    {
         const { year, month } = get()
-        if (year === null || month === null) return
+        if (year === null || month === null)
+            return
 
         const before = get().stored
         set({ stored: withDay(before, year, month, day, date => ({ ...date, typeId })) })
 
-        try {
+        try
+        {
             const stored = await setDateType(year, month, day, typeId)
-            if (isShowing(get(), year, month)) set({ stored, status: 'ready', error: null })
-        } catch (error) {
-            if (isShowing(get(), year, month)) set({ stored: before })
+            if (isShowing(get(), year, month))
+                set({ stored, status: 'ready', error: null })
+        }
+        catch (error)
+        {
+            if (isShowing(get(), year, month))
+                set({ stored: before })
             throw error
         }
     },
@@ -195,18 +243,22 @@ let taskTypesRequested = false
  * Task types change rarely and colour every day, so they are read with the first
  * month and again only on a refresh — which is what follows an edit.
  */
-function loadTaskTypesOnce(apply: (types: TaskType[]) => void) {
-    if (taskTypesRequested) return
+function loadTaskTypesOnce(apply: (types: TaskType[]) => void)
+{
+    if (taskTypesRequested)
+        return
     taskTypesRequested = true
     fetchTaskTypes([0])
         .then(apply)
-        .catch(error => {
+        .catch(error =>
+        {
             taskTypesRequested = false
             console.error('Could not load task types', error)
         })
 }
 
-function isShowing(state: CalendarState, year: number, month: number): boolean {
+function isShowing(state: CalendarState, year: number, month: number): boolean
+{
     return state.year === year && state.month === month
 }
 
@@ -216,7 +268,8 @@ function isShowing(state: CalendarState, year: number, month: number): boolean {
  * month is in when its first card is added.
  */
 function withDay(stored: Month | null, year: number, month: number, day: number,
-                 change: (date: CalendarDate) => CalendarDate): Month {
+                 change: (date: CalendarDate) => CalendarDate): Month
+{
     const base: Month = stored ?? { id: null, year, month, dates: [] }
     const existing = base.dates.find(date => date.day === day)
     const updated = change(existing ?? { id: '', day, month, year, typeId: 0, cards: [] })

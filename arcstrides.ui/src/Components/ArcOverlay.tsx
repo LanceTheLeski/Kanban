@@ -24,7 +24,8 @@ import { OVERLAY_WIDTH } from '../Styles/Measures'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export interface ArcOverlayProps {
+export interface ArcOverlayProps
+{
     /**
      * The dialog's heading, as a strip of card across the top.
      *
@@ -34,22 +35,28 @@ export interface ArcOverlayProps {
      * exists to remove everywhere else.
      */
     title?: React.ReactNode
+
     /** Which stock the title strip is cut from. See ArcTitleBar. */
     titleStock?: TitleStock
+
     /** A second line under the title, for a hint the fields cannot carry. */
     titleCaption?: React.ReactNode
 
     /** Controls visibility — mirrors Blazor's @bind-Open */
     open: boolean
+
     /** Called when the overlay should close — mirrors OpenChanged EventCallback */
     onClose: () => void
+
     /** Content rendered inside the overlay — mirrors RenderFragment ChildContent */
     children?: React.ReactNode
+
     /**
      * Async submit handler — mirrors OnSubmitAsync: Func<Task>
      * If omitted, no Submit button is rendered (mirrors the null check in the razor).
      */
     onSubmit?: () => Promise<void> | void
+
     /** Optional width override for the inner Paper */
     width?: string | number
 
@@ -59,18 +66,24 @@ export interface ArcOverlayProps {
     // left rather than beside Save.
     /** Renders a Delete at the leading edge, with a confirmation step. */
     onDelete?: () => Promise<void> | void
+
     deleteLabel?: string
+
     deleteConfirm?: string
+
     /** Anything beyond Delete. */
     actions?: ArcAction[]
+
     /** "Save" by default. */
     submitLabel?: string
+
     /**
      * "Discard" by default. An overlay with nothing to save says "Close": there
      * is no draft to throw away, and "Discard" on a read-only view makes the
      * reader wonder what they are about to lose.
      */
     discardLabel?: string
+
     /** Colours the primary action as destructive. */
     submitDestructive?: boolean
 }
@@ -93,7 +106,8 @@ export const ArcOverlay: React.FC<ArcOverlayProps> = ({
     submitLabel,
     discardLabel,
     submitDestructive,
-}) => {
+}) =>
+{
     return (
         <Modal open={open}
                onClose={onClose}
@@ -120,11 +134,12 @@ export const ArcOverlay: React.FC<ArcOverlayProps> = ({
                              // few pixels and pushed them past the bottom of the screen.
                              overflow: 'hidden',
                              // Removes the Modal's default focus ring on the Paper.
-                             outline: 'none' }}>
-                    {title && <ArcTitleBar stock={titleStock} caption={titleCaption}>{title}</ArcTitleBar>}
+                             outline: 'none'
+                          }}>
+                    { title && <ArcTitleBar stock={titleStock} caption={titleCaption}>{ title }</ArcTitleBar> }
 
                     {/* ChildContent slot — minHeight:0 lets a flex child actually shrink */}
-                    <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>{children}</Box>
+                    <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>{ children }</Box>
 
                     {/*
                         Mirrors MudButtonGroup Class="glass-inner-engraved". Save is

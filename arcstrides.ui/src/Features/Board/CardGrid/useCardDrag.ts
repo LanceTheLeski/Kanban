@@ -34,9 +34,11 @@ import {
 } from './CardGrid.Sensors'
 import type { Card } from '../../../Entities/Card/Card.Types'
 
-export function useCardDrag(boardId: string | undefined) {
+export function useCardDrag(boardId: string | undefined)
+{
     const { columns, swimlanes, cards, applyCardPlacements, restoreCards } = useBoardStore(
-        useShallow(state => ({
+        useShallow(state =>
+        ({
             columns: state.columns,
             swimlanes: state.swimlanes,
             cards: state.cards,
@@ -54,36 +56,45 @@ export function useCardDrag(boardId: string | undefined) {
         useSensor(CardTouchSensor, { activationConstraint: CARD_TOUCH_ACTIVATION }),
     )
 
-    const handleDragStart = (event: DragStartEvent) => {
+    const handleDragStart = (event: DragStartEvent) =>
+    {
         setDraggingCard(cards.find(card => card.id === String(event.active.id)) ?? null)
     }
 
     const handleDragCancel = () => setDraggingCard(null)
 
-    const handleDragEnd = async (event: DragEndEvent) => {
+    const handleDragEnd = async (event: DragEndEvent) =>
+    {
         setDraggingCard(null)
 
         const { active, over } = event
-        if (!over || !boardId) return
+        if (!over || !boardId)
+            return
 
         const cardId = String(active.id)
         const card = cards.find(candidate => candidate.id === cardId)
-        if (!card) return
+        if (!card)
+            return
 
         const target = resolveTarget(String(over.id))
-        if (!target) return
+        if (!target)
+            return
 
         const placements = placementsForMove(cards, cardId, target.column, target.swimlane, target.index)
-        if (placements.length === 0) return
+        if (placements.length === 0)
+            return
 
         // Move locally first so the cards settle under the cursor immediately.
         const previous = applyCardPlacements(placements)
-        if (!previous) return
+        if (!previous)
+            return
 
-        try {
+        try
+        {
             // Mirrors Board.cs SendCardPatchRequest() — one patch per card whose
             // cell or rank actually changed.
-            await Promise.all(placements.map(placement => {
+            await Promise.all(placements.map(placement =>
+            {
                 const moved = cards.find(candidate => candidate.id === placement.cardId)!
 
                 return moveCard(boardId, moved.positionId, {
@@ -96,11 +107,15 @@ export function useCardDrag(boardId: string | undefined) {
                     positionRank: placement.positionRank,
                 })
             }))
-        } catch (moveError) {
+        }
+        catch (moveError)
+        {
             // Put every card back — the arrangement was written as one move and
             // is undone as one, or the cell is left half-renumbered.
             restoreCards(previous)
-            const message = moveError instanceof Error ? moveError.message : String(moveError)
+            const message = moveError instanceof Error
+                ? moveError.message
+                : String(moveError)
             addError(`Moving "${card.title}" failed: ${message}`)
         }
     }
@@ -115,7 +130,8 @@ export function useCardDrag(boardId: string | undefined) {
      * mean the same thing to us — drop into this cell — but only the first says
      * where in it.
      */
-    function resolveTarget(overId: string) {
+    function resolveTarget(overId: string)
+    {
         const overCard = cards.find(candidate => candidate.id === overId)
 
         const cellKey = overCard
@@ -123,11 +139,13 @@ export function useCardDrag(boardId: string | undefined) {
             : overId
 
         const parsed = parseCellId(cellKey)
-        if (!parsed) return null
+        if (!parsed)
+            return null
 
         const column = columns.find(candidate => candidate.id === parsed.columnId)
         const swimlane = swimlanes.find(candidate => candidate.id === parsed.swimlaneId)
-        if (!column || !swimlane) return null
+        if (!column || !swimlane)
+            return null
 
         // The cell as it stands, moving card included — see placementsForMove
         // for why removing it first is the off-by-one.
@@ -137,6 +155,10 @@ export function useCardDrag(boardId: string | undefined) {
             ? occupants.findIndex(candidate => candidate.id === overCard.id)
             : occupants.length
 
-        return { column, swimlane, index: index === -1 ? occupants.length : index }
+        return { column,
+                 swimlane,
+                 index: index === -1
+                     ? occupants.length
+                     : index }
     }
 }

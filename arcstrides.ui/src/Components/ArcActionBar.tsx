@@ -55,31 +55,40 @@ import { Box, Button, ButtonGroup, Typography } from '@mui/material'
  * of these — an overlay that wants Duplicate, Archive or Reset passes them here
  * and they line up beside Delete in the order given.
  */
-export interface ArcAction {
+export interface ArcAction
+{
     /** Shown on the button. */
     label: string
+
     onClick: () => void | Promise<void>
+
     /**
      * Destructive actions get the error colour and, unless `confirm` is given as
      * false, a confirmation step before they run.
      */
     destructive?: boolean
+
     /** The question asked before a destructive action runs. */
     confirm?: string | false
+
     disabled?: boolean
 }
 
-export interface ArcActionBarProps {
+export interface ArcActionBarProps
+{
     /**
      * Omitted for a read-only surface — no Save button is rendered, which mirrors
      * the null check the Blazor razor did on OnSubmitAsync.
      */
     onSave?: () => Promise<void> | void
+
     onDiscard: () => void
 
     /** "Save" by default. Say what is being saved when it is not obvious. */
     saveLabel?: string
+
     discardLabel?: string
+
     /**
      * Colours the primary action as destructive.
      *
@@ -92,7 +101,9 @@ export interface ArcActionBarProps {
 
     /** Shorthand for the most common extra action. Confirms before it runs. */
     onDelete?: () => Promise<void> | void
+
     deleteLabel?: string
+
     /** The confirm question. Defaults to a generic one. */
     deleteConfirm?: string
 
@@ -101,6 +112,7 @@ export interface ArcActionBarProps {
 
     /** Squares off the bar's corners, for a popover where it sits flush. */
     flush?: boolean
+
     /** Stretches the Discard/Save pair to the full width, for a narrow popover. */
     fullWidth?: boolean
 }
@@ -119,7 +131,8 @@ export const ArcActionBar: React.FC<ArcActionBarProps> = ({
     actions = [],
     flush = false,
     fullWidth = false,
-}) => {
+}) =>
+{
     const [busy, setBusy] = useState(false)
 
     // The action waiting on a yes, or null when the bar is showing normally.
@@ -127,18 +140,23 @@ export const ArcActionBar: React.FC<ArcActionBarProps> = ({
 
     // The Delete shorthand is just the first entry in the same list everything
     // else goes through, so there is one code path rather than a special case.
-    const allActions: ArcAction[] = [
+    const allActions: ArcAction[] =
+    [
         ...(onDelete
             ? [{ label: deleteLabel, onClick: onDelete, destructive: true, confirm: deleteConfirm }]
             : []),
         ...actions,
     ]
 
-    const runGuarded = async (work: () => void | Promise<void>) => {
+    const runGuarded = async (work: () => void | Promise<void>) =>
+    {
         setBusy(true)
-        try {
+        try
+        {
             await work()
-        } finally {
+        }
+        finally
+        {
             // The overlay usually closes on success, so this may run against an
             // unmounted component; React 19 no-ops that rather than warning.
             setBusy(false)
@@ -146,40 +164,54 @@ export const ArcActionBar: React.FC<ArcActionBarProps> = ({
         }
     }
 
-    const handleAction = (action: ArcAction) => {
+    const handleAction = (action: ArcAction) =>
+    {
         const question = action.confirm === false
             ? null
-            : (typeof action.confirm === 'string' ? action.confirm : `${action.label}?`)
+            : (typeof action.confirm === 'string'
+                ? action.confirm
+                : `${action.label}?`)
 
-        if (question === null) return runGuarded(action.onClick)
+        if (question === null)
+            return runGuarded(action.onClick)
         setPending({ label: action.label, question, run: action.onClick })
     }
 
-    const radius = flush ? 0 : 1
+    const radius = flush
+        ? 0
+        : 1
 
     // ── Confirm strip ─────────────────────────────────────────────────────────
-    if (pending) {
+    if (pending)
+    {
         return (
             <Box sx={{ display: 'flex',
                        alignItems: 'center',
                        justifyContent: 'flex-end',
                        flexWrap: 'wrap',
                        gap: 1,
-                       flexShrink: 0 }}>
-                <Typography variant="body2" sx={{ mr: 'auto', color: 'arc.onGlass' }}>
-                    {pending.question}
+                       flexShrink: 0
+                    }}>
+                <Typography variant="body2"
+                            sx={{ mr: 'auto', color: 'arc.onGlass' }}>
+                    { pending.question }
                 </Typography>
 
                 <ButtonGroup className="glass-inner-engraved"
                              variant="text"
                              sx={{ borderRadius: radius, overflow: 'hidden' }}>
-                    <Button onClick={() => setPending(null)} disabled={busy} sx={barButtonSx('quiet')}>
+                    <Button onClick={() => setPending(null)}
+                            disabled={busy}
+                            sx={barButtonSx('quiet')}>
                         Cancel
                     </Button>
                     <Button onClick={() => runGuarded(pending.run)}
                             disabled={busy}
                             sx={barButtonSx('danger')}>
-                        {busy ? 'Working…' : pending.label}
+                        { busy
+                            ? 'Working…'
+                            : pending.label
+                        }
                     </Button>
                 </ButtonGroup>
             </Box>
@@ -194,7 +226,8 @@ export const ArcActionBar: React.FC<ArcActionBarProps> = ({
                    // the dialog. Destructive actions stay on their own row when it does.
                    flexWrap: 'wrap',
                    gap: 1,
-                   flexShrink: 0 }}>
+                   flexShrink: 0
+                }}>
             {/*
                 The same engraved group Save and Discard sit in, rather than
                 outlined buttons floating on the pane.
@@ -204,20 +237,25 @@ export const ArcActionBar: React.FC<ArcActionBarProps> = ({
                 this whole pass has been removing. Its own group, not the one on
                 the right: a destructive action next to Save is a misclick.
             */}
-            {allActions.length > 0 && (
+            { allActions.length > 0 && (
                 <ButtonGroup className="glass-inner-engraved"
                              variant="text"
                              sx={{ borderRadius: radius, overflow: 'hidden' }}>
-                    {allActions.map(action => (
-                        <Button key={action.label}
-                                disabled={busy || action.disabled}
-                                onClick={() => handleAction(action)}
-                                sx={barButtonSx(action.destructive ? 'danger' : 'quiet')}>
-                            {action.label}
-                        </Button>
-                    ))}
+                    { allActions.map(action =>
+                                     (
+                                         <Button key={action.label}
+                                                 disabled={busy || action.disabled}
+                                                 onClick={() => handleAction(action)}
+                                                 sx={barButtonSx(action.destructive
+                                                     ? 'danger'
+                                                     : 'quiet')}>
+                                             { action.label }
+                                         </Button>
+                                     ))
+                    }
                 </ButtonGroup>
-            )}
+            )
+            }
 
             {/* The gap that keeps destructive actions away from the corner. */}
             <Box sx={{ flex: 1, minWidth: 0 }} />
@@ -228,17 +266,28 @@ export const ArcActionBar: React.FC<ArcActionBarProps> = ({
                          sx={{ borderRadius: radius,
                                overflow: 'hidden',
                                // Takes the row to itself when the actions above wrapped.
-                               ...(fullWidth ? { flex: '1 1 100%' } : {}) }}>
-                <Button onClick={onDiscard} disabled={busy} sx={barButtonSx('quiet')}>
-                    {discardLabel}
+                               ...(fullWidth
+                                   ? { flex: '1 1 100%' }
+                                   : {})
+                            }}>
+                <Button onClick={onDiscard}
+                        disabled={busy}
+                        sx={barButtonSx('quiet')}>
+                    { discardLabel }
                 </Button>
-                {onSave && (
+                { onSave && (
                     <Button onClick={() => runGuarded(onSave)}
                             disabled={busy}
-                            sx={barButtonSx(saveDestructive ? 'danger' : 'primary')}>
-                        {busy ? 'Saving…' : saveLabel}
+                            sx={barButtonSx(saveDestructive
+                                ? 'danger'
+                                : 'primary')}>
+                        { busy
+                            ? 'Saving…'
+                            : saveLabel
+                        }
                     </Button>
-                )}
+                )
+                }
             </ButtonGroup>
         </Box>
     )
@@ -260,12 +309,17 @@ export default ArcActionBar
  * bar, Discard is quiet, and destructive is the only warm colour on the surface.
  * Discard being as loud as Save is what made the pair read as two equal choices.
  */
-const barButtonSx = (tone: 'primary' | 'quiet' | 'danger') => ({
+const barButtonSx = (tone: 'primary' | 'quiet' | 'danger') =>
+({
     color:
-        tone === 'danger' ? 'arc.dangerOnGlass'
-        : tone === 'primary' ? 'arc.accentOnGlass'
-        : 'arc.onGlassMuted',
-    fontWeight: tone === 'primary' ? 600 : 400,
+        tone === 'danger'
+            ? 'arc.dangerOnGlass'
+            : tone === 'primary'
+                ? 'arc.accentOnGlass'
+                : 'arc.onGlassMuted',
+    fontWeight: tone === 'primary'
+        ? 600
+        : 400,
     '&:hover': { backgroundColor: 'arc.glassHover' },
     '&.Mui-disabled': { color: 'arc.onGlassMuted', opacity: 0.5 },
 })

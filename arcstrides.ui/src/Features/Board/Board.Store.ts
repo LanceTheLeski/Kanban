@@ -42,13 +42,20 @@ import type { Column, Swimlane } from './Board.Types'
 
 export type BoardStatus = 'idle' | 'loading' | 'ready' | 'error'
 
-interface BoardState {
+interface BoardState
+{
     boardId: string | null
+
     title: string
+
     cards: Card[]
+
     columns: Column[]
+
     swimlanes: Swimlane[]
+
     status: BoardStatus
+
     error: string | null
 
     /** Loads a board from the server, replacing whatever is currently held. */
@@ -95,7 +102,8 @@ interface BoardState {
     removeCard: (cardId: string) => void
 }
 
-export const useBoardStore = create<BoardState>((set, get) => ({
+export const useBoardStore = create<BoardState>((set, get) =>
+({
     boardId: null,
     title: '',
     cards: [],
@@ -104,7 +112,8 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     status: 'idle',
     error: null,
 
-    loadBoard: async (boardId, options) => {
+    loadBoard: async (boardId, options) =>
+    {
         /*
            A silent read leaves `status` alone.
 
@@ -122,14 +131,18 @@ export const useBoardStore = create<BoardState>((set, get) => ({
            previous board on screen and should replace it in place.
         */
         const silent = options?.silent === true
-        set(silent ? { error: null, boardId } : { status: 'loading', error: null, boardId })
+        set(silent
+            ? { error: null, boardId }
+            : { status: 'loading', error: null, boardId })
 
-        try {
+        try
+        {
             const board = await fetchBoard(boardId)
 
             // Guard against a stale response landing after the user navigated to
             // another board — only the most recent request may write state.
-            if (get().boardId !== boardId) return
+            if (get().boardId !== boardId)
+                return
 
             set({
                 boardId: board.id,
@@ -140,26 +153,36 @@ export const useBoardStore = create<BoardState>((set, get) => ({
                 status: 'ready',
                 error: null,
             })
-        } catch (error) {
-            if (get().boardId !== boardId) return
+        }
+        catch (error)
+        {
+            if (get().boardId !== boardId)
+                return
             set({
                 status: 'error',
-                error: error instanceof Error ? error.message : String(error),
+                error: error instanceof Error
+                    ? error.message
+                    : String(error),
             })
         }
     },
 
-    refresh: async () => {
+    refresh: async () =>
+    {
         const { boardId, loadBoard } = get()
-        if (!boardId) return
+        if (!boardId)
+            return
         await loadBoard(boardId, { silent: true })
     },
 
-    applyCardMove: (cardId, column, swimlane) => {
+    applyCardMove: (cardId, column, swimlane) =>
+    {
         const previous = get().cards.find(card => card.id === cardId)
-        if (!previous) return null
+        if (!previous)
+            return null
 
-        set(state => ({
+        set(state =>
+        ({
             cards: state.cards.map(card =>
                 card.id === cardId
                     ? {
@@ -179,25 +202,33 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     },
 
     restoreCard: (card) =>
-        set(state => ({
-            cards: state.cards.map(existing => existing.id === card.id ? card : existing),
+        set(state =>
+        ({
+            cards: state.cards.map(existing => existing.id === card.id
+                ? card
+                : existing),
         })),
 
-    applyCardPlacements: (placements) => {
+    applyCardPlacements: (placements) =>
+    {
         const { cards } = get()
 
         const previous = placements
             .map(placement => cards.find(card => card.id === placement.cardId))
             .filter((card): card is Card => card !== undefined)
 
-        if (previous.length !== placements.length) return null
+        if (previous.length !== placements.length)
+            return null
 
         const byId = new Map(placements.map(placement => [placement.cardId, placement]))
 
-        set(state => ({
-            cards: state.cards.map(card => {
+        set(state =>
+        ({
+            cards: state.cards.map(card =>
+            {
                 const placement = byId.get(card.id)
-                if (!placement) return card
+                if (!placement)
+                    return card
 
                 return {
                     ...card,
@@ -215,18 +246,23 @@ export const useBoardStore = create<BoardState>((set, get) => ({
         return previous
     },
 
-    restoreCards: (restored) => {
+    restoreCards: (restored) =>
+    {
         const byId = new Map(restored.map(card => [card.id, card]))
         set(state => ({ cards: state.cards.map(card => byId.get(card.id) ?? card) }))
     },
 
     replaceCard: (card) =>
-        set(state => ({
-            cards: state.cards.map(existing => existing.id === card.id ? card : existing),
+        set(state =>
+        ({
+            cards: state.cards.map(existing => existing.id === card.id
+                ? card
+                : existing),
         })),
 
     removeCard: (cardId) =>
-        set(state => ({
+        set(state =>
+        ({
             cards: state.cards.filter(card => card.id !== cardId),
         })),
 }))
@@ -234,6 +270,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 // ── Private ───────────────────────────────────────────────────────────────────
 // Not exported, which is this language's `private`. Ordered by first use above.
 
-function sortByOrder<T extends { order: number }>(items: T[]): T[] {
+function sortByOrder<T extends { order: number }>(items: T[]): T[]
+{
     return [...items].sort((a, b) => a.order - b.order)
 }

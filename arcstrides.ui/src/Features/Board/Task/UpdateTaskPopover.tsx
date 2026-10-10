@@ -41,15 +41,22 @@ import { TASK_PANEL_ROW_MIN_HEIGHT, TASK_POPOVER_WIDTH } from '../../../Styles/M
 import type { Task, TaskType } from '../../../Entities/Task/Task.Types'
 import type { Timeline } from '../../../Entities/Timeline/Timeline.Types'
 
-interface UpdateTaskPopoverProps {
+interface UpdateTaskPopoverProps
+{
     task: Task
+
     /** Called after task is updated so UpdateCardOverlay can reflect changes */
     onUpdated?: (updated: Task) => void
+
     boardId: string
+
     cardId: string
+
     tasksCount: number
+
     /** Mirrors PopoverBaseMudSize / PopoverBaseMudStyle / PopoverBaseMudTextStyle */
     triggerSize?: 'small' | 'medium' | 'large'
+
     triggerSx?: import('@mui/material').SxProps<import('@mui/material').Theme>
 }
 
@@ -61,7 +68,8 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
     tasksCount,
     triggerSize = 'medium',
     triggerSx,
-}) => {
+}) =>
+{
     // ── Local state (mirrors Blazor's mutable ActiveTask fields) ─────────────────
     const [title, setTitle] = useState(task.title)
     const [isCompleted, setIsCompleted] = useState(task.isCompleted ?? false)
@@ -94,58 +102,74 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
        times to draw a page.
     */
     const typesRequested = useRef(false)
-    const loadTaskTypes = () => {
-        if (typesRequested.current) return
+    const loadTaskTypes = () =>
+    {
+        if (typesRequested.current)
+            return
         typesRequested.current = true
         fetchTaskTypes([0])
             .then(setTaskTypes)
-            .catch(error => {
+            .catch(error =>
+            {
                 typesRequested.current = false
                 console.error('Could not load task types', error)
             })
     }
 
-    const handleSetTaskType = (typeName: string) => {
+    const handleSetTaskType = (typeName: string) =>
+    {
         const matches = taskTypes.filter(taskType => taskType.title === typeName)
-        if (matches.length !== 1) return
+        if (matches.length !== 1)
+            return
         setSelectedTaskTypeId(matches[0].id)
     }
 
-    const handleSubmit = async () => {
+    const handleSubmit = async () =>
+    {
         // Build patch — only include fields that actually changed
         // Mirrors Blazor's patchDocument.Add() conditional checks
         const patch: TaskPatch = {}
 
-        if (title !== initialTitle.current) patch.title = title
-        if (selectedTaskTypeId !== initialTypeId.current) patch.typeID = selectedTaskTypeId
-        if (order !== initialOrder.current) patch.order = order
-        if (isCompleted !== initialIsCompleted.current) patch.isComplete = isCompleted
+        if (title !== initialTitle.current)
+            patch.title = title
+        if (selectedTaskTypeId !== initialTypeId.current)
+            patch.typeID = selectedTaskTypeId
+        if (order !== initialOrder.current)
+            patch.order = order
+        if (isCompleted !== initialIsCompleted.current)
+            patch.isComplete = isCompleted
 
         const existingTimeline = initialTimeline.current
         const timelineChanged = hasTimeline(timelineDraft)
         const orderChanged = patch.order !== undefined
 
-        if (Object.keys(patch).length === 0 && !timelineChanged) return true
+        if (Object.keys(patch).length === 0 && !timelineChanged)
+            return true
 
         let savedTimeline: Timeline | null = existingTimeline
 
         const saved = await run(
             'Saving task',
-            async () => {
+            async () =>
+            {
                 if (Object.keys(patch).length > 0)
                     await updateTask(boardId, cardId, task.id, patch)
 
                 // Timeline handling mirrors Blazor's create-vs-update branch:
                 //   - task has no existing timeline + mode != timeless → create
                 //   - task already has one → patch it in place
-                if (!timelineChanged) return
+                if (!timelineChanged)
+                    return
 
                 const dates = draftToTimelineDates(timelineDraft)
 
-                if (existingTimeline?.id) {
+                if (existingTimeline?.id)
+                {
                     await updateTimeline(boardId, existingTimeline.id, timelineOperations(dates))
                     savedTimeline = { ...existingTimeline, ...dates }
-                } else {
+                }
+                else
+                {
                     savedTimeline = await createTimeline(boardId, {
                         parentId: task.id,
                         // The parent kind, not the mode — see timelineDraft.
@@ -168,7 +192,8 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
             */
             { refresh: orderChanged }
         )
-        if (!saved) return false
+        if (!saved)
+            return false
 
         initialTitle.current = title
         initialTypeId.current = selectedTaskTypeId
@@ -208,7 +233,8 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
      * moved to the new values, so this is a no-op there; after a failed one the
      * popover stays open and this does not run at all.
      */
-    const revertDraft = () => {
+    const revertDraft = () =>
+    {
         setTitle(initialTitle.current)
         setIsCompleted(initialIsCompleted.current ?? false)
         setOrder(initialOrder.current)
@@ -252,13 +278,14 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                                     '&&': { textDecoration: 'line-through' },
                                 }
                                 : {}),
-                        }}
+                                  }}
                         /*
                            The task rows are card stock, so an open row darkens
                            rather than lightening, and keeps its dark label.
                         */
                         triggerOpenSx={{ backgroundColor: 'arc.paperSelected',
-                                         color: 'arc.onPaperStrong' }}
+                                         color: 'arc.onPaperStrong'
+                                      }}
                         title="Task"
                         titleStock="green"
                         anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
@@ -282,12 +309,14 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                     <Box sx={{ display: 'flex',
                                gap: 2,
                                alignItems: 'stretch',
-                               minHeight: TASK_PANEL_ROW_MIN_HEIGHT }}>
+                               minHeight: TASK_PANEL_ROW_MIN_HEIGHT
+                            }}>
                         <Box sx={{ flex: '1 1 13rem',
                                    minWidth: 0,
                                    display: 'flex',
                                    flexDirection: 'column',
-                                   gap: 1 }}>
+                                   gap: 1
+                                }}>
                             {/*
                                 On card, with the box a smaller piece laid on it.
 
@@ -303,7 +332,8 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                                                     m: 0,
                                                     pr: 1.25,
                                                     '& .MuiCheckbox-root': { color: 'arc.onPaperMuted' },
-                                                    '& .Mui-checked': { color: 'arc.paperAccent' } }}
+                                                    '& .Mui-checked': { color: 'arc.paperAccent' }
+                                                 }}
                                               control={
                                                   <Checkbox checked={isCompleted}
                                                             onChange={e => setIsCompleted(e.target.checked)}
@@ -311,7 +341,8 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                                               }
                                               label={<Typography variant="body2"
                                                                  sx={{ color: 'arc.onPaperStrong',
-                                                                       fontWeight: 600 }}>
+                                                                       fontWeight: 600
+                                                                    }}>
                                                          Completed
                                                      </Typography>} />
 
@@ -341,7 +372,8 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                                           textTransform: 'none',
                                           color: 'arc.onPaperMuted',
                                           '&:hover': { color: 'arc.onPaperStrong',
-                                                       backgroundColor: 'transparent' } }}>
+                                                       backgroundColor: 'transparent' }
+                                       }}>
                                 + New task type
                             </Button>
                         </Box>

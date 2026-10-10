@@ -44,7 +44,7 @@ interface MonthViewProps
     month: number
 }
 
-export const MonthView: React.FC<MonthViewProps> = ({ year, month }) => 
+export const MonthView: React.FC<MonthViewProps> = ({ year, month }) =>
 {
     const stored = useCalendarStore(state => state.stored)
     const taskTypes = useCalendarStore(state => state.taskTypes)
@@ -62,11 +62,13 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) =>
 
     const weeks = useMemo(() => weeksOf(dayjs(new Date(year, month, 1)), stored?.dates ?? []),
                           [year, month, stored])
-    const openDay = opened ? dayOf(weeks, opened.key) : null
+    const openDay = opened
+        ? dayOf(weeks, opened.key)
+        : null
 
     // The boards "+ Add card" offers cards from. See useCardChoices for why this
     // is a guess, and what would replace it.
-    const boardIds = useMemo(() => 
+    const boardIds = useMemo(() =>
     [
         DEFAULT_BOARD_ID,
         ...(stored?.dates ?? []).flatMap(date => date.cards.map(card => card.boardId)),
@@ -97,7 +99,9 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) =>
         ({
             key: day.key,
             adding: options?.adding === true,
-            request: (previous?.request ?? 0) + (options?.adding ? 1 : 0),
+            request: (previous?.request ?? 0) + (options?.adding
+                ? 1
+                : 0),
         })),
         taskUpdated: () => { refresh() },
         setDayType: (day, typeId) =>
@@ -112,7 +116,8 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) =>
             // The open day is held by key, so it is found again once the
             // other month is drawn — this component stays mounted across it.
             setOpened(previous => ({ key: date.format('YYYY-MM-DD'), adding: false, request: previous?.request ?? 0 }))
-            if (date.year() !== year || date.month() !== month) navigate(monthPath(date))
+            if (date.year() !== year || date.month() !== month)
+                navigate(monthPath(date))
         },
     }), [colours, boardTitle, handleOpenCard, refresh, setDayType, year, month, navigate, addError])
 

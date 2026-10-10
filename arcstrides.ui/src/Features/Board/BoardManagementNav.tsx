@@ -84,20 +84,23 @@ type OverlayKey =
 
 // ── What the bar contains ─────────────────────────────────────────────────────
 
-interface MenuItemSpec {
+interface MenuItemSpec
+{
     label: string
     /** Omitted for an item whose overlay is not ported yet — see Boards, below. */
     overlay?: OverlayKey
 }
 
-interface MenuSpec {
+interface MenuSpec
+{
     label: string
     items: MenuItemSpec[]
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-interface BoardManagementNavProps {
+interface BoardManagementNavProps
+{
     /**
      * The app menu, at the leading edge of the bar. A slot rather than an
      * import because it knows the app's routes and this feature should not —
@@ -106,7 +109,8 @@ interface BoardManagementNavProps {
     menu?: React.ReactNode
 }
 
-export const BoardManagementNav: React.FC<BoardManagementNavProps> = ({ menu }) => {
+export const BoardManagementNav: React.FC<BoardManagementNavProps> = ({ menu }) =>
+{
     const [openOverlay, setOpenOverlay] = useState<OverlayKey | null>(null)
 
     // Which menu is dropped down, and from what. One piece of state rather than
@@ -115,12 +119,16 @@ export const BoardManagementNav: React.FC<BoardManagementNavProps> = ({ menu }) 
 
     const closeMenu = () => setOpenMenu(null)
 
-    const handleItemClick = (item: MenuItemSpec) => {
+    const handleItemClick = (item: MenuItemSpec) =>
+    {
         closeMenu()
-        if (item.overlay) setOpenOverlay(item.overlay)
+        if (item.overlay)
+            setOpenOverlay(item.overlay)
     }
 
-    const OpenOverlay = openOverlay ? OVERLAYS[openOverlay] : null
+    const OpenOverlay = openOverlay
+        ? OVERLAYS[openOverlay]
+        : null
 
     return (
         <>
@@ -136,7 +144,7 @@ export const BoardManagementNav: React.FC<BoardManagementNavProps> = ({ menu }) 
                 */}
                 <Toolbar variant="dense" sx={{ gap: 2, flexWrap: 'wrap', rowGap: 0.5, py: 0.5 }}>
                     {/* Mirrors Blazor's <MenuOverlay /> */}
-                    {menu && <Box sx={{ mr: 1, display: 'flex' }}>{menu}</Box>}
+                    { menu && <Box sx={{ mr: 1, display: 'flex' }}>{ menu }</Box> }
 
                     {/*
                         "Honu Boards", in the script Blazor set it in, in gold foil
@@ -151,31 +159,36 @@ export const BoardManagementNav: React.FC<BoardManagementNavProps> = ({ menu }) 
                                       lineHeight: 1.15,
                                       whiteSpace: 'nowrap',
                                       px: 0.25,
-                                      mr: 1 }}>
+                                      mr: 1
+                                   }}>
                         Honu Boards
                     </Typography>
 
-                    {MENUS.map(menu => (
-                        <React.Fragment key={menu.label}>
-                            <Button className="card-stock-flat card-cut bar-piece"
-                                    onClick={event =>
-                                        setOpenMenu({ label: menu.label, anchor: event.currentTarget })
-                                    }
-                                    sx={BAR_PIECE_SX}>
-                                {menu.label}
-                            </Button>
+                    { MENUS.map(menu =>
+                                (
+                                    <React.Fragment key={menu.label}>
+                                        <Button className="card-stock-flat card-cut bar-piece"
+                                                onClick={event =>
+                                                    setOpenMenu({ label: menu.label, anchor: event.currentTarget })
+                                                }
+                                                sx={BAR_PIECE_SX}>
+                                            { menu.label }
+                                        </Button>
 
-                            <Menu anchorEl={openMenu?.anchor ?? null}
-                                  open={openMenu?.label === menu.label}
-                                  onClose={closeMenu}>
-                                {menu.items.map(item => (
-                                    <MenuItem key={item.label} onClick={() => handleItemClick(item)}>
-                                        {item.label}
-                                    </MenuItem>
-                                ))}
-                            </Menu>
-                        </React.Fragment>
-                    ))}
+                                        <Menu anchorEl={openMenu?.anchor ?? null}
+                                              open={openMenu?.label === menu.label}
+                                              onClose={closeMenu}>
+                                            { menu.items.map(item =>
+                                                             (
+                                                                 <MenuItem key={item.label} onClick={() => handleItemClick(item)}>
+                                                                     { item.label }
+                                                                 </MenuItem>
+                                                             ))
+                                            }
+                                        </Menu>
+                                    </React.Fragment>
+                                ))
+                    }
                 </Toolbar>
             </AppBar>
 
@@ -185,7 +198,7 @@ export const BoardManagementNav: React.FC<BoardManagementNavProps> = ({ menu }) 
                 state starts fresh each time it is opened rather than carrying over
                 from the last time it was dismissed.
             */}
-            {OpenOverlay && <OpenOverlay open onClose={() => setOpenOverlay(null)} />}
+            { OpenOverlay && <OpenOverlay open onClose={() => setOpenOverlay(null)} /> }
         </>
     )
 }
@@ -196,7 +209,8 @@ export default BoardManagementNav
 // Not exported, which is this language's `private`. Ordered by first use above.
 
 /** A menu on the bar, as a small piece of card: the same words, set as labels. */
-const BAR_PIECE_SX = {
+const BAR_PIECE_SX =
+{
     minWidth: 0,
     px: 1.25,
     py: 0.35,
@@ -208,7 +222,8 @@ const BAR_PIECE_SX = {
     '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'common.white', outlineOffset: 2 },
 } as const
 
-const OVERLAYS: Record<OverlayKey, OverlayComponent> = {
+const OVERLAYS: Record<OverlayKey, OverlayComponent> =
+{
     createCard: CreateCardOverlay,
     createColumn: CreateColumnOverlay,
     updateColumn: UpdateColumnOverlay,
@@ -218,7 +233,8 @@ const OVERLAYS: Record<OverlayKey, OverlayComponent> = {
     deleteSwimlane: DeleteSwimlaneOverlay,
 }
 
-const MENUS: MenuSpec[] = [
+const MENUS: MenuSpec[] =
+[
     {
         label: 'Cards',
         items: [{ label: 'Add', overlay: 'createCard' }],

@@ -58,6 +58,11 @@ Mark the boundary so it is not accidental:
 // Not exported, which is this language's `private`. Ordered by first use above.
 ```
 
+The banner is what `arc/private-last` reads. Without it, every helper below the
+exports is reported as private-but-above, and the report lands on the whole
+declaration, so a long `const` array looks as if it were broken. Keep the
+two comment lines whenever a file has anything private.
+
 **Types may sit above it.** A component's `Props`, a store's `State`, an API
 module's wire shapes: these describe the file's public surface and are what a
 reader wants first, whether or not they are exported. The rule is about runtime
@@ -77,12 +82,118 @@ export that has ended up below the banner.
 
 ---
 
-## Formatting
+## Layout
 
-### Arguments and attributes never start on a new line
+Written from Lance's own edits to `DayActions`, `MonthView` and
+`Calendar.Context`, so the TypeScript reads the way the C# does: braces on
+lines of their own, and one thing per line wherever a line would otherwise hold
+two. Each rule below is an ESLint rule with a fixer (`tools/eslint-arc-layout.js`),
+so `npm run format` puts a file into shape and `npm run check` keeps it there.
 
-The first one goes on the same line as the thing that takes it; the rest align
-under it.
+### Braces
+
+A block that spans lines opens with `{` on a line of its own, in the column of
+the `}` that closes it. `else`, `catch` and `finally` start the line after that
+`}`. It holds for every block: functions, arrows, `if`, `try`, interfaces,
+classes, and the arrow inside an attribute.
+
+```tsx
+const handleAddCard = async (day: GridDay, card: Card) =>
+{
+    try
+    {
+        await addCard(day.date.date(), card)
+    }
+    catch (error)
+    {
+        addError(`Could not put "${card.title}" on ${day.date.format('D MMMM')}: ${messageOf(error)}`)
+    }
+}
+```
+
+An object or array that spans lines and is returned by an arrow, or held by a
+declaration, opens the same way:
+
+```tsx
+const ACTIONS: DayAction[] =                 const actions = useMemo<CalendarActions>(() =>
+[                                            ({
+    { key: 'add', … },                           colours,
+]                                                …
+                                             }), [colours, …])
+```
+
+A block that fits on one line stays on it: `taskUpdated: () => { refresh() }`.
+
+Checked by `arc/brace-own-line` and `arc/literal-own-line`.
+
+### One-statement bodies
+
+As in the C#: an `if`, `else`, `for` or `while` whose body is one statement,
+without braces, puts it on the next line, one indent in.
+
+```ts
+if (!actions)
+    throw new Error('useCalendarActions is only for components inside MonthView.')
+```
+
+Inside a block that fits on one line, it stays where it is:
+`onClose={() => { if (open) close() }}`. Checked by `arc/statement-below`.
+
+### Ternaries
+
+Every ternary goes on three lines, inline ones included. The `?` and the `:`
+each start a line, one indent in from where the line holding the condition
+starts. When the ternary sits in an attribute or a property that starts later
+on that line, the indent is counted from the attribute or property instead.
+
+```tsx
+return error instanceof Error             sx={{ ml: 1.5,
+    ? error.message                             visibility: type.id === current.id
+    : String(error)                                 ? 'visible'
+                                                    : 'hidden'
+                                             }}
+```
+
+That includes a ternary inside a template string. Checked by `arc/ternary-lines`.
+
+### JSX children
+
+A child expression is padded inside its braces, `{ action.label(actions, day) }`.
+One that runs over several lines ends with `}` on a line of its own, under its
+`{`. Attribute values are not children and keep `={value}`, and a comment stays
+`{/* … */}`. Checked by `arc/jsx-child-spacing`.
+
+### Chains
+
+A chain of two or more calls that runs over several lines puts each call on a
+line of its own, the dots in the column of the first call's:
+
+```tsx
+{ available.filter(action => !action.last)
+           .map(action =>
+                (
+                    <MenuItem key={action.key}
+                              dense
+                              onClick={() => run(() => action.run(actions, day))}>
+                        { action.label(actions, day) }
+                    </MenuItem>
+                ))
+}
+```
+
+Checked by `arc/chain-per-line`.
+
+### A callback's JSX
+
+The JSX a callback returns (a `.map`'s, most often) opens with `(` on a line of
+its own, in the column the callback starts at, which is the column of its first
+parameter. The JSX goes one indent in from there, and `)` closes in the `(`'s
+column, as in the example above. A long receiver puts the JSX well to the right,
+and that is accepted. Checked by `arc/callback-paren`.
+
+### Attributes
+
+The first attribute goes on the same line as the tag; the rest align under it.
 
 ```tsx
 <TextField value={title}
@@ -92,7 +203,7 @@ under it.
            size="small" />
 ```
 
-Not this, which is Prettier's default and what most of this code was doing:
+Not this, which is Prettier's default and what most of this code once did:
 
 ```tsx
 <TextField
@@ -101,65 +212,66 @@ Not this, which is Prettier's default and what most of this code was doing:
 />
 ```
 
-The reason is that the second form hides the tag name in a line of its own and
-puts the first thing you want to read a line below where you are looking. With
-the first form the element and its most important attribute read as one phrase,
-and the alignment makes the attribute list a column you can scan.
+The second form hides the tag name in a line of its own and puts the first thing
+you want to read a line below where you are looking. With the first, the element
+and its most important attribute read as one phrase, and the alignment makes the
+attribute list a column you can scan. The same holds for a call or a signature
+that has to wrap.
 
-The same holds for a call or a signature that has to wrap:
+**When attributes share a line** depends on the file. In a busy file, one that
+draws ten or more components, every attribute goes on a line of its own. A
+quieter file keeps attributes together while the line fits in 110 characters.
+"Components" means capitalised tags, `<MenuItem>` and `<Box>` but not `<path>`,
+so the cut-paper pictures, which are mostly SVG shapes, stay compact.
 
-```ts
-export const entity = (value: string,
-                       kind?: CardCommandSpan['kind']): CardCommandSpan =>
-    ({ entity: value, kind })
-```
-
-An `sx` object follows the element's alignment rather than starting a new
-indent level:
+**An `sx` object** follows the element's alignment: its first property goes
+beside `{{`, and the rest line up under it. One that runs over several lines
+closes with `}}` on a line of its own, under the `{{`:
 
 ```tsx
-<Paper className="glass-inner-engraved"
-       sx={{ p: 1,
-             display: 'flex',
-             flexDirection: 'column' }}>
+<ButtonBase onClick={event => setAnchor(event.currentTarget)}
+            aria-haspopup="menu"
+            sx={{ flex: 1,
+                  minWidth: '1.2rem',
+                  '&:hover': { backgroundColor: 'arc.paperHover', color: 'arc.onPaperStrong' }
+               }}>
 ```
 
-### What stays on one line
+Any object that starts beside its `{` and then wraps puts each property on a
+line of its own, in that column, rather than leaving some to share a line.
 
-Anything that fits. Wrapping is for lines that would otherwise run long, not a
-rule to apply to every element — `<Box sx={{ display: 'flex', gap: 1 }}>` is
-one line and should stay one line.
+Checked by `arc/attribute-per-line`, `arc/attribute-align` and
+`arc/attribute-object-close`. reflow.py also lays out an `sx` it finds starting
+on a new line, and breaks one that runs past 110.
 
-"Fits" is 110 characters. An `sx` that goes past it once the first rule has
-pulled it up beside its tag is broken into the same column the attributes use.
+### Interfaces
+
+An interface, or an object type, with three or more members has a blank line
+between each, as the C# models do. A doc comment belongs to the member under it.
+Two-member props interfaces stay tight. Checked by `arc/member-spacing`.
 
 ### Why this is not a Prettier config
 
-Prettier cannot produce this. Its JSX output always puts the first attribute on
-its own line once an element wraps, and that is not configurable. Adopting the
-convention means Prettier cannot be run over these files.
+Prettier cannot produce any of this. Its JSX output always puts the first
+attribute on its own line once an element wraps, and its braces always open at
+the end of the line. Neither is configurable, so Prettier cannot be run over
+these files.
 
-That left a real cost, and this doc used to end by naming it: hand-aligned
-columns drift when an attribute is renamed, and nothing would catch it.
-
-### What catches the formatting
-
-`arcstrides.ui/tools/reflow.py` applies all three rules above.
+### What catches it
 
 ```
-npm run format          # rewrite every .tsx under src/
-npm run format:check    # exit 1 if anything is out of shape
+npm run format          # the layout fixers until they stop, then reflow.py, until neither has more to do
+npm run format:check    # reflow.py alone: exit 1 if anything is out of shape
+npm run check           # includes both, through ESLint and reflow.py --check
 ```
 
-It reads the source through a mask of what is code and what is comment or
-string, then moves each block by a single delta, so a comment inside one keeps
-whatever shape it had and blank lines survive. Two things it deliberately will
-not touch, because both are better judged by a person: an element whose
-attributes hold a multi-line template literal, and an `sx` object whose last
-property carries a trailing comment. Its own header says why.
-
-The trade is still a trade — a project-specific script instead of an
-off-the-shelf formatter — but the drift it was traded against is now caught.
+`npm run format` runs `tools/format.mjs`, which runs ESLint's fixers for the
+rules above to a standstill and then `tools/reflow.py`, and repeats until
+neither changes anything. reflow.py reads the source through a mask of what is
+code and what is comment or string, and moves each block by a single delta, so
+a comment inside one keeps its shape and blank lines survive. It will not touch
+an element whose attributes hold a multi-line template literal: shifting that
+would edit the string. The fixers skip template text for the same reason.
 
 ---
 
@@ -414,11 +526,16 @@ the one ground that existed at the time.
 
 ## C# style is not carried across
 
-The API is written with a space before the parameter list —
-`ParentExistsAsync (Guid parentID, ...)` — and that is right for C#, where it
-is consistent throughout. TypeScript here does not use it, and should not start:
+Some of it is, on purpose: braces on their own lines, one-statement bodies on
+the next line, and blank lines between members all come from the C# (see
+"Layout").
+
+The space before a parameter list is not. The API is written
+`ParentExistsAsync (Guid parentID, ...)`, and that is right for C#, where it is
+consistent throughout. TypeScript here does not use it, and should not start:
 every tool in the JS ecosystem assumes `foo(bar)`, and mixing the two inside one
-repository is worse than either.
+repository is worse than either. The return type's colon goes the same way:
+`messageOf(error: unknown): string`, not `messageOf (error: unknown) : string`.
 
 Naming likewise: C# `PascalCase` methods, TypeScript `camelCase` functions.
 The boundary is the language, not the repository. Checked, and fixable, by
@@ -434,13 +551,13 @@ From `arcstrides.ui/`:
 ```
 npm run check     # everything below, in order; exit 1 on the first failure
 npm run lint      # ESLint alone
-npm run format    # rewrite what the formatter would complain about
+npm run format    # fix everything the layout rules and reflow.py can
 ```
 
 `npm run check` is the type checker (`tsc -b`), the tests for this project's
 own ESLint rules, ESLint, and `reflow.py --check`. The rules are in
-`tools/eslint-arc.js`, and each message names the section of this page it
-enforces:
+`tools/eslint-arc.js` and `tools/eslint-arc-layout.js`, and each message names
+the section of this page it enforces:
 
 | rule | section |
 |---|---|
@@ -449,6 +566,14 @@ enforces:
 | `arc/no-space-before-paren` | C# style is not carried across |
 | `arc/fonts-from-fonts` | Shared values live in a module |
 | `arc/colours-from-palette` | The palette |
+| `arc/brace-own-line`, `arc/literal-own-line` | Braces |
+| `arc/statement-below` | One-statement bodies |
+| `arc/ternary-lines` | Ternaries |
+| `arc/jsx-child-spacing` | JSX children |
+| `arc/chain-per-line` | Chains |
+| `arc/callback-paren` | A callback's JSX |
+| `arc/attribute-per-line`, `arc/attribute-align`, `arc/attribute-object-close` | Attributes |
+| `arc/member-spacing` | Interfaces |
 | `no-restricted-imports` (configured in `eslint.config.js`) | the layers: Pages and Layouts over Features over Entities over Components and Lib |
 
 A deliberate exception is an `// eslint-disable-next-line arc/…` with a comment

@@ -51,45 +51,61 @@ export const OTHER_COLOUR = '#bdb8ac'
  */
 export const MAX_SEGMENTS = 6
 
-export interface TypeSlice {
+export interface TypeSlice
+{
     key: string
+
     title: string
+
     count: number
+
     /** How many of `count` are done — each type's own progress. */
     done: number
+
     colour: string
 }
 
-export interface DayStats {
+export interface DayStats
+{
     total: number
+
     done: number
+
     /** In palette order, then "No type", then "Other" — never by size. */
     slices: TypeSlice[]
 }
 
 /** Each task type's colour, from the full list of types. */
-export function typeColours(types: TaskType[]): Map<number, string> {
+export function typeColours(types: TaskType[]): Map<number, string>
+{
     const sorted = [...types].sort((a, b) => a.id - b.id)
     return new Map(sorted.map((type, index) => [type.id, TYPE_PALETTE[index] ?? OTHER_COLOUR]))
 }
 
 /** Progress and type breakdown across every task on these cards. */
-export function dayStats(cards: Card[], colours: Map<number, string>): DayStats {
+export function dayStats(cards: Card[], colours: Map<number, string>): DayStats
+{
     const tasks = cards.flatMap(card => card.tasks)
     const counts = new Map<string, TypeSlice>()
 
-    for (const task of tasks) {
+    for (const task of tasks)
+    {
         const type = task.taskType
-        const key = type ? `type:${type.id}` : 'untyped'
+        const key = type
+            ? `type:${type.id}`
+            : 'untyped'
         const slice = counts.get(key) ?? {
             key,
             title: type?.title || 'No type',
             count: 0,
             done: 0,
-            colour: type ? colourOf(type.id, colours) : UNTYPED_COLOUR,
+            colour: type
+                ? colourOf(type.id, colours)
+                : UNTYPED_COLOUR,
         }
         slice.count += 1
-        if (task.isCompleted) slice.done += 1
+        if (task.isCompleted)
+            slice.done += 1
         counts.set(key, slice)
     }
 
@@ -101,8 +117,10 @@ export function dayStats(cards: Card[], colours: Map<number, string>): DayStats 
 }
 
 /** A type's colour, or Other's for a type the list has not caught up with. */
-export function colourOf(typeId: number | null | undefined, colours: Map<number, string>): string {
-    if (typeId == null) return UNTYPED_COLOUR
+export function colourOf(typeId: number | null | undefined, colours: Map<number, string>): string
+{
+    if (typeId == null)
+        return UNTYPED_COLOUR
     return colours.get(typeId) ?? OTHER_COLOUR
 }
 
@@ -110,19 +128,26 @@ export function colourOf(typeId: number | null | undefined, colours: Map<number,
 // Not exported, which is this language's `private`. Ordered by first use above.
 
 /** Palette order, so a ring's segments sit in the same order on every day. */
-function bySlot(a: TypeSlice, b: TypeSlice): number {
+function bySlot(a: TypeSlice, b: TypeSlice): number
+{
     return rank(a) - rank(b)
 }
 
-function rank(slice: TypeSlice): number {
+function rank(slice: TypeSlice): number
+{
     const slot = TYPE_PALETTE.indexOf(slice.colour)
-    if (slot !== -1) return slot
-    return slice.colour === UNTYPED_COLOUR ? TYPE_PALETTE.length : TYPE_PALETTE.length + 1
+    if (slot !== -1)
+        return slot
+    return slice.colour === UNTYPED_COLOUR
+        ? TYPE_PALETTE.length
+        : TYPE_PALETTE.length + 1
 }
 
 /** Past MAX_SEGMENTS, the smallest go into one "Other" segment. */
-function capped(slices: TypeSlice[]): TypeSlice[] {
-    if (slices.length <= MAX_SEGMENTS) return slices
+function capped(slices: TypeSlice[]): TypeSlice[]
+{
+    if (slices.length <= MAX_SEGMENTS)
+        return slices
 
     const bySize = [...slices].sort((a, b) => b.count - a.count)
     const kept = new Set(bySize.slice(0, MAX_SEGMENTS - 1).map(slice => slice.key))

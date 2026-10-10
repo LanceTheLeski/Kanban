@@ -33,17 +33,21 @@ import { UpdateCardOverlay } from '../Board/Card/UpdateCardOverlay'
 import { useBoardStore } from '../Board/Board.Store'
 import type { Card } from '../../Entities/Card/Card.Types'
 
-interface CalendarCardOverlayProps {
+interface CalendarCardOverlayProps
+{
     card: Card
     onClose: () => void
 }
 
-export const CalendarCardOverlay: React.FC<CalendarCardOverlayProps> = ({ card, onClose }) => {
+export const CalendarCardOverlay: React.FC<CalendarCardOverlayProps> = ({ card, onClose }) =>
+{
     const loadBoard = useBoardStore(state => state.loadBoard)
     const live = useBoardStore(state => state.cards.find(candidate => candidate.id === card.id))
 
-    useEffect(() => {
-        if (card.boardId) loadBoard(card.boardId, { silent: true })
+    useEffect(() =>
+    {
+        if (card.boardId)
+            loadBoard(card.boardId, { silent: true })
     }, [card.boardId, loadBoard])
 
     return <UpdateCardOverlay open onClose={onClose} card={live ?? card} boardId={card.boardId} />

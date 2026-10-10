@@ -28,13 +28,16 @@ import { columnColour } from '../Board.Colours'
 import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
 
-interface UpdateColumnOverlayProps {
+interface UpdateColumnOverlayProps
+{
     open: boolean
     onClose: () => void
 }
 
-export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, onClose }) => {
-    const { boardId, columns } = useBoardStore(useShallow(state => ({
+export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, onClose }) =>
+{
+    const { boardId, columns } = useBoardStore(useShallow(state =>
+    ({
         boardId: state.boardId,
         columns: state.columns,
     })))
@@ -49,9 +52,11 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
     // but reactive: always reflects current column count
     const orderOptions = columns.map((_, index) => String(index))
 
-    const handleSelectColumn = (title: string) => {
+    const handleSelectColumn = (title: string) =>
+    {
         const matches = columns.filter(column => column.title === title)
-        if (matches.length !== 1) {
+        if (matches.length !== 1)
+        {
             console.error(`Expected exactly 1 column with title "${title}", found ${matches.length}`)
             return
         }
@@ -62,11 +67,14 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
         setColour(matches[0].colour)
     }
 
-    const handleSubmit = async () => {
-        if (!boardId || !selectedTitle) return
+    const handleSubmit = async () =>
+    {
+        if (!boardId || !selectedTitle)
+            return
 
         const column = columns.find(candidate => candidate.title === selectedTitle)
-        if (!column) return
+        if (!column)
+            return
 
         const patch: { title?: string; order?: number; colour?: string; globalColour?: string } = {}
 
@@ -79,18 +87,21 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
         // Only when it changed, and only when it is a colour: clearing back to
         // Default is not expressible as a patch yet, because the operation would
         // have to send null and the server treats null as "leave it alone".
-        if (colour && colour !== column.colour) {
+        if (colour && colour !== column.colour)
+        {
             patch.colour = colour
             patch.globalColour = colour
         }
 
-        if (Object.keys(patch).length === 0) {
+        if (Object.keys(patch).length === 0)
+        {
             onClose()
             return
         }
 
         const updated = await run('Updating column', () => updateColumn(boardId, column.id, patch))
-        if (!updated) return
+        if (!updated)
+            return
 
         setSelectedTitle(null)
         setReplacementTitle('')
@@ -111,10 +122,10 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
                                       placeholder="Select column to edit" />
 
 <TextField {...paperField()}
-                           placeholder="New title"
-                           value={replacementTitle}
-                           onChange={e => setReplacementTitle(e.target.value)}
-                           fullWidth />
+           placeholder="New title"
+           value={replacementTitle}
+           onChange={e => setReplacementTitle(e.target.value)}
+           fullWidth />
 
                 <ArcExpandingSelector options={orderOptions}
                                       onSelect={value => setSelectedOrder(parseInt(value, 10))}

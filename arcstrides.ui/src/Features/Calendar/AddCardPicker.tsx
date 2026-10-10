@@ -17,17 +17,22 @@ import { paperField } from '../../Styles/Paper'
 import { useCardChoices, type CardChoice } from './useCardChoices'
 import type { Card } from '../../Entities/Card/Card.Types'
 
-interface AddCardPickerProps {
+interface AddCardPickerProps
+{
     /** Boards to offer cards from. */
     boardIds: string[]
+
     /** Cards already on the day, left out of the list. */
     onDay: Set<string>
+
     onPick: (card: Card) => void
+
     /** Open straight away — for a day opened from its "Add a card…" quick action. */
     startOpen?: boolean
 }
 
-export const AddCardPicker: React.FC<AddCardPickerProps> = ({ boardIds, onDay, onPick, startOpen = false }) => {
+export const AddCardPicker: React.FC<AddCardPickerProps> = ({ boardIds, onDay, onPick, startOpen = false }) =>
+{
     const [open, setOpen] = useState(startOpen)
     const { choices, loading, error } = useCardChoices(boardIds, open)
 
@@ -41,8 +46,10 @@ export const AddCardPicker: React.FC<AddCardPickerProps> = ({ boardIds, onDay, o
        whole day instead of just backing out of the search.
     */
     const inputRef = useRef<HTMLInputElement>(null)
-    useEffect(() => {
-        if (!open) return
+    useEffect(() =>
+    {
+        if (!open)
+            return
         const frame = requestAnimationFrame(() => inputRef.current?.focus())
         return () => cancelAnimationFrame(frame)
     }, [open])
@@ -50,7 +57,8 @@ export const AddCardPicker: React.FC<AddCardPickerProps> = ({ boardIds, onDay, o
     const available = choices.filter(choice => !onDay.has(choice.card.id))
     const grouped = new Set(available.map(choice => choice.boardTitle)).size > 1
 
-    if (!open) {
+    if (!open)
+    {
         return (
             <Button size="small"
                     variant="text"
@@ -61,7 +69,8 @@ export const AddCardPicker: React.FC<AddCardPickerProps> = ({ boardIds, onDay, o
                           fontSize: '0.7rem',
                           textTransform: 'none',
                           color: 'arc.onPaper',
-                          '&:hover': { color: 'arc.onPaperStrong', backgroundColor: 'transparent' } }}>
+                          '&:hover': { color: 'arc.onPaperStrong', backgroundColor: 'transparent' }
+                       }}>
                 + Add card
             </Button>
         )
@@ -75,7 +84,9 @@ export const AddCardPicker: React.FC<AddCardPickerProps> = ({ boardIds, onDay, o
             loading={loading}
             openOnFocus
             autoHighlight
-            groupBy={grouped ? choice => choice.boardTitle : undefined}
+            groupBy={grouped
+                ? choice => choice.boardTitle
+                : undefined}
             getOptionLabel={choice => choice.card.title || 'Untitled'}
             // Keyed by card, not by label: two boards can each have a card of
             // the same name, and the label is the default key.
@@ -86,16 +97,22 @@ export const AddCardPicker: React.FC<AddCardPickerProps> = ({ boardIds, onDay, o
             // date pickers' calendars — not MUI's own paper, which renders here
             // as a blue pane in body-size type beside a panel of 0.8rem notes.
             slotProps={{ paper: { className: 'card-stock', sx: LIST_SX } }}
-            noOptionsText={error ?? (choices.length > 0 ? 'Every card is already on this day.' : 'No cards to add.')}
-            onChange={(_, choice) => {
-                if (!choice) return
+            noOptionsText={error ?? (choices.length > 0
+                ? 'Every card is already on this day.'
+                : 'No cards to add.')}
+            onChange={(_, choice) =>
+            {
+                if (!choice)
+                    return
                 setOpen(false)
                 onPick(choice.card)
             }}
-            onClose={(_, reason) => {
+            onClose={(_, reason) =>
+            {
                 // Escape and clicking away put the button back; choosing an
                 // option is handled by onChange above.
-                if (reason === 'escape' || reason === 'blur') setOpen(false)
+                if (reason === 'escape' || reason === 'blur')
+                    setOpen(false)
             }}
             renderInput={params => (
                 <TextField {...params}
@@ -108,7 +125,8 @@ export const AddCardPicker: React.FC<AddCardPickerProps> = ({ boardIds, onDay, o
                            inputProps={{ ...params.inputProps, 'aria-label': 'Find a card to add to this day' }}
                            InputProps={{ ...params.InputProps,
                                          ...field.InputProps,
-                                         className: `${params.InputProps.className ?? ''} ${field.InputProps.className}` }} />
+                                         className: `${params.InputProps.className ?? ''} ${field.InputProps.className}`
+                                      }} />
             )} />
     )
 }
@@ -118,7 +136,8 @@ export default AddCardPicker
 // ── Private ───────────────────────────────────────────────────────────────────
 // Not exported, which is this language's `private`. Ordered by first use above.
 
-const LIST_SX = {
+const LIST_SX =
+{
     mt: 0.5,
     '& .MuiAutocomplete-listbox': { py: 0.5 },
     '& .MuiAutocomplete-option': { fontSize: '0.78rem', minHeight: 'auto', py: 0.6, color: 'arc.onPaperStrong' },

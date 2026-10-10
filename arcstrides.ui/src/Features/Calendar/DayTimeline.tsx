@@ -29,19 +29,25 @@ import { useCalendarActions } from './Calendar.Context'
 import type { Card } from '../../Entities/Card/Card.Types'
 import type { GridDay } from './Calendar.Grid'
 
-interface DayTimelineProps {
+interface DayTimelineProps
+{
     day: GridDay
     cards: Card[]
 }
 
-export const DayTimeline: React.FC<DayTimelineProps> = ({ day, cards }) => {
+export const DayTimeline: React.FC<DayTimelineProps> = ({ day, cards }) =>
+{
     const { colours, openCard } = useCalendarActions()
     const stops = stopsOf(cards)
 
-    if (stops.length === 0) {
+    if (stops.length === 0)
+    {
         return (
             <Typography sx={{ fontSize: '0.75rem', color: 'arc.onPaperMuted', px: 0.5 }}>
-                {cards.length === 0 ? 'No cards, so nothing scheduled.' : 'None of these tasks has a timeline yet.'}
+                { cards.length === 0
+                    ? 'No cards, so nothing scheduled.'
+                    : 'None of these tasks has a timeline yet.'
+                }
             </Typography>
         )
     }
@@ -55,7 +61,8 @@ export const DayTimeline: React.FC<DayTimelineProps> = ({ day, cards }) => {
                    listStyle: 'none',
                    display: 'flex',
                    flexDirection: 'column',
-                   gap: 0.6 }}>
+                   gap: 0.6
+                }}>
             {/* The rail: a strip of gold card, first stop to last. */}
             <Box aria-hidden
                  className="card-stock-glued paper-gold"
@@ -63,15 +70,18 @@ export const DayTimeline: React.FC<DayTimelineProps> = ({ day, cards }) => {
                        left: RAIL_CENTRE - 2.5,
                        width: '5px',
                        top: '0.9rem',
-                       bottom: '0.9rem' }} />
+                       bottom: '0.9rem'
+                    }} />
 
-            {stops.map(stop => (
-                <StopRow key={`${stop.task.id}:${stop.node.id}`}
-                         stop={stop}
-                         onDay={stop.at.isSame(day.date, 'day')}
-                         colour={colourOf(stop.task.taskType?.id, colours)}
-                         onOpen={() => openCard(stop.card)} />
-            ))}
+            { stops.map(stop =>
+                        (
+                            <StopRow key={`${stop.task.id}:${stop.node.id}`}
+                                     stop={stop}
+                                     onDay={stop.at.isSame(day.date, 'day')}
+                                     colour={colourOf(stop.task.taskType?.id, colours)}
+                                     onOpen={() => openCard(stop.card)} />
+                        ))
+            }
         </Box>
     )
 }
@@ -86,12 +96,20 @@ const RAIL_CENTRE = 24
 
 const DOT = 12
 
-function StopRow({ stop, onDay, colour, onOpen }: { stop: Stop; onDay: boolean; colour: string; onOpen: () => void }) {
+function StopRow({ stop, onDay, colour, onOpen }: { stop: Stop; onDay: boolean; colour: string; onOpen: () => void })
+{
     const done = stop.task.isCompleted === true
     const point = stop.node.label.join(' ').toLowerCase()
 
     return (
-        <Box component="li" sx={{ display: 'flex', alignItems: 'center', gap: 1, opacity: onDay ? 1 : 0.72 }}>
+        <Box component="li"
+             sx={{ display: 'flex',
+                   alignItems: 'center',
+                   gap: 1,
+                   opacity: onDay
+                       ? 1
+                       : 0.72
+                }}>
             <Box aria-hidden
                  sx={{ width: DOT,
                        height: DOT,
@@ -100,7 +118,8 @@ function StopRow({ stop, onDay, colour, onOpen }: { stop: Stop; onDay: boolean; 
                        borderRadius: '50%',
                        backgroundColor: colour,
                        boxShadow: '0 0 0 2px var(--arc-paper), 0 1px 2px rgba(30, 24, 16, .3)',
-                       position: 'relative' }} />
+                       position: 'relative'
+                    }} />
 
             {/*
                 Two columns and two lines: the time beside the task, the date
@@ -109,7 +128,9 @@ function StopRow({ stop, onDay, colour, onOpen }: { stop: Stop; onDay: boolean; 
             */}
             <ButtonBase className="card-stock-flat card-tilt"
                         onClick={onOpen}
-                        aria-label={`${stop.task.title}, ${point} ${stop.at.format('D MMMM HH:mm')}${done ? ', done' : ''}. Open card ${stop.card.title}`}
+                        aria-label={`${stop.task.title}, ${point} ${stop.at.format('D MMMM HH:mm')}${done
+                            ? ', done'
+                            : ''}. Open card ${stop.card.title}`}
                         sx={{ flex: 1,
                               minWidth: 0,
                               display: 'grid',
@@ -121,25 +142,38 @@ function StopRow({ stop, onDay, colour, onOpen }: { stop: Stop; onDay: boolean; 
                               py: 0.5,
                               textAlign: 'left',
                               '&:hover': { backgroundColor: 'arc.paperHover' },
-                              '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 } }}>
-                <Typography component="span" sx={{ ...WHEN, color: 'arc.onPaper' }}>
-                    {stop.at.format('HH:mm')}
+                              '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 }
+                           }}>
+                <Typography component="span"
+                            sx={{ ...WHEN, color: 'arc.onPaper' }}>
+                    { stop.at.format('HH:mm') }
                 </Typography>
                 <Typography component="span"
                             sx={{ fontSize: '0.76rem',
                                   fontWeight: 600,
-                                  color: done ? 'arc.onPaperMuted' : 'arc.onPaperStrong',
-                                  textDecoration: done ? 'line-through' : 'none',
-                                  overflowWrap: 'anywhere' }}>
-                    {stop.task.title}
+                                  color: done
+                                      ? 'arc.onPaperMuted'
+                                      : 'arc.onPaperStrong',
+                                  textDecoration: done
+                                      ? 'line-through'
+                                      : 'none',
+                                  overflowWrap: 'anywhere'
+                               }}>
+                    { stop.task.title }
                 </Typography>
-                <Typography component="span" sx={{ ...WHEN, color: 'arc.onPaperMuted' }}>
-                    {onDay ? '' : stop.at.format('DD MMM')}
+                <Typography component="span"
+                            sx={{ ...WHEN, color: 'arc.onPaperMuted' }}>
+                    { onDay
+                        ? ''
+                        : stop.at.format('DD MMM')
+                    }
                 </Typography>
-                <Typography component="span" sx={{ fontSize: '0.64rem',
-                                                   color: 'arc.onPaperMuted',
-                                                   overflowWrap: 'anywhere' }}>
-                    {stop.node.label.join(' ')} · {stop.card.title}
+                <Typography component="span"
+                            sx={{ fontSize: '0.64rem',
+                                  color: 'arc.onPaperMuted',
+                                  overflowWrap: 'anywhere'
+                               }}>
+                    { stop.node.label.join(' ') } · { stop.card.title }
                 </Typography>
             </ButtonBase>
         </Box>

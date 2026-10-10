@@ -20,23 +20,31 @@ import React from 'react'
 import { Box } from '@mui/material'
 import type { TypeSlice } from './Calendar.Stats'
 
-interface TypeRingProps {
+interface TypeRingProps
+{
     slices: TypeSlice[]
+
     /** Outer diameter, in px. */
     size: number
+
     /** Ring thickness, in px. */
     thickness: number
+
     children: React.ReactNode
 }
 
-export const TypeRing: React.FC<TypeRingProps> = ({ slices, size, thickness, children }) => {
+export const TypeRing: React.FC<TypeRingProps> = ({ slices, size, thickness, children }) =>
+{
     const total = slices.reduce((sum, slice) => sum + slice.count, 0)
     const radius = (size - thickness) / 2
     const circumference = 2 * Math.PI * radius
-    const gap = slices.length > 1 ? GAP : 0
+    const gap = slices.length > 1
+        ? GAP
+        : 0
 
     // Each segment starts where the one before it ended.
-    const arcs = slices.reduce<{ slice: TypeSlice; dash: number; offset: number; end: number }[]>((list, slice) => {
+    const arcs = slices.reduce<{ slice: TypeSlice; dash: number; offset: number; end: number }[]>((list, slice) =>
+    {
         const offset = list.at(-1)?.end ?? 0
         const length = (slice.count / total) * circumference
         return [...list, { slice, dash: Math.max(length - gap, 0.5), offset, end: offset + length }]
@@ -50,8 +58,9 @@ export const TypeRing: React.FC<TypeRingProps> = ({ slices, size, thickness, chi
                    height: size,
                    flexShrink: 0,
                    display: 'grid',
-                   placeItems: 'center' }}>
-            {total > 0 && (
+                   placeItems: 'center'
+                }}>
+            { total > 0 && (
                 <Box component="svg"
                      role="img"
                      aria-label={`Tasks by type: ${summary}`}
@@ -65,25 +74,32 @@ export const TypeRing: React.FC<TypeRingProps> = ({ slices, size, thickness, chi
                            // the cut shadow the tiles beside it cast (.card-cut).
                            // The filter is drawn before the quarter turn, so its
                            // offset is written sideways to land straight down.
-                           filter: 'drop-shadow(-1px 0 0.6px rgba(38, 28, 10, .4))' }}>
-                    {arcs.map(({ slice, dash, offset: start }) => (
-                        <circle key={slice.key}
-                                cx={size / 2}
-                                cy={size / 2}
-                                r={radius}
-                                fill="none"
-                                stroke={slice.colour}
-                                strokeWidth={thickness}
-                                strokeDasharray={`${dash} ${circumference - dash}`}
-                                strokeDashoffset={-start}>
-                            <title>{`${slice.title}: ${slice.count} ${slice.count === 1 ? 'task' : 'tasks'}`}</title>
-                        </circle>
-                    ))}
+                           filter: 'drop-shadow(-1px 0 0.6px rgba(38, 28, 10, .4))'
+                        }}>
+                    { arcs.map(({ slice, dash, offset: start }) =>
+                               (
+                                   <circle key={slice.key}
+                                           cx={size / 2}
+                                           cy={size / 2}
+                                           r={radius}
+                                           fill="none"
+                                           stroke={slice.colour}
+                                           strokeWidth={thickness}
+                                           strokeDasharray={`${dash} ${circumference - dash}`}
+                                           strokeDashoffset={-start}>
+                                       <title>{ `${slice.title}: ${slice.count} ${slice.count === 1
+                                           ? 'task'
+                                           : 'tasks'}`
+                                              }</title>
+                                   </circle>
+                               ))
+                    }
                 </Box>
-            )}
+            )
+            }
 
             {/* Above the ring, so the number's button is what a click reaches. */}
-            <Box sx={{ position: 'relative', display: 'grid', placeItems: 'center' }}>{children}</Box>
+            <Box sx={{ position: 'relative', display: 'grid', placeItems: 'center' }}>{ children }</Box>
         </Box>
     )
 }

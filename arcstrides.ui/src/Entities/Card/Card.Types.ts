@@ -23,9 +23,12 @@
 import type { Task } from '../Task/Task.Types'
 import type { Timeline } from '../Timeline/Timeline.Types'
 
-export interface Card {
+export interface Card
+{
     id: string
+
     positionId: string
+
     /**
      * The board the card is on. The board page already knows this from its
      * route and never reads it; the calendar does not, because one day can
@@ -33,14 +36,23 @@ export interface Card {
      * editing against the right one.
      */
     boardId: string
+
     title: string
+
     description: string
+
     columnNumber: number
+
     columnId: string
+
     columnName: string
+
     swimlaneNumber: number
+
     swimlaneId: string
+
     swimlaneName: string
+
     /**
      * Where the card sits within its cell. Lower is nearer the top.
      *
@@ -48,6 +60,8 @@ export interface Card {
      * above it — a card does not have a rank, a card *in a cell* does.
      */
     positionRank: number
+
     tasks: Task[]
+
     timeline: Timeline | null
 }

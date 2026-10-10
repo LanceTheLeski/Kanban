@@ -57,14 +57,16 @@ import { paperPickerSx } from '../../../Styles/Paper'
 import { rem } from '../../../Styles/Measures'
 import type { Timeline } from '../../../Entities/Timeline/Timeline.Types'
 
-interface UpdateTimelinePanelProps {
+interface UpdateTimelinePanelProps
+{
     /** Existing timeline data to pre-fill the nodes — mirrors @bind-Timeline */
     timeline: Timeline | null
     /** Called whenever any node changes */
     onDraftChange?: (draft: TimelineDraft) => void
 }
 
-export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeline, onDraftChange }) => {
+export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeline, onDraftChange }) =>
+{
     const [mode, setMode] = useState<TimelineMode>(() => modeOf(timeline))
     const [values, setValues] = useState<NodeValues>(() => seedValues(timeline))
     const [selected, setSelected] = useState<NodeId | null>(null)
@@ -72,7 +74,9 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
     const active = NODES_FOR[mode]
 
     // A node stops being selectable when the mode changes under it.
-    const openNode = selected && active.includes(selected) ? selected : null
+    const openNode = selected && active.includes(selected)
+        ? selected
+        : null
     const openSpec = useMemo(() => NODES.find(node => node.id === openNode), [openNode])
     const activeNodes = useMemo(() => NODES.filter(node => active.includes(node.id)), [active])
 
@@ -97,11 +101,15 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                      gap: 1,
                      minWidth: 0,
                      minHeight: 0,
-                     height: '100%' }}>
+                     height: '100%'
+                  }}>
 
             {/* ── Mode ──────────────────────────────────────────────────────── */}
-            <Box role="group" aria-label="Timeline mode" sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
-                {MODES.map(option => {
+            <Box role="group"
+                 aria-label="Timeline mode"
+                 sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
+                { MODES.map(option =>
+                {
                     const isOn = mode === option.value
                     return (
                         <Button key={option.value}
@@ -114,26 +122,36 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                                    their colour and the chosen one is simply the piece
                                    standing proud of the panel.
                                 */
-                                className={`${isOn ? 'card-stock' : 'card-stock-flat'} ${option.stock}`}
+                                className={`${isOn
+                                    ? 'card-stock'
+                                    : 'card-stock-flat'} ${option.stock}`}
                                 sx={{ flex: 1,
                                       minWidth: 0,
                                       py: 0.15,
                                       fontSize: '0.62rem',
                                       lineHeight: 1.6,
-                                      fontWeight: isOn ? 700 : 500,
+                                      fontWeight: isOn
+                                          ? 700
+                                          : 500,
                                       letterSpacing: '0.04em',
                                       color: 'arc.onPaperStrong',
                                       // A flat piece sits back a little, the way an
                                       // unchosen tab would if it were further from the
                                       // light.
-                                      opacity: isOn ? 1 : 0.82,
-                                      transform: isOn ? 'translateY(-1px)' : 'none',
+                                      opacity: isOn
+                                          ? 1
+                                          : 0.82,
+                                      transform: isOn
+                                          ? 'translateY(-1px)'
+                                          : 'none',
                                       transition: 'transform .12s, opacity .12s',
-                                      '&:hover': { opacity: 1 } }}>
-                            {option.label}
+                                      '&:hover': { opacity: 1 }
+                                   }}>
+                            { option.label }
                         </Button>
                     )
-                })}
+                })
+                }
             </Box>
 
             {/*
@@ -150,27 +168,33 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                        display: 'flex',
                        flexDirection: 'column',
                        gap: 1,
-                       p: 0.75 }}>
+                       p: 0.75
+                    }}>
 
             {/* ── The rail ──────────────────────────────────────────────────── */}
-            {showRail && (
+            { showRail && (
                 <TimelineRail nodes={activeNodes}
                               values={values}
                               openNode={openNode}
-                              onToggle={id => setSelected(id === openNode ? null : id)} />
-            )}
+                              onToggle={id => setSelected(id === openNode
+                                  ? null
+                                  : id)} />
+            )
+            }
 
-            {active.length === 0 && (
+            { active.length === 0 && (
                 <Box sx={{ flexShrink: 0,
                            display: 'flex',
                            alignItems: 'center',
                            justifyContent: 'center',
                            px: 1,
-                           py: 2 }}>
+                           py: 2
+                        }}>
                     <Typography sx={{ fontSize: '0.68rem',
                                       color: 'arc.onPaperMuted',
                                       textAlign: 'center',
-                                      maxWidth: '34ch' }}>
+                                      maxWidth: '34ch'
+                                   }}>
                         {/*
                             It used to add "This card will not appear on the
                             calendar", written before the calendar was. It was
@@ -180,7 +204,8 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                         No deadline or timeline set.
                     </Typography>
                 </Box>
-            )}
+            )
+            }
 
             {/*
                 The slack. This panel stretches to match the card commands beside
@@ -194,10 +219,10 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                 editor instead, so the one control sits under the buttons rather
                 than being pushed to the bottom of an otherwise empty panel.
             */}
-            {showRail && <Box sx={{ flex: 1, minHeight: 0 }} />}
+            { showRail && <Box sx={{ flex: 1, minHeight: 0 }} /> }
 
             {/* ── The selected node's pickers ───────────────────────────────── */}
-            {openSpec && (
+            { openSpec && (
                 <Box sx={{ flexShrink: 0,
                            pt: 0.75,
                            borderTop: '1px solid',
@@ -205,7 +230,8 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                            display: 'flex',
                            flexWrap: 'wrap',
                            gap: 0.75,
-                           alignItems: 'center' }}>
+                           alignItems: 'center'
+                        }}>
 
                     {/* On the rail the four points need telling apart, so they
                         carry their full names. On its own it is just the
@@ -213,20 +239,26 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                     <Typography sx={{ fontSize: '0.6rem',
                                       fontWeight: 700,
                                       color: 'arc.onPaperStrong',
-                                      flex: '1 0 100%' }}>
-                        {showRail ? openSpec.label.join(' ') : 'Deadline'}
+                                      flex: '1 0 100%'
+                                   }}>
+                        { showRail
+                            ? openSpec.label.join(' ')
+                            : 'Deadline'
+                        }
                     </Typography>
 
                     <DatePicker value={values[openSpec.id].date}
                                 onChange={date => setNode(openSpec.id, { date })}
                                 format="DD MMM YYYY"
                                 slotProps={{ textField: { size: 'small', sx: { ...pickerFieldSx, flex: '1 1 9rem' } },
-                                             openPickerButton: { size: 'small' } }} />
+                                             openPickerButton: { size: 'small' }
+                                          }} />
 
                     <TimePicker value={values[openSpec.id].time}
                                 onChange={time => setNode(openSpec.id, { time })}
                                 slotProps={{ textField: { size: 'small', sx: { ...pickerFieldSx, flex: '1 1 7rem' } },
-                                             openPickerButton: { size: 'small' } }} />
+                                             openPickerButton: { size: 'small' }
+                                          }} />
 
                     <Button size="small"
                             onClick={() => setNode(openSpec.id, { date: null, time: null })}
@@ -235,20 +267,23 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                         Clear
                     </Button>
                 </Box>
-            )}
+            )
+            }
 
-            {!showRail && <Box sx={{ flex: 1, minHeight: 0 }} />}
+            { !showRail && <Box sx={{ flex: 1, minHeight: 0 }} /> }
 
             {/* Nothing selected, but nodes exist: say what to do rather than
                 leaving a gap where the pickers will appear. */}
-            {!openSpec && showRail && (
+            { !openSpec && showRail && (
                 <Typography sx={{ flexShrink: 0,
                                   fontSize: '0.6rem',
                                   color: 'arc.onPaperMuted',
-                                  textAlign: 'center' }}>
+                                  textAlign: 'center'
+                               }}>
                     Select a point to set its date and time.
                 </Typography>
-            )}
+            )
+            }
             </Box>
         </Paper>
     )
@@ -257,15 +292,19 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
     // Closures over the state above, so they stay with the component rather than
     // moving to Timeline.Nodes. Ordered by first use.
 
-    function changeMode(next: TimelineMode) {
+    function changeMode(next: TimelineMode)
+    {
         setMode(next)
         // Select the only node there is, so Deadline mode needs no second click.
         const on = NODES_FOR[next]
-        setSelected(on.length === 1 ? on[0] : null)
+        setSelected(on.length === 1
+            ? on[0]
+            : null)
         emit(values, next)
     }
 
-    function setNode(id: NodeId, half: Partial<NodeValue>) {
+    function setNode(id: NodeId, half: Partial<NodeValue>)
+    {
         const next = { ...values, [id]: { ...values[id], ...half } }
         setValues(next)
         emit(next, mode)
@@ -277,10 +316,15 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
      * than as whatever it was last set to. Switching to Timeless has to clear
      * the schedule, not hide it.
      */
-    function emit(nextValues: NodeValues, nextMode: TimelineMode) {
+    function emit(nextValues: NodeValues, nextMode: TimelineMode)
+    {
         const on = NODES_FOR[nextMode]
-        const dateOf = (id: NodeId) => (on.includes(id) ? nextValues[id].date?.toDate() ?? null : null)
-        const timeOf = (id: NodeId) => (on.includes(id) ? nextValues[id].time?.format('HH:mm') ?? null : null)
+        const dateOf = (id: NodeId) => (on.includes(id)
+            ? nextValues[id].date?.toDate() ?? null
+            : null)
+        const timeOf = (id: NodeId) => (on.includes(id)
+            ? nextValues[id].time?.format('HH:mm') ?? null
+            : null)
 
         onDraftChange?.({
             mode: nextMode,

@@ -29,7 +29,8 @@ import { PaperScene, Sun } from '../../Components/PaperScene'
 import { SCENERY as C } from '../../Styles/Scenery'
 import type { Scene } from './Calendar.DayTypes'
 
-interface DayArtProps {
+interface DayArtProps
+{
     scene: Scene
     /**
      * Said to a screen reader. Left out where the picture is inside a control
@@ -40,13 +41,14 @@ interface DayArtProps {
 
 export const DayArt: React.FC<DayArtProps> = ({ scene, label }) => (
     <PaperScene width={W} height={H} sky={SKIES[scene]} label={label}>
-        {cut => (
+        { cut => (
             <>
-                {scene === 'city' && <City cut={cut} />}
-                {scene === 'park' && <Park cut={cut} />}
-                {scene === 'beach' && <Beach cut={cut} />}
+                { scene === 'city' && <City cut={cut} /> }
+                { scene === 'park' && <Park cut={cut} /> }
+                { scene === 'beach' && <Beach cut={cut} /> }
             </>
-        )}
+        )
+        }
     </PaperScene>
 )
 
@@ -60,7 +62,8 @@ const W = 160
 const H = 80
 
 /** Top and bottom of each scene's sky: a cool blue, warming to the horizon. */
-const SKIES: Record<Scene, [string, string]> = {
+const SKIES: Record<Scene, [string, string]> =
+{
     city: [C.skyHigh, C.skyHaze],
     park: [C.skyHigh, C.skyWarm],
     beach: [C.skyHigh, C.skyGlow],
@@ -69,26 +72,33 @@ const SKIES: Record<Scene, [string, string]> = {
 /** [left, width, top] of each tower in a row; every tower stands on the bottom edge. */
 type Row = [number, number, number][]
 
-function towers(row: Row): string {
+function towers(row: Row): string
+{
     return row.map(([x, w, top]) => `M${x} ${H} V${top} H${x + w} V${H} Z`).join(' ')
 }
 
-const BACK: Row = [[0, 14, 50], [14, 10, 44], [24, 16, 52], [40, 12, 40], [52, 18, 48], [70, 10, 34], [80, 14, 46],
+const BACK: Row =
+[[0, 14, 50], [14, 10, 44], [24, 16, 52], [40, 12, 40], [52, 18, 48], [70, 10, 34], [80, 14, 46],
                    [94, 12, 42], [106, 16, 50], [122, 10, 38], [132, 14, 47], [146, 14, 52]]
-const MIDDLE: Row = [[4, 12, 58], [16, 9, 52], [25, 14, 60], [39, 10, 49], [49, 16, 56], [65, 8, 45], [73, 14, 54],
+const MIDDLE: Row =
+[[4, 12, 58], [16, 9, 52], [25, 14, 60], [39, 10, 49], [49, 16, 56], [65, 8, 45], [73, 14, 54],
                      [87, 10, 50], [97, 18, 58], [115, 9, 47], [124, 14, 55], [138, 10, 51], [148, 12, 57]]
-const FRONT: Row = [[0, 16, 64], [16, 12, 60], [28, 18, 66], [46, 11, 58], [57, 20, 63], [77, 13, 56], [90, 16, 65],
+const FRONT: Row =
+[[0, 16, 64], [16, 12, 60], [28, 18, 66], [46, 11, 58], [57, 20, 63], [77, 13, 56], [90, 16, 65],
                     [106, 12, 59], [118, 20, 64], [138, 11, 61], [149, 11, 66]]
 
 /**
  * The front row's windows, some lit. Which ones is fixed by position rather
  * than random, so the city does not flicker every time a day is drawn.
  */
-function windows(row: Row): { x: number; y: number; lit: boolean }[] {
-    return row.flatMap(([x, w, top], tower) => {
+function windows(row: Row): { x: number; y: number; lit: boolean }[]
+{
+    return row.flatMap(([x, w, top], tower) =>
+    {
         const across = Math.floor((w - 3) / 3.4)
         const down = Math.floor((H - top - 5) / 3.8)
-        return Array.from({ length: across * down }, (_, index) => {
+        return Array.from({ length: across * down }, (_, index) =>
+        {
             const column = index % across
             const floor = Math.floor(index / across)
             return {
@@ -100,7 +110,8 @@ function windows(row: Row): { x: number; y: number; lit: boolean }[] {
     })
 }
 
-function City({ cut }: { cut: string }) {
+function City({ cut }: { cut: string })
+{
     return (
         <>
             <Sun x={46} y={46} cut={cut} />
@@ -112,15 +123,20 @@ function City({ cut }: { cut: string }) {
             </g>
             <g filter={cut}>
                 <path d={towers(FRONT)} fill={C.towerNear} />
-                {windows(FRONT).map(({ x, y, lit }) => (
-                    <rect key={`${x}:${y}`} x={x} y={y} width={1.6} height={1.9} fill={lit ? C.windowLit : C.windowDark} />
-                ))}
+                { windows(FRONT).map(({ x, y, lit }) =>
+                                     (
+                                         <rect key={`${x}:${y}`} x={x} y={y} width={1.6} height={1.9} fill={lit
+                                                                                                          ? C.windowLit
+                                                                                                          : C.windowDark} />
+                                     ))
+                }
             </g>
         </>
     )
 }
 
-function Park({ cut }: { cut: string }) {
+function Park({ cut }: { cut: string })
+{
     return (
         <>
             <Sun x={122} y={44} cut={cut} />
@@ -146,8 +162,9 @@ function Park({ cut }: { cut: string }) {
 
             <g filter={cut}>
                 <path d="M0 68 C35 60 75 66 105 67 C130 68 148 62 160 63 V80 H0 Z" fill={C.hill} />
-                {[[22, 71, C.canvasStripe], [30, 74, C.bow], [44, 70, C.canvasStripe], [128, 72, C.bow], [140, 69, C.canvasStripe]]
-                    .map(([x, y, fill]) => <circle key={`${x}`} cx={x} cy={y} r={0.9} fill={fill as string} />)}
+                { [[22, 71, C.canvasStripe], [30, 74, C.bow], [44, 70, C.canvasStripe], [128, 72, C.bow], [140, 69, C.canvasStripe]]
+                    .map(([x, y, fill]) => <circle key={`${x}`} cx={x} cy={y} r={0.9} fill={fill as string} />)
+                }
             </g>
 
             <path d="M0 76 C50 72 100 78 160 74 V80 H0 Z" fill={C.grass} filter={cut} />
@@ -155,7 +172,8 @@ function Park({ cut }: { cut: string }) {
     )
 }
 
-function Beach({ cut }: { cut: string }) {
+function Beach({ cut }: { cut: string })
+{
     return (
         <>
             <Sun x={118} y={46} cut={cut} />

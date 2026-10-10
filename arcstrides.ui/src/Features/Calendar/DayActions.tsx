@@ -54,19 +54,19 @@ export const DayActions: React.FC<DayActionsProps> = ({ day, mini = false }) =>
                               borderRadius: '1px',
                               color: 'arc.onPaper',
                               '&:hover': { backgroundColor: 'arc.paperHover', color: 'arc.onPaperStrong' },
-                              '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 } 
+                              '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 }
                            }}>
                 <MoreVertIcon sx={{ fontSize: '0.95rem' }} />
             </ButtonBase>
 
             <Menu anchorEl={anchor}
-                  open={anchor !== null} 
+                  open={anchor !== null}
                   onClose={() => setAnchor(null)}>
                 { available.filter(action => !action.last)
-                           .map(action => 
+                           .map(action =>
                                 (
-                                    <MenuItem key={action.key} 
-                                              dense 
+                                    <MenuItem key={action.key}
+                                              dense
                                               onClick={() => run(() => action.run(actions, day))}>
                                         { action.label(actions, day) }
                                     </MenuItem>
@@ -77,7 +77,8 @@ export const DayActions: React.FC<DayActionsProps> = ({ day, mini = false }) =>
                 <ListSubheader sx={{ lineHeight: 2.2,
                                      fontSize: '0.68rem',
                                      letterSpacing: '0.06em',
-                                     textTransform: 'uppercase' }}>
+                                     textTransform: 'uppercase'
+                                  }}>
                     Theme
                 </ListSubheader>
 
@@ -85,27 +86,39 @@ export const DayActions: React.FC<DayActionsProps> = ({ day, mini = false }) =>
                     One of these is always the day's; a radio group in all but
                     name, so each says whether it is the chosen one.
                 */}
-                {[...DAY_TYPES, NO_DAY_TYPE].map(type => (
-                    <MenuItem key={type.id}
-                              dense
-                              role="menuitemradio"
-                              aria-checked={type.id === current.id}
-                              onClick={() => run(() => {
-                                  if (type.id !== current.id) actions.setDayType(day, type.id)
-                              })}>
-                        <ListItemIcon>
-                            <Box className="card-stock-flat"
-                                 sx={{ width: 30, height: 18, overflow: 'hidden', borderRadius: '1px' }}>
-                                {type.scene && <DayArt scene={type.scene} />}
-                            </Box>
-                        </ListItemIcon>
-                        <ListItemText primary={type.name} primaryTypographyProps={{ sx: { fontSize: '0.82rem' } }} />
-                        <CheckIcon aria-hidden
-                                   sx={{ ml: 1.5,
-                                         fontSize: '0.9rem',
-                                         visibility: type.id === current.id ? 'visible' : 'hidden' }} />
-                    </MenuItem>
-                ))}
+                { [...DAY_TYPES, NO_DAY_TYPE].map(type =>
+                                                  (
+                                                      <MenuItem key={type.id}
+                                                                dense
+                                                                role="menuitemradio"
+                                                                aria-checked={type.id === current.id}
+                                                                onClick={() => run(() =>
+                                                                {
+                                                                    if (type.id !== current.id)
+                                                                        actions.setDayType(day, type.id)
+                                                                })}>
+                                                          <ListItemIcon>
+                                                              <Box className="card-stock-flat"
+                                                                   sx={{ width: 30,
+                                                                         height: 18,
+                                                                         overflow: 'hidden',
+                                                                         borderRadius: '1px'
+                                                                      }}>
+                                                                  { type.scene && <DayArt scene={type.scene} /> }
+                                                              </Box>
+                                                          </ListItemIcon>
+                                                          <ListItemText primary={type.name}
+                                                                        primaryTypographyProps={{ sx: { fontSize: '0.82rem' } }} />
+                                                          <CheckIcon aria-hidden
+                                                                     sx={{ ml: 1.5,
+                                                                           fontSize: '0.9rem',
+                                                                           visibility: type.id === current.id
+                                                                               ? 'visible'
+                                                                               : 'hidden'
+                                                                        }} />
+                                                      </MenuItem>
+                                                  ))
+                }
 
                 { available.some(action => action.last) && <Divider /> }
                 { available.filter(action => action.last)

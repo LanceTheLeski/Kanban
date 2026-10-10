@@ -13,17 +13,26 @@
 
 import type { Timeline } from '../Timeline/Timeline.Types'
 
-export interface TaskType {
+export interface TaskType
+{
     id: number
+
     groupTagId: string | null
+
     title: string
 }
 
-export interface Task {
+export interface Task
+{
     id: string
+
     title: string
+
     order: number
+
     taskType: TaskType | null
+
     isCompleted: boolean | null
+
     timeline: Timeline | null
 }

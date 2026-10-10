@@ -33,9 +33,12 @@ import { createTaskType } from '../../Board/Board.APIs'
 import { useBoardActions } from '../../Board/useBoardActions'
 import type { TaskType } from '../../../Entities/Task/Task.Types'
 
-interface CreateTaskTypeOverlayProps {
+interface CreateTaskTypeOverlayProps
+{
     open: boolean
+
     onClose: () => void
+
     /** The newly created type, so the caller can select it straight away. */
     onCreated?: (taskType: TaskType) => void
 }
@@ -44,13 +47,16 @@ export const CreateTaskTypeOverlay: React.FC<CreateTaskTypeOverlayProps> = ({
     open,
     onClose,
     onCreated,
-}) => {
+}) =>
+{
     const { run } = useBoardActions()
     const [title, setTitle] = useState('')
 
-    const handleSubmit = async () => {
+    const handleSubmit = async () =>
+    {
         const trimmed = title.trim()
-        if (!trimmed) return
+        if (!trimmed)
+            return
 
         // run() reports success as a boolean, so the created type is carried out
         // through a holder rather than a plain `let` — TypeScript narrows a `let`
@@ -62,7 +68,8 @@ export const CreateTaskTypeOverlay: React.FC<CreateTaskTypeOverlayProps> = ({
             async () => { created.value = await createTaskType(trimmed) },
             { refresh: false },
         )
-        if (!succeeded || !created.value) return
+        if (!succeeded || !created.value)
+            return
 
         onCreated?.(created.value)
         setTitle('')

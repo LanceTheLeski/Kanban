@@ -35,19 +35,25 @@ import type { Column, Swimlane } from '../Board.Types'
  */
 type Placed = Pick<Column, 'id' | 'title' | 'order'>
 
-export interface CardPlacement {
+export interface CardPlacement
+{
     cardId: string
+
     column: Placed
+
     swimlane: Placed
+
     positionRank: number
 }
 
 export const cellId = (swimlaneId: string, columnId: string) =>
     `${swimlaneId}${SEPARATOR}${columnId}`
 
-export function parseCellId(id: string): { swimlaneId: string; columnId: string } | null {
+export function parseCellId(id: string): { swimlaneId: string; columnId: string } | null
+{
     const [swimlaneId, columnId] = id.split(SEPARATOR)
-    if (!swimlaneId || !columnId) return null
+    if (!swimlaneId || !columnId)
+        return null
     return { swimlaneId, columnId }
 }
 
@@ -58,17 +64,22 @@ export function parseCellId(id: string): { swimlaneId: string; columnId: string 
  * the (columns × swimlanes) cells — that was O(cells × cards) per render, on a
  * component that re-renders on every drag frame.
  */
-export function groupCardsByCell(cards: Card[]): Map<string, Card[]> {
+export function groupCardsByCell(cards: Card[]): Map<string, Card[]>
+{
     const groups = new Map<string, Card[]>()
 
-    for (const card of cards) {
+    for (const card of cards)
+    {
         const key = cellId(card.swimlaneId, card.columnId)
         const group = groups.get(key)
-        if (group) group.push(card)
-        else groups.set(key, [card])
+        if (group)
+            group.push(card)
+        else
+            groups.set(key, [card])
     }
 
-    for (const group of groups.values()) group.sort(byRank)
+    for (const group of groups.values())
+        group.sort(byRank)
 
     return groups
 }
@@ -101,9 +112,11 @@ export function placementsForMove(cards: Card[],
                                   cardId: string,
                                   column: Column,
                                   swimlane: Swimlane,
-                                  targetIndex: number): CardPlacement[] {
+                                  targetIndex: number): CardPlacement[]
+{
     const moving = cards.find(card => card.id === cardId)
-    if (!moving) return []
+    if (!moving)
+        return []
 
     const sourceKey = cellId(moving.swimlaneId, moving.columnId)
     const targetKey = cellId(swimlane.id, column.id)
@@ -120,14 +133,16 @@ export function placementsForMove(cards: Card[],
     // Annotated, not inferred: without it `placements` takes the shape of the
     // target cell's full Column, and pushing the narrowed source-cell entries
     // below fails on fields a move does not carry.
-    const placements: CardPlacement[] = arranged.map((card, index) => ({
+    const placements: CardPlacement[] = arranged.map((card, index) =>
+    ({
         cardId: card.id,
         column,
         swimlane,
         positionRank: index,
     }))
 
-    if (sourceKey === targetKey) return changedOnly(placements, cards)
+    if (sourceKey === targetKey)
+        return changedOnly(placements, cards)
 
     // The card left a gap behind it, so the cell it came from reindexes too.
     const source = cards.filter(card => cellId(card.swimlaneId, card.columnId) === sourceKey
@@ -151,27 +166,33 @@ export function placementsForMove(cards: Card[],
 /** The separator is a character that cannot appear in a GUID. */
 const SEPARATOR = '|'
 
-function byRank(a: Card, b: Card): number {
+function byRank(a: Card, b: Card): number
+{
     // Title as the tiebreak, so two cards that somehow share a rank still come
     // out in a stable order rather than swapping on every render.
     return a.positionRank - b.positionRank || a.title.localeCompare(b.title)
 }
 
-function insertAt(cards: Card[], card: Card, index: number): Card[] {
+function insertAt(cards: Card[], card: Card, index: number): Card[]
+{
     const copy = [...cards]
     copy.splice(index, 0, card)
     return copy
 }
 
-function clamp(value: number, low: number, high: number): number {
+function clamp(value: number, low: number, high: number): number
+{
     return Math.min(Math.max(value, low), high)
 }
 
 /** Drops the placements that would write a card back exactly where it is. */
-function changedOnly(placements: CardPlacement[], cards: Card[]): CardPlacement[] {
-    return placements.filter(placement => {
+function changedOnly(placements: CardPlacement[], cards: Card[]): CardPlacement[]
+{
+    return placements.filter(placement =>
+    {
         const card = cards.find(candidate => candidate.id === placement.cardId)
-        if (!card) return false
+        if (!card)
+            return false
 
         return card.positionRank !== placement.positionRank
             || card.columnId !== placement.column.id

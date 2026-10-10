@@ -23,19 +23,25 @@ import { CSS } from '@dnd-kit/utilities'
 import { BoardCard } from '../BoardCard'
 import type { Card } from '../../../Entities/Card/Card.Types'
 
-interface DraggableCardProps {
+interface DraggableCardProps
+{
     card: Card
     boardId: string
 }
 
-export const DraggableCard: React.FC<DraggableCardProps> = ({ card, boardId }) => {
+export const DraggableCard: React.FC<DraggableCardProps> = ({ card, boardId }) =>
+{
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
         useSortable({ id: card.id })
 
     return (
         <Box ref={setNodeRef}
              style={{ transform: CSS.Translate.toString(transform), transition }}
-             sx={{ opacity: isDragging ? 0.4 : 1, width: '100%' }}>
+             sx={{ opacity: isDragging
+                       ? 0.4
+                       : 1,
+                   width: '100%'
+                }}>
             <BoardCard card={card}
                        boardId={boardId}
                        dragProps={{ ...listeners, ...attributes }} />

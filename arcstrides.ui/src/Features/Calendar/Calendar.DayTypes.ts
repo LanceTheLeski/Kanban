@@ -33,28 +33,38 @@
 /** Which picture a type is drawn with — see DayArt. */
 export type Scene = 'city' | 'park' | 'beach'
 
-export interface DayType {
+export interface DayType
+{
     /** What the API stores. Never reuse one: stored days keep their number. */
     id: number
+
     name: string
+
     /** Null for no theme, which has no picture. */
     scene: Scene | null
+
     /** What the type is for, in a line, under its name in the picker. */
     blurb: string
+
     /** The ring of tasks by type round the day's number. */
     ring: boolean
+
     /** The progress lines — without them, their tile shows the picture. */
     progress: boolean
+
     /** An empty day offers to add a card, rather than showing its picture. */
     invites: boolean
+
     /** What the day overlay says with no cards on the day. */
     emptyNote: string
+
     /** What it says above the cards, on a day that does not expect work. */
     busyNote?: string
 }
 
 /** A day nobody has given a type: measured, like a working day, with no picture. */
-export const NO_DAY_TYPE: DayType = {
+export const NO_DAY_TYPE: DayType =
+{
     id: 0,
     name: 'No theme',
     scene: null,
@@ -66,7 +76,8 @@ export const NO_DAY_TYPE: DayType = {
 }
 
 /** In the order the picker lists them. */
-export const DAY_TYPES: DayType[] = [
+export const DAY_TYPES: DayType[] =
+[
     {
         id: 1,
         name: 'Work',
@@ -102,6 +113,7 @@ export const DAY_TYPES: DayType[] = [
 ]
 
 /** A stored type number's type. A number this list does not know is no theme. */
-export function dayTypeOf(id: number | null | undefined): DayType {
+export function dayTypeOf(id: number | null | undefined): DayType
+{
     return DAY_TYPES.find(type => type.id === id) ?? NO_DAY_TYPE
 }

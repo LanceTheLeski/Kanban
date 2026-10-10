@@ -28,11 +28,13 @@ import { useCalendarActions } from './Calendar.Context'
 import { useCalendarStore } from './Calendar.Store'
 import type { GridDay } from './Calendar.Grid'
 
-interface DayBandProps {
+interface DayBandProps
+{
     day: GridDay
 }
 
-export const DayBand: React.FC<DayBandProps> = ({ day }) => {
+export const DayBand: React.FC<DayBandProps> = ({ day }) =>
+{
     const { setDayType } = useCalendarActions()
     const tags = useCalendarStore(state => state.dayTags[day.key]) ?? NO_TAGS
     const setDayTags = useCalendarStore(state => state.setDayTags)
@@ -42,15 +44,19 @@ export const DayBand: React.FC<DayBandProps> = ({ day }) => {
     return (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'stretch', gap: 1.5 }}>
             {/* The number, on the disc it has on the grid, at full size. */}
-            <Box className={`card-disc card-stock${day.isToday ? ' paper-oxblood' : ''}`}
+            <Box className={`card-disc card-stock${day.isToday
+                     ? ' paper-oxblood'
+                     : ''}`}
                  aria-hidden
                  sx={{ width: DISC,
                        height: DISC,
                        flexShrink: 0,
                        alignSelf: 'center',
                        display: 'grid',
-                       placeItems: 'center' }}>
-                <DiscNumber value={day.date.date()} disc={DISC} />
+                       placeItems: 'center'
+                    }}>
+                <DiscNumber value={day.date.date()}
+                            disc={DISC} />
             </Box>
 
             {/* The date in words, and what kind of day it is. */}
@@ -58,28 +64,40 @@ export const DayBand: React.FC<DayBandProps> = ({ day }) => {
                        minWidth: 0,
                        display: 'flex',
                        flexDirection: 'column',
-                       justifyContent: 'center' }}>
+                       justifyContent: 'center'
+                    }}>
                 {/* One heading for both lines, so the dialog is named by the whole date. */}
-                <Box component="h2" sx={{ m: 0,
-                                          color: 'arc.onGlass',
-                                          textShadow: '0 1px 2px rgba(0, 0, 0, 0.35)' }}>
+                <Box component="h2"
+                     sx={{ m: 0,
+                           color: 'arc.onGlass',
+                           textShadow: '0 1px 2px rgba(0, 0, 0, 0.35)'
+                        }}>
                     <Box component="span"
                          sx={{ display: 'block',
                                fontFamily: SERIF,
                                fontSize: '1.6rem',
                                fontWeight: 400,
-                               lineHeight: 1.1 }}>
-                        {day.date.format('dddd')}
+                               lineHeight: 1.1
+                            }}>
+                        { day.date.format('dddd') }
                     </Box>
-                    <Box component="span" sx={{ display: 'block', fontSize: '0.9rem', fontWeight: 400 }}>
-                        {day.date.format('D MMMM YYYY')}{day.isToday ? ' · Today' : ''}
+                    <Box component="span"
+                         sx={{ display: 'block', fontSize: '0.9rem', fontWeight: 400 }}>
+                        { day.date.format('D MMMM YYYY') }{ day.isToday
+                            ? ' · Today'
+                            : ''
+                                                          }
                     </Box>
                 </Box>
                 <Typography sx={{ mt: 0.5,
                                   fontSize: '0.76rem',
                                   color: 'arc.onGlass',
-                                  textShadow: '0 1px 2px rgba(0, 0, 0, 0.35)' }}>
-                    {type.id === NO_DAY_TYPE.id ? 'No theme yet — choose one from the picture.' : `${type.name} · ${type.blurb}`}
+                                  textShadow: '0 1px 2px rgba(0, 0, 0, 0.35)'
+                               }}>
+                    { type.id === NO_DAY_TYPE.id
+                        ? 'No theme yet — choose one from the picture.'
+                        : `${type.name} · ${type.blurb}`
+                    }
                 </Typography>
             </Box>
 
@@ -98,18 +116,21 @@ export const DayBand: React.FC<DayBandProps> = ({ day }) => {
                               position: 'relative',
                               '&:hover .change': { opacity: 1 },
                               '&.Mui-focusVisible .change': { opacity: 1 },
-                              '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 2 } }}>
-                {type.scene
+                              '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 2 }
+                           }}>
+                { type.scene
                     ? <DayArt scene={type.scene} />
                     : (
                         <Typography sx={{ fontSize: '0.78rem',
                                           color: 'arc.onPaperMuted',
                                           px: 2,
-                                          textAlign: 'center' }}>
+                                          textAlign: 'center'
+                                       }}>
                             Choose a theme
                         </Typography>
-                    )}
-                {type.scene && (
+                    )
+                }
+                { type.scene && (
                     <Box className="change"
                          aria-hidden
                          sx={{ position: 'absolute',
@@ -122,39 +143,52 @@ export const DayBand: React.FC<DayBandProps> = ({ day }) => {
                                fontWeight: 600,
                                color: 'arc.onPaperStrong',
                                opacity: 0,
-                               transition: 'opacity 120ms' }}>
+                               transition: 'opacity 120ms'
+                            }}>
                         Change
                     </Box>
-                )}
+                )
+                }
             </ButtonBase>
 
-            <Menu anchorEl={anchor} open={anchor !== null} onClose={() => setAnchor(null)}>
-                {[...DAY_TYPES, NO_DAY_TYPE].map(option => (
-                    <MenuItem key={option.id}
-                              role="menuitemradio"
-                              aria-checked={option.id === type.id}
-                              onClick={() => {
-                                  setAnchor(null)
-                                  if (option.id !== type.id) setDayType(day, option.id)
-                              }}
-                              sx={{ gap: 1.5, py: 0.75 }}>
-                        <ListItemIcon>
-                            <Box className="card-stock-flat" sx={{ width: 72,
-                                                                   height: 40,
-                                                                   overflow: 'hidden',
-                                                                   borderRadius: '1px' }}>
-                                {option.scene && <DayArt scene={option.scene} />}
-                            </Box>
-                        </ListItemIcon>
-                        <ListItemText primary={option.name}
-                                      secondary={option.blurb}
-                                      primaryTypographyProps={{ sx: { fontSize: '0.86rem', fontWeight: 600 } }}
-                                      secondaryTypographyProps={{ sx: { fontSize: '0.72rem', maxWidth: rem(230), whiteSpace: 'normal' } }} />
-                        <CheckIcon aria-hidden
-                                   sx={{ fontSize: '1rem',
-                                         visibility: option.id === type.id ? 'visible' : 'hidden' }} />
-                    </MenuItem>
-                ))}
+            <Menu anchorEl={anchor}
+                  open={anchor !== null}
+                  onClose={() => setAnchor(null)}>
+                { [...DAY_TYPES, NO_DAY_TYPE].map(option =>
+                                                  (
+                                                      <MenuItem key={option.id}
+                                                                role="menuitemradio"
+                                                                aria-checked={option.id === type.id}
+                                                                onClick={() =>
+                                                                {
+                                                                    setAnchor(null)
+                                                                    if (option.id !== type.id)
+                                                                        setDayType(day, option.id)
+                                                                }}
+                                                                sx={{ gap: 1.5, py: 0.75 }}>
+                                                          <ListItemIcon>
+                                                              <Box className="card-stock-flat"
+                                                                   sx={{ width: 72,
+                                                                         height: 40,
+                                                                         overflow: 'hidden',
+                                                                         borderRadius: '1px'
+                                                                      }}>
+                                                                  { option.scene && <DayArt scene={option.scene} /> }
+                                                              </Box>
+                                                          </ListItemIcon>
+                                                          <ListItemText primary={option.name}
+                                                                        secondary={option.blurb}
+                                                                        primaryTypographyProps={{ sx: { fontSize: '0.86rem', fontWeight: 600 } }}
+                                                                        secondaryTypographyProps={{ sx: { fontSize: '0.72rem', maxWidth: rem(230), whiteSpace: 'normal' } }} />
+                                                          <CheckIcon aria-hidden
+                                                                     sx={{ fontSize: '1rem',
+                                                                           visibility: option.id === type.id
+                                                                               ? 'visible'
+                                                                               : 'hidden'
+                                                                        }} />
+                                                      </MenuItem>
+                                                  ))
+                }
             </Menu>
 
             <Box sx={{ display: 'flex', flex: '1 1 8rem', maxWidth: TAGS_WIDTH, height: ART_HEIGHT }}>

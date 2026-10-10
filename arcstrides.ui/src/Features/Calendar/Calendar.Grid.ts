@@ -29,16 +29,21 @@ import type { CalendarDate } from './Calendar.Types'
 /** Sunday first, as DayOfTheWeekOrder counted them (Sunday = 0). */
 export const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
-export interface GridDay {
+export interface GridDay
+{
     /** 'YYYY-MM-DD'. A React key, and what a day's overlay is opened by. */
     key: string
+
     date: Dayjs
+
     /** The stored row for this day, if the API has one. */
     stored: CalendarDate | null
+
     isToday: boolean
 }
 
-export interface Week {
+export interface Week
+{
     key: string
     /** Seven slots, Sunday first. Null where the slot belongs to another month. */
     days: (GridDay | null)[]
@@ -52,7 +57,8 @@ export interface Week {
  * that belongs to another month, and this grid has no slot that is honestly
  * its own.
  */
-export function weeksOf(start: Dayjs, dates: CalendarDate[], today: Dayjs = dayjs()): Week[] {
+export function weeksOf(start: Dayjs, dates: CalendarDate[], today: Dayjs = dayjs()): Week[]
+{
     const byDay = new Map(dates
         .filter(date => (date.month === null || date.month === start.month())
                         && (date.year === null || date.year === start.year()))
@@ -62,10 +68,13 @@ export function weeksOf(start: Dayjs, dates: CalendarDate[], today: Dayjs = dayj
     const lead = start.day()
     const weeks: Week[] = []
 
-    for (let slot = 0; slot < lead + count; slot += 7) {
-        const days = Array.from({ length: 7 }, (_, index): GridDay | null => {
+    for (let slot = 0; slot < lead + count; slot += 7)
+    {
+        const days = Array.from({ length: 7 }, (_, index): GridDay | null =>
+        {
             const day = slot + index - lead + 1
-            if (day < 1 || day > count) return null
+            if (day < 1 || day > count)
+                return null
 
             const date = start.date(day)
             return {
@@ -83,14 +92,17 @@ export function weeksOf(start: Dayjs, dates: CalendarDate[], today: Dayjs = dayj
 }
 
 /** The day a key names, if it is in these weeks. */
-export function dayOf(weeks: Week[], key: string): GridDay | null {
+export function dayOf(weeks: Week[], key: string): GridDay | null
+{
     for (const week of weeks)
         for (const day of week.days)
-            if (day?.key === key) return day
+            if (day?.key === key)
+                return day
     return null
 }
 
 /** The address of the month a date is in: /calendar/2026/9, month from 1. */
-export function monthPath(date: Dayjs): string {
+export function monthPath(date: Dayjs): string
+{
     return `/calendar/${date.year()}/${date.month() + 1}`
 }

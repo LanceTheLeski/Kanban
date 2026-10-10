@@ -81,10 +81,14 @@ import {
 import type { Card } from '../../../Entities/Card/Card.Types'
 import type { Task } from '../../../Entities/Task/Task.Types'
 
-interface UpdateCardOverlayProps {
+interface UpdateCardOverlayProps
+{
     open: boolean
+
     onClose: () => void
+
     card: Card
+
     boardId: string
 }
 
@@ -93,7 +97,8 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
     onClose,
     card,
     boardId,
-}) => {
+}) =>
+{
     const { run } = useBoardActions()
     const replaceCard = useBoardStore(state => state.replaceCard)
     const removeCard = useBoardStore(state => state.removeCard)
@@ -137,14 +142,18 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
         state => state.cards.find(candidate => candidate.id === card.id)?.tasks ?? card.tasks,
     )
 
-    const handleSubmit = async () => {
+    const handleSubmit = async () =>
+    {
         const patch: { title?: string; description?: string } = {}
 
         // Only patch fields that changed — mirrors Blazor's FormPatchRequestFromOverlay()
-        if (title.trim() && title !== card.title) patch.title = title.trim()
-        if (description !== card.description) patch.description = description
+        if (title.trim() && title !== card.title)
+            patch.title = title.trim()
+        if (description !== card.description)
+            patch.description = description
 
-        if (Object.keys(patch).length === 0) {
+        if (Object.keys(patch).length === 0)
+        {
             onClose()
             return
         }
@@ -155,7 +164,8 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
             // The card is patched in local state below; nothing else on the board moved.
             { refresh: false }
         )
-        if (!updated) return
+        if (!updated)
+            return
 
         replaceCard({
             ...card,
@@ -166,40 +176,48 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
         onClose()
     }
 
-    const handleDeleteCard = async () => {
+    const handleDeleteCard = async () =>
+    {
         const deleted = await run(
             `Deleting "${card.title}"`,
             () => deleteCard(boardId, card.id),
             { refresh: false }
         )
-        if (!deleted) return
+        if (!deleted)
+            return
 
         removeCard(card.id)
         onClose()
     }
 
     // Mirrors Blazor's DeleteTaskAsync — removes the task server-side, then locally
-    const handleDeleteTask = async (taskId: string) => {
+    const handleDeleteTask = async (taskId: string) =>
+    {
         // Refreshes, because removing a task closes the gap in the ordering of
         // every task after it and the new numbers come from the server.
         const deleted = await run('Deleting task', () => deleteTask(boardId, card.id, taskId))
-        if (!deleted) return
+        if (!deleted)
+            return
 
         replaceCard({ ...card, tasks: tasks.filter(task => task.id !== taskId) })
     }
 
     // Called by UpdateTaskPopover when a task's fields are changed
-    const handleTaskUpdated = (updatedTask: Task) => {
+    const handleTaskUpdated = (updatedTask: Task) =>
+    {
         replaceCard({
             ...card,
             tasks: tasks
-                .map(task => task.id === updatedTask.id ? updatedTask : task)
+                .map(task => task.id === updatedTask.id
+                    ? updatedTask
+                    : task)
                 .sort((a, b) => a.order - b.order),
         })
     }
 
     // Called by CreateTaskOverlay with the task the server assigned an ID to
-    const handleTaskCreated = (createdTask: Task) => {
+    const handleTaskCreated = (createdTask: Task) =>
+    {
         replaceCard({
             ...card,
             tasks: [...tasks, createdTask].sort((a, b) => a.order - b.order),
@@ -249,7 +267,8 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                                                  minWidth: 0,
                                                  minHeight: 0,
                                                  flex: 1,
-                                                 pr: 1 }}>
+                                                 pr: 1
+                                              }}>
                                           <TitleAndTags title={title}
                                                         onTitleChange={setTitle}
                                                         tags={tags}
@@ -268,8 +287,10 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                                                  minWidth: 0,
                                                  minHeight: 0,
                                                  flex: 1,
-                                                 pl: 1 }}>
-                                          <DescriptionField value={description} onChange={setDescription} />
+                                                 pl: 1
+                                              }}>
+                                          <DescriptionField value={description}
+                                                            onChange={setDescription} />
                                       </Box>
                                   } />
                 </Box>
@@ -288,7 +309,8 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                            // scrolls rather than growing the dialog. Stacked, they
                            // each get the full width and can take what they need.
                            minHeight: CARD_PANEL_ROW_MIN_HEIGHT,
-                           height: { [STACK_BELOW]: CARD_PANEL_ROW_HEIGHT } }}>
+                           height: { [STACK_BELOW]: CARD_PANEL_ROW_HEIGHT }
+                        }}>
                     <UpdateTimelinePanel timeline={card.timeline} />
                     <CommandPanel card={card} />
                 </Box>
@@ -332,7 +354,8 @@ function TitleAndTags({ title, onTitleChange, tags, onTagsChange }: {
     onTitleChange: (title: string) => void
     tags: CardTag[]
     onTagsChange: (tags: CardTag[]) => void
-}) {
+})
+{
     return (
         <Box sx={{ display: 'flex',
                    gap: 1,
@@ -340,7 +363,8 @@ function TitleAndTags({ title, onTitleChange, tags, onTagsChange }: {
                    minHeight: TITLE_ROW_MIN_HEIGHT,
                    // The title grows with its content now, so the tags box tracks
                    // its height rather than the two disagreeing.
-                   alignItems: 'stretch' }}>
+                   alignItems: 'stretch'
+                }}>
             <TextField value={title}
                        onChange={e => onTitleChange(e.target.value)}
                        variant="outlined"
@@ -391,9 +415,11 @@ function TitleAndTags({ title, onTitleChange, tags, onTagsChange }: {
                                 so a one-line title does not float in the middle of a box
                                 sized for three.
                              */
-                             '& .MuiInputBase-root': { height: '100%', alignItems: 'flex-start' } }} />
+                             '& .MuiInputBase-root': { height: '100%', alignItems: 'flex-start' }
+                          }} />
 
-            <TagsPanel tags={tags} onChange={onTagsChange} />
+            <TagsPanel tags={tags}
+                       onChange={onTagsChange} />
         </Box>
     )
 }
@@ -410,7 +436,8 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
     onTaskUpdated: (task: Task) => void
     onTaskCreated: (task: Task) => void
     onTaskDeleted: (taskId: string) => void
-}) {
+})
+{
     return (
         /*
            The one panel in the overlay that keeps its engraved recess.
@@ -432,20 +459,25 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
                      flex: 1,
                      minHeight: TASK_LIST_MIN_HEIGHT,
                      overflow: 'auto',
-                     p: 0.75 }}>
+                     p: 0.75
+                  }}>
             {/*
                 A gap between the rows, because a drop shadow needs somewhere to
                 fall. Butted up against each other they were four rectangles with
                 a line between them; 6px apart they are four pieces of card.
             */}
-            <List dense disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-                {tasks.length === 0 && (
-                    <ListItem disablePadding sx={{ px: 1, py: 1.5 }}>
+            <List dense
+                  disablePadding
+                  sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                { tasks.length === 0 && (
+                    <ListItem disablePadding
+                              sx={{ px: 1, py: 1.5 }}>
                         <Typography sx={{ fontSize: '0.72rem', color: 'arc.onGlassMuted' }}>
                             No tasks on this card yet.
                         </Typography>
                     </ListItem>
-                )}
+                )
+                }
 
                 {/*
                     One piece of card per task, laid on the tray, in the same
@@ -458,58 +490,61 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
                     panel's shadow is what makes layered paper look like clip
                     art.
                 */}
-                {tasks.map(task => (
-                    <ListItem key={task.id || task.title}
-                              className="card-stock-flat card-tilt paper-green"
-                              disablePadding
-                              sx={{ pr: 0.25 }}>
-                        {/* The popover trigger takes the row; the bin sits at the end */}
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                            {/*
-                                Keyed on the values the popover seeds its draft
-                                from. A reorder renumbers every task on the card,
-                                and each popover captured its order once when it
-                                mounted — so after a move, the rows that did not
-                                move still offered the positions they used to
-                                have. Changing the key remounts them, which is
-                                what re-runs those initialisers.
-                            */}
-                            <UpdateTaskPopover key={`${task.id}:${task.order}:${task.isCompleted}:${task.title}`}
-                                               task={task}
-                                               onUpdated={onTaskUpdated}
-                                               boardId={boardId}
-                                               cardId={cardId}
-                                               tasksCount={tasks.length}
-                                               triggerSize="small"
-                                               triggerSx={{
-                                                   width: '100%',
-                                                   justifyContent: 'flex-start',
-                                                   backgroundColor: 'transparent',
-                                                   color: 'arc.onPaper',
-                                                   // The strike for a completed task is applied by
-                                                   // the popover, which is the only thing that
-                                                   // knows whether the box has been ticked but not
-                                                   // yet saved.
-                                               }} />
-                        </Box>
+                { tasks.map(task =>
+                            (
+                                <ListItem key={task.id || task.title}
+                                          className="card-stock-flat card-tilt paper-green"
+                                          disablePadding
+                                          sx={{ pr: 0.25 }}>
+                                    {/* The popover trigger takes the row; the bin sits at the end */}
+                                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                                        {/*
+                                            Keyed on the values the popover seeds its draft
+                                            from. A reorder renumbers every task on the card,
+                                            and each popover captured its order once when it
+                                            mounted — so after a move, the rows that did not
+                                            move still offered the positions they used to
+                                            have. Changing the key remounts them, which is
+                                            what re-runs those initialisers.
+                                        */}
+                                        <UpdateTaskPopover key={`${task.id}:${task.order}:${task.isCompleted}:${task.title}`}
+                                                           task={task}
+                                                           onUpdated={onTaskUpdated}
+                                                           boardId={boardId}
+                                                           cardId={cardId}
+                                                           tasksCount={tasks.length}
+                                                           triggerSize="small"
+                                                           triggerSx={{
+                                                               width: '100%',
+                                                               justifyContent: 'flex-start',
+                                                               backgroundColor: 'transparent',
+                                                               color: 'arc.onPaper',
+                                                               // The strike for a completed task is applied by
+                                                               // the popover, which is the only thing that
+                                                               // knows whether the box has been ticked but not
+                                                               // yet saved.
+                                                                     }} />
+                                    </Box>
 
-                        {/* Mirrors Blazor's trash icon @onclick */}
-                        {/*
-                            Quiet until reached for. In MUI's default colour these
-                            bins were the darkest thing in the list — four of them
-                            pulling more attention than the task titles they
-                            belong to, for an action nobody comes here to take.
-                        */}
-                        <IconButton size="small"
-                                    onClick={() => task.id && onTaskDeleted(task.id)}
-                                    aria-label={`Delete task ${task.title}`}
-                                    sx={{ flexShrink: 0,
-                                          color: 'arc.onPaperMuted',
-                                          '&:hover': { color: 'arc.paperDanger', backgroundColor: 'arc.paperHover' } }}>
-                            <DeleteIcon sx={{ fontSize: '0.95rem' }} />
-                        </IconButton>
-                    </ListItem>
-                ))}
+                                    {/* Mirrors Blazor's trash icon @onclick */}
+                                    {/*
+                                        Quiet until reached for. In MUI's default colour these
+                                        bins were the darkest thing in the list — four of them
+                                        pulling more attention than the task titles they
+                                        belong to, for an action nobody comes here to take.
+                                    */}
+                                    <IconButton size="small"
+                                                onClick={() => task.id && onTaskDeleted(task.id)}
+                                                aria-label={`Delete task ${task.title}`}
+                                                sx={{ flexShrink: 0,
+                                                      color: 'arc.onPaperMuted',
+                                                      '&:hover': { color: 'arc.paperDanger', backgroundColor: 'arc.paperHover' }
+                                                   }}>
+                                        <DeleteIcon sx={{ fontSize: '0.95rem' }} />
+                                    </IconButton>
+                                </ListItem>
+                            ))
+                }
 
                 {/*
                     No left padding. It had an indent the task rows above it did
@@ -548,7 +583,8 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
 function DescriptionField({ value, onChange }: {
     value: string
     onChange: (description: string) => void
-}) {
+})
+{
     return (
         <TextField value={value}
                    onChange={e => onChange(e.target.value)}
@@ -577,6 +613,7 @@ function DescriptionField({ value, onChange }: {
                              // description filled the pane in a handful of lines.
                              fontSize: '0.82rem',
                              lineHeight: 1.5,
-                         } }} />
+                         }
+                      }} />
     )
 }

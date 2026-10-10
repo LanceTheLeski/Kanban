@@ -18,13 +18,16 @@ import { swimlaneColour, landingIndex } from '../Board.Colours'
 import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
 
-interface CreateSwimlaneOverlayProps {
+interface CreateSwimlaneOverlayProps
+{
     open: boolean
     onClose: () => void
 }
 
-export const CreateSwimlaneOverlay: React.FC<CreateSwimlaneOverlayProps> = ({ open, onClose }) => {
-    const { boardId, swimlanes } = useBoardStore(useShallow(state => ({
+export const CreateSwimlaneOverlay: React.FC<CreateSwimlaneOverlayProps> = ({ open, onClose }) =>
+{
+    const { boardId, swimlanes } = useBoardStore(useShallow(state =>
+    ({
         boardId: state.boardId,
         swimlanes: state.swimlanes,
     })))
@@ -34,16 +37,21 @@ export const CreateSwimlaneOverlay: React.FC<CreateSwimlaneOverlayProps> = ({ op
     const [orderInput, setOrderInput] = useState('')
     const [colour, setColour] = useState<string | null>(null)
 
-    const handleSubmit = async () => {
-        if (!boardId || !title.trim()) return
+    const handleSubmit = async () =>
+    {
+        if (!boardId || !title.trim())
+            return
 
         // Mirror Blazor fallback: if no order given, append at end
-        const order = orderInput.trim() !== '' ? parseInt(orderInput, 10) : swimlanes.length
+        const order = orderInput.trim() !== ''
+            ? parseInt(orderInput, 10)
+            : swimlanes.length
 
         const created = await run('Adding swimlane', () =>
             createSwimlane(boardId, { title: title.trim(), order, colour, globalColour: colour })
         )
-        if (!created) return
+        if (!created)
+            return
 
         setTitle('')
         setOrderInput('')

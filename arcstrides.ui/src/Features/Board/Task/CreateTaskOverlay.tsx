@@ -43,11 +43,15 @@ import {
 import { createTask, createTimeline, fetchTaskTypes } from '../Board.APIs'
 import type { Task, TaskType } from '../../../Entities/Task/Task.Types'
 
-interface CreateTaskOverlayProps {
+interface CreateTaskOverlayProps
+{
     boardId: string
+
     cardId: string
+
     /** Current task count — used to build the order range 1..N */
     tasksCount: number
+
     /** Receives the task the server created, so the parent can insert it into its list */
     onCreated?: (task: Task) => void
 }
@@ -57,7 +61,8 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
     cardId,
     tasksCount,
     onCreated,
-}) => {
+}) =>
+{
     const [title, setTitle] = useState('')
     const [isCompleted, setIsCompleted] = useState(false)
     const [selectedOrder, setSelectedOrder] = useState(tasksCount)
@@ -71,7 +76,8 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
     const { addError } = useArcError()
 
     // Mirrors Blazor's OnAfterRenderAsync(firstRender)
-    useEffect(() => {
+    useEffect(() =>
+    {
         fetchTaskTypes([0])
             .then(setTaskTypes)
             .catch(error => console.error('Could not load task types', error))
@@ -80,20 +86,24 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
     // Order range 1..N — mirrors Blazor's _taskOrderRange initialization
     const orderOptions = Array.from({ length: tasksCount }, (_, i) => String(i + 1))
 
-    const handleSetTaskType = (typeName: string) => {
+    const handleSetTaskType = (typeName: string) =>
+    {
         const matches = taskTypes.filter(taskType => taskType.title === typeName)
-        if (matches.length !== 1) {
+        if (matches.length !== 1)
+        {
             console.error(`Task type "${typeName}" not uniquely found`)
             return
         }
         setSelectedTaskTypeId(matches[0].id)
     }
 
-    const handleSubmit = async () => {
+    const handleSubmit = async () =>
+    {
         // -1 used to go out here when nothing was selected, and the API answered
         // "The TaskTypeID passed in does not exist in the service" — technically
         // true, and useless. Ask for the missing field instead of inventing one.
-        if (selectedTaskTypeId === null) {
+        if (selectedTaskTypeId === null)
+        {
             addError('Pick a task type before adding the task.')
             // false, so the popover stays open on the field that is missing.
             // Returning nothing closed it — telling the user what was wrong and
@@ -105,7 +115,8 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
 
         const succeeded = await run(
             'Adding task',
-            async () => {
+            async () =>
+            {
                 created = await createTask(boardId, cardId, {
                     title: title.trim() || 'New Task',
                     taskTypeId: selectedTaskTypeId,
@@ -116,7 +127,8 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
                 // The create endpoint takes no timeline, so a task that was given
                 // dates needs a follow-up POST parented to the new task —
                 // mirrors CreateTimelineAsync() in the Blazor overlay.
-                if (!hasTimeline(timelineDraft)) return
+                if (!hasTimeline(timelineDraft))
+                    return
 
                 const timeline = await createTimeline(boardId, {
                     parentId: created.id,
@@ -136,7 +148,8 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
         )
         // false keeps the popover open, so a rejected create does not close over
         // the fields the user filled in. See ArcPopover.onSubmit.
-        if (!succeeded || !created) return false
+        if (!succeeded || !created)
+            return false
 
         onCreated?.(created)
 
@@ -172,10 +185,11 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
                             fontWeight: 700,
                             px: 1,
                             '&:hover': { backgroundColor: 'transparent' },
-                        }}
+                                  }}
                         /* Card now, like the rows above it, so its open marker darkens. */
                         triggerOpenSx={{ backgroundColor: 'arc.paperSelected',
-                                         color: 'arc.onPaperStrong' }}
+                                         color: 'arc.onPaperStrong'
+                                      }}
                         title="New task"
                         titleStock="green"
                         onSubmit={handleSubmit}
@@ -198,12 +212,14 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
                                gap: 2,
                                flexWrap: 'wrap',
                                alignItems: 'stretch',
-                               minHeight: TASK_PANEL_ROW_MIN_HEIGHT }}>
+                               minHeight: TASK_PANEL_ROW_MIN_HEIGHT
+                            }}>
                         <Box sx={{ flex: '1 1 13rem',
                                    minWidth: 0,
                                    display: 'flex',
                                    flexDirection: 'column',
-                                   gap: 1 }}>
+                                   gap: 1
+                                }}>
                             {/* IsCompleted selector — mirrors bool.TrueString / FalseString options */}
                             <FormControlLabel control={
                                                   <Checkbox checked={isCompleted}
@@ -234,7 +250,8 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
                                           fontSize: '0.65rem',
                                           textTransform: 'none',
                                           color: 'arc.onGlassMuted',
-                                          '&:hover': { color: 'arc.onGlass', backgroundColor: 'arc.glassHover' } }}>
+                                          '&:hover': { color: 'arc.onGlass', backgroundColor: 'arc.glassHover' }
+                                       }}>
                                 + New task type
                             </Button>
                         </Box>
@@ -249,7 +266,8 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
 
             <CreateTaskTypeOverlay open={createTaskTypeOpen}
                                    onClose={() => setCreateTaskTypeOpen(false)}
-                                   onCreated={created => {
+                                   onCreated={created =>
+                                   {
                                        // Add and select it directly. Refetching left the list correct
                                        // but nothing chosen, so the type you had just created still
                                        // had to be found and picked by hand.

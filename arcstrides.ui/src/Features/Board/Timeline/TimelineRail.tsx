@@ -17,12 +17,16 @@ import { Box } from '@mui/material'
 import { TimelineNode, DOT_ROW_HEIGHT, NODE_PAD_Y } from './TimelineNode'
 import type { NodeId, NodeSpec, NodeValues } from './Timeline.Nodes'
 
-interface TimelineRailProps {
+interface TimelineRailProps
+{
     /** The nodes in play, in the order they are drawn. */
     nodes: NodeSpec[]
+
     values: NodeValues
+
     /** The node whose pickers are on screen, if any. */
     openNode: NodeId | null
+
     onToggle: (id: NodeId) => void
 }
 
@@ -43,7 +47,7 @@ export const TimelineRail: React.FC<TimelineRailProps> = ({ nodes, values, openN
             the panel does not ask for one, and the component should not draw a
             zero-length rule if something else ever does.
         */}
-        {nodes.length > 1 && (
+        { nodes.length > 1 && (
             <Box aria-hidden
                  className="card-stock-glued paper-gold"
                  sx={{ position: 'absolute',
@@ -53,16 +57,20 @@ export const TimelineRail: React.FC<TimelineRailProps> = ({ nodes, values, openN
                        // about four pixels the cut edge and the face have no room
                        // to be two different things.
                        top: NODE_PAD_Y + DOT_ROW_HEIGHT / 2 - 2.5,
-                       height: '5px' }} />
-        )}
+                       height: '5px'
+                    }} />
+        )
+        }
 
-        {nodes.map(node => (
-            <TimelineNode key={node.id}
-                          spec={node}
-                          value={values[node.id]}
-                          isOpen={openNode === node.id}
-                          onToggle={() => onToggle(node.id)} />
-        ))}
+        { nodes.map(node =>
+                    (
+                        <TimelineNode key={node.id}
+                                      spec={node}
+                                      value={values[node.id]}
+                                      isOpen={openNode === node.id}
+                                      onToggle={() => onToggle(node.id)} />
+                    ))
+        }
     </Box>
 )
 

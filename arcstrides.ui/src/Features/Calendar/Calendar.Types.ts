@@ -16,15 +16,21 @@
 import type { Card } from '../../Entities/Card/Card.Types'
 
 /** One stored day of a month, and the cards the server placed on it. */
-export interface CalendarDate {
+export interface CalendarDate
+{
     id: string
+
     /** Day of the month, from 1. DateOrder on the wire. */
     day: number
+
     /** From 0, the way dayjs counts. Recovered from MonthName; null if that failed. */
     month: number | null
+
     year: number | null
+
     /** What kind of day it is — see Calendar.DayTypes. 0 when none has been chosen. */
     typeId: number
+
     cards: Card[]
 }
 
@@ -36,10 +42,14 @@ export interface CalendarDate {
  * and lays these on top. `id` is null until the first thing is added, since a
  * month's ID is born with its first row.
  */
-export interface Month {
+export interface Month
+{
     id: string | null
+
     year: number
+
     /** From 0, the way dayjs counts. */
     month: number
+
     dates: CalendarDate[]
 }

@@ -40,11 +40,14 @@ import { POPOVER_MIN_WIDTH } from '../Styles/Measures'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export interface ArcPopoverProps {
+export interface ArcPopoverProps
+{
     /** Text shown on the trigger button — mirrors PopoverBaseText */
     triggerLabel: string
+
     /** Content inside the popover — mirrors RenderFragment ChildContent */
     children?: React.ReactNode
+
     /**
      * Async submit handler — mirrors OnSubmitAsync: Func<Task>
      *
@@ -53,12 +56,15 @@ export interface ArcPopoverProps {
      * caller relied on.
      */
     onSubmit?: () => Promise<boolean | void> | boolean | void
+
     /**
      * External open control (optional) — for the "parent knows when to close"
      * pattern noted in the Blazor comments.
      */
     open?: boolean
+
     onClose?: () => void
+
     /**
      * Called when the trigger opens the popover. For a component that has
      * something to fetch before it is useful, so it can wait until then rather
@@ -66,8 +72,10 @@ export interface ArcPopoverProps {
      * month grid, is once per task whether anyone opens one or not.
      */
     onOpen?: () => void
+
     /** Mirrors PopoverBaseMudSize */
     triggerSize?: ButtonProps['size']
+
     /**
      * Styling for the trigger button.
      *
@@ -78,6 +86,7 @@ export interface ArcPopoverProps {
      * palette moved into the theme.
      */
     triggerSx?: SxProps<Theme>
+
     /**
      * A class for the trigger button — in practice one of the card stocks, for
      * the triggers that are pieces of card rather than text on a pane.
@@ -87,6 +96,7 @@ export interface ArcPopoverProps {
      * specificity; trying to say the same thing through sx would be overridden.
      */
     triggerClassName?: string
+
     /**
      * Styling for the trigger while the popover is open, on top of triggerSx.
      *
@@ -102,12 +112,16 @@ export interface ArcPopoverProps {
      * the open row's title white on off-white.
      */
     triggerOpenSx?: SxProps<Theme>
+
     /** The popover's heading, as a strip of card across the top. */
     title?: React.ReactNode
+
     /** Which stock the title strip is cut from. See ArcTitleBar. */
     titleStock?: TitleStock
+
     /** Where the popover attaches to the trigger — mirrors AnchorOrigin */
     anchorOrigin?: PopoverOrigin
+
     /** Where the popover transforms from — mirrors TransformOrigin */
     transformOrigin?: PopoverOrigin
 
@@ -115,10 +129,15 @@ export interface ArcPopoverProps {
     // The same bar an overlay gets, so a popover's controls sit where an
     // overlay's do. See ArcActionBar.
     onDelete?: () => Promise<void> | void
+
     deleteLabel?: string
+
     deleteConfirm?: string
+
     actions?: ArcAction[]
+
     submitLabel?: string
+
     /** Colours the primary action as destructive. */
     submitDestructive?: boolean
 }
@@ -146,20 +165,25 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
     actions,
     submitLabel,
     submitDestructive,
-}) => {
+}) =>
+{
     // Internal state for uncontrolled mode
     const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
 
     // If a parent passes `open`, we operate in controlled mode
     const isControlled = controlledOpen !== undefined
-    const isOpen = isControlled ? controlledOpen : Boolean(anchorEl)
+    const isOpen = isControlled
+        ? controlledOpen
+        : Boolean(anchorEl)
 
-    const handleOpen = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const handleOpen = (e: React.MouseEvent<HTMLButtonElement>) =>
+    {
         setAnchorEl(e.currentTarget)
         onOpen?.()
     }
 
-    const handleClose = () => {
+    const handleClose = () =>
+    {
         setAnchorEl(null)
         controlledOnClose?.()
     }
@@ -177,9 +201,11 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
        only a snackbar to explain it.
     */
     const handleSubmit = onSubmit
-        ? async () => {
+        ? async () =>
+        {
             const succeeded = await onSubmit()
-            if (succeeded !== false) handleClose()
+            if (succeeded !== false)
+                handleClose()
         }
         : undefined
 
@@ -217,8 +243,9 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
                                   boxShadow: 'inset 3px 0 0 0 var(--arc-accent-on-glass)',
                                   ...(triggerOpenSx as object),
                               }
-                              : {}) }}>
-                {triggerLabel}
+                              : {})
+                       }}>
+                { triggerLabel }
             </Button>
 
             <Popover open={isOpen}
@@ -233,7 +260,7 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
                              className: 'glass',
                              sx: { overflow: 'visible' },
                          },
-                     }}>
+                               }}>
                 {/*
           MudStack Spacing="0" — Box with flex column layout, no gap between
           content and button group so the glass-inner-engraved bar looks flush.
@@ -241,11 +268,12 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
                 <Box sx={{ display: 'flex',
                            flexDirection: 'column',
                            minWidth: POPOVER_MIN_WIDTH,
-                           maxWidth: '90vw' }}>
+                           maxWidth: '90vw'
+                        }}>
                     {/* ChildContent */}
                     <Box sx={{ px: 2, pt: 2, pb: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                        {title && <ArcTitleBar stock={titleStock}>{title}</ArcTitleBar>}
-                        {children}
+                        { title && <ArcTitleBar stock={titleStock}>{ title }</ArcTitleBar> }
+                        { children }
                     </Box>
 
                     {/* Mirrors MudButtonGroup Class="glass-inner-engraved".

@@ -14,12 +14,19 @@
  * the yellow Deadline mode; both null means Timeless.
  */
 
-export interface Timeline {
+export interface Timeline
+{
     id: string | null
+
     startDependencyTagGroupId: string | null
+
     startPreferenceUTC: Date | null
+
     startDeadlineUTC: Date | null
+
     endDependencyTagGroupId: string | null
+
     endPreferenceUTC: Date | null
+
     endDeadlineUTC: Date | null
 }

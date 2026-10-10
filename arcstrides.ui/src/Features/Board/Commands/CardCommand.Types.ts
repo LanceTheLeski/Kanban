@@ -38,10 +38,14 @@ export type CardCommandSpan =
     | { text: string }
     | { entity: string; kind?: 'column' | 'swimlane' | 'task' | 'tag' }
 
-export interface CardCommandEntry {
+export interface CardCommandEntry
+{
     id: string
+
     kind: CardCommandKind
+
     at: Date
+
     content: CardCommandSpan[]
 }
 

@@ -19,18 +19,23 @@ import { fetchBoard } from '../Board/Board.APIs'
 import { boardLabel } from './Calendar.Views'
 import type { Card } from '../../Entities/Card/Card.Types'
 
-export interface CardChoice {
+export interface CardChoice
+{
     card: Card
     boardTitle: string
 }
 
-interface CardChoices {
+interface CardChoices
+{
     choices: CardChoice[]
+
     loading: boolean
+
     error: string | null
 }
 
-export function useCardChoices(boardIds: string[], enabled: boolean): CardChoices {
+export function useCardChoices(boardIds: string[], enabled: boolean): CardChoices
+{
     // One string, so the effect re-runs when the set of boards changes and not
     // when an array with the same boards in it is rebuilt on a render.
     const key = [...new Set(boardIds.filter(Boolean))].sort().join(',')
@@ -38,34 +43,47 @@ export function useCardChoices(boardIds: string[], enabled: boolean): CardChoice
     const [result, setResult] = useState<{ key: string; choices: CardChoice[]; error: string | null }>(
         { key: '', choices: [], error: null })
 
-    useEffect(() => {
-        if (!enabled || !key || result.key === key) return
+    useEffect(() =>
+    {
+        if (!enabled || !key || result.key === key)
+            return
 
         let current = true
         Promise.allSettled(key.split(',').map(fetchBoard))
-            .then(outcomes => {
-                if (!current) return
-                const boards = outcomes.flatMap(outcome => (outcome.status === 'fulfilled' ? [outcome.value] : []))
-                const failed = outcomes.length - boards.length
+               .then(outcomes =>
+               {
+                   if (!current)
+                       return
+                   const boards = outcomes.flatMap(outcome => (outcome.status === 'fulfilled'
+                       ? [outcome.value]
+                       : []))
+                   const failed = outcomes.length - boards.length
 
-                setResult({
-                    key,
-                    choices: boards.flatMap(board => board.cards.map(card => ({
-                        card,
-                        boardTitle: board.title || boardLabel(board.id),
-                    }))),
-                    // Some boards read is still a list worth showing; say what is missing.
-                    error: failed === 0 ? null : `${failed} of ${outcomes.length} boards could not be read.`,
-                })
-            })
+                   setResult({
+                       key,
+                       choices: boards.flatMap(board => board.cards.map(card =>
+                       ({
+                           card,
+                           boardTitle: board.title || boardLabel(board.id),
+                       }))),
+                       // Some boards read is still a list worth showing; say what is missing.
+                       error: failed === 0
+                           ? null
+                           : `${failed} of ${outcomes.length} boards could not be read.`,
+                   })
+               })
 
         return () => { current = false }
     }, [enabled, key, result.key])
 
     return {
-        choices: result.key === key ? result.choices : [],
+        choices: result.key === key
+            ? result.choices
+            : [],
         loading: enabled && !!key && result.key !== key,
-        error: result.key === key ? result.error : null,
+        error: result.key === key
+            ? result.error
+            : null,
     }
 }
 

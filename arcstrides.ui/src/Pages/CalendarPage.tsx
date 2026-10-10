@@ -29,7 +29,8 @@ import { useCalendarStore } from '../Features/Calendar/Calendar.Store'
 import { monthPath } from '../Features/Calendar/Calendar.Grid'
 import { AppMenu } from '../Layouts/AppMenu'
 
-export const CalendarPage: React.FC = () => {
+export const CalendarPage: React.FC = () =>
+{
     const params = useParams<{ year: string; month: string }>()
     const navigate = useNavigate()
 
@@ -39,20 +40,24 @@ export const CalendarPage: React.FC = () => {
                   && Number.isInteger(month) && month >= 0 && month <= 11
 
     const { status, error, loadMonth } = useCalendarStore(
-        useShallow(state => ({
+        useShallow(state =>
+        ({
             status: state.status,
             error: state.error,
             loadMonth: state.loadMonth,
         })),
     )
 
-    useEffect(() => {
-        if (valid) loadMonth(year, month)
+    useEffect(() =>
+    {
+        if (valid)
+            loadMonth(year, month)
     }, [valid, year, month, loadMonth])
 
     // A month the calendar does not have — /calendar/2026/13 — goes to this one
     // rather than to an error page about a typo in the address bar.
-    if (!valid) return <CurrentMonth />
+    if (!valid)
+        return <CurrentMonth />
 
     const start = dayjs(new Date(year, month, 1))
     const go = (to: Dayjs) => navigate(monthPath(to))
@@ -73,16 +78,20 @@ export const CalendarPage: React.FC = () => {
                              onNext={() => go(start.add(1, 'month'))}
                              menu={<AppMenu />} />
 
-                {status === 'error' && <ReadFailed error={error} onRetry={() => loadMonth(year, month)} />}
+                { status === 'error' && <ReadFailed error={error}
+                                                    onRetry={() => loadMonth(year, month)} />
+                }
 
-                <MonthView year={year} month={month} />
+                <MonthView year={year}
+                           month={month} />
             </Box>
         </Box>
     )
 }
 
 /** /calendar, and anywhere the route names no real month: today's month. */
-export const CurrentMonth: React.FC = () => <Navigate to={monthPath(dayjs())} replace />
+export const CurrentMonth: React.FC = () => <Navigate to={monthPath(dayjs())}
+                                                      replace />
 
 export default CalendarPage
 
@@ -93,7 +102,8 @@ export default CalendarPage
  * The read failed: said on red card above the grid, which is still drawn. The
  * detail is kept to a line; the whole of it is in the network tab.
  */
-function ReadFailed({ error, onRetry }: { error: string | null; onRetry: () => void }) {
+function ReadFailed({ error, onRetry }: { error: string | null; onRetry: () => void })
+{
     return (
         <Box sx={{ px: 1, pt: 1, display: 'flex', justifyContent: 'center' }}>
             <Paper className="card-stock paper-red"
@@ -104,15 +114,20 @@ function ReadFailed({ error, onRetry }: { error: string | null; onRetry: () => v
                          display: 'flex',
                          alignItems: 'center',
                          gap: 1.5,
-                         maxWidth: '100%' }}>
+                         maxWidth: '100%'
+                      }}>
                 <Typography sx={{ fontSize: '0.78rem',
                                   color: 'arc.onPaperStrong',
                                   minWidth: 0,
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap' }}
+                                  whiteSpace: 'nowrap'
+                               }}
                             title={error ?? undefined}>
-                    Could not load what is on this month's days.{error ? ` ${error}` : ''}
+                    Could not load what is on this month's days.{ error
+                        ? ` ${error}`
+                        : ''
+                                                                }
                 </Typography>
                 <Button size="small"
                         variant="text"

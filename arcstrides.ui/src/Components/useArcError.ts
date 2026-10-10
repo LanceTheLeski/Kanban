@@ -26,15 +26,19 @@
 import { useCallback } from 'react'
 import { useSnackbar } from 'notistack'
 
-export const useArcError = () => {
+export const useArcError = () =>
+{
     const { enqueueSnackbar } = useSnackbar()
 
     const addError = useCallback(
-        (message: string, errorCode?: number | null) => {
+        (message: string, errorCode?: number | null) =>
+        {
             // Mirrors: var displayMessage = errorCode.HasValue ?
             //   $"{errorCode}: {errorMessage}" : $"{errorMessage}";
             const displayMessage =
-                errorCode != null ? `${errorCode}: ${message}` : message
+                errorCode != null
+                    ? `${errorCode}: ${message}`
+                    : message
 
             enqueueSnackbar(displayMessage, { variant: 'error' })
         },
@@ -47,14 +51,16 @@ export const useArcError = () => {
      * you will likely need these for success feedback on overlay submits.
      */
     const addSuccess = useCallback(
-        (message: string) => {
+        (message: string) =>
+        {
             enqueueSnackbar(message, { variant: 'success' })
         },
         [enqueueSnackbar]
     )
 
     const addInfo = useCallback(
-        (message: string) => {
+        (message: string) =>
+        {
             enqueueSnackbar(message, { variant: 'info' })
         },
         [enqueueSnackbar]

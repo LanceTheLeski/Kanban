@@ -33,7 +33,8 @@ import { Box } from '@mui/material'
 import { BOARD_GAP, COLUMN_WIDTH, STACK_LABEL_BELOW, SWIMLANE_LABEL_WIDTH } from '../Board.Layout'
 import type { Column } from '../Board.Types'
 
-interface ColumnGlassProps {
+interface ColumnGlassProps
+{
     columns: Column[]
 }
 
@@ -49,15 +50,18 @@ export const ColumnGlass: React.FC<ColumnGlassProps> = ({ columns }) => (
                px: BOARD_GAP,
                // The header row's own top padding, so the strip starts where the
                // column's name does.
-               pt: 1 }}>
+               pt: 1
+            }}>
         {/* Where the labels are. Card, not glass — nothing is laid over them. */}
         <Box sx={{ width: SWIMLANE_LABEL_WIDTH, flexShrink: 0 }} />
 
-        {columns.map(column => (
-            <Box key={column.id}
-                 className="column-glass"
-                 sx={{ width: COLUMN_WIDTH, flexShrink: 0 }} />
-        ))}
+        { columns.map(column =>
+                      (
+                          <Box key={column.id}
+                               className="column-glass"
+                               sx={{ width: COLUMN_WIDTH, flexShrink: 0 }} />
+                      ))
+        }
     </Box>
 )
 

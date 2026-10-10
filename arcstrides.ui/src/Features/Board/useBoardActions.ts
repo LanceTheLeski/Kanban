@@ -25,7 +25,8 @@ import { useCallback } from 'react'
 import { useArcError } from '../../Components/useArcError'
 import { useBoardStore } from './Board.Store'
 
-interface RunOptions {
+interface RunOptions
+{
     /**
      * Re-read the board after the action succeeds. Default true.
      * Pass false for mutations that have already updated local state correctly.
@@ -33,23 +34,31 @@ interface RunOptions {
     refresh?: boolean
 }
 
-export function useBoardActions() {
+export function useBoardActions()
+{
     const { addError } = useArcError()
     const refreshBoard = useBoardStore(state => state.refresh)
 
     const run = useCallback(
-        async (label: string, action: () => Promise<unknown>, options: RunOptions = {}): Promise<boolean> => {
+        async (label: string, action: () => Promise<unknown>, options: RunOptions = {}): Promise<boolean> =>
+        {
             const { refresh = true } = options
 
-            try {
+            try
+            {
                 await action()
-            } catch (error) {
-                const message = error instanceof Error ? error.message : String(error)
+            }
+            catch (error)
+            {
+                const message = error instanceof Error
+                    ? error.message
+                    : String(error)
                 addError(`${label} failed: ${message}`)
                 return false
             }
 
-            if (refresh) await refreshBoard()
+            if (refresh)
+                await refreshBoard()
 
             return true
         },

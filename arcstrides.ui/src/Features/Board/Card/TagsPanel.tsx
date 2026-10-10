@@ -53,28 +53,36 @@ import AddIcon from '@mui/icons-material/Add'
 import CloseIcon from '@mui/icons-material/Close'
 import { TAGS_BOX_WIDTH } from '../../../Styles/Measures'
 
-export interface CardTag {
+export interface CardTag
+{
     id: string
     title: string
 }
 
-interface TagsPanelProps {
+interface TagsPanelProps
+{
     tags: CardTag[]
+
     onChange: (tags: CardTag[]) => void
+
     /** Why these are not saved, for the dot in the corner. A card's reason by default. */
     unsavedNote?: string
 }
 
-export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange, unsavedNote = CARD_NOTE }) => {
+export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange, unsavedNote = CARD_NOTE }) =>
+{
     const [draft, setDraft] = useState('')
 
-    const add = () => {
+    const add = () =>
+    {
         const title = draft.trim()
-        if (!title) return
+        if (!title)
+            return
 
         // Case-insensitive, because "Blocked" and "blocked" being two tags is
         // never what anyone meant.
-        if (tags.some(tag => tag.title.toLowerCase() === title.toLowerCase())) {
+        if (tags.some(tag => tag.title.toLowerCase() === title.toLowerCase()))
+        {
             setDraft('')
             return
         }
@@ -95,7 +103,8 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange, unsavedNot
                      flexDirection: 'column',
                      gap: 0.25,
                      p: 0.5,
-                     position: 'relative' }}>
+                     position: 'relative'
+                  }}>
             {/*
                 The "not saved" warning as a dot in the corner. A line of text
                 would cost a third of the box, and the note is context rather
@@ -110,7 +119,8 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange, unsavedNot
                            height: 6,
                            borderRadius: '50%',
                            backgroundColor: 'arc.logAlert',
-                           cursor: 'help' }} />
+                           cursor: 'help'
+                        }} />
             </Tooltip>
 
             {/* The pills. Scrolls rather than growing — see the header. */}
@@ -121,12 +131,14 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange, unsavedNot
                        flexWrap: 'wrap',
                        alignContent: 'flex-start',
                        gap: 0.35,
-                       pr: 1 }}>
-                {tags.length === 0 && (
+                       pr: 1
+                    }}>
+                { tags.length === 0 && (
                     <Typography sx={{ fontSize: '0.6rem', color: 'arc.onPaperMuted', lineHeight: 1.6 }}>
                         Tags…
                     </Typography>
-                )}
+                )
+                }
 
                 {/*
                     Each tag is its own small piece of card, set down at a
@@ -142,36 +154,41 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange, unsavedNot
                     kind of thing from the board they are pinned to", which is
                     the part that has to read.
                 */}
-                {tags.map(tag => (
-                    <Box key={tag.id}
-                         className="card-stock-flat card-tilt paper-red"
-                         sx={{ display: 'inline-flex',
-                               alignItems: 'center',
-                               gap: 0.1,
-                               pl: 0.6,
-                               pr: 0.1,
-                               maxWidth: '100%' }}>
-                        <Typography sx={{ fontSize: '0.6rem',
-                                          lineHeight: 1.5,
-                                          fontWeight: 600,
-                                          letterSpacing: '0.02em',
-                                          color: 'arc.onPaperStrong',
-                                          overflow: 'hidden',
-                                          textOverflow: 'ellipsis',
-                                          whiteSpace: 'nowrap' }}>
-                            {tag.title}
-                        </Typography>
+                { tags.map(tag =>
+                           (
+                               <Box key={tag.id}
+                                    className="card-stock-flat card-tilt paper-red"
+                                    sx={{ display: 'inline-flex',
+                                          alignItems: 'center',
+                                          gap: 0.1,
+                                          pl: 0.6,
+                                          pr: 0.1,
+                                          maxWidth: '100%'
+                                       }}>
+                                   <Typography sx={{ fontSize: '0.6rem',
+                                                     lineHeight: 1.5,
+                                                     fontWeight: 600,
+                                                     letterSpacing: '0.02em',
+                                                     color: 'arc.onPaperStrong',
+                                                     overflow: 'hidden',
+                                                     textOverflow: 'ellipsis',
+                                                     whiteSpace: 'nowrap'
+                                                  }}>
+                                       { tag.title }
+                                   </Typography>
 
-                        <IconButton size="small"
-                                    onClick={() => remove(tag.id)}
-                                    aria-label={`Remove tag ${tag.title}`}
-                                    sx={{ p: 0.1,
-                                          color: 'arc.onPaperMuted',
-                                          '&:hover': { color: 'arc.paperDanger' } }}>
-                            <CloseIcon sx={{ fontSize: '0.6rem' }} />
-                        </IconButton>
-                    </Box>
-                ))}
+                                   <IconButton size="small"
+                                               onClick={() => remove(tag.id)}
+                                               aria-label={`Remove tag ${tag.title}`}
+                                               sx={{ p: 0.1,
+                                                     color: 'arc.onPaperMuted',
+                                                     '&:hover': { color: 'arc.paperDanger' }
+                                                  }}>
+                                       <CloseIcon sx={{ fontSize: '0.6rem' }} />
+                                   </IconButton>
+                               </Box>
+                           ))
+                }
             </Box>
 
             {/* Pinned below the scroller so it never scrolls out of reach. */}
@@ -180,11 +197,14 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange, unsavedNot
                        flexShrink: 0,
                        pl: 0.5,
                        borderTop: '1px solid',
-                       borderTopColor: 'arc.paperDivider' }}>
+                       borderTopColor: 'arc.paperDivider'
+                    }}>
                 <InputBase value={draft}
                            onChange={event => setDraft(event.target.value)}
-                           onKeyDown={event => {
-                               if (event.key !== 'Enter') return
+                           onKeyDown={event =>
+                           {
+                               if (event.key !== 'Enter')
+                                   return
                                event.preventDefault()
                                add()
                            }}
@@ -194,10 +214,18 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange, unsavedNot
                                  fontSize: '0.6rem',
                                  color: 'arc.onPaper',
                                  '& input': { p: 0 },
-                                 '& input::placeholder': { color: 'arc.onPaperMuted', opacity: 1 } }} />
-                <IconButton size="small" onClick={add} disabled={!draft.trim()} aria-label="Add tag" sx={{ p: 0.15 }}>
+                                 '& input::placeholder': { color: 'arc.onPaperMuted', opacity: 1 }
+                              }} />
+                <IconButton size="small"
+                            onClick={add}
+                            disabled={!draft.trim()}
+                            aria-label="Add tag"
+                            sx={{ p: 0.15 }}>
                     <AddIcon sx={{ fontSize: '0.7rem',
-                                   color: draft.trim() ? 'arc.paperAccent' : 'arc.onPaperMuted' }} />
+                                   color: draft.trim()
+                                       ? 'arc.paperAccent'
+                                       : 'arc.onPaperMuted'
+                                }} />
                 </IconButton>
             </Box>
         </Paper>

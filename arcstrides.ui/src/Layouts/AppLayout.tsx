@@ -21,7 +21,8 @@
 import React from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 
-export const AppLayout: React.FC = () => {
+export const AppLayout: React.FC = () =>
+{
     const { pathname } = useLocation()
 
     return (
@@ -43,7 +44,9 @@ export default AppLayout
  * Route → background image. Mirrors the switch in MainLayout.UpdateBackground().
  * Files live in public/ and are copied from ArcStrides.UI.Legacy/wwwroot/.
  */
-function backgroundFor(pathname: string): string {
-    if (pathname.startsWith('/calendar')) return 'CalendarBackground3.jpg'
+function backgroundFor(pathname: string): string
+{
+    if (pathname.startsWith('/calendar'))
+        return 'CalendarBackground3.jpg'
     return 'DefaultBackground5.jpg'
 }

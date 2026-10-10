@@ -42,19 +42,23 @@ import { COMMAND_PANEL_MIN_WIDTH } from '../../../Styles/Measures'
 import { text, type CardCommandEntry, type CardCommandKind, type CardCommandSpan } from './CardCommand.Types'
 import type { Card } from '../../../Entities/Card/Card.Types'
 
-interface CommandPanelProps {
+interface CommandPanelProps
+{
     /** The card the commands act on. */
     card: Card
 }
 
-export const CommandPanel: React.FC<CommandPanelProps> = ({ card }) => {
+export const CommandPanel: React.FC<CommandPanelProps> = ({ card }) =>
+{
     const [entries, setEntries] = useState<CardCommandEntry[]>([])
     const [draft, setDraft] = useState('')
     const transcriptRef = useRef<HTMLDivElement | null>(null)
 
-    const submit = () => {
+    const submit = () =>
+    {
         const entered = draft.trim()
-        if (!entered) return
+        if (!entered)
+            return
 
         setDraft('')
         append(...respondTo(entered, card))
@@ -86,7 +90,8 @@ export const CommandPanel: React.FC<CommandPanelProps> = ({ card }) => {
                      minWidth: COMMAND_PANEL_MIN_WIDTH,
                      flex: 1,
                      minHeight: 0,
-                     height: '100%' }}>
+                     height: '100%'
+                  }}>
 
             <Box className="card-stock"
                  sx={{ display: 'flex',
@@ -95,11 +100,13 @@ export const CommandPanel: React.FC<CommandPanelProps> = ({ card }) => {
                        flexShrink: 0,
                        alignSelf: 'flex-start',
                        px: 0.75,
-                       py: 0.25 }}>
+                       py: 0.25
+                    }}>
                 <Typography sx={{ fontSize: '0.7rem',
                                   fontWeight: 700,
                                   color: 'arc.onPaperStrong',
-                                  letterSpacing: '0.06em' }}>
+                                  letterSpacing: '0.06em'
+                               }}>
                     COMMANDS
                 </Typography>
 
@@ -118,10 +125,13 @@ export const CommandPanel: React.FC<CommandPanelProps> = ({ card }) => {
                        display: 'flex',
                        flexDirection: 'column',
                        px: 0.75,
-                       py: 0.5 }}>
-                {entries.length === 0
+                       py: 0.5
+                    }}>
+                { entries.length === 0
                     ? <EmptyTranscript />
-                    : entries.map(entry => <CommandEntry key={entry.id} entry={entry} />)}
+                    : entries.map(entry => <CommandEntry key={entry.id}
+                                                         entry={entry} />)
+                }
             </Box>
 
             <Box className="card-stock"
@@ -132,20 +142,24 @@ export const CommandPanel: React.FC<CommandPanelProps> = ({ card }) => {
                        px: 0.75,
                        '&:focus-within': { outline: '2px solid',
                                            outlineColor: 'arc.paperAccent',
-                                           outlineOffset: '-1px' } }}>
+                                           outlineOffset: '-1px' }
+                    }}>
 
                 <Box component="span"
                      sx={{ fontFamily: MONO,
                            fontWeight: 700,
                            color: 'arc.paperAccent',
-                           fontSize: '0.8rem' }}>
+                           fontSize: '0.8rem'
+                        }}>
                     &gt;
                 </Box>
 
                 <InputBase value={draft}
                            onChange={event => setDraft(event.target.value)}
-                           onKeyDown={event => {
-                               if (event.key !== 'Enter') return
+                           onKeyDown={event =>
+                           {
+                               if (event.key !== 'Enter')
+                                   return
                                event.preventDefault()
                                submit()
                            }}
@@ -154,22 +168,31 @@ export const CommandPanel: React.FC<CommandPanelProps> = ({ card }) => {
                                  fontSize: '0.75rem',
                                  color: 'arc.onPaper',
                                  fontFamily: MONO,
-                                 '& input::placeholder': { color: 'arc.onPaperMuted', opacity: 1 } }} />
+                                 '& input::placeholder': { color: 'arc.onPaperMuted', opacity: 1 }
+                              }} />
 
-                <IconButton size="small" onClick={submit} disabled={!draft.trim()} aria-label="Run">
+                <IconButton size="small"
+                            onClick={submit}
+                            disabled={!draft.trim()}
+                            aria-label="Run">
                     <SendIcon sx={{ fontSize: '0.9rem',
-                                    color: draft.trim() ? 'arc.paperAccent' : 'arc.onPaperMuted' }} />
+                                    color: draft.trim()
+                                        ? 'arc.paperAccent'
+                                        : 'arc.onPaperMuted'
+                                 }} />
                 </IconButton>
             </Box>
         </Paper>
     )
 
     /** Adds entries and keeps the newest in view. */
-    function append(...added: CardCommandEntry[]) {
+    function append(...added: CardCommandEntry[])
+    {
         setEntries(previous => [...previous, ...added])
 
         // After the entries have been laid out, or the scroll lands short.
-        requestAnimationFrame(() => {
+        requestAnimationFrame(() =>
+        {
             if (transcriptRef.current)
                 transcriptRef.current.scrollTop = transcriptRef.current.scrollHeight
         })
@@ -188,7 +211,8 @@ export default CommandPanel
  * colour-blind reader, a screenshot in grayscale, a dim monitor. Colour alone
  * should never be the only carrier of a distinction.
  */
-const KIND: Record<CardCommandKind, { colour: string; sigil: string; label: string }> = {
+const KIND: Record<CardCommandKind, { colour: string; sigil: string; label: string }> =
+{
     command: { colour: 'arc.logCommand', sigil: '>', label: 'Command' },
     result: { colour: 'arc.logResult', sigil: '=', label: 'Result' },
     error: { colour: 'arc.logAlert', sigil: '!', label: 'Error' },
@@ -204,7 +228,8 @@ const clockFormat = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute
  * every other failure does. Until then `/help` lists them and nothing else
  * claims to work.
  */
-const PLANNED_COMMANDS = [
+const PLANNED_COMMANDS =
+[
     ['/move <column>', 'move this card to a column'],
     ['/lane <swimlane>', 'move it to a swimlane'],
     ['/task <title>', 'add a task'],
@@ -219,13 +244,14 @@ const EmptyTranscript: React.FC = () => (
     <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', px: 1 }}>
         <Typography sx={{ fontSize: '0.68rem', color: 'arc.onPaperMuted', textAlign: 'center' }}>
             Nothing run yet. Type <Box component="span"
-                                      sx={{ fontFamily: MONO }}>/help</Box> to
+                                       sx={{ fontFamily: MONO }}>/help</Box> to
             see what this console understands.
         </Typography>
     </Box>
 )
 
-const CommandEntry: React.FC<{ entry: CardCommandEntry }> = ({ entry }) => {
+const CommandEntry: React.FC<{ entry: CardCommandEntry }> = ({ entry }) =>
+{
     const kind = KIND[entry.kind]
 
     return (
@@ -240,17 +266,21 @@ const CommandEntry: React.FC<{ entry: CardCommandEntry }> = ({ entry }) => {
                    pl: 0.75,
                    borderLeft: '2px solid',
                    borderLeftColor: kind.colour,
-                   '&:hover': { backgroundColor: 'arc.paperHover' } }}>
+                   '&:hover': { backgroundColor: 'arc.paperHover' }
+                }}>
 
             <Typography component="time"
                         sx={{ fontFamily: MONO,
                               fontSize: '0.62rem',
                               color: 'arc.onPaperMuted',
-                              whiteSpace: 'nowrap' }}>
-                {clockFormat.format(entry.at)}
+                              whiteSpace: 'nowrap'
+                           }}>
+                { clockFormat.format(entry.at) }
             </Typography>
 
-            <Tooltip title={kind.label} placement="left" describeChild>
+            <Tooltip title={kind.label}
+                     placement="left"
+                     describeChild>
                 <Box component="span"
                      aria-label={kind.label}
                      sx={{ fontFamily: MONO,
@@ -258,25 +288,33 @@ const CommandEntry: React.FC<{ entry: CardCommandEntry }> = ({ entry }) => {
                            fontWeight: 700,
                            color: kind.colour,
                            width: '1ch',
-                           textAlign: 'center' }}>
-                    {kind.sigil}
+                           textAlign: 'center'
+                        }}>
+                    { kind.sigil }
                 </Box>
             </Tooltip>
 
             <Typography sx={{ fontSize: '0.7rem',
                               lineHeight: 1.4,
-                              color: entry.kind === 'command' ? 'arc.logCommand' : 'arc.onPaper',
+                              color: entry.kind === 'command'
+                                  ? 'arc.logCommand'
+                                  : 'arc.onPaper',
                               fontFamily: entry.kind === 'command'
                                   ? MONO
-                                  : undefined }}>
-                {entry.content.map((span, index) => <Span key={index} span={span} />)}
+                                  : undefined
+                           }}>
+                { entry.content.map((span, index) => <Span key={index}
+                                                           span={span} />)
+                }
             </Typography>
         </Box>
     )
 }
 
-const Span: React.FC<{ span: CardCommandSpan }> = ({ span }) => {
-    if ('text' in span) return <>{span.text} </>
+const Span: React.FC<{ span: CardCommandSpan }> = ({ span }) =>
+{
+    if ('text' in span)
+        return <>{ span.text } </>
 
     return (
         <>
@@ -290,9 +328,10 @@ const Span: React.FC<{ span: CardCommandSpan }> = ({ span }) => {
                        // A name can be long and is not breakable mid-word by
                        // choice; let it wrap at the pill rather than push the
                        // panel wider.
-                       overflowWrap: 'anywhere' }}>
-                {span.entity}
-            </Box>{' '}
+                       overflowWrap: 'anywhere'
+                    }}>
+                { span.entity }
+            </Box>{ ' ' }
         </>
     )
 }
@@ -305,7 +344,8 @@ const Span: React.FC<{ span: CardCommandSpan }> = ({ span }) => {
  * Returns the echo of the line plus its answer, so the caller appends both at
  * once and they always carry the same timestamp.
  */
-function respondTo(entered: string, card: Card): CardCommandEntry[] {
+function respondTo(entered: string, card: Card): CardCommandEntry[]
+{
     const at = new Date()
     const id = `${at.getTime()}`
     const echo: CardCommandEntry = { id, kind: 'command', at, content: [text(entered)] }
@@ -331,6 +371,7 @@ function respondTo(entered: string, card: Card): CardCommandEntry[] {
     return [echo, answer(`${id}-r`, at, 'error', `No command called /${name}. Try /help.`)]
 }
 
-function answer(id: string, at: Date, kind: CardCommandKind, message: string): CardCommandEntry {
+function answer(id: string, at: Date, kind: CardCommandKind, message: string): CardCommandEntry
+{
     return { id, kind, at, content: [text(message)] }
 }

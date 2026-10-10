@@ -27,13 +27,15 @@ import React from 'react'
 import { Typography } from '@mui/material'
 import { NUMERALS } from '../../Styles/Fonts'
 
-interface DiscNumberProps {
+interface DiscNumberProps
+{
     value: number
     /** The disc's diameter, in px. */
     disc: number
 }
 
-export const DiscNumber: React.FC<DiscNumberProps> = ({ value, disc }) => {
+export const DiscNumber: React.FC<DiscNumberProps> = ({ value, disc }) =>
+{
     const fit = fitted(String(value), disc * (1 - 2 * MARGIN))
 
     return (
@@ -45,8 +47,9 @@ export const DiscNumber: React.FC<DiscNumberProps> = ({ value, disc }) => {
                           lineHeight: 1,
                           position: 'relative',
                           left: `${fit.left}px`,
-                          top: `${fit.top}px` }}>
-            {value}
+                          top: `${fit.top}px`
+                       }}>
+            { value }
         </Typography>
     )
 }
@@ -61,10 +64,13 @@ const MARGIN = 0.05
 
 const WEIGHT = 700
 
-interface Fit {
+interface Fit
+{
     size: number
+
     /** How far to move the figures so their ink, not their box, is centred. */
     left: number
+
     top: number
 }
 
@@ -72,10 +78,12 @@ interface Fit {
  * The size at which every day's number fits a circle `room` px across, and
  * where to put `text` so its own ink is centred at that size.
  */
-function fitted(text: string, room: number): Fit {
+function fitted(text: string, room: number): Fit
+{
     const key = `${text}:${room}`
     const known = fits.get(key)
-    if (known) return known
+    if (known)
+        return known
 
     const ink = measure(text)
     const scale = room / widestDay()
@@ -93,11 +101,17 @@ const fits = new Map<string, Fit>()
 let widest: number | undefined
 
 /** The largest ink diagonal of any day's number, 1 to 31, at SAMPLE px. */
-function widestDay(): number {
-    if (widest === undefined) {
+function widestDay(): number
+{
+    if (widest === undefined)
+    {
         const diagonals = Array.from({ length: 31 }, (_, index) => measure(String(index + 1)))
-            .flatMap(ink => ink ? [Math.hypot(ink.width, ink.height)] : [])
-        widest = diagonals.length > 0 ? Math.max(...diagonals) : Infinity
+                               .flatMap(ink => ink
+                                   ? [Math.hypot(ink.width, ink.height)]
+                                   : [])
+        widest = diagonals.length > 0
+            ? Math.max(...diagonals)
+            : Infinity
     }
     return widest
 }
@@ -112,9 +126,12 @@ let context: CanvasRenderingContext2D | null | undefined
  * centre of the span it will be set in — a span as wide as the text's advance,
  * and as tall as its font size, since the line height is 1.
  */
-function measure(text: string): { width: number; height: number; offsetX: number; offsetY: number } | null {
-    if (context === undefined) context = document.createElement('canvas').getContext('2d')
-    if (!context) return null
+function measure(text: string): { width: number; height: number; offsetX: number; offsetY: number } | null
+{
+    if (context === undefined)
+        context = document.createElement('canvas').getContext('2d')
+    if (!context)
+        return null
 
     context.font = `${WEIGHT} ${SAMPLE}px ${NUMERALS}`
     const metrics = context.measureText(text)
@@ -122,7 +139,8 @@ function measure(text: string): { width: number; height: number; offsetX: number
     const right = metrics.actualBoundingBoxRight
     const ascent = metrics.actualBoundingBoxAscent
     const descent = metrics.actualBoundingBoxDescent
-    if (!(right + left > 0 && ascent + descent > 0)) return null
+    if (!(right + left > 0 && ascent + descent > 0))
+        return null
 
     // The baseline sits where the font's own ascent and descent, centred in a
     // line box one font size tall, put it.

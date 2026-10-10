@@ -29,9 +29,12 @@ import { Box, Typography } from '@mui/material'
 /** Which stock the strip is cut from. Mirrors the .paper-* classes. */
 export type TitleStock = 'cream' | 'blue' | 'red' | 'green' | 'yellow' | 'sage'
 
-interface ArcTitleBarProps {
+interface ArcTitleBarProps
+{
     children: React.ReactNode
+
     stock?: TitleStock
+
     /** A second line, for anything the title alone cannot carry. */
     caption?: React.ReactNode
 }
@@ -45,7 +48,9 @@ export const ArcTitleBar: React.FC<ArcTitleBarProps> = ({ children, stock = 'cre
        Left-aligned rather than centred: a label on the corner of a folder is
        where a label goes, and it lines the heading up with the fields under it.
     */
-    <Box className={`card-stock${stock === 'cream' ? '' : ` paper-${stock}`}`}
+    <Box className={`card-stock${stock === 'cream'
+             ? ''
+             : ` paper-${stock}`}`}
          sx={{ flexShrink: 0, alignSelf: 'flex-start', maxWidth: '100%', px: 1, py: 0.35 }}>
         <Typography component="h2"
                     sx={{ fontSize: '0.78rem',
@@ -53,15 +58,17 @@ export const ArcTitleBar: React.FC<ArcTitleBarProps> = ({ children, stock = 'cre
                           // Sentence case. Letterspaced caps is signage, and these
                           // are captions on pieces of card.
                           letterSpacing: '0.01em',
-                          color: 'arc.onPaperStrong' }}>
-            {children}
+                          color: 'arc.onPaperStrong'
+                       }}>
+            { children }
         </Typography>
 
-        {caption && (
+        { caption && (
             <Typography sx={{ fontSize: '0.62rem', color: 'arc.onPaperMuted', lineHeight: 1.4 }}>
-                {caption}
+                { caption }
             </Typography>
-        )}
+        )
+        }
     </Box>
 )
 

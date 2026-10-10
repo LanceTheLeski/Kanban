@@ -46,16 +46,21 @@ import { labelStyle, rgbOf, toHex } from '../Styles/Stock'
 import { LADDERS } from '../Styles/Palette'
 import { MONO } from '../Styles/Fonts'
 
-interface ArcColourPickerProps {
+interface ArcColourPickerProps
+{
     /** The chosen colour, or null for "let the board decide". */
     value: string | null
+
     onChange: (colour: string | null) => void
+
     /** What the board would use if nothing is chosen — shown while `value` is null. */
     fallback: string
+
     label: string
 }
 
-export const ArcColourPicker: React.FC<ArcColourPickerProps> = ({ value, onChange, fallback, label }) => {
+export const ArcColourPicker: React.FC<ArcColourPickerProps> = ({ value, onChange, fallback, label }) =>
+{
     const shown = toHex(value ?? fallback)
     const isDefault = value === null
     const [saved, setSaved] = useState<string[]>(readSaved)
@@ -64,19 +69,22 @@ export const ArcColourPicker: React.FC<ArcColourPickerProps> = ({ value, onChang
     const onPaper = PAPER.some(swatch => swatch.colour === shown)
     const mixed = !isDefault && !onPaper && !saved.includes(shown)
 
-    const keep = (next: string[]) => {
+    const keep = (next: string[]) =>
+    {
         setSaved(next)
         writeSaved(next)
     }
 
     return (
-        <Box className="card-stock" sx={{ p: 0.75, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+        <Box className="card-stock"
+             sx={{ p: 0.75, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Typography sx={{ fontSize: '0.68rem',
                                   fontWeight: 700,
                                   color: 'arc.onPaperStrong',
-                                  flex: 1 }}>
-                    {label}
+                                  flex: 1
+                               }}>
+                    { label }
                 </Typography>
 
                 {/* The chosen colour on a chip, with its value — or "Default" while the board decides. */}
@@ -84,31 +92,38 @@ export const ArcColourPicker: React.FC<ArcColourPickerProps> = ({ value, onChang
                      aria-hidden
                      style={labelStyle(shown)}
                      sx={{ px: 1, py: 0.2, fontSize: '0.62rem', fontWeight: 700 }}>
-                    {isDefault ? 'Default' : shown}
+                    { isDefault
+                        ? 'Default'
+                        : shown
+                    }
                 </Box>
             </Box>
 
             <ChipRow label="Paper">
-                {PAPER.map((swatch, index) => (
-                    <Chip key={swatch.colour}
-                          colour={swatch.colour}
-                          name={swatch.name}
-                          tilt={index}
-                          chosen={!isDefault && shown === swatch.colour}
-                          onPick={() => onChange(swatch.colour)} />
-                ))}
+                { PAPER.map((swatch, index) =>
+                            (
+                                <Chip key={swatch.colour}
+                                      colour={swatch.colour}
+                                      name={swatch.name}
+                                      tilt={index}
+                                      chosen={!isDefault && shown === swatch.colour}
+                                      onPick={() => onChange(swatch.colour)} />
+                            ))
+                }
             </ChipRow>
 
             <ChipRow label="Yours">
-                {saved.map((colour, index) => (
-                    <Chip key={colour}
-                          colour={colour}
-                          name={`Saved colour ${colour}`}
-                          tilt={index + 1}
-                          chosen={!isDefault && shown === colour}
-                          onPick={() => onChange(colour)}
-                          onRemove={() => keep(saved.filter(other => other !== colour))} />
-                ))}
+                { saved.map((colour, index) =>
+                            (
+                                <Chip key={colour}
+                                      colour={colour}
+                                      name={`Saved colour ${colour}`}
+                                      tilt={index + 1}
+                                      chosen={!isDefault && shown === colour}
+                                      onPick={() => onChange(colour)}
+                                      onRemove={() => keep(saved.filter(other => other !== colour))} />
+                            ))
+                }
 
                 {/*
                     The full picker, behind a chip of plain card. While the colour
@@ -120,7 +135,9 @@ export const ArcColourPicker: React.FC<ArcColourPickerProps> = ({ value, onChang
                      className="card-stock-flat card-cut"
                      onClick={event => setMixing(event.currentTarget)}
                      aria-haspopup="dialog"
-                     aria-label={mixed ? `Mix a colour — now ${shown}` : 'Mix a colour'}
+                     aria-label={mixed
+                         ? `Mix a colour — now ${shown}`
+                         : 'Mix a colour'}
                      sx={{ display: 'inline-flex',
                            alignItems: 'center',
                            gap: 0.4,
@@ -133,25 +150,31 @@ export const ArcColourPicker: React.FC<ArcColourPickerProps> = ({ value, onChang
                            fontWeight: 700,
                            color: 'arc.onPaper',
                            '&:hover': { color: 'arc.onPaperStrong' },
-                           '&:focus-visible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 } }}>
-                    {mixed
-                        ? <Box component="span" sx={{ width: 10,
-                                                      height: 10,
-                                                      borderRadius: '50%',
-                                                      backgroundColor: shown,
-                                                      boxShadow: '0 0 0 1px rgba(0, 0, 0, .2)' }} />
-                        : <PaletteOutlinedIcon sx={{ fontSize: '0.8rem' }} />}
+                           '&:focus-visible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 }
+                        }}>
+                    { mixed
+                        ? <Box component="span"
+                               sx={{ width: 10,
+                                     height: 10,
+                                     borderRadius: '50%',
+                                     backgroundColor: shown,
+                                     boxShadow: '0 0 0 1px rgba(0, 0, 0, .2)'
+                                  }} />
+                        : <PaletteOutlinedIcon sx={{ fontSize: '0.8rem' }} />
+                    }
                     Mix…
                 </Box>
             </ChipRow>
 
-            {saved.length === 0 && (
+            { saved.length === 0 && (
                 <Typography sx={{ fontSize: '0.6rem',
                                   color: 'arc.onPaperMuted',
-                                  pl: `${ROW_LABEL_WIDTH}px` }}>
+                                  pl: `${ROW_LABEL_WIDTH}px`
+                               }}>
                     Mix a colour and save it, and it stays here.
                 </Typography>
-            )}
+            )
+            }
 
             <Button size="small"
                     onClick={() => onChange(null)}
@@ -159,7 +182,8 @@ export const ArcColourPicker: React.FC<ArcColourPickerProps> = ({ value, onChang
                     sx={{ alignSelf: 'flex-end',
                           fontSize: '0.62rem',
                           color: 'arc.onPaper',
-                          textTransform: 'none' }}>
+                          textTransform: 'none'
+                       }}>
                 Use default
             </Button>
 
@@ -181,8 +205,10 @@ export const ArcColourPicker: React.FC<ArcColourPickerProps> = ({ value, onChang
                                                  '& .react-colorful': { width: '100%', height: '9rem' },
                                                  '& .react-colorful__saturation': { borderRadius: '3px 3px 0 0' },
                                                  '& .react-colorful__last-control': { borderRadius: '0 0 3px 3px' },
-                                                 '& .react-colorful__pointer': { width: 18, height: 18 } } } }}>
-                <HexColorPicker color={shown} onChange={onChange} />
+                                                 '& .react-colorful__pointer': { width: 18, height: 18 } } }
+                               }}>
+                <HexColorPicker color={shown}
+                                onChange={onChange} />
 
                 <Box component="label"
                      sx={{ display: 'flex',
@@ -199,9 +225,12 @@ export const ArcColourPicker: React.FC<ArcColourPickerProps> = ({ value, onChang
                                         padding: '3px 6px',
                                         border: 'none',
                                         borderRadius: '2px',
-                                        backgroundColor: 'rgba(255, 255, 255, 0.6)' } }}>
+                                        backgroundColor: 'rgba(255, 255, 255, 0.6)' }
+                        }}>
                     Hex
-                    <HexColorInput color={shown} onChange={onChange} prefixed />
+                    <HexColorInput color={shown}
+                                   onChange={onChange}
+                                   prefixed />
                 </Box>
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -229,10 +258,14 @@ export default ArcColourPicker
 
 /** Every ladder's ground, then every ladder's mid: the pale row first, as in the palette. */
 const PAPER = (['ground', 'mid'] as const).flatMap(step =>
-    Object.entries(LADDERS).map(([hue, ladder]) => ({
-        colour: ladder[step],
-        name: `${hue[0].toUpperCase()}${hue.slice(1)} ${step === 'mid' && hue === 'yellow' ? 'gold' : step}`,
-    })))
+    Object.entries(LADDERS)
+          .map(([hue, ladder]) =>
+          ({
+              colour: ladder[step],
+              name: `${hue[0].toUpperCase()}${hue.slice(1)} ${step === 'mid' && hue === 'yellow'
+                  ? 'gold'
+                  : step}`,
+          })))
 
 /** Where saved colours are kept, and how many. */
 const SAVED_KEY = 'arc.savedColours'
@@ -243,32 +276,44 @@ const MAX_SAVED = 12
  * picker that threw for it would take the dialog with it; without it, the
  * colours last as long as the dialog does.
  */
-function readSaved(): string[] {
-    try {
+function readSaved(): string[]
+{
+    try
+    {
         const list: unknown = JSON.parse(localStorage.getItem(SAVED_KEY) ?? '[]')
         return Array.isArray(list)
             ? list.filter((colour): colour is string => typeof colour === 'string' && /^#[0-9a-f]{6}$/i.test(colour)).slice(-MAX_SAVED)
             : []
-    } catch {
+    }
+    catch
+    {
         return []
     }
 }
 
-function writeSaved(colours: string[]) {
-    try {
+function writeSaved(colours: string[])
+{
+    try
+    {
         localStorage.setItem(SAVED_KEY, JSON.stringify(colours))
-    } catch {
+    }
+    catch
+    {
         // Not kept past this dialog — see readSaved.
     }
 }
 
 const ROW_LABEL_WIDTH = 40
 
-function ChipRow({ label, children }: { label: string; children: React.ReactNode }) {
+function ChipRow({ label, children }: { label: string; children: React.ReactNode })
+{
     return (
-        <Box role="group" aria-label={`${label} colours`} sx={{ display: 'flex',
-                                                                alignItems: 'center',
-                                                                gap: 0.75 }}>
+        <Box role="group"
+             aria-label={`${label} colours`}
+             sx={{ display: 'flex',
+                   alignItems: 'center',
+                   gap: 0.75
+                }}>
             <Typography aria-hidden
                         sx={{ width: ROW_LABEL_WIDTH,
                               flexShrink: 0,
@@ -276,14 +321,16 @@ function ChipRow({ label, children }: { label: string; children: React.ReactNode
                               fontWeight: 700,
                               letterSpacing: '0.08em',
                               textTransform: 'uppercase',
-                              color: 'arc.onPaperMuted' }}>
-                {label}
+                              color: 'arc.onPaperMuted'
+                           }}>
+                { label }
             </Typography>
             <Box sx={{ display: 'flex',
                        flexWrap: 'wrap',
                        alignItems: 'center',
                        gap: 0.75,
-                       py: 0.5 }}>{children}</Box>
+                       py: 0.5
+                    }}>{ children }</Box>
         </Box>
     )
 }
@@ -305,10 +352,12 @@ function Chip({ colour, name, tilt, chosen, onPick, onRemove }: {
     chosen: boolean
     onPick: () => void
     onRemove?: () => void
-}) {
+})
+{
     return (
         <Box sx={{ position: 'relative',
-                   '&:hover .chip-remove, &:focus-within .chip-remove': { opacity: 1 } }}>
+                   '&:hover .chip-remove, &:focus-within .chip-remove': { opacity: 1 }
+                }}>
             <Box component="button"
                  type="button"
                  className="card-stock-flat card-cut"
@@ -324,15 +373,24 @@ function Chip({ colour, name, tilt, chosen, onPick, onRemove }: {
                        cursor: 'pointer',
                        display: 'grid',
                        placeItems: 'center',
-                       transform: chosen ? 'translateY(-3px)' : `rotate(${TILTS[tilt % TILTS.length]}deg)`,
+                       transform: chosen
+                           ? 'translateY(-3px)'
+                           : `rotate(${TILTS[tilt % TILTS.length]}deg)`,
                        transition: 'transform .12s',
-                       '&:hover': { transform: chosen ? 'translateY(-3px)' : 'translateY(-1px)' },
-                       '&:focus-visible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 2 } }}>
-                {chosen && <CheckIcon sx={{ fontSize: '0.85rem',
-                                            color: isLight(colour) ? 'arc.onPaperStrong' : 'var(--arc-cream)' }} />}
+                       '&:hover': { transform: chosen
+                                        ? 'translateY(-3px)'
+                                        : 'translateY(-1px)' },
+                       '&:focus-visible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 2 }
+                    }}>
+                { chosen && <CheckIcon sx={{ fontSize: '0.85rem',
+                                             color: isLight(colour)
+                                                 ? 'arc.onPaperStrong'
+                                                 : 'var(--arc-cream)'
+                                          }} />
+                }
             </Box>
 
-            {onRemove && (
+            { onRemove && (
                 <IconButton className="chip-remove"
                             onClick={onRemove}
                             aria-label={`Remove ${name}`}
@@ -347,16 +405,19 @@ function Chip({ colour, name, tilt, chosen, onPick, onRemove }: {
                                   boxShadow: '0 1px 2px rgba(38, 28, 10, .35)',
                                   color: 'arc.onPaperMuted',
                                   '&:hover': { backgroundColor: 'var(--arc-cream)', color: 'arc.paperDanger' },
-                                  '&:focus-visible': { opacity: 1 } }}>
+                                  '&:focus-visible': { opacity: 1 }
+                               }}>
                     <CloseIcon sx={{ fontSize: '0.6rem' }} />
                 </IconButton>
-            )}
+            )
+            }
         </Box>
     )
 }
 
 /** Whether dark text reads on a colour — its relative luminance, roughly. */
-function isLight(colour: string): boolean {
+function isLight(colour: string): boolean
+{
     const [r, g, b] = rgbOf(colour)
     return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.55
 }

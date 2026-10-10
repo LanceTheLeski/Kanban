@@ -43,12 +43,14 @@ export { labelStyle }
  * `total` is how many columns the board has, so the ramp always spans the whole
  * range. One column takes the palest end rather than dividing by zero.
  */
-export function columnColour(stored: string | null | undefined, index: number, total: number): string {
+export function columnColour(stored: string | null | undefined, index: number, total: number): string
+{
     return stored?.trim() || rgb(rampAt(COLUMN_RAMP, index, total))
 }
 
 /** A swimlane's colour, on the ramp that runs the other way. */
-export function swimlaneColour(stored: string | null | undefined, index: number, total: number): string {
+export function swimlaneColour(stored: string | null | undefined, index: number, total: number): string
+{
     return stored?.trim() || rgb(rampAt(SWIMLANE_RAMP, index, total))
 }
 
@@ -59,9 +61,12 @@ export function swimlaneColour(stored: string | null | undefined, index: number,
  * The create overlays need it before the thing exists, to show the colour the
  * ramp is about to give it.
  */
-export function landingIndex(orderInput: string, count: number): number {
+export function landingIndex(orderInput: string, count: number): number
+{
     const typed = parseInt(orderInput, 10)
-    return Number.isNaN(typed) ? count : Math.min(Math.max(typed, 0), count)
+    return Number.isNaN(typed)
+        ? count
+        : Math.min(Math.max(typed, 0), count)
 }
 
 // ── Private ───────────────────────────────────────────────────────────────────

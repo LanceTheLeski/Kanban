@@ -35,11 +35,14 @@ import type { SxProps, Theme } from '@mui/material'
  * word this replaced — so without overriding it every one of them is a third
  * taller than its own text, with the text pushed to the bottom.
  */
-export function paperField(stock?: 'blue' | 'red' | 'green' | 'yellow') {
+export function paperField(stock?: 'blue' | 'red' | 'green' | 'yellow')
+{
     return {
         variant: 'filled' as const,
         InputProps: {
-            className: `card-stock${stock ? ` paper-${stock}` : ''}`,
+            className: `card-stock${stock
+                ? ` paper-${stock}`
+                : ''}`,
             disableUnderline: true,
         },
         sx: paperFieldSx,
@@ -47,7 +50,8 @@ export function paperField(stock?: 'blue' | 'red' | 'green' | 'yellow') {
 }
 
 /** The colours and sizing. Exported for the two fields that set their own props. */
-export const paperFieldSx: SxProps<Theme> = {
+export const paperFieldSx: SxProps<Theme> =
+{
     '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
     '& .MuiFilledInput-root': { backgroundColor: 'transparent' },
     '& .MuiFilledInput-input': { padding: '9px 11px' },
@@ -64,7 +68,8 @@ export const paperFieldSx: SxProps<Theme> = {
  * and the boxes are what say where one ends and the next begins. The ground is
  * half a step down from the card, so it reads as somewhere to type.
  */
-export const paperPickerSx: SxProps<Theme> = {
+export const paperPickerSx: SxProps<Theme> =
+{
     minWidth: 0,
     '& .MuiOutlinedInput-root': { backgroundColor: 'arc.paperField' },
     '& input': { fontSize: '0.7rem', py: 0.6, color: 'arc.onPaperStrong' },

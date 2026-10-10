@@ -43,7 +43,8 @@ import { MouseSensor, TouchSensor } from '@dnd-kit/core'
  * so the press stays an ordinary press and the button underneath behaves
  * normally — which is different from starting a drag and cancelling it.
  */
-export class CardMouseSensor extends MouseSensor {
+export class CardMouseSensor extends MouseSensor
+{
     static activators = [
         {
             eventName: 'onMouseDown' as const,
@@ -53,7 +54,8 @@ export class CardMouseSensor extends MouseSensor {
     ]
 }
 
-export class CardTouchSensor extends TouchSensor {
+export class CardTouchSensor extends TouchSensor
+{
     static activators = [
         {
             eventName: 'onTouchStart' as const,
@@ -88,8 +90,10 @@ export const CARD_TOUCH_ACTIVATION = { delay: 250, tolerance: 8 }
  * between the target and the card". A match that *is* the card, or is outside
  * it, is not a reason to refuse.
  */
-function beganOnInteractiveElement(target: EventTarget | null, root: EventTarget | null): boolean {
-    if (!(target instanceof Element) || !(root instanceof Element)) return false
+function beganOnInteractiveElement(target: EventTarget | null, root: EventTarget | null): boolean
+{
+    if (!(target instanceof Element) || !(root instanceof Element))
+        return false
 
     const match = target.closest(INTERACTIVE_SELECTOR)
     return match !== null && match !== root && root.contains(match)

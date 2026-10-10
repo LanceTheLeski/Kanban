@@ -20,22 +20,35 @@ import type { TimelineMode } from './Timeline.Nodes'
  * and the folding below all speak it, and only one of them draws anything. It
  * replaces the Blazor version's @ref-based field access.
  */
-export interface TimelineDraft {
+export interface TimelineDraft
+{
     mode: TimelineMode
+
     preferredStart: Date | null
+
     preferredEnd: Date | null
+
     requiredStart: Date | null
+
     requiredEnd: Date | null
+
     preferredStartTime: string | null // HH:MM
+
     preferredEndTime: string | null
+
     requiredStartTime: string | null
+
     requiredEndTime: string | null
 }
 
-export interface TimelineDates {
+export interface TimelineDates
+{
     startPreferenceUTC: Date | null
+
     startDeadlineUTC: Date | null
+
     endPreferenceUTC: Date | null
+
     endDeadlineUTC: Date | null
 }
 
@@ -44,7 +57,8 @@ export interface TimelineDates {
  * "Preferred" dates are the soft range; "required" dates are the hard deadlines —
  * matching the aquamarine/goldenrod split on the rail.
  */
-export function draftToTimelineDates(draft: TimelineDraft): TimelineDates {
+export function draftToTimelineDates(draft: TimelineDraft): TimelineDates
+{
     return {
         startPreferenceUTC: combine(draft.preferredStart, draft.preferredStartTime),
         endPreferenceUTC: combine(draft.preferredEnd, draft.preferredEndTime),
@@ -83,11 +97,13 @@ export const TIMELINE_PARENT_CARD = 1
 export const TIMELINE_PARENT_TASK = 2
 
 /** A draft only describes a real timeline once it is out of Timeless mode. */
-export function hasTimeline(draft: TimelineDraft | null): draft is TimelineDraft {
+export function hasTimeline(draft: TimelineDraft | null): draft is TimelineDraft
+{
     return draft !== null && draft.mode !== 'timeless'
 }
 
-export function timelineOperations(dates: TimelineDates): PatchOperation[] {
+export function timelineOperations(dates: TimelineDates): PatchOperation[]
+{
     return [
         { op: 'replace', path: '/startPreferenceUTC', value: dates.startPreferenceUTC?.toISOString() ?? null },
         { op: 'replace', path: '/startDeadlineUTC', value: dates.startDeadlineUTC?.toISOString() ?? null },
@@ -100,12 +116,16 @@ export function timelineOperations(dates: TimelineDates): PatchOperation[] {
 // Not exported, which is this language's `private`. Ordered by first use above.
 
 /** Folds a picker date and its "HH:mm" time into one instant. */
-function combine(date: Date | null, time: string | null): Date | null {
-    if (!date) return null
-    if (!time) return date
+function combine(date: Date | null, time: string | null): Date | null
+{
+    if (!date)
+        return null
+    if (!time)
+        return date
 
     const [hours, minutes] = time.split(':').map(Number)
-    if (Number.isNaN(hours) || Number.isNaN(minutes)) return date
+    if (Number.isNaN(hours) || Number.isNaN(minutes))
+        return date
 
     const combined = new Date(date)
     combined.setHours(hours, minutes, 0, 0)

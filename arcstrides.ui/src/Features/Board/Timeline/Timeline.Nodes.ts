@@ -16,12 +16,16 @@ export type TimelineMode = 'timeline' | 'deadline' | 'timeless'
 
 export type NodeId = 'preferredStart' | 'requiredStart' | 'preferredEnd' | 'requiredEnd'
 
-export interface NodeSpec {
+export interface NodeSpec
+{
     id: NodeId
+
     /** Two words, stacked under the dot. */
     label: [string, string]
+
     /** What it means, for the node's tooltip. */
     meaning: string
+
     /** Which timeline field seeds it. */
     seed: (timeline: Timeline) => Date | null
 }
@@ -34,7 +38,8 @@ export interface NodeSpec {
  * start". Preferred first is the order that was asked for, so that is the order
  * kept.
  */
-export const NODES: NodeSpec[] = [
+export const NODES: NodeSpec[] =
+[
     {
         id: 'preferredStart',
         label: ['Preferred', 'Start'],
@@ -70,7 +75,8 @@ export const NODES: NodeSpec[] = [
  * the wrong cut. There is one control; the mode only changes how much of it is
  * live.
  */
-export const NODES_FOR: Record<TimelineMode, NodeId[]> = {
+export const NODES_FOR: Record<TimelineMode, NodeId[]> =
+{
     timeless: [],
     deadline: ['requiredEnd'],
     timeline: ['preferredStart', 'requiredStart', 'preferredEnd', 'requiredEnd'],
@@ -85,7 +91,8 @@ export const NODES_FOR: Record<TimelineMode, NodeId[]> = {
  * .card-stock-flat — not by filling it, so the three read as one control with a
  * piece pushed forward rather than as two off and one on.
  */
-export const MODES: { value: TimelineMode; label: string; stock: string }[] = [
+export const MODES: { value: TimelineMode; label: string; stock: string }[] =
+[
     { value: 'deadline', label: 'Deadline', stock: 'paper-yellow' },
     { value: 'timeline', label: 'Timeline', stock: 'paper-green' },
     { value: 'timeless', label: 'Timeless', stock: 'paper-red' },
@@ -94,14 +101,16 @@ export const MODES: { value: TimelineMode; label: string; stock: string }[] = [
 // ── What a node is set to ─────────────────────────────────────────────────────
 
 /** One node's two halves, as the pickers hold them. */
-export interface NodeValue {
+export interface NodeValue
+{
     date: Dayjs | null
     time: Dayjs | null
 }
 
 export type NodeValues = Record<NodeId, NodeValue>
 
-export const EMPTY: NodeValues = {
+export const EMPTY: NodeValues =
+{
     preferredStart: { date: null, time: null },
     requiredStart: { date: null, time: null },
     preferredEnd: { date: null, time: null },
@@ -114,13 +123,17 @@ export const EMPTY: NodeValues = {
  * Both halves of a node come from the same instant: the API stores one
  * timestamp per field and the pickers split it back apart.
  */
-export function seedValues(timeline: Timeline | null): NodeValues {
-    if (!timeline) return EMPTY
+export function seedValues(timeline: Timeline | null): NodeValues
+{
+    if (!timeline)
+        return EMPTY
 
     const seeded = { ...EMPTY }
-    for (const node of NODES) {
+    for (const node of NODES)
+    {
         const at = node.seed(timeline)
-        if (at) seeded[node.id] = { date: dayjs(at), time: dayjs(at) }
+        if (at)
+            seeded[node.id] = { date: dayjs(at), time: dayjs(at) }
     }
     return seeded
 }
@@ -133,7 +146,11 @@ export function seedValues(timeline: Timeline | null): NodeValues {
  * timeline at all means timeless. See Timeline.Draft for why storing the mode
  * was never an option.
  */
-export function modeOf(timeline: Timeline | null): TimelineMode {
-    if (!timeline) return 'timeless'
-    return timeline.startPreferenceUTC || timeline.endPreferenceUTC ? 'timeline' : 'deadline'
+export function modeOf(timeline: Timeline | null): TimelineMode
+{
+    if (!timeline)
+        return 'timeless'
+    return timeline.startPreferenceUTC || timeline.endPreferenceUTC
+        ? 'timeline'
+        : 'deadline'
 }

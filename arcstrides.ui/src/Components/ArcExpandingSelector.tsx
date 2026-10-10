@@ -39,17 +39,21 @@ import {
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export interface ArcExpandingSelectorProps {
+export interface ArcExpandingSelectorProps
+{
     /** The list of string options to render — mirrors Options: List<string> */
     options: string[]
+
     /**
      * Called when the user clicks an option — mirrors OptionSelected: Action<string>
      * The Blazor comment flagged this as potentially wrong; here it's correctly
      * typed as a plain callback (not an EventCallback, which had async overhead).
      */
     onSelect: (option: string) => void
+
     /** Optional placeholder shown on the accordion summary before selection */
     placeholder?: string
+
     /**
      * If true, the summary updates to show the currently selected value.
      * Useful when this selector drives a visible field (e.g. column selection).
@@ -64,11 +68,13 @@ export const ArcExpandingSelector: React.FC<ArcExpandingSelectorProps> = ({
     onSelect,
     placeholder = '-- Select --',
     showSelected = true,
-}) => {
+}) =>
+{
     const [expanded, setExpanded] = React.useState(false)
     const [selected, setSelected] = React.useState<string | null>(null)
 
-    const handleSelect = (option: string) => {
+    const handleSelect = (option: string) =>
+    {
         setSelected(option)
         onSelect(option)
         // Close after selection — more UX-complete than the Blazor version
@@ -77,7 +83,9 @@ export const ArcExpandingSelector: React.FC<ArcExpandingSelectorProps> = ({
     }
 
     const summaryLabel =
-        showSelected && selected !== null ? selected : placeholder
+        showSelected && selected !== null
+            ? selected
+            : placeholder
 
     return (
         /*
@@ -105,15 +113,20 @@ export const ArcExpandingSelector: React.FC<ArcExpandingSelectorProps> = ({
                          // MuiPaper paints background.paper — the theme's solid blue —
                          // underneath the engraved gradient. Nothing above can be seen
                          // through an opaque layer, so it has to go.
-                         backgroundColor: 'transparent' }}>
+                         backgroundColor: 'transparent'
+                      }}>
             <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'arc.onGlassIcon' }} />}
                               sx={{ minHeight: SELECTOR_SUMMARY_MIN_HEIGHT,
-                                    '& .MuiAccordionSummary-content': { margin: '8px 0' } }}>
+                                    '& .MuiAccordionSummary-content': { margin: '8px 0' }
+                                 }}>
                 <Typography variant="body2"
                             sx={{ fontFamily: MONO,
                                   fontSize: '0.8rem',
-                                  color: selected ? 'arc.onGlassStrong' : 'arc.onGlassMuted' }}>
-                    {summaryLabel}
+                                  color: selected
+                                      ? 'arc.onGlassStrong'
+                                      : 'arc.onGlassMuted'
+                               }}>
+                    { summaryLabel }
                 </Typography>
             </AccordionSummary>
 
@@ -129,28 +142,32 @@ export const ArcExpandingSelector: React.FC<ArcExpandingSelectorProps> = ({
                                     // sx does not resolve palette paths inside one, so the colour
                                     // is set on its own.
                                     borderTop: '1px solid',
-                                    borderTopColor: 'arc.glassDivider' }}>
+                                    borderTopColor: 'arc.glassDivider'
+                                 }}>
                 <List dense disablePadding>
-                    {options.map((option) => (
-                        <ListItemButton key={option}
-                                        onClick={() => handleSelect(option)}
-                                        selected={option === selected}
-                                        sx={{ py: 0.75,
-                                              px: 2,
-                                              '&.Mui-selected': {
-                                                  backgroundColor: 'arc.glassSelected',
-                                              },
-                                              '&:hover': {
-                                                  backgroundColor: 'arc.glassHover',
-                                              } }}>
-                            <ListItemText primary={option}
-                                          primaryTypographyProps={{
-                                              fontFamily: MONO,
-                                              fontSize: '0.8rem',
-                                              color: 'arc.onGlass',
-                                          }} />
-                        </ListItemButton>
-                    ))}
+                    { options.map((option) =>
+                                  (
+                                      <ListItemButton key={option}
+                                                      onClick={() => handleSelect(option)}
+                                                      selected={option === selected}
+                                                      sx={{ py: 0.75,
+                                                            px: 2,
+                                                            '&.Mui-selected': {
+                                                                backgroundColor: 'arc.glassSelected',
+                                                            },
+                                                            '&:hover': {
+                                                                backgroundColor: 'arc.glassHover',
+                                                            }
+                                                         }}>
+                                          <ListItemText primary={option}
+                                                        primaryTypographyProps={{
+                                                            fontFamily: MONO,
+                                                            fontSize: '0.8rem',
+                                                            color: 'arc.onGlass',
+                                                                               }} />
+                                      </ListItemButton>
+                                  ))
+                    }
                 </List>
             </AccordionDetails>
         </Accordion>

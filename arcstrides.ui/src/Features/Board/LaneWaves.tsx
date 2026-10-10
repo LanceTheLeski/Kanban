@@ -17,7 +17,8 @@ import React, { useId } from 'react'
 import { SCENERY as C } from '../../Styles/Scenery'
 
 /** Water along the foot of a swimlane, as long as the lane is. */
-export const LaneWaves: React.FC = () => {
+export const LaneWaves: React.FC = () =>
+{
     const id = useId().replace(/[^\w-]/g, '')
     const cut = `url(#${id}-cut)`
 
@@ -54,7 +55,8 @@ const LANE_H = 24
  * `period`, `amplitude` either side of the baseline, started `phase` early so
  * the layers' crests do not line up.
  */
-function wave(baseline: number, amplitude: number, period: number, phase: number): string {
+function wave(baseline: number, amplitude: number, period: number, phase: number): string
+{
     let d = `M ${-phase} ${LANE_H} V ${baseline}`
     for (let x = -phase; x < LANE_W; x += period)
         d += ` q ${period / 4} ${-amplitude} ${period / 2} 0 t ${period / 2} 0`

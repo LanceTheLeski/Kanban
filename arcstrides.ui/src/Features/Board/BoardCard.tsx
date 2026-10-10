@@ -45,14 +45,18 @@ import { CARD_MIN_HEIGHT, DRAG_PREVIEW_WIDTH } from './Board.Layout'
 import { CARD_ACTIONS_MAX_HEIGHT } from '../../Styles/Measures'
 import type { Card } from '../../Entities/Card/Card.Types'
 
-interface BoardCardProps {
+interface BoardCardProps
+{
     card: Card
+
     boardId: string
+
     /**
      * dnd-kit listeners/attributes. Applied to the whole tile — the sensors
      * decide what is a drag and what is a click, not a dedicated handle.
      */
     dragProps?: Record<string, unknown>
+
     /** Renders the static copy shown inside dnd-kit's DragOverlay. */
     preview?: boolean
 }
@@ -62,13 +66,15 @@ export const BoardCard: React.FC<BoardCardProps> = ({
     boardId,
     dragProps,
     preview = false,
-}) => {
+}) =>
+{
     const [updateOpen, setUpdateOpen] = useState(false)
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
     const { run } = useBoardActions()
     const removeCard = useBoardStore(state => state.removeCard)
 
-    const handleDelete = async () => {
+    const handleDelete = async () =>
+    {
         const deleted = await run(
             `Deleting "${card.title}"`,
             () => deleteCard(boardId, card.id),
@@ -76,7 +82,8 @@ export const BoardCard: React.FC<BoardCardProps> = ({
             { refresh: false }
         )
 
-        if (deleted) removeCard(card.id)
+        if (deleted)
+            removeCard(card.id)
         setConfirmDeleteOpen(false)
     }
 
@@ -98,26 +105,40 @@ export const BoardCard: React.FC<BoardCardProps> = ({
                          width: '100%',
                          minHeight: CARD_MIN_HEIGHT,
                          // The ghost has no cell to fill, so give it the column's width.
-                         ...(preview ? { width: DRAG_PREVIEW_WIDTH } : {}),
+                         ...(preview
+                             ? { width: DRAG_PREVIEW_WIDTH }
+                             : {}),
                          display: 'flex',
                          flexDirection: 'column',
                          textAlign: 'center',
                          // The drag ghost sits above everything and shouldn't intercept pointers
-                         ...(preview ? { boxShadow: 6, cursor: 'grabbing', pointerEvents: 'none' } : {}),
+                         ...(preview
+                             ? { boxShadow: 6, cursor: 'grabbing', pointerEvents: 'none' }
+                             : {}),
                          // The whole tile is the grab surface now, so it says so.
-                         cursor: dragProps ? 'grab' : 'default',
-                         '&:active': { cursor: dragProps ? 'grabbing' : 'default' } }}
+                         cursor: dragProps
+                             ? 'grab'
+                             : 'default',
+                         '&:active': { cursor: dragProps
+                                           ? 'grabbing'
+                                           : 'default' }
+                      }}
                    elevation={3}>
                 {/* Card content. A press here opens the card; a press that travels
                     8px drags it instead. */}
                 <Box onClick={() => !preview && setUpdateOpen(true)}
                      sx={{ flex: 1,
                            minHeight: 0,
-                           cursor: preview ? 'grabbing' : 'pointer',
+                           cursor: preview
+                               ? 'grabbing'
+                               : 'pointer',
                            p: 0.5,
                            overflow: 'hidden',
                            // MUI's own hover shade, which this was a hand-written copy of.
-                           '&:hover': preview ? undefined : { backgroundColor: 'action.hover' } }}>
+                           '&:hover': preview
+                               ? undefined
+                               : { backgroundColor: 'action.hover' }
+                        }}>
                     {/* Title — mirrors MudText font-weight:600 font-size:x-small */}
                     {/*
               Two lines, then ellipsis. Titles are user-written and the old single
@@ -131,8 +152,9 @@ export const BoardCard: React.FC<BoardCardProps> = ({
                                       WebkitLineClamp: 2,
                                       WebkitBoxOrient: 'vertical',
                                       overflow: 'hidden',
-                                      overflowWrap: 'anywhere' }}>
-                        {card.title}
+                                      overflowWrap: 'anywhere'
+                                   }}>
+                        { card.title }
                     </Typography>
 
                     {/*
@@ -155,8 +177,9 @@ export const BoardCard: React.FC<BoardCardProps> = ({
                                       overflowWrap: 'anywhere',
                                       whiteSpace: 'pre-line',
                                       textAlign: 'left',
-                                      opacity: 0.85 }}>
-                        {previewText(card.description)}
+                                      opacity: 0.85
+                                   }}>
+                        { previewText(card.description) }
                     </Typography>
                 </Box>
 
@@ -170,7 +193,8 @@ export const BoardCard: React.FC<BoardCardProps> = ({
                                    // px: a hairline is chrome, and should not thicken with
                                    // the reader's font size. The colour is the note's,
                                    // set by .note from its stock.
-                                   borderTop: '1px solid' }}>
+                                   borderTop: '1px solid'
+                                }}>
                     {/*
                         Ink on the note, not MUI's blue and red. A chromatic
                         button on a coloured note is two colours arguing over a
@@ -181,7 +205,8 @@ export const BoardCard: React.FC<BoardCardProps> = ({
                                   flex: 1,
                                   minWidth: 0,
                                   color: 'arc.onPaper',
-                                  '&:hover': { backgroundColor: 'arc.paperHover' } }}
+                                  '&:hover': { backgroundColor: 'arc.paperHover' }
+                               }}
                             onClick={() => setUpdateOpen(true)}
                             disabled={preview}>
                         Actions
@@ -190,7 +215,8 @@ export const BoardCard: React.FC<BoardCardProps> = ({
                                   flex: 1,
                                   minWidth: 0,
                                   color: 'arc.paperDanger',
-                                  '&:hover': { backgroundColor: 'arc.paperHover' } }}
+                                  '&:hover': { backgroundColor: 'arc.paperHover' }
+                               }}
                             onClick={() => setConfirmDeleteOpen(true)}
                             disabled={preview}>
                         Remove
@@ -205,28 +231,32 @@ export const BoardCard: React.FC<BoardCardProps> = ({
         cost a request and a picker tree for every card on the board. Mounting
         on open also means its draft state starts fresh each time.
       */}
-            {!preview && updateOpen && (
+            { !preview && updateOpen && (
                 <UpdateCardOverlay open
                                    onClose={() => setUpdateOpen(false)}
                                    card={card}
                                    boardId={boardId} />
-            )}
+            )
+            }
 
             {/* ── Delete confirmation — mirrors DeleteCardOverlay.razor ──────────── */}
-            {!preview && (
-                <Dialog open={confirmDeleteOpen} onClose={() => setConfirmDeleteOpen(false)}>
+            { !preview && (
+                <Dialog open={confirmDeleteOpen}
+                        onClose={() => setConfirmDeleteOpen(false)}>
                     <DialogTitle>Remove this card?</DialogTitle>
                     <DialogContent>
                         <DialogContentText>
-                            "{card.title}" and its tasks will be removed from the board.
+                            "{ card.title }" and its tasks will be removed from the board.
                         </DialogContentText>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setConfirmDeleteOpen(false)}>Cancel</Button>
-                        <Button onClick={handleDelete} color="error">Remove</Button>
+                        <Button onClick={handleDelete}
+                                color="error">Remove</Button>
                     </DialogActions>
                 </Dialog>
-            )}
+            )
+            }
         </>
     )
 }
@@ -241,7 +271,8 @@ export const BoardCard: React.FC<BoardCardProps> = ({
  * two bullets; collapsing the runs shows three. Trailing spaces go too, because
  * `pre-line` renders them and a stray one shifts the clamp's ellipsis.
  */
-function previewText(description: string): string {
+function previewText(description: string): string
+{
     return description
         .split('\n')
         .map(line => line.trimEnd())

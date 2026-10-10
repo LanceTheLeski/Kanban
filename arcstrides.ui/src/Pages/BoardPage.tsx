@@ -43,11 +43,13 @@ import { CardGrid } from '../Features/Board/CardGrid/CardGrid'
 import { useBoardStore } from '../Features/Board/Board.Store'
 import { AppMenu } from '../Layouts/AppMenu'
 
-export const BoardPage: React.FC = () => {
+export const BoardPage: React.FC = () =>
+{
     const { boardId } = useParams<{ boardId: string }>()
 
     const { status, error, loadBoard } = useBoardStore(
-        useShallow(state => ({
+        useShallow(state =>
+        ({
             status: state.status,
             error: state.error,
             loadBoard: state.loadBoard,
@@ -55,11 +57,14 @@ export const BoardPage: React.FC = () => {
     )
 
     // Mirrors Blazor's OnInitializedAsync()
-    useEffect(() => {
-        if (boardId) loadBoard(boardId)
+    useEffect(() =>
+    {
+        if (boardId)
+            loadBoard(boardId)
     }, [boardId, loadBoard])
 
-    if (status === 'loading' || status === 'idle') {
+    if (status === 'loading' || status === 'idle')
+    {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
                 <CircularProgress />
@@ -67,11 +72,13 @@ export const BoardPage: React.FC = () => {
         )
     }
 
-    if (status === 'error') {
+    if (status === 'error')
+    {
         return (
             <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                <Typography color="error">Failed to load board: {error}</Typography>
-                <Button variant="outlined" onClick={() => boardId && loadBoard(boardId)}>
+                <Typography color="error">Failed to load board: { error }</Typography>
+                <Button variant="outlined"
+                        onClick={() => boardId && loadBoard(boardId)}>
                     Retry
                 </Button>
             </Box>
@@ -82,7 +89,9 @@ export const BoardPage: React.FC = () => {
         // Mirrors: MudPaper Style="background-color: transparent" Width="100%" Height="100%"
         <Box sx={{ width: '100%', minHeight: '100vh', backgroundColor: 'transparent', textAlign: 'center' }}>
             {/* Mirrors: MudPaper Class="glass" Width="92%" */}
-            <Paper className="glass" sx={{ width: '92%', mx: 'auto' }} elevation={0}>
+            <Paper className="glass"
+                   sx={{ width: '92%', mx: 'auto' }}
+                   elevation={0}>
                 {/* Mirrors: MudPaper Height="50px" Width="100%" Class="mud-theme-primary" */}
                 <Box sx={{ width: '100%' }}>
                     <BoardManagementNav menu={<AppMenu />} />

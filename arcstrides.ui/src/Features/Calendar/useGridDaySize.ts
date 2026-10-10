@@ -17,22 +17,27 @@
 
 import { useEffect, useState } from 'react'
 
-export interface DaySize {
+export interface DaySize
+{
     width: number
     height: number
 }
 
 /** The grid day's size, or null until it has been measured. */
-export function useGridDaySize(dayKey: string): DaySize | null {
+export function useGridDaySize(dayKey: string): DaySize | null
+{
     const [size, setSize] = useState<DaySize | null>(null)
 
-    useEffect(() => {
+    useEffect(() =>
+    {
         const day = document.querySelector<HTMLElement>(`[data-day="${dayKey}"]`)
-        if (!day) return
+        if (!day)
+            return
 
         // A ResizeObserver reports once as soon as it starts watching, so the
         // first measurement needs no call of its own.
-        const observer = new ResizeObserver(() => {
+        const observer = new ResizeObserver(() =>
+        {
             const box = day.getBoundingClientRect()
             setSize(previous => previous && previous.width === box.width && previous.height === box.height
                 ? previous

@@ -28,13 +28,16 @@ import { useShallow } from 'zustand/react/shallow'
 import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
 
-interface CreateCardOverlayProps {
+interface CreateCardOverlayProps
+{
     open: boolean
     onClose: () => void
 }
 
-export const CreateCardOverlay: React.FC<CreateCardOverlayProps> = ({ open, onClose }) => {
-    const { boardId, columns, swimlanes } = useBoardStore(useShallow(state => ({
+export const CreateCardOverlay: React.FC<CreateCardOverlayProps> = ({ open, onClose }) =>
+{
+    const { boardId, columns, swimlanes } = useBoardStore(useShallow(state =>
+    ({
         boardId: state.boardId,
         columns: state.columns,
         swimlanes: state.swimlanes,
@@ -46,30 +49,37 @@ export const CreateCardOverlay: React.FC<CreateCardOverlayProps> = ({ open, onCl
     const [selectedColumnTitle, setSelectedColumnTitle] = useState<string | null>(null)
     const [selectedSwimlaneTitle, setSelectedSwimlaneTitle] = useState<string | null>(null)
 
-    const handleSelectColumn = (title: string) => {
+    const handleSelectColumn = (title: string) =>
+    {
         const matches = columns.filter(column => column.title === title)
-        if (matches.length !== 1) {
+        if (matches.length !== 1)
+        {
             console.error(`Expected exactly 1 column with title "${title}", found ${matches.length}`)
             return
         }
         setSelectedColumnTitle(title)
     }
 
-    const handleSelectSwimlane = (title: string) => {
+    const handleSelectSwimlane = (title: string) =>
+    {
         const matches = swimlanes.filter(swimlane => swimlane.title === title)
-        if (matches.length !== 1) {
+        if (matches.length !== 1)
+        {
             console.error(`Expected exactly 1 swimlane with title "${title}", found ${matches.length}`)
             return
         }
         setSelectedSwimlaneTitle(title)
     }
 
-    const handleSubmit = async () => {
-        if (!boardId || !cardTitle.trim() || !selectedColumnTitle || !selectedSwimlaneTitle) return
+    const handleSubmit = async () =>
+    {
+        if (!boardId || !cardTitle.trim() || !selectedColumnTitle || !selectedSwimlaneTitle)
+            return
 
         const column = columns.find(candidate => candidate.title === selectedColumnTitle)
         const swimlane = swimlanes.find(candidate => candidate.title === selectedSwimlaneTitle)
-        if (!column || !swimlane) return
+        if (!column || !swimlane)
+            return
 
         const created = await run('Adding card', () =>
             createCard(boardId, {
@@ -79,7 +89,8 @@ export const CreateCardOverlay: React.FC<CreateCardOverlayProps> = ({ open, onCl
                 swimlaneId: swimlane.id,
             })
         )
-        if (!created) return
+        if (!created)
+            return
 
         setCardTitle('')
         setCardDescription('')

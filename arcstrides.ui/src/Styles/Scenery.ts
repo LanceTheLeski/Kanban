@@ -15,7 +15,8 @@ import { LADDERS, NEUTRALS } from './Palette'
 
 const { blue, green, red, yellow } = LADDERS
 
-export const SCENERY = {
+export const SCENERY =
+{
     // The sky, cool at the top and warming to the horizon.
     skyHigh: blue.ground,
     skyHaze: mix(NEUTRALS.cream, blue.ground, 0.3),
@@ -68,7 +69,8 @@ export const SCENERY = {
 // Not exported, which is this language's `private`. Ordered by first use above.
 
 /** A tint `t` of the way from one `#rrggbb` to another. */
-function mix(from: string, to: string, t: number): string {
+function mix(from: string, to: string, t: number): string
+{
     const channels = (hex: string) => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16))
     const a = channels(from)
     const b = channels(to)

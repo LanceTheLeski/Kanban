@@ -14,24 +14,32 @@
 import { useCallback, useEffect, useState } from 'react'
 import { fetchBoard } from '../Board/Board.APIs'
 
-export function useBoardTitles(boardIds: string[]): (boardId: string) => string | null {
+export function useBoardTitles(boardIds: string[]): (boardId: string) => string | null
+{
     const distinct = [...new Set(boardIds.filter(Boolean))].sort()
-    const key = distinct.length > 1 ? distinct.join(',') : ''
+    const key = distinct.length > 1
+        ? distinct.join(',')
+        : ''
 
     // Bumped when a name arrives, so the lookup below changes identity and the
     // days that use it recompute their views.
     const [version, setVersion] = useState(0)
 
-    useEffect(() => {
-        if (!key) return
+    useEffect(() =>
+    {
+        if (!key)
+            return
         let current = true
         const missing = key.split(',').filter(id => !TITLES.has(id) && !REQUESTED.has(id))
-        for (const id of missing) {
+        for (const id of missing)
+        {
             REQUESTED.add(id)
             fetchBoard(id)
-                .then(board => {
+                .then(board =>
+                {
                     TITLES.set(id, board.title || null)
-                    if (current) setVersion(value => value + 1)
+                    if (current)
+                        setVersion(value => value + 1)
                 })
                 .catch(() => REQUESTED.delete(id))
         }

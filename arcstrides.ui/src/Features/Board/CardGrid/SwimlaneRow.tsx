@@ -27,11 +27,16 @@ import { LaneWaves } from '../LaneWaves'
 import type { Card } from '../../../Entities/Card/Card.Types'
 import type { Column, Swimlane } from '../Board.Types'
 
-interface SwimlaneRowProps {
+interface SwimlaneRowProps
+{
     swimlane: Swimlane
+
     columns: Column[]
+
     cardsByCell: Map<string, Card[]>
+
     boardId: string
+
     /*
        Where this lane sits, and how many there are — the ramp in Board.Colours
        spans the whole board, so a lane cannot work out its own default shade
@@ -39,6 +44,7 @@ interface SwimlaneRowProps {
        grid is the only thing that knows the set.
     */
     laneIndex: number
+
     laneCount: number
 }
 
@@ -78,7 +84,8 @@ export const SwimlaneRow: React.FC<SwimlaneRowProps> = ({
                    height: WAVE_HEIGHT,
                    overflow: 'hidden',
                    borderRadius: '0 0 3px 3px',
-                   pointerEvents: 'none' }}>
+                   pointerEvents: 'none'
+                }}>
             <LaneWaves />
         </Box>
 
@@ -91,7 +98,8 @@ export const SwimlaneRow: React.FC<SwimlaneRowProps> = ({
                    flexDirection: { xs: 'column', [STACK_LABEL_BELOW]: 'row' },
                    alignItems: 'stretch',
                    gap: BOARD_GAP,
-                   p: BOARD_GAP }}>
+                   p: BOARD_GAP
+                }}>
             {/*
                 Was: MudPaper Width="110px" Style="background-color: lightcoral".
 
@@ -123,7 +131,8 @@ export const SwimlaneRow: React.FC<SwimlaneRowProps> = ({
                          // text-align positions an inline-block from its *parent*.
                          textAlign: { xs: 'left', [STACK_LABEL_BELOW]: 'center' },
                          px: 1,
-                         py: 0.5 }}>
+                         py: 0.5
+                      }}>
                 {/*
                     Stacked, the label bar spans the board's full scroll width —
                     978px at 420px wide — so centred text lands near x=489 and is
@@ -143,8 +152,9 @@ export const SwimlaneRow: React.FC<SwimlaneRowProps> = ({
                                   overflowWrap: 'anywhere',
                                   position: { xs: 'sticky', [STACK_LABEL_BELOW]: 'static' },
                                   left: 0,
-                                  display: 'inline-block' }}>
-                    {swimlane.title}
+                                  display: 'inline-block'
+                               }}>
+                    { swimlane.title }
                 </Typography>
             </Paper>
 
@@ -154,7 +164,8 @@ export const SwimlaneRow: React.FC<SwimlaneRowProps> = ({
                 250px that clipped anything beyond it.
             */}
             <Box sx={{ display: 'flex', gap: BOARD_GAP, alignItems: 'stretch' }}>
-                {columns.map(column => {
+                { columns.map(column =>
+                {
                     const identifier = cellId(swimlane.id, column.id)
                     const cellCards = cardsByCell.get(identifier) ?? []
 
@@ -162,12 +173,15 @@ export const SwimlaneRow: React.FC<SwimlaneRowProps> = ({
                         <DroppableCell key={column.id}
                                        identifier={identifier}
                                        cardIds={cellCards.map(card => card.id)}>
-                            {cellCards.map(card => (
-                                <DraggableCard key={card.id} card={card} boardId={boardId} />
-                            ))}
+                            { cellCards.map(card =>
+                                            (
+                                                <DraggableCard key={card.id} card={card} boardId={boardId} />
+                                            ))
+                            }
                         </DroppableCell>
                     )
-                })}
+                })
+                }
             </Box>
         </Box>
     </Paper>

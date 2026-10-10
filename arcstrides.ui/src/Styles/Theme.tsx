@@ -82,15 +82,18 @@ import { GOLD, LADDERS, NAVY, NEUTRALS, ON_GLASS, OXBLOOD } from './Palette'
  * them under `arc` keeps them out of the way of components that reason about
  * the standard slots, and makes them obvious as ours at the call site.
  */
-export interface ArcPalette {
+export interface ArcPalette
+{
     // ── Board grid ────────────────────────────────────────────────────────────
     // The lanes are .board-surface and the columns .column-glass in
     // ArcStyles.css, because both are materials rather than colours. What is left
     // here is the chrome.
     /** The bar marking a swimlane's name block. */
     swimlaneLabel: string
+
     /** The ring drawn round a cell that would accept the drop. */
     cellActiveEdge: string
+
     /** The "n cards" badge on a cell holding more than it can show. */
     overflowBadge: string
 
@@ -101,18 +104,25 @@ export interface ArcPalette {
     // the next glass component copies out and then drifts from.
     /** A selected or active label on glass. */
     onGlassStrong: string
+
     /** Ordinary text on glass. */
     onGlass: string
+
     /** An icon on glass. */
     onGlassIcon: string
+
     /** A placeholder, or a label with nothing chosen yet. */
     onGlassMuted: string
+
     /** A row under the pointer. */
     glassHover: string
+
     /** The chosen row. */
     glassSelected: string
+
     /** A rule between sections of a glass panel. */
     glassDivider: string
+
     /**
      * The timeline rail's connecting line.
      *
@@ -121,6 +131,7 @@ export interface ArcPalette {
      * timeline and is the first thing the panel should say.
      */
     railLine: string
+
     /**
      * The fill of a rail node with no date.
      *
@@ -130,6 +141,7 @@ export interface ArcPalette {
      * which is what an unset point is.
      */
     railNodeEmpty: string
+
     /**
      * A destructive action on the engraved bar.
      *
@@ -139,6 +151,7 @@ export interface ArcPalette {
      * lifted to where it reads on a dark ground.
      */
     dangerOnGlass: string
+
     /** The primary action on the engraved bar. */
     accentOnGlass: string
 
@@ -151,20 +164,28 @@ export interface ArcPalette {
     // white-at-60% on card is invisible, and this ramp on glass is unreadable.
     /** A heading, or the value a panel exists to show. */
     onPaperStrong: string
+
     /** Ordinary text on card. */
     onPaper: string
+
     /** A label, a placeholder, a timestamp — present but not being read. */
     onPaperMuted: string
+
     /** A row under the pointer. */
     paperHover: string
+
     /** The chosen row. */
     paperSelected: string
+
     /** A rule between sections of a card panel. */
     paperDivider: string
+
     /** A text input's ground, one step down from the card it sits on. */
     paperField: string
+
     /** The primary action, and anything that is the point of its panel. */
     paperAccent: string
+
     /** A destructive action on card. */
     paperDanger: string
 
@@ -179,8 +200,10 @@ export interface ArcPalette {
     // the one thing an accent set cannot afford.
     /** A command the user typed. */
     logCommand: string
+
     /** What a command answered. */
     logResult: string
+
     /** Something wanting attention: a deadline passed, a write rejected. */
     logAlert: string
 
@@ -198,8 +221,10 @@ export interface ArcPalette {
     // text when selected.
     /** Timeline: full preferred and required ranges. */
     timelineMode: string
+
     /** Deadline: a single end date and time. */
     deadlineMode: string
+
     /** Timeless: no dates at all. */
     timelessMode: string
 }
@@ -209,7 +234,8 @@ export interface ArcPalette {
  * colour with a hue is a step of a ladder from Palette.ts, which is what took
  * lightcoral, aquamarine and the rest of the Blazor originals off the page.
  */
-const arcSurfaces: ArcPalette = {
+const arcSurfaces: ArcPalette =
+{
     swimlaneLabel: LADDERS.red.mid,
     cellActiveEdge: LADDERS.green.deep,
     overflowBadge: 'rgba(0, 0, 0, 0.55)',
@@ -255,11 +281,14 @@ const arcSurfaces: ArcPalette = {
  * a theme whose `palette.arc` is undefined at runtime — so every theme in this
  * file spreads arcSurfaces in. There is no default to fall back on.
  */
-declare module '@mui/material/styles' {
-    interface Palette {
+declare module '@mui/material/styles'
+{
+    interface Palette
+    {
         arc: ArcPalette
     }
-    interface PaletteOptions {
+    interface PaletteOptions
+    {
         arc?: ArcPalette
     }
 }

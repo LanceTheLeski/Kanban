@@ -11,6 +11,9 @@
  *   arc/fonts-from-fonts         font stacks come from Styles/Fonts.ts
  *   arc/colours-from-palette     colours come from Styles/ — see Palette.ts
  *
+ * And the layout rules, in eslint-arc-layout.js: braces, ternaries, JSX
+ * children, chains, attributes. Same plugin, same `arc/` prefix.
+ *
  * Each rule's message names the section of the conventions doc it enforces,
  * which is where the reasons are. A deliberate exception is an
  * `// eslint-disable-next-line arc/…` with a comment saying why.
@@ -19,6 +22,7 @@
  */
 
 import path from 'node:path'
+import { layoutRules } from './eslint-arc-layout.js'
 
 const DOC = 'docs/ui-conventions.md'
 
@@ -267,6 +271,7 @@ export default {
         'no-space-before-paren': noSpaceBeforeParen,
         'fonts-from-fonts': fontsFromFonts,
         'colours-from-palette': coloursFromPalette,
+        ...layoutRules,
     },
 }
 

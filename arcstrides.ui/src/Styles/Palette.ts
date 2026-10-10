@@ -34,13 +34,17 @@
  * they stay the validated categorical set in Calendar.Stats.
  */
 
-export interface Ladder {
+export interface Ladder
+{
     ground: string
+
     mid: string
+
     deep: string
 }
 
-export const LADDERS = {
+export const LADDERS =
+{
     blue: { ground: '#cfdfef', mid: '#79aad8', deep: '#295074' },
     green: { ground: '#cfe6dc', mid: '#6cb69a', deep: '#175a45' },
     red: { ground: '#f1cac3', mid: '#d59185', deep: '#70322b' },
@@ -50,7 +54,8 @@ export const LADDERS = {
 export type Hue = keyof typeof LADDERS
 
 /** The stocks with no hue to speak of. */
-export const NEUTRALS = {
+export const NEUTRALS =
+{
     /** Plain card: unbleached board, warm off-white. */
     cream: '#f6f1e4',
     /** The swimlanes' card. */
@@ -72,7 +77,8 @@ export const OXBLOOD = LADDERS.red.deep
  * enough to read against it. Gold's own ground for the action a bar leads
  * with, and a red just past its ground for the one that deletes.
  */
-export const ON_GLASS = {
+export const ON_GLASS =
+{
     accent: LADDERS.yellow.ground,
     danger: '#f3b8ad',
 } as const
@@ -82,9 +88,11 @@ export const ON_GLASS = {
  * `--arc-cream` — for App.tsx to set on :root, so ArcStyles.css never states a
  * colour of its own.
  */
-export const PALETTE_VARIABLES: Record<string, string> = {
-    ...Object.fromEntries(Object.entries(LADDERS).flatMap(([hue, ladder]) =>
-        Object.entries(ladder).map(([step, colour]) => [`--arc-${hue}-${step}`, colour]))),
+export const PALETTE_VARIABLES: Record<string, string> =
+{
+    ...Object.fromEntries(Object.entries(LADDERS)
+                                .flatMap(([hue, ladder]) =>
+                                    Object.entries(ladder).map(([step, colour]) => [`--arc-${hue}-${step}`, colour]))),
     ...Object.fromEntries(Object.entries(NEUTRALS).map(([name, colour]) => [`--arc-${name}`, colour])),
     '--arc-ink': INK,
     '--arc-navy': NAVY,

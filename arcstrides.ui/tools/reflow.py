@@ -11,7 +11,8 @@ Three rules, in the order they are applied:
   1. An element whose attributes wrap puts the first attribute on the tag's own
      line and aligns the rest under it.
   2. An `sx={{ ... }}` object follows the element's alignment rather than
-     starting a new indent level.
+     starting a new indent level, and closes with `}}` on a line of its own,
+     under the `{{`.
   3. Anything that fits stays on one line — so an sx that no longer fits, once
      rule 1 has pulled it up beside the tag, is broken into that same column.
 
@@ -31,11 +32,13 @@ shape it had — a `*` column, a hanging indent, or neither — and blank lines 
 kept, because one inside a comment is a paragraph break and one between
 property groups is the only thing separating them.
 
-Two things are deliberately left alone: an element whose attributes contain a
+One thing is deliberately left alone: an element whose attributes contain a
 multi-line template literal, since shifting it would edit the string rather
-than the layout, and an sx object whose last property carries a trailing
-comment, since the closing `}}` has nowhere to go. Both are rare, and both are
-better fixed by hand than by a rule.
+than the layout. It is rare, and better fixed by hand than by a rule.
+
+The rest of the layout — braces, ternaries, the spacing of JSX children,
+attributes one per line in a busy file — is ESLint's, in eslint-arc-layout.js.
+`npm run format` runs those fixers first and this after.
 """
 import re
 import sys
@@ -93,8 +96,6 @@ def align_sx(src):
         inner_end = find_brace_end(src, mask, src.index('{{', match.start()) + 1)
         if inner_end == -1 or crosses_lines(src, mask, match.end(), inner_end):
             continue
-        if ends_in_comment(src, mask, match.end(), inner_end):
-            continue
 
         lines = trimmed(src[match.end():inner_end])
         if not lines:
@@ -102,7 +103,7 @@ def align_sx(src):
 
         head = sx_head(match)
         moved = realign(lines, len(head)).rstrip(',')
-        return src[:match.start()] + head + moved + ' }}' + src[inner_end + 2:], True
+        return src[:match.start()] + head + moved + sx_close(head) + src[inner_end + 2:], True
     return src, False
 
 
@@ -124,7 +125,7 @@ def split_wide_sx(src):
 
         head = sx_head(match)
         joined = (',\n' + ' ' * len(head)).join(parts)
-        return src[:match.start()] + head + joined + ' }}' + src[inner_end + 2:], True
+        return src[:match.start()] + head + joined + sx_close(head) + src[inner_end + 2:], True
     return src, False
 
 
@@ -279,19 +280,13 @@ def find_brace_end(src, mask, open_brace):
     return -1
 
 
-def ends_in_comment(src, mask, start, end):
-    """Whether the object's last property line carries a trailing comment."""
-    i = end - 1
-    while i > start and src[i].isspace():
-        i -= 1
-    line_start = src.rfind('\n', 0, i) + 1
-    line_end = src.find('\n', i)
-    return any(not mask[j] and src[j:j + 2] in ('//', '/*')
-               for j in range(line_start, line_end))
-
-
 def sx_head(match):
     return match.group('indent') + match.group('lead') + match.group('prop') + '={{ '
+
+
+def sx_close(head):
+    """The `}}` on a line of its own, under the `{{` that ends the head."""
+    return '\n' + ' ' * (len(head) - len('{{ ')) + '}}'
 
 
 def split_properties(body, mask, offset):

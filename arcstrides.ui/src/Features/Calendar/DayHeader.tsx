@@ -61,17 +61,24 @@ import type { DayStats } from './Calendar.Stats'
 import type { DayView } from './Calendar.Views'
 import type { GridDay } from './Calendar.Grid'
 
-interface DayHeaderProps {
+interface DayHeaderProps
+{
     day: GridDay
+
     stats: DayStats
+
     views: DayView[]
+
     current: number
+
     onView: (index: number) => void
+
     /** The copy inside the day's own overlay: nothing here opens the day again. */
     mini?: boolean
 }
 
-export const DayHeader: React.FC<DayHeaderProps> = ({ day, stats, views, current, onView, mini = false }) => {
+export const DayHeader: React.FC<DayHeaderProps> = ({ day, stats, views, current, onView, mini = false }) =>
+{
     const actions = useCalendarActions()
     const { openDay } = actions
     const name = day.date.format('dddd D MMMM')
@@ -83,7 +90,8 @@ export const DayHeader: React.FC<DayHeaderProps> = ({ day, stats, views, current
     const view = views[current]
     const step = (by: number) => onView((current + by + count) % count)
 
-    const number = <DiscNumber value={day.date.date()} disc={DISC} />
+    const number = <DiscNumber value={day.date.date()}
+                               disc={DISC} />
 
     return (
         /*
@@ -100,17 +108,28 @@ export const DayHeader: React.FC<DayHeaderProps> = ({ day, stats, views, current
                    gap: '3px',
                    p: '3px',
                    gridTemplateColumns: 'auto minmax(0, 1fr)',
-                   gridTemplateAreas: paged ? '"date menu" "chart chart" "nav nav"' : '"date menu" "chart chart"',
-                   gridTemplateRows: paged ? 'auto 1.9rem 1.15rem' : 'auto 1.9rem',
+                   gridTemplateAreas: paged
+                       ? '"date menu" "chart chart" "nav nav"'
+                       : '"date menu" "chart chart"',
+                   gridTemplateRows: paged
+                       ? 'auto 1.9rem 1.15rem'
+                       : 'auto 1.9rem',
                    alignItems: 'stretch',
                    [`@container day (min-width: ${MIDDLE_FROM})`]: {
                        gridTemplateColumns: 'auto minmax(0, 1fr) auto',
-                       gridTemplateAreas: paged ? '"date chart chart" "nav nav menu"' : '"date chart menu"',
-                       gridTemplateRows: paged ? '2.6rem 1.15rem' : '2.6rem',
+                       gridTemplateAreas: paged
+                           ? '"date chart chart" "nav nav menu"'
+                           : '"date chart menu"',
+                       gridTemplateRows: paged
+                           ? '2.6rem 1.15rem'
+                           : '2.6rem',
                    },
                    [`@container day (min-width: ${WIDE_FROM})`]: {
-                       gridTemplateAreas: paged ? '"date chart menu" "nav nav nav"' : '"date chart menu"',
-                   } }}>
+                       gridTemplateAreas: paged
+                           ? '"date chart menu" "nav nav nav"'
+                           : '"date chart menu"',
+                   }
+                }}>
             {/*
                 The number, punched out of card and glued down, ringed with its
                 tasks by type; the number in gold, as Blazor set it. Today is cut
@@ -119,64 +138,100 @@ export const DayHeader: React.FC<DayHeaderProps> = ({ day, stats, views, current
                 except in the day's own overlay, where it is only the date.
             */}
             <Box sx={{ gridArea: 'date', display: 'grid', placeItems: 'center' }}>
-                <TypeRing slices={type.ring ? stats.slices : []} size={RING.size} thickness={RING.thickness}>
-                    {mini ? (
-                        <Box className={`card-disc card-stock-flat card-cut${day.isToday ? ' paper-oxblood' : ''}`}
-                             sx={{ width: DISC,
-                                   height: DISC,
-                                   display: 'grid',
-                                   placeItems: 'center' }}>
-                            {number}
-                        </Box>
-                    ) : (
-                        <ButtonBase className={`card-disc card-stock-flat card-cut${day.isToday ? ' paper-oxblood' : ''}`}
-                                    onClick={() => openDay(day)}
-                                    aria-label={`Open ${name}${day.isToday ? ', today' : ''}`}
-                                    aria-current={day.isToday ? 'date' : undefined}
-                                    sx={{ width: DISC,
-                                          height: DISC,
-                                          '&:hover': { filter: 'brightness(0.96)' },
-                                          '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 } }}>
-                            {number}
-                        </ButtonBase>
-                    )}
+                <TypeRing slices={type.ring
+                              ? stats.slices
+                              : []}
+                          size={RING.size}
+                          thickness={RING.thickness}>
+                    { mini
+                        ? (
+                              <Box className={`card-disc card-stock-flat card-cut${day.isToday
+                                       ? ' paper-oxblood'
+                                       : ''}`}
+                                   sx={{ width: DISC,
+                                         height: DISC,
+                                         display: 'grid',
+                                         placeItems: 'center'
+                                      }}>
+                                  { number }
+                              </Box>
+                          )
+                        : (
+                              <ButtonBase className={`card-disc card-stock-flat card-cut${day.isToday
+                                              ? ' paper-oxblood'
+                                              : ''}`}
+                                          onClick={() => openDay(day)}
+                                          aria-label={`Open ${name}${day.isToday
+                                              ? ', today'
+                                              : ''}`}
+                                          aria-current={day.isToday
+                                              ? 'date'
+                                              : undefined}
+                                          sx={{ width: DISC,
+                                                height: DISC,
+                                                '&:hover': { filter: 'brightness(0.96)' },
+                                                '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 }
+                                             }}>
+                                  { number }
+                              </ButtonBase>
+                          )
+                    }
                 </TypeRing>
             </Box>
 
             {/* Progress, a line per type, where there is progress to show. */}
-            {face === 'lines' && (
-                <Box className="card-stock-flat card-cut tile" sx={{ gridArea: 'chart',
-                                                            minWidth: 0,
-                                                            px: 0.75,
-                                                            py: 0.4 }}>
+            { face === 'lines' && (
+                <Box className="card-stock-flat card-cut tile"
+                     sx={{ gridArea: 'chart',
+                           minWidth: 0,
+                           px: 0.75,
+                           py: 0.4
+                        }}>
                     <ProgressLines slices={stats.slices} />
                 </Box>
-            )}
+            )
+            }
 
-            {face === 'scene' && type.scene && (
+            { face === 'scene' && type.scene && (
                 <Box className="card-stock-flat card-cut tile"
                      title={`${type.name} day`}
                      sx={{ gridArea: 'chart', minWidth: 0, position: 'relative', overflow: 'hidden', p: 0 }}>
-                    <DayArt scene={type.scene} label={`${type.name} day`} />
-                    {cards.length > 0 && (
-                        <Box component="span" sx={BADGE_SX}>
+                    <DayArt scene={type.scene}
+                            label={`${type.name} day`} />
+                    { cards.length > 0 && (
+                        <Box component="span"
+                             sx={BADGE_SX}>
                             {/* How much is on, not how far along: neither type measures that. */}
-                            {stats.total > 0
-                                ? `${stats.total} ${stats.total === 1 ? 'task' : 'tasks'}`
-                                : `${cards.length} ${cards.length === 1 ? 'card' : 'cards'}`}
+                            { stats.total > 0
+                                ? `${stats.total} ${stats.total === 1
+                                    ? 'task'
+                                    : 'tasks'}`
+                                : `${cards.length} ${cards.length === 1
+                                    ? 'card'
+                                    : 'cards'}`
+                            }
                         </Box>
-                    )}
+                    )
+                    }
                 </Box>
-            )}
+            )
+            }
 
-            {(face === 'add card' || face === 'add task') && (
-                <Invite day={day} type={type} face={face} actions={actions} />
-            )}
+            { (face === 'add card' || face === 'add task') && (
+                <Invite day={day}
+                        type={type}
+                        face={face}
+                        actions={actions} />
+            )
+            }
 
-            <Box className="card-stock-flat card-cut tile paper-yellow" sx={{ gridArea: 'menu',
-                                                                     display: 'flex',
-                                                                     minWidth: 0 }}>
-                <DayActions day={day} mini={mini} />
+            <Box className="card-stock-flat card-cut tile paper-yellow"
+                 sx={{ gridArea: 'menu',
+                       display: 'flex',
+                       minWidth: 0
+                    }}>
+                <DayActions day={day}
+                            mini={mini} />
             </Box>
 
             {/*
@@ -185,13 +240,18 @@ export const DayHeader: React.FC<DayHeaderProps> = ({ day, stats, views, current
                 and the heading is oxblood card with gold foil. The heading is a
                 button too: it goes back to All, which is what "ALL" was for.
             */}
-            {paged && (
+            { paged && (
                 <Box sx={{ gridArea: 'nav',
                            display: 'flex',
                            gap: '3px',
-                           minWidth: 0 }}>
-                    <Box className="card-stock-flat card-cut tile paper-blue" sx={{ display: 'flex' }}>
-                        <IconButton onClick={() => step(-1)} disabled={count < 2} aria-label="Previous view" sx={ARROW_SX}>
+                           minWidth: 0
+                        }}>
+                    <Box className="card-stock-flat card-cut tile paper-blue"
+                         sx={{ display: 'flex' }}>
+                        <IconButton onClick={() => step(-1)}
+                                    disabled={count < 2}
+                                    aria-label="Previous view"
+                                    sx={ARROW_SX}>
                             <ChevronLeftIcon sx={{ fontSize: '0.9rem' }} />
                         </IconButton>
                     </Box>
@@ -199,7 +259,9 @@ export const DayHeader: React.FC<DayHeaderProps> = ({ day, stats, views, current
                     <ButtonBase className="card-stock-flat card-cut tile paper-oxblood"
                                 onClick={() => onView(0)}
                                 disabled={current === 0}
-                                title={view ? `${view.label} — ${current + 1} of ${count}` : 'All'}
+                                title={view
+                                    ? `${view.label} — ${current + 1} of ${count}`
+                                    : 'All'}
                                 aria-label={!view || current === 0
                                     ? `Showing ${view?.label ?? 'All'}`
                                     : `Showing ${view.label}, ${current + 1} of ${count}. Back to All`}
@@ -211,18 +273,24 @@ export const DayHeader: React.FC<DayHeaderProps> = ({ day, stats, views, current
                                    fontWeight: 700,
                                    fontSize: '0.62rem',
                                    letterSpacing: '0.08em',
-                                   lineHeight: 1 }}>
-                            {view?.short ?? 'ALL'}
+                                   lineHeight: 1
+                                }}>
+                            { view?.short ?? 'ALL' }
                         </Box>
                     </ButtonBase>
 
-                    <Box className="card-stock-flat card-cut tile paper-blue" sx={{ display: 'flex' }}>
-                        <IconButton onClick={() => step(1)} disabled={count < 2} aria-label="Next view" sx={ARROW_SX}>
+                    <Box className="card-stock-flat card-cut tile paper-blue"
+                         sx={{ display: 'flex' }}>
+                        <IconButton onClick={() => step(1)}
+                                    disabled={count < 2}
+                                    aria-label="Next view"
+                                    sx={ARROW_SX}>
                             <ChevronRightIcon sx={{ fontSize: '0.9rem' }} />
                         </IconButton>
                     </Box>
                 </Box>
-            )}
+            )
+            }
         </Box>
     )
 }
@@ -247,10 +315,15 @@ const WIDE_FROM = '150px'
  */
 type Face = 'lines' | 'scene' | 'add card' | 'add task'
 
-function faceOf(type: DayType, cards: number, tasks: number): Face {
-    if (type.progress && tasks > 0) return 'lines'
-    if (type.scene && !type.invites) return 'scene'
-    return cards === 0 ? 'add card' : 'add task'
+function faceOf(type: DayType, cards: number, tasks: number): Face
+{
+    if (type.progress && tasks > 0)
+        return 'lines'
+    if (type.scene && !type.invites)
+        return 'scene'
+    return cards === 0
+        ? 'add card'
+        : 'add task'
 }
 
 /** Ring sizes, in px: the SVG needs numbers, not breakpoint maps. */
@@ -260,7 +333,8 @@ const RING = { size: 40, thickness: 4 }
 const DISC = RING.size - 2 * RING.thickness
 
 /** A count laid on a picture, on a scrap of cream so it reads over any of them. */
-const BADGE_SX = {
+const BADGE_SX =
+{
     position: 'absolute',
     left: 2,
     top: 2,
@@ -280,16 +354,23 @@ const BADGE_SX = {
  * corner; a day with no theme has only the offer, set quietly, since every
  * empty day in the month carries one and a grid of them should not shout.
  */
-function Invite({ day, type, face, actions }: { day: GridDay; type: DayType; face: Face; actions: CalendarActions }) {
+function Invite({ day, type, face, actions }: { day: GridDay; type: DayType; face: Face; actions: CalendarActions })
+{
     const cards = day.stored?.cards ?? []
-    const label = face === 'add card' ? 'Add card' : 'Add a task'
+    const label = face === 'add card'
+        ? 'Add card'
+        : 'Add a task'
 
     // A task goes on a card, so with one card there is only one place for it;
     // with several, the day is opened to choose.
-    const invite = () => {
-        if (face === 'add task' && cards.length === 1) actions.openCard(cards[0])
-        else if (face === 'add task') actions.openDay(day)
-        else actions.openDay(day, { adding: true })
+    const invite = () =>
+    {
+        if (face === 'add task' && cards.length === 1)
+            actions.openCard(cards[0])
+        else if (face === 'add task')
+            actions.openDay(day)
+        else
+            actions.openDay(day, { adding: true })
     }
 
     return (
@@ -300,15 +381,22 @@ function Invite({ day, type, face, actions }: { day: GridDay; type: DayType; fac
                           minWidth: 0,
                           position: 'relative',
                           overflow: 'hidden',
-                          justifyContent: type.scene ? 'flex-start' : 'center',
-                          alignItems: type.scene ? 'flex-start' : 'center',
+                          justifyContent: type.scene
+                              ? 'flex-start'
+                              : 'center',
+                          alignItems: type.scene
+                              ? 'flex-start'
+                              : 'center',
                           '&:hover .invite-label': { color: 'arc.onPaperStrong' },
-                          '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 } }}>
-            {type.scene && (
-                <Box aria-hidden sx={{ position: 'absolute', inset: 0 }}>
+                          '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 }
+                       }}>
+            { type.scene && (
+                <Box aria-hidden
+                     sx={{ position: 'absolute', inset: 0 }}>
                     <DayArt scene={type.scene} />
                 </Box>
-            )}
+            )
+            }
             <Box component="span"
                  className="invite-label"
                  sx={type.scene
@@ -321,14 +409,18 @@ function Invite({ day, type, face, actions }: { day: GridDay; type: DayType; fac
                          lineHeight: 1.6,
                          color: 'arc.onPaperMuted',
                          whiteSpace: 'nowrap' }}>
-                <AddIcon sx={{ fontSize: type.scene ? '0.62rem' : '0.75rem' }} />
-                {label}
+                <AddIcon sx={{ fontSize: type.scene
+                                   ? '0.62rem'
+                                   : '0.75rem'
+                            }} />
+                { label }
             </Box>
         </ButtonBase>
     )
 }
 
-const ARROW_SX = {
+const ARROW_SX =
+{
     p: 0,
     width: '1.05rem',
     borderRadius: '1px',

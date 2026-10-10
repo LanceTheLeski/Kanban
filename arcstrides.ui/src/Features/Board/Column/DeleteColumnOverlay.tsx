@@ -23,13 +23,16 @@ import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
 import { useBoardStore } from '../Board.Store'
 
-interface DeleteColumnOverlayProps {
+interface DeleteColumnOverlayProps
+{
     open: boolean
     onClose: () => void
 }
 
-export const DeleteColumnOverlay: React.FC<DeleteColumnOverlayProps> = ({ open, onClose }) => {
-    const { boardId, columns } = useBoardStore(useShallow(state => ({
+export const DeleteColumnOverlay: React.FC<DeleteColumnOverlayProps> = ({ open, onClose }) =>
+{
+    const { boardId, columns } = useBoardStore(useShallow(state =>
+    ({
         boardId: state.boardId,
         columns: state.columns,
     })))
@@ -37,26 +40,32 @@ export const DeleteColumnOverlay: React.FC<DeleteColumnOverlayProps> = ({ open, 
 
     const [selectedTitle, setSelectedTitle] = useState<string | null>(null)
 
-    const handleSelect = (title: string) => {
+    const handleSelect = (title: string) =>
+    {
         // Preserve Blazor's uniqueness guard
         const matches = columns.filter(column => column.title === title)
-        if (matches.length !== 1) {
+        if (matches.length !== 1)
+        {
             console.error(`Expected exactly 1 column with title "${title}", found ${matches.length}`)
             return
         }
         setSelectedTitle(title)
     }
 
-    const handleSubmit = async () => {
-        if (!boardId || !selectedTitle) return
+    const handleSubmit = async () =>
+    {
+        if (!boardId || !selectedTitle)
+            return
 
         const column = columns.find(candidate => candidate.title === selectedTitle)
-        if (!column) return
+        if (!column)
+            return
 
         // Deleting a column shifts the remaining orders and moves the cards that
         // were in it — the refresh inside run() picks all of that up.
         const deleted = await run('Deleting column', () => deleteColumn(boardId, column.id))
-        if (!deleted) return
+        if (!deleted)
+            return
 
         setSelectedTitle(null)
         onClose()

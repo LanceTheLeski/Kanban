@@ -5,6 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 import arc from './tools/eslint-arc.js'
+import { layoutRules } from './tools/eslint-arc-layout.js'
 
 export default defineConfig([
   globalIgnores(['dist']),
@@ -36,6 +37,16 @@ export default defineConfig([
       'arc/fonts-from-fonts': 'error',
       'arc/colours-from-palette': 'error',
     },
+  },
+
+  /*
+    Layout — docs/ui-conventions.md, "Layout". Every rule here fixes what it
+    reports: `npm run format` runs them to a standstill, then reflow.py.
+  */
+  {
+    files: ['src/**/*.{ts,tsx}', 'vite.config.ts'],
+    plugins: { arc },
+    rules: Object.fromEntries(Object.keys(layoutRules).map(rule => [`arc/${rule}`, 'error'])),
   },
 
   /*

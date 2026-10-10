@@ -27,7 +27,8 @@
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL
 
-if (!BASE_URL) {
+if (!BASE_URL)
+{
     throw new Error(
         'VITE_API_BASE_URL is not defined. ' +
         'Add it to .env.development (local) or .env.production (deployed).'
@@ -44,22 +45,28 @@ export const ARC = '/arcstrides'
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 /** A single JSON Patch operation (RFC 6902) */
-export interface PatchOperation {
+export interface PatchOperation
+{
     op: 'add' | 'remove' | 'replace' | 'move' | 'copy' | 'test'
+
     path: string
+
     value?: unknown
 }
 
 // ── Convenience methods ───────────────────────────────────────────────────────
 
-export const apiClient = {
+export const apiClient =
+{
     /** GET — returns parsed JSON */
-    get<T>(path: string): Promise<T> {
+    get<T>(path: string): Promise<T>
+    {
         return request(path, { method: 'GET' }).then(r => r.json())
     },
 
     /** POST — sends JSON body, returns parsed JSON */
-    post<T>(path: string, body: unknown): Promise<T> {
+    post<T>(path: string, body: unknown): Promise<T>
+    {
         return request(path, {
             method: 'POST',
             body: JSON.stringify(body),
@@ -67,7 +74,8 @@ export const apiClient = {
     },
 
     /** PUT — sends JSON body, returns parsed JSON */
-    put<T>(path: string, body: unknown): Promise<T> {
+    put<T>(path: string, body: unknown): Promise<T>
+    {
         return request(path, {
             method: 'PUT',
             body: JSON.stringify(body),
@@ -82,18 +90,21 @@ export const apiClient = {
      * Returns parsed JSON if the server sends a body (e.g. updated entity),
      * or null for 204 No Content responses.
      */
-    async patch<T = void>(path: string, operations: PatchOperation[]): Promise<T> {
+    async patch<T = void>(path: string, operations: PatchOperation[]): Promise<T>
+    {
         const response = await request(path, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json-patch+json' },
             body: JSON.stringify(operations),
         })
-        if (response.status === 204) return undefined as T
+        if (response.status === 204)
+            return undefined as T
         return response.json()
     },
 
     /** DELETE — expects no response body (204 No Content) */
-    async delete(path: string): Promise<void> {
+    async delete(path: string): Promise<void>
+    {
         await request(path, { method: 'DELETE' })
     },
 }
@@ -111,7 +122,8 @@ export const apiClient = {
 async function request(
     path: string,
     options: RequestInit = {}
-): Promise<Response> {
+): Promise<Response>
+{
     const response = await fetch(`${BASE_URL}${path}`, {
         ...options,
         headers: {
@@ -120,7 +132,8 @@ async function request(
         },
     })
 
-    if (!response.ok) {
+    if (!response.ok)
+    {
         throw new Error(`API error on ${options.method ?? 'GET'} ${path}: ${await describeFailure(response)}`)
     }
 
@@ -142,23 +155,32 @@ async function request(
  * still reported rather than discarded, and there is no second read of a stream
  * that has already been consumed.
  */
-async function describeFailure(response: Response): Promise<string> {
+async function describeFailure(response: Response): Promise<string>
+{
     const status = `${response.status} ${response.statusText}`.trim()
 
     let raw: string
-    try {
+    try
+    {
         raw = await response.text()
-    } catch {
+    }
+    catch
+    {
         return status
     }
-    if (!raw.trim()) return status
+    if (!raw.trim())
+        return status
 
     let detail = raw
-    try {
+    try
+    {
         const body: unknown = JSON.parse(raw)
-        if (typeof body === 'string') {
+        if (typeof body === 'string')
+        {
             detail = body
-        } else if (body !== null && typeof body === 'object') {
+        }
+        else if (body !== null && typeof body === 'object')
+        {
             const problem = body as Record<string, unknown>
             // ValidationProblemDetails puts the useful part under `errors`, keyed by
             // field, and its `title` is the generic "One or more validation errors
@@ -185,11 +207,15 @@ async function describeFailure(response: Response): Promise<string> {
 
             detail = [headline, errors].filter(Boolean).join(' — ') || raw
         }
-    } catch {
+    }
+    catch
+    {
         // Not JSON. The raw text is still the best answer we have.
     }
 
     // Keep a snackbar readable; the full body is in the network tab either way.
     const trimmed = detail.replace(/\s+/g, ' ').trim()
-    return trimmed.length > 300 ? `${trimmed.slice(0, 300)}…` : trimmed || status
+    return trimmed.length > 300
+        ? `${trimmed.slice(0, 300)}…`
+        : trimmed || status
 }

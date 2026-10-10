@@ -17,12 +17,14 @@ import React, { useState } from 'react'
 import { ButtonBase, Menu, MenuItem } from '@mui/material'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-export const AppMenu: React.FC = () => {
+export const AppMenu: React.FC = () =>
+{
     const [anchor, setAnchor] = useState<HTMLElement | null>(null)
     const navigate = useNavigate()
     const { pathname } = useLocation()
 
-    const go = (to: string) => {
+    const go = (to: string) =>
+    {
         setAnchor(null)
         navigate(to)
     }
@@ -43,16 +45,19 @@ export const AppMenu: React.FC = () => {
                               height: 34,
                               flexShrink: 0,
                               '&:hover': { filter: 'brightness(0.96)' },
-                              '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'common.white', outlineOffset: 2 } }}>
+                              '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'common.white', outlineOffset: 2 }
+                           }}>
                 <img src="/Honu.png" alt="" width={26} height={26} />
             </ButtonBase>
 
             <Menu anchorEl={anchor} open={anchor !== null} onClose={() => setAnchor(null)}>
-                {PAGES.map(page => (
-                    <MenuItem key={page.to} selected={page.isHere(pathname)} onClick={() => go(page.to)}>
-                        {page.label}
-                    </MenuItem>
-                ))}
+                { PAGES.map(page =>
+                            (
+                                <MenuItem key={page.to} selected={page.isHere(pathname)} onClick={() => go(page.to)}>
+                                    { page.label }
+                                </MenuItem>
+                            ))
+                }
             </Menu>
         </>
     )
@@ -67,7 +72,8 @@ export default AppMenu
  * The pages. "Board" goes to the root, which redirects to the demo board until
  * there is a board picker to go to instead — see App.tsx.
  */
-const PAGES = [
+const PAGES =
+[
     { label: 'Board', to: '/', isHere: (path: string) => path.startsWith('/board') },
     { label: 'Calendar', to: '/calendar', isHere: (path: string) => path.startsWith('/calendar') },
 ]

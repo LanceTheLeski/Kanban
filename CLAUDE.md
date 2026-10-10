@@ -19,8 +19,9 @@ written from the code as it is, and both say why.
 - UI: `docs/ui-conventions.md`
 - C#: `docs/csharp-conventions.md`
 
-Each language keeps its own style. C# puts a space before every parameter list;
-TypeScript never does. Do not carry one into the other.
+Each language keeps its own spacing. C# puts a space before every parameter
+list; TypeScript never does. Both put braces on lines of their own; see "Layout"
+in the UI conventions for the rest of how TypeScript is laid out.
 
 ## Before committing
 
@@ -32,9 +33,11 @@ fix what they report before committing.
 | anything in `arcstrides.ui/` | `cd arcstrides.ui && npm run check` |
 | any `.cs` in the API or the contracts | `cd tools && npm run check:csharp`, then `dotnet build ArcStrides.API` |
 
-Some things can be fixed automatically: `npm run format` for the UI's layout,
-`npx eslint --fix` for its spacing, and `node tools/check-csharp.mjs --fix` for
-the C# spacing, tabs and byte order mark. Everything else is a person's call.
+Some things can be fixed automatically. In the UI, `npm run format` fixes all
+of its layout: braces, ternaries, JSX spacing and attributes. In the API,
+`node tools/check-csharp.mjs --fix` fixes the spacing, tabs and byte order mark.
+Everything else is a person's call. After hand-editing a UI file, run
+`npm run format` before the check rather than lining things up by eye.
 
 Never switch a rule off to get green. A real exception is a single line with its
 reason next to it: `// eslint-disable-next-line arc/… -- why`, or

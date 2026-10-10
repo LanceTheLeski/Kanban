@@ -25,13 +25,16 @@ import { columnColour, landingIndex } from '../Board.Colours'
 import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
 
-interface CreateColumnOverlayProps {
+interface CreateColumnOverlayProps
+{
     open: boolean
     onClose: () => void
 }
 
-export const CreateColumnOverlay: React.FC<CreateColumnOverlayProps> = ({ open, onClose }) => {
-    const { boardId, columns } = useBoardStore(useShallow(state => ({
+export const CreateColumnOverlay: React.FC<CreateColumnOverlayProps> = ({ open, onClose }) =>
+{
+    const { boardId, columns } = useBoardStore(useShallow(state =>
+    ({
         boardId: state.boardId,
         columns: state.columns,
     })))
@@ -42,16 +45,21 @@ export const CreateColumnOverlay: React.FC<CreateColumnOverlayProps> = ({ open, 
     // Null is the normal case: the column takes its place on the ramp.
     const [colour, setColour] = useState<string | null>(null)
 
-    const handleSubmit = async () => {
-        if (!boardId || !title.trim()) return
+    const handleSubmit = async () =>
+    {
+        if (!boardId || !title.trim())
+            return
 
         // Mirror Blazor fallback: if no order given, append at end
-        const order = orderInput.trim() !== '' ? parseInt(orderInput, 10) : columns.length
+        const order = orderInput.trim() !== ''
+            ? parseInt(orderInput, 10)
+            : columns.length
 
         const created = await run('Adding column', () =>
             createColumn(boardId, { title: title.trim(), order, colour, globalColour: colour })
         )
-        if (!created) return
+        if (!created)
+            return
 
         setTitle('')
         setOrderInput('')

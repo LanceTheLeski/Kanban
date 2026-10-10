@@ -34,7 +34,8 @@ import { CalendarPage, CurrentMonth } from './Pages/CalendarPage'
 import { DEFAULT_BOARD_ID } from './Features/Board/Board.Defaults'
 import './Styles/ArcStyles.css'
 
-function App() {
+function App()
+{
     return (
         <BrowserRouter>
             {/*
@@ -70,18 +71,25 @@ function App() {
                     / → redirect to the demo board ID for now.
                     Replace with a real HomePage (board picker) later.
                   */}
-                                <Route path="/" element={<Navigate to={`/board/${DEFAULT_BOARD_ID}`} replace />} />
+                                <Route path="/"
+                                       element={<Navigate to={`/board/${DEFAULT_BOARD_ID}`}
+                                                          replace />} />
 
                                 {/* /board/:boardId — the main Kanban board */}
-                                <Route path="/board/:boardId" element={<BoardPage />} />
+                                <Route path="/board/:boardId"
+                                       element={<BoardPage />} />
 
                                 {/* /calendar → whichever month it is today */}
-                                <Route path="/calendar" element={<CurrentMonth />} />
+                                <Route path="/calendar"
+                                       element={<CurrentMonth />} />
 
-                                <Route path="/calendar/:year/:month" element={<CalendarPage />} />
+                                <Route path="/calendar/:year/:month"
+                                       element={<CalendarPage />} />
 
                                 {/* Catch-all — send unknown URLs back to root */}
-                                <Route path="*" element={<Navigate to="/" replace />} />
+                                <Route path="*"
+                                       element={<Navigate to="/"
+                                                          replace />} />
                             </Route>
                         </Routes>
                     </ArcErrorDisplay>

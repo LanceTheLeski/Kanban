@@ -27,13 +27,16 @@ import { ColumnGlass } from './ColumnGlass'
 import { groupCardsByCell } from './CardGrid.Cells'
 import { useCardDrag } from './useCardDrag'
 
-interface CardGridProps {
+interface CardGridProps
+{
     boardId: string
 }
 
-export const CardGrid: React.FC<CardGridProps> = ({ boardId }) => {
+export const CardGrid: React.FC<CardGridProps> = ({ boardId }) =>
+{
     const { columns, swimlanes, cards } = useBoardStore(
-        useShallow(state => ({
+        useShallow(state =>
+        ({
             columns: state.columns,
             swimlanes: state.swimlanes,
             cards: state.cards,
@@ -60,7 +63,8 @@ export const CardGrid: React.FC<CardGridProps> = ({ boardId }) => {
                        position: 'relative',
                        // Room below the last lane for the glass to finish on the
                        // window, the way it starts on it above the first.
-                       pb: 1 }}>
+                       pb: 1
+                    }}>
                 <ColumnGlass columns={columns} />
 
                 <ColumnHeaderRow columns={columns} />
@@ -69,22 +73,24 @@ export const CardGrid: React.FC<CardGridProps> = ({ boardId }) => {
                             onDragStart={handleDragStart}
                             onDragEnd={handleDragEnd}
                             onDragCancel={handleDragCancel}>
-                    {swimlanes.map((swimlane, index) => (
-                        <SwimlaneRow key={swimlane.id}
-                                     swimlane={swimlane}
-                                     columns={columns}
-                                     cardsByCell={cardsByCell}
-                                     boardId={boardId}
-                                     laneIndex={index}
-                                     laneCount={swimlanes.length} />
-                    ))}
+                    { swimlanes.map((swimlane, index) =>
+                                    (
+                                        <SwimlaneRow key={swimlane.id}
+                                                     swimlane={swimlane}
+                                                     columns={columns}
+                                                     cardsByCell={cardsByCell}
+                                                     boardId={boardId}
+                                                     laneIndex={index}
+                                                     laneCount={swimlanes.length} />
+                                    ))
+                    }
 
                     {/*
                         The card that follows the cursor mid-drag. MudDropZone drew
                         this for us; dnd-kit needs it declared explicitly.
                     */}
                     <DragOverlay>
-                        {draggingCard && <BoardCard card={draggingCard} boardId={boardId} preview />}
+                        { draggingCard && <BoardCard card={draggingCard} boardId={boardId} preview /> }
                     </DragOverlay>
                 </DndContext>
             </Box>

@@ -64,47 +64,76 @@ import type { Column, Swimlane } from './Board.Types'
 // ── Wire shapes ───────────────────────────────────────────────────────────────
 
 /** Mirrors ArcStrides.Contracts.Response.TimelineResponse */
-interface TimelineResponse {
+interface TimelineResponse
+{
     id: string | null
+
     timelineTypeID: number | null
+
     startDependencyTagGroupID: string | null
+
     startPreferenceUTC: string | null
+
     startDeadlineUTC: string | null
+
     endDependencyTagGroupID: string | null
+
     endPreferenceUTC: string | null
+
     endDeadlineUTC: string | null
 }
 
 /** Mirrors ArcStrides.Contracts.Response.TaskTypeResponse */
-export interface TaskTypeResponse {
+export interface TaskTypeResponse
+{
     id: number | null
+
     groupTagID: string | null
+
     title: string | null
 }
 
 /** Mirrors ArcStrides.Contracts.Response.TaskResponse */
-interface TaskResponse {
+interface TaskResponse
+{
     id: string | null
+
     boardID: string | null
+
     title: string | null
+
     taskType: TaskTypeResponse | null
+
     order: number | null
+
     timeline: TimelineResponse | null
+
     isComplete: boolean | null
 }
 
 /** Mirrors ArcStrides.Contracts.Response.CardPositionResponse */
-interface CardPositionResponse {
+interface CardPositionResponse
+{
     id: string | null
+
     title: string | null
+
     description: string | null
+
     boardID: string | null
+
     columnID: string | null
+
     columnTitle: string | null
+
     columnOrder: number | null
+
     swimlaneID: string | null
+
     swimlaneTitle: string | null
+
     swimlaneOrder: number | null
+
     positionRank: number | null
 }
 
@@ -116,47 +145,71 @@ interface CardPositionResponse {
  * in this shape, and a second copy of the mapping in Calendar.APIs would be a
  * second place for the two quirks above to be handled differently.
  */
-export interface CardResponse {
+export interface CardResponse
+{
     id: string | null
+
     title: string | null
+
     description: string | null
+
     position: CardPositionResponse | null
+
     tasks: TaskResponse[] | null
+
     timeline: TimelineResponse | null
 }
 
 /** Mirrors ArcStrides.Contracts.Response.ColumnResponse / SwimlaneResponse */
-interface OrderedItemResponse {
+interface OrderedItemResponse
+{
     id: string | null
+
     title: string | null
+
     order: number | null
+
     boardID: string | null
+
     color: string | null
+
     globalColor: string | null
 }
 
 /** Mirrors ArcStrides.Contracts.Response.BoardResponse */
-interface BoardResponse {
+interface BoardResponse
+{
     id: string | null
+
     title: string | null
+
     columns: OrderedItemResponse[] | null
+
     swimlanes: OrderedItemResponse[] | null
+
     cards: CardResponse[] | null
 }
 
 /** The whole board, mapped into domain types. */
-export interface Board {
+export interface Board
+{
     id: string
+
     title: string
+
     columns: Column[]
+
     swimlanes: Swimlane[]
+
     cards: Card[]
 }
 
 // ── Response → domain mapping ─────────────────────────────────────────────────
 
-export function mapTaskType(response: TaskTypeResponse | null | undefined): TaskType | null {
-    if (!response || response.id == null) return null
+export function mapTaskType(response: TaskTypeResponse | null | undefined): TaskType | null
+{
+    if (!response || response.id == null)
+        return null
     return {
         id: response.id,
         groupTagId: response.groupTagID ?? null,
@@ -173,7 +226,8 @@ export function mapTaskType(response: TaskTypeResponse | null | undefined): Task
  * Note the two different IDs: `response.id` is the card, `response.position.id`
  * is its CardPosition row. Moving a card patches the latter.
  */
-export function mapCard(response: CardResponse): Card {
+export function mapCard(response: CardResponse): Card
+{
     const position = response.position
 
     return {
@@ -198,7 +252,8 @@ export function mapCard(response: CardResponse): Card {
 // ── Board ─────────────────────────────────────────────────────────────────────
 
 /** GET arcstrides/boards/:boardId */
-export async function fetchBoard(boardId: string): Promise<Board> {
+export async function fetchBoard(boardId: string): Promise<Board>
+{
     const response = await apiClient.get<BoardResponse>(`${ARC}/boards/${boardId}`)
 
     return {
@@ -206,7 +261,9 @@ export async function fetchBoard(boardId: string): Promise<Board> {
         // BoardController.FetchBoard sends the literal "Placeholder..": there is
         // no Boards table, so a board has no stored name (docs/api-gaps.md, #4).
         // Mapped to no title here, so nothing downstream shows it as one.
-        title: response.title === BOARD_TITLE_PLACEHOLDER ? '' : response.title ?? '',
+        title: response.title === BOARD_TITLE_PLACEHOLDER
+            ? ''
+            : response.title ?? '',
         columns: (response.columns ?? []).map(mapOrderedItem).sort((a, b) => a.order - b.order),
         swimlanes: (response.swimlanes ?? []).map(mapOrderedItem).sort((a, b) => a.order - b.order),
         cards: (response.cards ?? []).map(mapCard),
@@ -215,11 +272,16 @@ export async function fetchBoard(boardId: string): Promise<Board> {
 
 // ── Card ──────────────────────────────────────────────────────────────────────
 
-export interface CardCreateRequest {
+export interface CardCreateRequest
+{
     title: string
+
     description: string
+
     columnId: string
+
     swimlaneId: string
+
     /** Where in the cell it lands. Defaults to the top. */
     positionRank?: number
 }
@@ -234,7 +296,8 @@ export interface CardCreateRequest {
  * Callers therefore re-fetch the board rather than trying to splice the new card
  * into local state from this response.
  */
-export async function createCard(boardId: string, request: CardCreateRequest): Promise<void> {
+export async function createCard(boardId: string, request: CardCreateRequest): Promise<void>
+{
     await apiClient.post<CardPositionResponse>(`${ARC}/boards/${boardId}/cards`, {
         Title: request.title,
         Description: request.description,
@@ -247,13 +310,20 @@ export async function createCard(boardId: string, request: CardCreateRequest): P
     })
 }
 
-export interface CardMoveRequest {
+export interface CardMoveRequest
+{
     columnId: string
+
     columnTitle: string
+
     columnOrder: number
+
     swimlaneId: string
+
     swimlaneTitle: string
+
     swimlaneOrder: number
+
     /** Where in the target cell it lands. */
     positionRank: number
 }
@@ -265,8 +335,10 @@ export interface CardMoveRequest {
  * Note this targets the card's *position* ID, not the card ID — the route is
  * BoardController's [HttpPatch("{boardID}/cards/positions/{cardPositionID}")].
  */
-export function moveCard(boardId: string, positionId: string, request: CardMoveRequest): Promise<void> {
-    const operations: PatchOperation[] = [
+export function moveCard(boardId: string, positionId: string, request: CardMoveRequest): Promise<void>
+{
+    const operations: PatchOperation[] =
+    [
         { op: 'replace', path: '/positionRank', value: request.positionRank },
         { op: 'replace', path: '/columnID', value: request.columnId },
         { op: 'replace', path: '/columnTitle', value: request.columnTitle },
@@ -278,7 +350,8 @@ export function moveCard(boardId: string, positionId: string, request: CardMoveR
     return apiClient.patch(`${ARC}/boards/${boardId}/cards/positions/${positionId}`, operations)
 }
 
-export interface CardPatchRequest {
+export interface CardPatchRequest
+{
     title?: string
     description?: string
 }
@@ -292,7 +365,8 @@ export interface CardPatchRequest {
  * Title and Description live on the Card entity rather than its CardPosition, so
  * this is a different route from moveCard above.
  */
-export function updateCard(boardId: string, cardId: string, patch: CardPatchRequest): Promise<void> {
+export function updateCard(boardId: string, cardId: string, patch: CardPatchRequest): Promise<void>
+{
     const operations: PatchOperation[] = []
 
     if (patch.title !== undefined)
@@ -305,22 +379,28 @@ export function updateCard(boardId: string, cardId: string, patch: CardPatchRequ
 }
 
 /** DELETE arcstrides/boards/:boardId/cards/:cardId */
-export function deleteCard(boardId: string, cardId: string): Promise<void> {
+export function deleteCard(boardId: string, cardId: string): Promise<void>
+{
     return apiClient.delete(`${ARC}/boards/${boardId}/cards/${cardId}`)
 }
 
 // ── Column ────────────────────────────────────────────────────────────────────
 
-export interface ColumnCreateRequest {
+export interface ColumnCreateRequest
+{
     title: string
+
     order: number
+
     /** Omitted means "no opinion", and the board falls back to the ramp. */
     colour?: string | null
+
     globalColour?: string | null
 }
 
 /** POST arcstrides/boards/:boardId/columns */
-export async function createColumn(boardId: string, request: ColumnCreateRequest): Promise<Column> {
+export async function createColumn(boardId: string, request: ColumnCreateRequest): Promise<Column>
+{
     const response = await apiClient.post<OrderedItemResponse>(
         `${ARC}/boards/${boardId}/columns`,
         { Title: request.title,
@@ -331,10 +411,14 @@ export async function createColumn(boardId: string, request: ColumnCreateRequest
     return mapOrderedItem(response)
 }
 
-export interface OrderedItemPatchRequest {
+export interface OrderedItemPatchRequest
+{
     title?: string
+
     order?: number
+
     colour?: string
+
     globalColour?: string
 }
 
@@ -345,19 +429,22 @@ export interface OrderedItemPatchRequest {
  * the server (ColumnController.UpdateColumnAndUpdateEffectedColumnsAndCardPositions),
  * so callers re-fetch the board afterwards rather than mirroring that locally.
  */
-export function updateColumn(boardId: string, columnId: string, patch: OrderedItemPatchRequest): Promise<void> {
+export function updateColumn(boardId: string, columnId: string, patch: OrderedItemPatchRequest): Promise<void>
+{
     return apiClient.patch(`${ARC}/boards/${boardId}/columns/${columnId}`, orderedItemOperations(patch))
 }
 
 /** DELETE arcstrides/boards/:boardId/columns/:columnId */
-export function deleteColumn(boardId: string, columnId: string): Promise<void> {
+export function deleteColumn(boardId: string, columnId: string): Promise<void>
+{
     return apiClient.delete(`${ARC}/boards/${boardId}/columns/${columnId}`)
 }
 
 // ── Swimlane ──────────────────────────────────────────────────────────────────
 
 /** POST arcstrides/boards/:boardId/swimlanes */
-export async function createSwimlane(boardId: string, request: ColumnCreateRequest): Promise<Swimlane> {
+export async function createSwimlane(boardId: string, request: ColumnCreateRequest): Promise<Swimlane>
+{
     const response = await apiClient.post<OrderedItemResponse>(
         `${ARC}/boards/${boardId}/swimlanes`,
         { Title: request.title,
@@ -369,26 +456,33 @@ export async function createSwimlane(boardId: string, request: ColumnCreateReque
 }
 
 /** PATCH arcstrides/boards/:boardId/swimlanes/:swimlaneId */
-export function updateSwimlane(boardId: string, swimlaneId: string, patch: OrderedItemPatchRequest): Promise<void> {
+export function updateSwimlane(boardId: string, swimlaneId: string, patch: OrderedItemPatchRequest): Promise<void>
+{
     return apiClient.patch(`${ARC}/boards/${boardId}/swimlanes/${swimlaneId}`, orderedItemOperations(patch))
 }
 
 /** DELETE arcstrides/boards/:boardId/swimlanes/:swimlaneId */
-export function deleteSwimlane(boardId: string, swimlaneId: string): Promise<void> {
+export function deleteSwimlane(boardId: string, swimlaneId: string): Promise<void>
+{
     return apiClient.delete(`${ARC}/boards/${boardId}/swimlanes/${swimlaneId}`)
 }
 
 // ── Task ──────────────────────────────────────────────────────────────────────
 
-export interface TaskCreateRequest {
+export interface TaskCreateRequest
+{
     title: string
+
     taskTypeId: number
+
     order: number
+
     isComplete: boolean
 }
 
 /** POST arcstrides/boards/:boardId/cards/:cardId/tasks */
-export async function createTask(boardId: string, cardId: string, request: TaskCreateRequest): Promise<Task> {
+export async function createTask(boardId: string, cardId: string, request: TaskCreateRequest): Promise<Task>
+{
     const response = await apiClient.post<TaskResponse>(
         `${ARC}/boards/${boardId}/cards/${cardId}/tasks`,
         {
@@ -424,17 +518,21 @@ export function updateTask(
     cardId: string,
     taskId: string,
     patch: TaskPatch
-): Promise<void> {
-    const operations: PatchOperation[] = Object.entries(patch).map(([key, value]) => ({
-        op: 'replace',
-        path: `/${key}`,
-        value,
-    }))
+): Promise<void>
+{
+    const operations: PatchOperation[] = Object.entries(patch)
+                                               .map(([key, value]) =>
+                                               ({
+                                                   op: 'replace',
+                                                   path: `/${key}`,
+                                                   value,
+                                               }))
     return apiClient.patch(`${ARC}/boards/${boardId}/cards/${cardId}/tasks/${taskId}`, operations)
 }
 
 /** DELETE arcstrides/boards/:boardId/cards/:cardId/tasks/:taskId */
-export function deleteTask(boardId: string, cardId: string, taskId: string): Promise<void> {
+export function deleteTask(boardId: string, cardId: string, taskId: string): Promise<void>
+{
     return apiClient.delete(`${ARC}/boards/${boardId}/cards/${cardId}/tasks/${taskId}`)
 }
 
@@ -446,7 +544,8 @@ export function deleteTask(boardId: string, cardId: string, taskId: string): Pro
  * filter and returns every task type, but the parameter name is kept correct so
  * it starts working when TaskController's todo is addressed.
  */
-export async function fetchTaskTypes(taskTypeIds: number[]): Promise<TaskType[]> {
+export async function fetchTaskTypes(taskTypeIds: number[]): Promise<TaskType[]>
+{
     const query = encodeURIComponent(taskTypeIds.join(','))
     const response = await apiClient.get<TaskTypeResponse[]>(`${ARC}/tasks/types?TaskTypeIDs=${query}`)
 
@@ -475,7 +574,8 @@ export const DEFAULT_TASK_TYPE_TAG_GROUP_ID = '7b3f1c94-4d2e-4a61-9f0c-2e5a8d1b6
 export async function createTaskType(
     title: string,
     tagGroupId: string = DEFAULT_TASK_TYPE_TAG_GROUP_ID,
-): Promise<TaskType> {
+): Promise<TaskType>
+{
     const response = await apiClient.post<TaskTypeResponse>(
         `${ARC}/taggroups/${tagGroupId}/tasks/types`,
         { Title: title },
@@ -490,12 +590,18 @@ export async function createTaskType(
 
 // ── Timeline ──────────────────────────────────────────────────────────────────
 
-export interface TimelineCreateRequest {
+export interface TimelineCreateRequest
+{
     parentId: string | null
+
     timelineTypeId: number
+
     startPreferenceUTC: Date | null
+
     startDeadlineUTC: Date | null
+
     endPreferenceUTC: Date | null
+
     endDeadlineUTC: Date | null
 }
 
@@ -505,7 +611,8 @@ export interface TimelineCreateRequest {
  * Mirrors CreateTimelineAsync() in UpdateTaskPopover.cs. Dates are sent as ISO
  * 8601 UTC strings; the server returns strings which mapTimeline converts back.
  */
-export async function createTimeline(boardId: string, request: TimelineCreateRequest): Promise<Timeline | null> {
+export async function createTimeline(boardId: string, request: TimelineCreateRequest): Promise<Timeline | null>
+{
     const response = await apiClient.post<TimelineResponse>(
         `${ARC}/boards/${boardId}/timelines`,
         {
@@ -530,7 +637,8 @@ export function updateTimeline(
     boardId: string,
     timelineId: string,
     operations: PatchOperation[]
-): Promise<void> {
+): Promise<void>
+{
     return apiClient.patch(`${ARC}/boards/${boardId}/timelines/${timelineId}`, operations)
 }
 
@@ -542,12 +650,17 @@ export function updateTimeline(
  * The server stores and returns dates as UTC strings; we parse them here once so
  * all downstream code works with native Date objects.
  */
-function toDate(value: string | null | undefined): Date | null {
-    return value ? new Date(value) : null
+function toDate(value: string | null | undefined): Date | null
+{
+    return value
+        ? new Date(value)
+        : null
 }
 
-function mapTimeline(response: TimelineResponse | null | undefined): Timeline | null {
-    if (!response) return null
+function mapTimeline(response: TimelineResponse | null | undefined): Timeline | null
+{
+    if (!response)
+        return null
 
     /*
        A timeline with no dates and no ID is not a timeline.
@@ -561,7 +674,8 @@ function mapTimeline(response: TimelineResponse | null | undefined): Timeline | 
     const hasAnything = response.id != null
         || response.startPreferenceUTC != null || response.startDeadlineUTC != null
         || response.endPreferenceUTC != null || response.endDeadlineUTC != null
-    if (!hasAnything) return null
+    if (!hasAnything)
+        return null
 
     return {
         id: response.id ?? null,
@@ -574,7 +688,8 @@ function mapTimeline(response: TimelineResponse | null | undefined): Timeline | 
     }
 }
 
-function mapTask(response: TaskResponse): Task {
+function mapTask(response: TaskResponse): Task
+{
     return {
         id: response.id ?? '',
         title: response.title ?? '',
@@ -585,7 +700,8 @@ function mapTask(response: TaskResponse): Task {
     }
 }
 
-function mapOrderedItem(response: OrderedItemResponse): Column {
+function mapOrderedItem(response: OrderedItemResponse): Column
+{
     return {
         id: response.id ?? '',
         title: response.title ?? '',
@@ -600,7 +716,8 @@ function mapOrderedItem(response: OrderedItemResponse): Column {
 const BOARD_TITLE_PLACEHOLDER = 'Placeholder..'
 
 /** Columns and swimlanes share an identical patch shape. */
-function orderedItemOperations(patch: OrderedItemPatchRequest): PatchOperation[] {
+function orderedItemOperations(patch: OrderedItemPatchRequest): PatchOperation[]
+{
     const operations: PatchOperation[] = []
 
     if (patch.title !== undefined)

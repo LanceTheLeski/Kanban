@@ -40,16 +40,20 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, type Breakpoint } from '@mui/material'
 
-export interface ArcSplitPaneProps {
+export interface ArcSplitPaneProps
+{
     /** The left pane's share of the width, 0..1. */
     ratio: number
+
     onRatioChange: (ratio: number) => void
 
     left: React.ReactNode
+
     right: React.ReactNode
 
     /** Floors, in rem, so they grow with the root font size. */
     minLeftRem: number
+
     minRightRem: number
 
     /** Lets the right pane be dragged away entirely. */
@@ -75,7 +79,8 @@ export const ArcSplitPane: React.FC<ArcSplitPaneProps> = ({
     stackBelow = 'md',
     resetRatio,
     label = 'Resize panes',
-}) => {
+}) =>
+{
     const containerRef = useRef<HTMLDivElement | null>(null)
     const [dragging, setDragging] = useState(false)
 
@@ -88,13 +93,16 @@ export const ArcSplitPane: React.FC<ArcSplitPaneProps> = ({
      * the overlay is resizable, the root font size can change, and a ratio that
      * was legal at one width is not at another.
      */
-    const ratioFromClientX = useCallback((clientX: number): number => {
+    const ratioFromClientX = useCallback((clientX: number): number =>
+    {
         const container = containerRef.current
-        if (!container) return ratio
+        if (!container)
+            return ratio
 
         const bounds = container.getBoundingClientRect()
         const usable = bounds.width - BAR_WIDTH
-        if (usable <= 0) return ratio
+        if (usable <= 0)
+            return ratio
 
         const rootPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
         const minLeft = (minLeftRem * rootPx) / usable
@@ -103,25 +111,30 @@ export const ArcSplitPane: React.FC<ArcSplitPaneProps> = ({
         const raw = (clientX - bounds.left - BAR_WIDTH / 2) / usable
 
         // Past the last legal position, snap to gone rather than to a sliver.
-        if (collapsibleRight && raw > 1 - minRight / 2) return 1
+        if (collapsibleRight && raw > 1 - minRight / 2)
+            return 1
 
         return Math.min(Math.max(raw, minLeft), Math.max(minLeft, 1 - minRight))
     }, [ratio, minLeftRem, minRightRem, collapsibleRight])
 
     // Pointer capture keeps the drag alive when the cursor leaves the bar, which
     // it always does — the bar is 11px wide and the gesture is 400px long.
-    const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) =>
+    {
         event.currentTarget.setPointerCapture(event.pointerId)
         setDragging(true)
     }
 
-    const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-        if (!dragging) return
+    const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) =>
+    {
+        if (!dragging)
+            return
         event.preventDefault()
         onRatioChange(ratioFromClientX(event.clientX))
     }
 
-    const endDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    const endDrag = (event: React.PointerEvent<HTMLDivElement>) =>
+    {
         if (event.currentTarget.hasPointerCapture(event.pointerId))
             event.currentTarget.releasePointerCapture(event.pointerId)
         setDragging(false)
@@ -131,36 +144,48 @@ export const ArcSplitPane: React.FC<ArcSplitPaneProps> = ({
     // selecting text — otherwise the gesture highlights the description it is
     // resizing, and the cursor flickers whenever it is over a pane rather than
     // the bar.
-    useEffect(() => {
-        if (!dragging) return
+    useEffect(() =>
+    {
+        if (!dragging)
+            return
         const previousCursor = document.body.style.cursor
         const previousSelect = document.body.style.userSelect
         document.body.style.cursor = 'col-resize'
         document.body.style.userSelect = 'none'
-        return () => {
+        return () =>
+        {
             document.body.style.cursor = previousCursor
             document.body.style.userSelect = previousSelect
         }
     }, [dragging])
 
-    const nudge = (delta: number) => {
+    const nudge = (delta: number) =>
+    {
         const container = containerRef.current
-        if (!container) return
+        if (!container)
+            return
         const bounds = container.getBoundingClientRect()
         onRatioChange(ratioFromClientX(bounds.left + BAR_WIDTH / 2 + (ratio + delta) * (bounds.width - BAR_WIDTH)))
     }
 
-    const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-        switch (event.key) {
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) =>
+    {
+        switch (event.key)
+        {
             case 'ArrowLeft': event.preventDefault(); return nudge(-KEY_STEP)
             case 'ArrowRight': event.preventDefault(); return nudge(KEY_STEP)
             case 'Home': event.preventDefault(); return onRatioChange(ratioFromClientX(-Infinity))
-            case 'End': event.preventDefault(); return onRatioChange(collapsibleRight ? 1 : ratioFromClientX(Infinity))
+            case 'End': event.preventDefault(); return onRatioChange(collapsibleRight
+                ? 1
+                : ratioFromClientX(Infinity))
             case 'Enter':
             case ' ':
-                if (!collapsibleRight) return
+                if (!collapsibleRight)
+                    return
                 event.preventDefault()
-                return onRatioChange(collapsed ? (resetRatio ?? 0.5) : 1)
+                return onRatioChange(collapsed
+                    ? (resetRatio ?? 0.5)
+                    : 1)
             default:
         }
     }
@@ -184,9 +209,10 @@ export const ArcSplitPane: React.FC<ArcSplitPaneProps> = ({
                    // content means neither ever reaches the height the row has.
                    // Harmless when the parent is not a flex column.
                    flex: 1,
-                   minHeight: 0 }}>
+                   minHeight: 0
+                }}>
             <Box sx={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-                {left}
+                { left }
             </Box>
 
             {/* ── The bar ──────────────────────────────────────────────────── */}
@@ -212,7 +238,8 @@ export const ArcSplitPane: React.FC<ArcSplitPaneProps> = ({
                        // for scrolling on a touch device.
                        touchAction: 'none',
                        outline: 'none',
-                       '&:focus-visible .arc-split-grip': { backgroundColor: 'arc.accentOnGlass' } }}>
+                       '&:focus-visible .arc-split-grip': { backgroundColor: 'arc.accentOnGlass' }
+                    }}>
                 {/*
                     A hairline with a handle on it.
 
@@ -226,20 +253,28 @@ export const ArcSplitPane: React.FC<ArcSplitPaneProps> = ({
                 <Box className="arc-split-grip"
                      sx={{ position: 'absolute',
                            width: 3,
-                           height: collapsed ? '100%' : '92%',
+                           height: collapsed
+                               ? '100%'
+                               : '92%',
                            borderRadius: 999,
-                           backgroundColor: dragging ? 'arc.accentOnGlass' : 'arc.railLine',
+                           backgroundColor: dragging
+                               ? 'arc.accentOnGlass'
+                               : 'arc.railLine',
                            transition: 'background-color .12s',
-                           '*:hover > &': { backgroundColor: 'arc.onGlass' } }} />
+                           '*:hover > &': { backgroundColor: 'arc.onGlass' }
+                        }} />
 
                 <Box sx={{ position: 'relative',
                            width: 7,
                            height: 34,
                            borderRadius: 999,
-                           backgroundColor: dragging ? 'arc.accentOnGlass' : 'arc.onGlassMuted',
+                           backgroundColor: dragging
+                               ? 'arc.accentOnGlass'
+                               : 'arc.onGlassMuted',
                            boxShadow: '0 1px 3px rgba(0,0,0,.35)',
                            transition: 'background-color .12s',
-                           '*:hover > &': { backgroundColor: 'arc.onGlassStrong' } }} />
+                           '*:hover > &': { backgroundColor: 'arc.onGlassStrong' }
+                        }} />
             </Box>
 
             {/*
@@ -249,9 +284,12 @@ export const ArcSplitPane: React.FC<ArcSplitPaneProps> = ({
             */}
             <Box sx={{ minWidth: 0,
                        minHeight: 0,
-                       display: collapsed ? 'none' : 'flex',
-                       flexDirection: 'column' }}>
-                {right}
+                       display: collapsed
+                           ? 'none'
+                           : 'flex',
+                       flexDirection: 'column'
+                    }}>
+                { right }
             </Box>
         </Box>
     )
