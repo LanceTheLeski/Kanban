@@ -52,3 +52,27 @@ export interface Swimlane
 
     globalColour: string | null
 }
+
+/**
+ * The swimlane a card is in on a board that has none.
+ *
+ * The server's empty GUID (CardPosition.SwimlaneID): a board may have no
+ * swimlanes, and its cards then sit straight in their columns, in one row with
+ * no label. A card that names a swimlane the board does not have is put there
+ * too, so it is drawn somewhere rather than nowhere — see Board.Store.
+ */
+export const NO_SWIMLANE_ID = '00000000-0000-0000-0000-000000000000'
+
+/**
+ * The row a card with no swimlane is drawn in, as a swimlane, so the grid and a
+ * drag can treat it as one more lane. Never sent to the server as a swimlane —
+ * only its ID is, on a card.
+ */
+export const NO_SWIMLANE: Swimlane =
+{
+    id: NO_SWIMLANE_ID,
+    title: '',
+    order: 0,
+    colour: null,
+    globalColour: null,
+}

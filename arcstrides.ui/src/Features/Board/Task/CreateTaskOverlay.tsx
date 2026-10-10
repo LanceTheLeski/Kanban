@@ -23,12 +23,15 @@
  * the current task count.
  */
 
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { Box, Button, Checkbox, FormControlLabel, Typography } from '@mui/material'
 import { TextField } from '@mui/material'
-import { paperField } from '../../../Styles/Paper'
+import { paperField, paperFieldSx } from '../../../Styles/Paper'
 import { ArcPopover } from '../../../Components/ArcPopover'
-import { TASK_PANEL_ROW_MIN_HEIGHT } from '../../../Styles/Measures'
+import { TASK_PANEL_ROW_MIN_HEIGHT, TASK_POPOVER_WIDTH, TASK_TITLE_ROW_MIN_HEIGHT } from '../../../Styles/Measures'
+import { TagsPanel } from '../../TagGroup/Tag/TagsPanel'
+import { saveTags } from '../../TagGroup/Tag/Tag.APIs'
+import type { Tag } from '../../../Entities/Tag/Tag.Types'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
 import { UpdateTimelinePanel } from '../Timeline/UpdateTimelinePanel'
 import { CreateTaskTypeOverlay } from '../../TagGroup/TaskType/CreateTaskTypeOverlay'
@@ -42,6 +45,7 @@ import {
 } from '../Timeline/Timeline.Draft'
 import { createTask, createTimeline, fetchTaskTypes } from '../Board.APIs'
 import type { Task, TaskType } from '../../../Entities/Task/Task.Types'
+import { DefaultTaskTypeContext } from './Task.Defaults'
 
 interface CreateTaskOverlayProps
 {
@@ -67,8 +71,11 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
     const [isCompleted, setIsCompleted] = useState(false)
     const [selectedOrder, setSelectedOrder] = useState(tasksCount)
     const [taskTypes, setTaskTypes] = useState<TaskType[]>([])
-    const [selectedTaskTypeId, setSelectedTaskTypeId] = useState<number | null>(null)
+    // The day's default, when the card was opened from a calendar day — see Task.Defaults.
+    const defaultTaskTypeId = useContext(DefaultTaskTypeContext)
+    const [selectedTaskTypeId, setSelectedTaskTypeId] = useState<number | null>(defaultTaskTypeId)
     const [timelineDraft, setTimelineDraft] = useState<TimelineDraft | null>(null)
+    const [tags, setTags] = useState<Tag[]>([])
 
     const [createTaskTypeOpen, setCreateTaskTypeOpen] = useState(false)
 
@@ -124,6 +131,10 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
                     isComplete: isCompleted,
                 })
 
+                // Tags, like the timeline below, go on once the task has an ID.
+                if (tags.length > 0)
+                    created = { ...created, tags: await saveTags({ id: created.id, kind: 'task' }, [], tags) }
+
                 // The create endpoint takes no timeline, so a task that was given
                 // dates needs a follow-up POST parented to the new task —
                 // mirrors CreateTimelineAsync() in the Blazor overlay.
@@ -157,6 +168,7 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
         setIsCompleted(false)
         setSelectedOrder(tasksCount)
         setTimelineDraft(null)
+        setTags([])
         return true
     }
 
@@ -196,72 +208,93 @@ export const CreateTaskOverlay: React.FC<CreateTaskOverlayProps> = ({
                         anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
                         transformOrigin={{ vertical: 'center', horizontal: 'left' }}>
                 {/*
-                    Was a flat `width: 560`, which could not hold a 460px timeline
-                    panel and the task fields side by side. It now asks for a
-                    comfortable width and accepts less on a small screen, and the
-                    row below wraps rather than overflowing.
+                    Laid out as the task popover is: the title and its tags, the
+                    fields in a row, and the timeline across the whole width
+                    under them — see UpdateTaskPopover for why it is not beside
+                    them any more.
                 */}
-                <Box sx={{ width: 'min(46rem, 90vw)', display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <TextField {...paperField('green')}
-                               placeholder="Task title"
-                               value={title}
-                               onChange={e => setTitle(e.target.value)}
-                               fullWidth />
-
+                <Box sx={{ width: TASK_POPOVER_WIDTH,
+                           maxWidth: '90vw',
+                           display: 'flex',
+                           flexDirection: 'column',
+                           gap: 1.5
+                        }}>
                     <Box sx={{ display: 'flex',
-                               gap: 2,
-                               flexWrap: 'wrap',
+                               gap: 1,
                                alignItems: 'stretch',
-                               minHeight: TASK_PANEL_ROW_MIN_HEIGHT
+                               minHeight: TASK_TITLE_ROW_MIN_HEIGHT
                             }}>
-                        <Box sx={{ flex: '1 1 13rem',
-                                   minWidth: 0,
-                                   display: 'flex',
-                                   flexDirection: 'column',
-                                   gap: 1
-                                }}>
-                            {/* IsCompleted selector — mirrors bool.TrueString / FalseString options */}
-                            <FormControlLabel control={
-                                                  <Checkbox checked={isCompleted}
-                                                            onChange={e => setIsCompleted(e.target.checked)}
-                                                            size="small" />
-                                              }
-                                              label={<Typography variant="body2">Completed</Typography>} />
+                        <TextField {...paperField('green')}
+                                   placeholder="Task title"
+                                   value={title}
+                                   onChange={e => setTitle(e.target.value)}
+                                   multiline
+                                   minRows={2}
+                                   maxRows={3}
+                                   sx={{ ...paperFieldSx, flex: 1, minWidth: 0 }} />
 
-                            {/* Order selector */}
+                        <TagsPanel tags={tags}
+                                   onChange={setTags}
+                                   label="Task tags" />
+                    </Box>
+
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'flex-start' }}>
+                        {/* IsCompleted selector — mirrors bool.TrueString / FalseString options */}
+                        <FormControlLabel className="card-stock"
+                                          sx={{ m: 0,
+                                                pr: 1.25,
+                                                '& .MuiCheckbox-root': { color: 'arc.onPaperMuted' },
+                                                '& .Mui-checked': { color: 'arc.paperAccent' }
+                                             }}
+                                          control={
+                                              <Checkbox checked={isCompleted}
+                                                        onChange={e => setIsCompleted(e.target.checked)}
+                                                        size="small" />
+                                          }
+                                          label={<Typography variant="body2"
+                                                             sx={{ color: 'arc.onPaperStrong',
+                                                                   fontWeight: 600
+                                                                }}>
+                                                     Completed
+                                                 </Typography>} />
+
+                        {/* Order selector */}
+                        <Box sx={{ flex: '1 1 8rem', minWidth: 0 }}>
                             <ArcExpandingSelector options={orderOptions}
                                                   onSelect={v => setSelectedOrder(parseInt(v, 10))}
                                                   placeholder="Select order" />
+                        </Box>
 
-                            {/* Task type selector */}
+                        {/* Task type selector */}
+                        <Box sx={{ flex: '1 1 10rem', minWidth: 0 }}>
                             <ArcExpandingSelector options={taskTypes.map(t => t.title ?? '')}
                                                   onSelect={handleSetTaskType}
-                                                  placeholder="Select task type" />
-
-                            {/* The same quiet link the update popover has — this
-                                is the second copy of it, and they should not
-                                disagree about how prominent creating a task type
-                                is. */}
-                            <Button size="small"
-                                    variant="text"
-                                    onClick={() => setCreateTaskTypeOpen(true)}
-                                    sx={{ alignSelf: 'flex-start',
-                                          px: 0.5,
-                                          fontSize: '0.65rem',
-                                          textTransform: 'none',
-                                          color: 'arc.onGlassMuted',
-                                          '&:hover': { color: 'arc.onGlass', backgroundColor: 'arc.glassHover' }
-                                       }}>
-                                + New task type
-                            </Button>
+                                                  placeholder={taskTypes.find(taskType => taskType.id === selectedTaskTypeId)?.title ?? 'Select task type'} />
                         </Box>
 
-                        <Box sx={{ flex: '1 1 18rem', minWidth: 0, display: 'flex' }}>
-                            <UpdateTimelinePanel timeline={null}
-                                                 onDraftChange={setTimelineDraft}
-                                                 boardId={boardId}
-                                                 subjectTitle={title || 'New task'} />
-                        </Box>
+                        {/* The same quiet card the update popover has — they
+                            should not disagree about how prominent creating a
+                            task type is. */}
+                        <Button size="small"
+                                variant="text"
+                                className="card-stock"
+                                onClick={() => setCreateTaskTypeOpen(true)}
+                                sx={{ alignSelf: 'center',
+                                      px: 1,
+                                      fontSize: '0.65rem',
+                                      textTransform: 'none',
+                                      color: 'arc.onPaperMuted',
+                                      '&:hover': { color: 'arc.onPaperStrong', backgroundColor: 'transparent' }
+                                   }}>
+                            + New task type
+                        </Button>
+                    </Box>
+
+                    <Box sx={{ display: 'grid', minHeight: TASK_PANEL_ROW_MIN_HEIGHT }}>
+                        <UpdateTimelinePanel timeline={null}
+                                             onDraftChange={setTimelineDraft}
+                                             boardId={boardId}
+                                             subjectTitle={title || 'New task'} />
                     </Box>
                 </Box>
             </ArcPopover>

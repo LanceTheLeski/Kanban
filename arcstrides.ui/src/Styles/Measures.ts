@@ -50,12 +50,19 @@ export const OVERLAY_WIDTH = rem(480)
 /** ArcPopover's floor. Narrower than this and the button group wraps. */
 export const POPOVER_MIN_WIDTH = rem(280)
 
-/** The task popover, which holds a timeline panel beside the task fields. */
-export const TASK_POPOVER_WIDTH = rem(560)
+/**
+ * The task popover. Its timeline panel runs the full width, under the fields, so
+ * this is the timeline's width as much as the popover's: a little more than it
+ * has on a card, where it is the overlay's left pane.
+ */
+export const TASK_POPOVER_WIDTH = rem(620)
+
+/** The task's title row: two lines of title, and the tags box beside them. */
+export const TASK_TITLE_ROW_MIN_HEIGHT = rem(72)
 
 /**
- * A floor for the popover's field row, so the three timeline modes do not each
- * produce a different popover height and move everything as you switch.
+ * A floor for the popover's timeline panel, so the three timeline modes do not
+ * each produce a different popover height and move everything as you switch.
  */
 export const TASK_PANEL_ROW_MIN_HEIGHT = rem(200)
 

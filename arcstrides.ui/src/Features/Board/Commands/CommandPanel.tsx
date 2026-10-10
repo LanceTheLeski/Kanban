@@ -362,7 +362,9 @@ function respondTo(entered: string, card: Card): CardCommandEntry[]
 
     if (name === 'where')
         return [echo, answer(`${id}-r`, at, 'result',
-                             `${card.title} is in ${card.columnName} on ${card.swimlaneName}.`)]
+                             card.swimlaneName
+                                 ? `${card.title} is in ${card.columnName} on ${card.swimlaneName}.`
+                                 : `${card.title} is in ${card.columnName}, in no swimlane.`)]
 
     if (PLANNED_COMMANDS.some(([usage]) => usage.startsWith(`/${name} `)))
         return [echo, answer(`${id}-r`, at, 'error',

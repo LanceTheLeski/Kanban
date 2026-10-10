@@ -91,6 +91,23 @@ export function rampAt([from, to]: [Rgb, Rgb], index: number, total: number): Rg
     return [0, 1, 2].map(i => Math.round(from[i] + (to[i] - from[i]) * t)) as Rgb
 }
 
+/**
+ * The same colour, `steps` shades lighter (positive) or darker (negative), as
+ * `#rrggbb`.
+ *
+ * A shade is a step in lightness with the hue and saturation kept, so a blue
+ * stays the same blue as it pales. The step is about what the ramps take between
+ * neighbouring columns on a board of four, so a shade suggested next to a colour
+ * reads as the next one along rather than as a different colour. Never quite
+ * white or black: a label's name has to stay readable on it.
+ */
+export function shade(colour: string, steps: number): string
+{
+    const [h, s, l] = hslOf(rgbOf(colour))
+    const lightness = Math.min(Math.max(l + steps * SHADE_STEP, 0.14), 0.94)
+    return toHex(rgb(rgbOfHsl(h, s, lightness)))
+}
+
 // ── Private ───────────────────────────────────────────────────────────────────
 // Not exported, which is this language's `private`. Ordered by first use above.
 
@@ -123,4 +140,59 @@ function rgba([r, g, b]: Rgb, alpha: number): string
 function clampByte(value: number): number
 {
     return Math.min(255, Math.max(0, Math.round(value)))
+}
+
+/** One shade: seven points of lightness. */
+const SHADE_STEP = 0.07
+
+/** Channels as hue (0–1), saturation and lightness. */
+function hslOf([r, g, b]: Rgb): [number, number, number]
+{
+    const [red, green, blue] = [r / 255, g / 255, b / 255]
+    const max = Math.max(red, green, blue)
+    const min = Math.min(red, green, blue)
+    const lightness = (max + min) / 2
+    if (max === min)
+        return [0, 0, lightness]
+
+    const delta = max - min
+    const saturation = lightness > 0.5
+        ? delta / (2 - max - min)
+        : delta / (max + min)
+    const hue = max === red
+        ? (green - blue) / delta + (green < blue
+            ? 6
+            : 0)
+        : max === green
+            ? (blue - red) / delta + 2
+            : (red - green) / delta + 4
+    return [hue / 6, saturation, lightness]
+}
+
+function rgbOfHsl(hue: number, saturation: number, lightness: number): Rgb
+{
+    if (saturation === 0)
+        return [clampByte(lightness * 255), clampByte(lightness * 255), clampByte(lightness * 255)]
+
+    const q = lightness < 0.5
+        ? lightness * (1 + saturation)
+        : lightness + saturation - lightness * saturation
+    const p = 2 * lightness - q
+    return [hue + 1 / 3, hue, hue - 1 / 3].map(t => clampByte(channelOf(p, q, t) * 255)) as Rgb
+}
+
+function channelOf(p: number, q: number, t: number): number
+{
+    const wrapped = t < 0
+        ? t + 1
+        : t > 1
+            ? t - 1
+            : t
+    if (wrapped < 1 / 6)
+        return p + (q - p) * 6 * wrapped
+    if (wrapped < 1 / 2)
+        return q
+    if (wrapped < 2 / 3)
+        return p + (q - p) * (2 / 3 - wrapped) * 6
+    return p
 }

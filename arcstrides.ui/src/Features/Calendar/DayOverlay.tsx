@@ -59,7 +59,7 @@ import { DayTimeline } from './DayTimeline'
 import { DayConnections } from './DayConnections'
 import { AddCardPicker } from './AddCardPicker'
 import { dayStats, type DayStats } from './Calendar.Stats'
-import { dayTypeOf } from './Calendar.DayTypes'
+import { useDayTypes } from './useDayTypes'
 import { stopsOf, uniqueStops } from './Calendar.Stops'
 import { DayDue } from './DayDue'
 import { boardLabel } from './Calendar.Views'
@@ -105,7 +105,7 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
     const { colours, boardTitle } = actions
     const cards = day.stored?.cards ?? []
     const stats = dayStats(cards, colours)
-    const type = dayTypeOf(day.stored?.typeId)
+    const type = useDayTypes().typeOf(day.date, day.stored?.typeId)
     const gridDay = useGridDaySize(day.key)
     const manyBoards = new Set(cards.map(card => card.boardId)).size > 1
 

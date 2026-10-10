@@ -8,7 +8,7 @@
  */
 
 import React, { useState } from 'react'
-import { Stack } from '@mui/material'
+import { Stack, Typography } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
 import { deleteSwimlane } from '../Board.APIs'
@@ -24,10 +24,11 @@ interface DeleteSwimlaneOverlayProps
 
 export const DeleteSwimlaneOverlay: React.FC<DeleteSwimlaneOverlayProps> = ({ open, onClose }) =>
 {
-    const { boardId, swimlanes } = useBoardStore(useShallow(state =>
+    const { boardId, swimlanes, cards } = useBoardStore(useShallow(state =>
     ({
         boardId: state.boardId,
         swimlanes: state.swimlanes,
+        cards: state.cards,
     })))
     const { run } = useBoardActions()
 
@@ -44,6 +45,8 @@ export const DeleteSwimlaneOverlay: React.FC<DeleteSwimlaneOverlayProps> = ({ op
         }
         setSelectedTitle(title)
     }
+
+    const selected = swimlanes.find(candidate => candidate.title === selectedTitle) ?? null
 
     const handleSubmit = async () =>
     {
@@ -78,9 +81,40 @@ export const DeleteSwimlaneOverlay: React.FC<DeleteSwimlaneOverlayProps> = ({ op
                 <ArcExpandingSelector options={swimlanes.map(swimlane => swimlane.title)}
                                       onSelect={handleSelect}
                                       placeholder="Select swimlane to delete" />
+
+                { selected && (
+                    <Typography sx={{ fontSize: '0.78rem', color: 'arc.onGlass' }}>
+                        { whereTheCardsGo(selected.order, swimlanes.length, cards.filter(card => card.swimlaneId === selected.id).length) }
+                    </Typography>
+                )
+                }
             </Stack>
         </ArcOverlay>
     )
 }
 
 export default DeleteSwimlaneOverlay
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+/**
+ * What happens to a swimlane's cards when it goes, in a sentence.
+ *
+ * The last one can go, unlike the last column: its cards stay in their columns,
+ * in no swimlane, and the next swimlane added takes them all.
+ */
+function whereTheCardsGo(order: number, count: number, held: number): string
+{
+    const cards = held === 1
+        ? 'Its card'
+        : `Its ${held} cards`
+
+    if (held === 0)
+        return 'It holds no cards.'
+    if (count === 1)
+        return `This is the board's last swimlane. ${cards} will stay in their columns, in no swimlane, and go into the next swimlane added.`
+    return order === count - 1
+        ? `${cards} will move to the swimlane above it.`
+        : `${cards} will move to the swimlane below it.`
+}

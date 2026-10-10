@@ -11,6 +11,7 @@
  * a Timeline — and that containment only ever points one way, so it stays acyclic.
  */
 
+import type { Tag } from '../Tag/Tag.Types'
 import type { Timeline } from '../Timeline/Timeline.Types'
 
 export interface TaskType
@@ -35,4 +36,7 @@ export interface Task
     isCompleted: boolean | null
 
     timeline: Timeline | null
+
+    /** The task's tags, by title. A task created here starts with none. */
+    tags: Tag[]
 }

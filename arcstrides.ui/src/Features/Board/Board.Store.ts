@@ -38,7 +38,7 @@ import { create } from 'zustand'
 import { fetchBoard } from './Board.APIs'
 import type { CardPlacement } from './CardGrid/CardGrid.Cells'
 import type { Card } from '../../Entities/Card/Card.Types'
-import type { Column, Swimlane } from './Board.Types'
+import { NO_SWIMLANE_ID, type Column, type Swimlane } from './Board.Types'
 
 export type BoardStatus = 'idle' | 'loading' | 'ready' | 'error'
 
@@ -149,7 +149,7 @@ export const useBoardStore = create<BoardState>((set, get) =>
                 title: board.title,
                 columns: sortByOrder(board.columns),
                 swimlanes: sortByOrder(board.swimlanes),
-                cards: board.cards,
+                cards: placeUnlaned(board.cards, board.swimlanes),
                 status: 'ready',
                 error: null,
             })
@@ -273,4 +273,23 @@ export const useBoardStore = create<BoardState>((set, get) =>
 function sortByOrder<T extends { order: number }>(items: T[]): T[]
 {
     return [...items].sort((a, b) => a.order - b.order)
+}
+
+/**
+ * Every card whose swimlane is not on the board, put in no swimlane.
+ *
+ * On a board with no swimlanes, that is every card, and the server says so
+ * itself (NO_SWIMLANE_ID). A card naming a swimlane that has gone is the other
+ * case: deleting the last swimlane used to leave its cards that way, and the
+ * grid, which draws a row per swimlane, drew them nowhere. Here they are drawn
+ * in a row of their own until they are dragged out of it, or until a swimlane
+ * is added, which takes them all.
+ */
+function placeUnlaned(cards: Card[], swimlanes: Swimlane[]): Card[]
+{
+    const laneIds = new Set(swimlanes.map(swimlane => swimlane.id))
+
+    return cards.map(card => (laneIds.has(card.swimlaneId)
+        ? card
+        : { ...card, swimlaneId: NO_SWIMLANE_ID, swimlaneName: '', swimlaneNumber: 0 }))
 }

@@ -68,7 +68,9 @@ import { CommandPanel } from '../Commands/CommandPanel'
 import { useBoardActions } from '../useBoardActions'
 import { deleteCard, deleteTask, updateCard } from '../Board.APIs'
 import { useBoardStore } from '../Board.Store'
-import { TagsPanel, type CardTag } from './TagsPanel'
+import { TagsPanel } from '../../TagGroup/Tag/TagsPanel'
+import { saveTags, sameTags } from '../../TagGroup/Tag/Tag.APIs'
+import type { Tag } from '../../../Entities/Tag/Tag.Types'
 import {
     CARD_DETAIL_ROW_MIN_HEIGHT,
     CARD_LEFT_PANE_MIN_REM,
@@ -113,10 +115,8 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
     // set here were gone when the card closed.
     const [timelineDraft, setTimelineDraft] = useState<TimelineDraft | null>(null)
 
-    // Local only. The API can create and delete tags but cannot list the ones on
-    // a card, so there is nothing to seed this from and nowhere to send it that
-    // could be read back. See TagsPanel for what would unblock it.
-    const [tags, setTags] = useState<CardTag[]>([])
+    // The card's tags as edited, written with the rest of it on Save (saveTags).
+    const [tags, setTags] = useState<Tag[]>(card.tags)
 
     /**
      * How the overlay's width is divided between the card's detail and its
@@ -158,13 +158,16 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
         if (description !== card.description)
             patch.description = description
 
-        if (Object.keys(patch).length === 0 && !timelineDraft)
+        const tagsChanged = !sameTags(tags, card.tags)
+
+        if (Object.keys(patch).length === 0 && !timelineDraft && !tagsChanged)
         {
             onClose()
             return
         }
 
         let timeline = card.timeline
+        let savedTags = card.tags
         const updated = await run(
             'Saving card',
             async () =>
@@ -174,6 +177,8 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                 // Created, or patched in place — see saveTimeline.
                 if (timelineDraft)
                     timeline = await saveTimeline(boardId, { id: card.id, kind: TIMELINE_PARENT_CARD }, card.timeline, timelineDraft)
+                if (tagsChanged)
+                    savedTags = await saveTags({ id: card.id, kind: 'card' }, card.tags, tags)
             },
             // The card is patched in local state below; nothing else on the board moved.
             { refresh: false }
@@ -187,6 +192,7 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
             description: patch.description ?? card.description,
             tasks,
             timeline,
+            tags: savedTags,
         })
         onClose()
     }
@@ -371,8 +377,8 @@ const STACK_BELOW = 'md'
 function TitleAndTags({ title, onTitleChange, tags, onTagsChange }: {
     title: string
     onTitleChange: (title: string) => void
-    tags: CardTag[]
-    onTagsChange: (tags: CardTag[]) => void
+    tags: Tag[]
+    onTagsChange: (tags: Tag[]) => void
 })
 {
     return (
@@ -438,7 +444,8 @@ function TitleAndTags({ title, onTitleChange, tags, onTagsChange }: {
                           }} />
 
             <TagsPanel tags={tags}
-                       onChange={onTagsChange} />
+                       onChange={onTagsChange}
+                       label="Card tags" />
         </Box>
     )
 }

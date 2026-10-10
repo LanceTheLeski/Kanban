@@ -14,6 +14,7 @@
 import { createContext, useContext } from 'react'
 import type { Dayjs } from 'dayjs'
 import type { Card } from '../../Entities/Card/Card.Types'
+import type { Tag } from '../../Entities/Tag/Tag.Types'
 import type { GridDay } from './Calendar.Grid'
 import type { Stop } from './Calendar.Stops'
 
@@ -35,6 +36,9 @@ export interface CalendarActions
 
     /** Sets what kind of day it is — see Calendar.DayTypes. A failure is reported, not thrown. */
     setDayType: (day: GridDay, typeId: number) => void
+
+    /** Gives the day these tags, writing the difference. A failure is reported, not thrown. */
+    setDayTags: (day: GridDay, tags: Tag[]) => void
 
     /**
      * Opens another day, in its overlay — moving the calendar to that day's

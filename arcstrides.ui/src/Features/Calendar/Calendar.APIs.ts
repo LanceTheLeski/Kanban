@@ -30,7 +30,10 @@
 
 import { apiClient, ARC } from '../../Lib/Client'
 import { mapCard, type CardResponse } from '../Board/Board.APIs'
+import { isNewTag, mapTags, type TagResponse } from '../TagGroup/Tag/Tag.APIs'
+import type { Tag } from '../../Entities/Tag/Tag.Types'
 import type { CalendarDate, Month } from './Calendar.Types'
+import type { DayTypeChange, DayTypeOptions, Scene } from './Calendar.DayTypes'
 
 // ── Wire shapes ───────────────────────────────────────────────────────────────
 
@@ -52,6 +55,8 @@ interface DateResponse
     dateTypeID: number | null
 
     cards: CardResponse[] | null
+
+    tags: TagResponse[] | null
 }
 
 /** Mirrors ArcStrides.Contracts.Response.MonthResponse */
@@ -115,6 +120,97 @@ export async function setDateType(year: number, month: number, day: number, type
     return mapMonth(response, year, month)
 }
 
+/**
+ * POST arcstrides/calendars/dates/:year/:month/:day/tags
+ *
+ * Puts a tag on the day itself: one that exists by its ID, or one by its title,
+ * which the server matches to an existing tag before making a new one. Like a
+ * card, needs nothing to exist first. Answers with the whole month.
+ */
+export async function addTagToDate(year: number, month: number, day: number, tag: Tag): Promise<Month>
+{
+    const response = await apiClient.post<MonthResponse>(`${datePath(year, month, day)}/tags`, {
+        ID: isNewTag(tag)
+            ? null
+            : tag.id,
+        Title: tag.title,
+    })
+    return mapMonth(response, year, month)
+}
+
+/**
+ * DELETE arcstrides/calendars/dates/:year/:month/:day/tags/:tagId
+ *
+ * Takes a tag off the day; it stays on anything else. The month is read again,
+ * as removeCardFromDate does, because apiClient.delete reads no body.
+ */
+export async function removeTagFromDate(year: number, month: number, day: number, tagId: string): Promise<Month>
+{
+    await apiClient.delete(`${datePath(year, month, day)}/tags/${tagId}`)
+    return fetchMonthOf(year, month)
+}
+
+// ── Options ───────────────────────────────────────────────────────────────────
+
+/** Mirrors ArcStrides.Contracts.Response.DateTypeOptionsResponse */
+interface DateTypeOptionsResponse
+{
+    id: number | null
+
+    scene: string | null
+
+    showsProgress: boolean | null
+
+    defaultTaskTypeID: number | null
+}
+
+/** Mirrors ArcStrides.Contracts.Response.CalendarOptionsResponse */
+interface CalendarOptionsResponse
+{
+    weekendDays: number[] | null
+
+    weekendDateTypeID: number | null
+
+    weekdayDateTypeID: number | null
+
+    dateTypes: DateTypeOptionsResponse[] | null
+}
+
+/**
+ * GET arcstrides/calendars/options
+ *
+ * With nothing chosen yet the server answers with the defaults: Saturday and
+ * Sunday, both of no type, and no type changed.
+ */
+export async function fetchCalendarOptions(): Promise<DayTypeOptions>
+{
+    return mapOptions(await apiClient.get<CalendarOptionsResponse>(`${ARC}/calendars/options`))
+}
+
+/**
+ * PUT arcstrides/calendars/options
+ *
+ * Whole: what is sent is what is kept, and a type not in `changes` goes back to
+ * how it comes. Answers with the options as stored.
+ */
+export async function saveCalendarOptions(options: DayTypeOptions): Promise<DayTypeOptions>
+{
+    const response = await apiClient.put<CalendarOptionsResponse>(`${ARC}/calendars/options`, {
+        WeekendDays: options.weekendDays,
+        WeekendDateTypeID: options.weekendTypeId,
+        WeekdayDateTypeID: options.weekdayTypeId,
+        DateTypes: Object.entries(options.changes)
+                         .map(([id, change]) =>
+                         ({
+                             ID: Number(id),
+                             Scene: change.scene ?? '',
+                             ShowsProgress: change.progress,
+                             DefaultTaskTypeID: change.defaultTaskTypeId,
+                         })),
+    })
+    return mapOptions(response)
+}
+
 // ── Private ───────────────────────────────────────────────────────────────────
 // Not exported, which is this language's `private`. Ordered by first use above.
 
@@ -145,6 +241,7 @@ function mapDate(response: DateResponse): CalendarDate
         year: response.yearOrder ?? null,
         typeId: response.dateTypeID ?? 0,
         cards: (response.cards ?? []).map(mapCard),
+        tags: mapTags(response.tags),
     }
 }
 
@@ -167,3 +264,28 @@ function monthIndex(name: string | null): number | null
 }
 
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+
+function mapOptions(response: CalendarOptionsResponse): DayTypeOptions
+{
+    const changes: Record<number, DayTypeChange> = {}
+    for (const type of response.dateTypes ?? [])
+    {
+        if (type.id == null)
+            continue
+        changes[type.id] = {
+            scene: SCENE_NAMES.find(scene => scene === type.scene) ?? null,
+            progress: type.showsProgress ?? true,
+            defaultTaskTypeId: type.defaultTaskTypeID ?? null,
+        }
+    }
+
+    return {
+        weekendDays: response.weekendDays ?? [0, 6],
+        weekendTypeId: response.weekendDateTypeID ?? 0,
+        weekdayTypeId: response.weekdayDateTypeID ?? 0,
+        changes,
+    }
+}
+
+/** The scenes the UI can draw; any other name the server holds is no picture. */
+const SCENE_NAMES: Scene[] = ['city', 'park', 'beach']

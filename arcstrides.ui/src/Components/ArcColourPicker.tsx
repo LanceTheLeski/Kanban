@@ -57,9 +57,12 @@ interface ArcColourPickerProps
     fallback: string
 
     label: string
+
+    /** A line under the chips about where the colour came from: "One shade deeper than Backlog". */
+    hint?: string
 }
 
-export const ArcColourPicker: React.FC<ArcColourPickerProps> = ({ value, onChange, fallback, label }) =>
+export const ArcColourPicker: React.FC<ArcColourPickerProps> = ({ value, onChange, fallback, label, hint }) =>
 {
     const shown = toHex(value ?? fallback)
     const isDefault = value === null
@@ -172,6 +175,16 @@ export const ArcColourPicker: React.FC<ArcColourPickerProps> = ({ value, onChang
                                   pl: `${ROW_LABEL_WIDTH}px`
                                }}>
                     Mix a colour and save it, and it stays here.
+                </Typography>
+            )
+            }
+
+            { hint && (
+                <Typography sx={{ fontSize: '0.62rem',
+                                  color: 'arc.onPaperMuted',
+                                  pl: `${ROW_LABEL_WIDTH}px`
+                               }}>
+                    { hint }
                 </Typography>
             )
             }

@@ -32,7 +32,7 @@ import { DayCard } from './DayCard'
 import { DayDueStrip } from './DayDueStrip'
 import { dayStats } from './Calendar.Stats'
 import { viewsFor } from './Calendar.Views'
-import { dayTypeOf } from './Calendar.DayTypes'
+import { useDayTypes } from './useDayTypes'
 import { DayArt } from './DayArt'
 import { DiscNumber } from './DiscNumber'
 import { useCalendarActions } from './Calendar.Context'
@@ -69,7 +69,7 @@ export const DayCell: React.FC<DayCellProps> = ({ day, mini = false }) =>
     const view = views[index]
 
     const name = day.date.format('dddd D MMMM')
-    const type = dayTypeOf(day.stored?.typeId)
+    const type = useDayTypes().typeOf(day.date, day.stored?.typeId)
 
     const number = <DiscNumber value={day.date.date()}
                                disc={PHONE_DISC} />

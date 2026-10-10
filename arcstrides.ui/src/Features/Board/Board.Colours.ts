@@ -32,7 +32,7 @@
  * the only way the colour picker, a layer below, can share it.
  */
 
-import { labelStyle, rampAt, rgb, rgbOf, type Rgb } from '../../Styles/Stock'
+import { labelStyle, rampAt, rgb, rgbOf, shade, toHex, type Rgb } from '../../Styles/Stock'
 import { LADDERS } from '../../Styles/Palette'
 
 export { labelStyle }
@@ -55,18 +55,48 @@ export function swimlaneColour(stored: string | null | undefined, index: number,
 }
 
 /**
- * Where a column or swimlane being created will land: the position typed into
- * the Order field if there is a usable one, otherwise the end.
+ * The colour to offer a column or swimlane being added at a place, from the
+ * colours of its neighbours there: the next shade along from the one before it,
+ * or, when it goes first, the shade before the one after it.
  *
- * The create overlays need it before the thing exists, to show the colour the
- * ramp is about to give it.
+ * "Along" is the ramp's direction — columns deepen to the right, swimlanes pale
+ * downwards — so a board coloured by hand keeps the shape the ramp would have
+ * given it: pick a blue for the first column, and the second is offered the
+ * next blue down, the third the one after that.
+ *
+ * Null when neither neighbour has a colour of its own: those are on the ramp,
+ * and so is the new one.
  */
-export function landingIndex(orderInput: string, count: number): number
+export function suggestedColour(kind: 'column' | 'swimlane', before: string | null, after: string | null): string | null
 {
-    const typed = parseInt(orderInput, 10)
-    return Number.isNaN(typed)
-        ? count
-        : Math.min(Math.max(typed, 0), count)
+    const along = kind === 'column'
+        ? -1
+        : 1
+    if (before?.trim())
+        return shade(before, along)
+    if (after?.trim())
+        return shade(after, -along)
+    return null
+}
+
+/**
+ * The nearest shade of a colour that nothing has taken: one either side, then
+ * two, out to the ends. For a global colour, which no two columns (or swimlanes)
+ * may share, when the one picked for the board is someone else's.
+ */
+export function freeShade(colour: string, taken: (colour: string) => boolean): string
+{
+    for (let steps = 1; steps <= 12; steps++)
+        for (const candidate of [shade(colour, steps), shade(colour, -steps)])
+            if (!taken(candidate))
+                return candidate
+    return toHex(colour)
+}
+
+/** Whether two colours are the same colour, however each is written. */
+export function sameColour(a: string | null | undefined, b: string | null | undefined): boolean
+{
+    return !!a && !!b && toHex(a, '') === toHex(b, '')
 }
 
 // ── Private ───────────────────────────────────────────────────────────────────

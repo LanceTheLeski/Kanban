@@ -46,7 +46,8 @@ import { MONO, SERIF } from '../../Styles/Fonts'
 import { durationLabel, spanLabel } from '../Board/Timeline/Timeline.Nodes'
 import { colourOf } from './Calendar.Stats'
 import { stopDone, stopKey, stopTitle, stopTypeId, type Stop } from './Calendar.Stops'
-import { NO_DAY_TYPE, dayTypeOf } from './Calendar.DayTypes'
+import { NO_DAY_TYPE } from './Calendar.DayTypes'
+import { useDayTypes } from './useDayTypes'
 import type { CalendarDate } from './Calendar.Types'
 
 /** One of the task's own other points on the day, as it stands in the editor. */
@@ -120,7 +121,7 @@ export const DayTimePicker: React.FC<DayTimePickerProps> = ({
     const scale = useRef<HTMLDivElement>(null)
     const [hover, setHover] = useState<number | null>(null)
     const [drag, setDrag] = useState<{ from: number; to: number } | null>(null)
-    const type = dayTypeOf(stored?.typeId)
+    const type = useDayTypes().typeOf(date, stored?.typeId)
     const timed = stops.filter(stop => stop.timed)
     const untimed = stops.filter(stop => !stop.timed)
     const minutes = time

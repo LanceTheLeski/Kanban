@@ -33,7 +33,7 @@ import type { Dayjs } from 'dayjs'
 import { MONO, NUMERALS, SERIF } from '../../Styles/Fonts'
 import { TypeRing } from './TypeRing'
 import { dayStats, type DayStats } from './Calendar.Stats'
-import { dayTypeOf } from './Calendar.DayTypes'
+import { useDayTypes } from './useDayTypes'
 import type { GridDay, Week } from './Calendar.Grid'
 
 interface MiniMonthProps
@@ -249,7 +249,7 @@ interface DayProps
 
 function Day({ day, stats, chosen, tabbable, register, onPick, onPoint, onFocus, onKey }: DayProps)
 {
-    const type = dayTypeOf(day.stored?.typeId)
+    const type = useDayTypes().typeOf(day.date, day.stored?.typeId)
     const slices = stats.slices
     const summary = slices.map(slice => `${slice.title} ${slice.count}`).join(', ')
 

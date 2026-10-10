@@ -18,6 +18,7 @@
 import React from 'react'
 import { Box, Paper, Typography } from '@mui/material'
 import { CONDENSED } from '../../../Styles/Fonts'
+import { NEUTRALS } from '../../../Styles/Palette'
 import { labelStyle, swimlaneColour } from '../Board.Colours'
 import { BOARD_GAP, STACK_LABEL_BELOW, SWIMLANE_LABEL_WIDTH } from '../Board.Layout'
 import { DroppableCell } from './DroppableCell'
@@ -25,7 +26,7 @@ import { DraggableCard } from './DraggableCard'
 import { cellId } from './CardGrid.Cells'
 import { LaneWaves } from '../LaneWaves'
 import type { Card } from '../../../Entities/Card/Card.Types'
-import type { Column, Swimlane } from '../Board.Types'
+import { NO_SWIMLANE_ID, type Column, type Swimlane } from '../Board.Types'
 
 interface SwimlaneRowProps
 {
@@ -46,6 +47,12 @@ interface SwimlaneRowProps
     laneIndex: number
 
     laneCount: number
+
+    /**
+     * Whether the board has swimlanes. Without any, its one row is the columns
+     * themselves, and has no label.
+     */
+    labelled: boolean
 }
 
 export const SwimlaneRow: React.FC<SwimlaneRowProps> = ({
@@ -55,6 +62,7 @@ export const SwimlaneRow: React.FC<SwimlaneRowProps> = ({
     boardId,
     laneIndex,
     laneCount,
+    labelled,
 }) => (
     /*
         A strip of sand card laid across the board, with a gap above it so the
@@ -108,55 +116,66 @@ export const SwimlaneRow: React.FC<SwimlaneRowProps> = ({
                 colour is the ground the name is written on, not a bar beside
                 it: a 3px stripe was carrying the lane's identity in the part
                 of the label you are least likely to look at.
-            */}
-            <Paper className="board-label"
-                   elevation={0}
-                   style={labelStyle(swimlaneColour(swimlane.colour, laneIndex, laneCount))}
-                   sx={{ // Spread, not nested. SWIMLANE_LABEL_WIDTH is itself a
-                         // breakpoint map, so `{ [STACK_LABEL_BELOW]: SWIMLANE_LABEL_WIDTH }`
-                         // would hand MUI a map as a *value*; it cannot resolve that,
-                         // drops the entry silently, and `xs: '100%'` then cascades to
-                         // every width — which is exactly what made this label 1170px
-                         // wide and shoved the cells off the board. Spreading merges the
-                         // token's own sm/md entries in as siblings; the trailing
-                         // `xs: '100%'` overrides the token's xs for the stacked case.
-                   width: { ...SWIMLANE_LABEL_WIDTH, xs: '100%' },
-                         flexShrink: 0,
-                         alignSelf: { xs: 'stretch', [STACK_LABEL_BELOW]: 'center' },
-                         position: 'relative',
-                         overflow: 'hidden',
-                         // The page root sets textAlign: 'center', which inherits all
-                         // the way down here and positions the inline-block label. It
-                         // has to be overridden on this box, not on the Typography:
-                         // text-align positions an inline-block from its *parent*.
-                         textAlign: { xs: 'left', [STACK_LABEL_BELOW]: 'center' },
-                         px: 1,
-                         py: 0.5
-                      }}>
-                {/*
-                    Stacked, the label bar spans the board's full scroll width —
-                    978px at 420px wide — so centred text lands near x=489 and is
-                    simply off screen. Left-aligning it puts the name back at the
-                    edge you are looking at.
 
-                    `sticky` then keeps it there: scroll the row sideways and the
-                    swimlane name rides along the left edge instead of
-                    disappearing, which matters most on exactly the narrow screens
-                    where the label had to stack.
-                */}
-                <Typography sx={{ fontFamily: CONDENSED,
-                                  fontSize: '0.78rem',
-                                  fontWeight: 700,
-                                  letterSpacing: '0.04em',
-                                  color: 'arc.onPaperStrong',
-                                  overflowWrap: 'anywhere',
-                                  position: { xs: 'sticky', [STACK_LABEL_BELOW]: 'static' },
-                                  left: 0,
-                                  display: 'inline-block'
-                               }}>
-                    { swimlane.title }
-                </Typography>
-            </Paper>
+                None on a board with no swimlanes. On one with swimlanes, the
+                row of cards in none says so, on plain card.
+            */}
+            { labelled && (
+                <Paper className="board-label"
+                       elevation={0}
+                       style={labelStyle(swimlane.id === NO_SWIMLANE_ID
+                           ? UNLANED_LABEL
+                           : swimlaneColour(swimlane.colour, laneIndex, laneCount))}
+                       sx={{ // Spread, not nested. SWIMLANE_LABEL_WIDTH is itself a
+                             // breakpoint map, so `{ [STACK_LABEL_BELOW]: SWIMLANE_LABEL_WIDTH }`
+                             // would hand MUI a map as a *value*; it cannot resolve that,
+                             // drops the entry silently, and `xs: '100%'` then cascades to
+                             // every width — which is exactly what made this label 1170px
+                             // wide and shoved the cells off the board. Spreading merges the
+                             // token's own sm/md entries in as siblings; the trailing
+                             // `xs: '100%'` overrides the token's xs for the stacked case.
+                       width: { ...SWIMLANE_LABEL_WIDTH, xs: '100%' },
+                             flexShrink: 0,
+                             alignSelf: { xs: 'stretch', [STACK_LABEL_BELOW]: 'center' },
+                             position: 'relative',
+                             overflow: 'hidden',
+                             // The page root sets textAlign: 'center', which inherits all
+                             // the way down here and positions the inline-block label. It
+                             // has to be overridden on this box, not on the Typography:
+                             // text-align positions an inline-block from its *parent*.
+                             textAlign: { xs: 'left', [STACK_LABEL_BELOW]: 'center' },
+                             px: 1,
+                             py: 0.5
+                          }}>
+                    {/*
+                        Stacked, the label bar spans the board's full scroll width —
+                        978px at 420px wide — so centred text lands near x=489 and is
+                        simply off screen. Left-aligning it puts the name back at the
+                        edge you are looking at.
+
+                        `sticky` then keeps it there: scroll the row sideways and the
+                        swimlane name rides along the left edge instead of
+                        disappearing, which matters most on exactly the narrow screens
+                        where the label had to stack.
+                    */}
+                    <Typography sx={{ fontFamily: CONDENSED,
+                                      fontSize: '0.78rem',
+                                      fontWeight: 700,
+                                      letterSpacing: '0.04em',
+                                      color: 'arc.onPaperStrong',
+                                      overflowWrap: 'anywhere',
+                                      position: { xs: 'sticky', [STACK_LABEL_BELOW]: 'static' },
+                                      left: 0,
+                                      display: 'inline-block'
+                                   }}>
+                        { swimlane.id === NO_SWIMLANE_ID
+                            ? 'No swimlane'
+                            : swimlane.title
+                        }
+                    </Typography>
+                </Paper>
+            )
+            }
 
             {/*
                 Drop cells. They stretch to the height of the tallest in the
@@ -194,3 +213,6 @@ export default SwimlaneRow
 
 /** Low enough to stay under a cell's cards, which start from its top. */
 const WAVE_HEIGHT = 24
+
+/** The row of cards in no swimlane, on a board that has some: grey card, off the ramp. */
+const UNLANED_LABEL = NEUTRALS.grey

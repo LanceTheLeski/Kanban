@@ -33,6 +33,7 @@ import {
     CardTouchSensor,
 } from './CardGrid.Sensors'
 import type { Card } from '../../../Entities/Card/Card.Types'
+import { NO_SWIMLANE } from '../Board.Types'
 
 export function useCardDrag(boardId: string | undefined)
 {
@@ -142,8 +143,12 @@ export function useCardDrag(boardId: string | undefined)
         if (!parsed)
             return null
 
+        // The row of cards in no swimlane is a lane too: a card can be dropped
+        // into it, and on a board with no swimlanes it is the only one.
         const column = columns.find(candidate => candidate.id === parsed.columnId)
-        const swimlane = swimlanes.find(candidate => candidate.id === parsed.swimlaneId)
+        const swimlane = parsed.swimlaneId === NO_SWIMLANE.id
+            ? NO_SWIMLANE
+            : swimlanes.find(candidate => candidate.id === parsed.swimlaneId)
         if (!column || !swimlane)
             return null
 

@@ -12,7 +12,8 @@
  * the date-type selector, the palette swatch, and "Tag Canvas Placeholder :)".
  * The selector and the swatch are one thing here: the picture is the type, and
  * clicking it is how the type is changed. The tags are the card editor's tags
- * panel, set beside the picture the way it sits beside a card's title.
+ * panel, set beside the picture the way it sits beside a card's title, and
+ * written as they change, as the type is.
  */
 
 import React, { useState } from 'react'
@@ -20,12 +21,12 @@ import { Box, ButtonBase, ListItemIcon, ListItemText, Menu, MenuItem, Typography
 import CheckIcon from '@mui/icons-material/Check'
 import { SERIF } from '../../Styles/Fonts'
 import { rem } from '../../Styles/Measures'
-import { TagsPanel } from '../Board/Card/TagsPanel'
+import { TagsPanel } from '../TagGroup/Tag/TagsPanel'
 import { DayArt } from './DayArt'
 import { DiscNumber } from './DiscNumber'
-import { DAY_TYPES, NO_DAY_TYPE, dayTypeOf } from './Calendar.DayTypes'
+import { NO_DAY_TYPE } from './Calendar.DayTypes'
+import { useDayTypes } from './useDayTypes'
 import { useCalendarActions } from './Calendar.Context'
-import { useCalendarStore } from './Calendar.Store'
 import type { GridDay } from './Calendar.Grid'
 
 interface DayBandProps
@@ -35,11 +36,13 @@ interface DayBandProps
 
 export const DayBand: React.FC<DayBandProps> = ({ day }) =>
 {
-    const { setDayType } = useCalendarActions()
-    const tags = useCalendarStore(state => state.dayTags[day.key]) ?? NO_TAGS
-    const setDayTags = useCalendarStore(state => state.setDayTags)
+    const { setDayType, setDayTags } = useCalendarActions()
+    const tags = day.stored?.tags ?? NO_TAGS
     const [anchor, setAnchor] = useState<HTMLElement | null>(null)
-    const type = dayTypeOf(day.stored?.typeId)
+    const { typeOf, choicesFor } = useDayTypes()
+    const type = typeOf(day.date, day.stored?.typeId)
+    // What was chosen for the day itself: 0 when it follows the week.
+    const chosen = day.stored?.typeId ?? 0
 
     return (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'stretch', gap: 1.5 }}>
@@ -154,47 +157,47 @@ export const DayBand: React.FC<DayBandProps> = ({ day }) =>
             <Menu anchorEl={anchor}
                   open={anchor !== null}
                   onClose={() => setAnchor(null)}>
-                { [...DAY_TYPES, NO_DAY_TYPE].map(option =>
-                                                  (
-                                                      <MenuItem key={option.id}
-                                                                role="menuitemradio"
-                                                                aria-checked={option.id === type.id}
-                                                                onClick={() =>
-                                                                {
-                                                                    setAnchor(null)
-                                                                    if (option.id !== type.id)
-                                                                        setDayType(day, option.id)
-                                                                }}
-                                                                sx={{ gap: 1.5, py: 0.75 }}>
-                                                          <ListItemIcon>
-                                                              <Box className="card-stock-flat"
-                                                                   sx={{ width: 72,
-                                                                         height: 40,
-                                                                         overflow: 'hidden',
-                                                                         borderRadius: '1px'
-                                                                      }}>
-                                                                  { option.scene && <DayArt scene={option.scene} /> }
-                                                              </Box>
-                                                          </ListItemIcon>
-                                                          <ListItemText primary={option.name}
-                                                                        secondary={option.blurb}
-                                                                        primaryTypographyProps={{ sx: { fontSize: '0.86rem', fontWeight: 600 } }}
-                                                                        secondaryTypographyProps={{ sx: { fontSize: '0.72rem', maxWidth: rem(230), whiteSpace: 'normal' } }} />
-                                                          <CheckIcon aria-hidden
-                                                                     sx={{ fontSize: '1rem',
-                                                                           visibility: option.id === type.id
-                                                                               ? 'visible'
-                                                                               : 'hidden'
-                                                                        }} />
-                                                      </MenuItem>
-                                                  ))
+                { choicesFor(day.date).map(option =>
+                                           (
+                                               <MenuItem key={option.id}
+                                                         role="menuitemradio"
+                                                         aria-checked={option.id === chosen}
+                                                         onClick={() =>
+                                                         {
+                                                             setAnchor(null)
+                                                             if (option.id !== chosen)
+                                                                 setDayType(day, option.id)
+                                                         }}
+                                                         sx={{ gap: 1.5, py: 0.75 }}>
+                                                   <ListItemIcon>
+                                                       <Box className="card-stock-flat"
+                                                            sx={{ width: 72,
+                                                                  height: 40,
+                                                                  overflow: 'hidden',
+                                                                  borderRadius: '1px'
+                                                               }}>
+                                                           { option.type.scene && <DayArt scene={option.type.scene} /> }
+                                                       </Box>
+                                                   </ListItemIcon>
+                                                   <ListItemText primary={option.name}
+                                                                 secondary={option.note}
+                                                                 primaryTypographyProps={{ sx: { fontSize: '0.86rem', fontWeight: 600 } }}
+                                                                 secondaryTypographyProps={{ sx: { fontSize: '0.72rem', maxWidth: rem(230), whiteSpace: 'normal' } }} />
+                                                   <CheckIcon aria-hidden
+                                                              sx={{ fontSize: '1rem',
+                                                                    visibility: option.id === chosen
+                                                                        ? 'visible'
+                                                                        : 'hidden'
+                                                                 }} />
+                                               </MenuItem>
+                                           ))
                 }
             </Menu>
 
             <Box sx={{ display: 'flex', flex: '1 1 8rem', maxWidth: TAGS_WIDTH, height: ART_HEIGHT }}>
                 <TagsPanel tags={tags}
-                           onChange={next => setDayTags(day.key, next)}
-                           unsavedNote="The API has no tags on a date yet, so these last only until the page is reloaded. See docs/api-gaps.md, #8." />
+                           onChange={next => setDayTags(day, next)}
+                           label="Day tags" />
             </Box>
         </Box>
     )
@@ -205,7 +208,7 @@ export default DayBand
 // ── Private ───────────────────────────────────────────────────────────────────
 // Not exported, which is this language's `private`. Ordered by first use above.
 
-/** One empty list for every day without tags, so the store's selector is stable. */
+/** One empty list for every day without tags, so it is the same list each render. */
 const NO_TAGS: never[] = []
 
 const DISC = 76

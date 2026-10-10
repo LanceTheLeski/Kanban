@@ -24,10 +24,10 @@
  */
 
 import { create } from 'zustand'
-import { addCardToDate, fetchMonthOf, removeCardFromDate, setDateType } from './Calendar.APIs'
+import { addCardToDate, addTagToDate, fetchMonthOf, removeCardFromDate, removeTagFromDate, setDateType } from './Calendar.APIs'
 import { fetchTaskTypes } from '../Board/Board.APIs'
 import type { Card } from '../../Entities/Card/Card.Types'
-import type { CardTag } from '../Board/Card/TagsPanel'
+import type { Tag } from '../../Entities/Tag/Tag.Types'
 import type { TaskType } from '../../Entities/Task/Task.Types'
 import type { CalendarDate, Month } from './Calendar.Types'
 
@@ -91,12 +91,10 @@ interface CalendarState
     setDayType: (day: number, typeId: number) => Promise<void>
 
     /**
-     * Each day's tags, by day key. Held for the session only: the API has no
-     * tags on a date yet — see docs/api-gaps.md, #8.
+     * Gives a day these tags now, then uploads the difference: each one taken
+     * off, each one put on. Throws, rolled back, if any of it fails.
      */
-    dayTags: Record<string, CardTag[]>
-
-    setDayTags: (dayKey: string, tags: CardTag[]) => void
+    setDayTags: (day: number, tags: Tag[]) => Promise<void>
 }
 
 export const useCalendarStore = create<CalendarState>((set, get) =>
@@ -109,11 +107,8 @@ export const useCalendarStore = create<CalendarState>((set, get) =>
     revision: 0,
     taskTypes: [],
     dayViews: {},
-    dayTags: {},
 
     setDayView: (dayKey, viewKey) => set(state => ({ dayViews: { ...state.dayViews, [dayKey]: viewKey } })),
-
-    setDayTags: (dayKey, tags) => set(state => ({ dayTags: { ...state.dayTags, [dayKey]: tags } })),
 
     loadMonth: async (year, month, options) =>
     {
@@ -240,6 +235,37 @@ export const useCalendarStore = create<CalendarState>((set, get) =>
             throw error
         }
     },
+
+    setDayTags: async (day, tags) =>
+    {
+        const { year, month } = get()
+        if (year === null || month === null)
+            return
+
+        const before = get().stored
+        const had = before?.dates.find(date => date.day === day)?.tags ?? []
+        set({ stored: withDay(before, year, month, day, date => ({ ...date, tags })) })
+
+        try
+        {
+            // One at a time, so two first tags on an empty day do not each
+            // write the day's row. Each answers with the month; the last one wins.
+            let stored: Month | null = null
+            for (const tag of had.filter(old => !tags.some(kept => kept.id === old.id)))
+                stored = await removeTagFromDate(year, month, day, tag.id)
+            for (const tag of tags.filter(next => !had.some(old => old.id === next.id)))
+                stored = await addTagToDate(year, month, day, tag)
+
+            if (stored && isShowing(get(), year, month))
+                set({ stored, status: 'ready', error: null })
+        }
+        catch (error)
+        {
+            if (isShowing(get(), year, month))
+                set({ stored: before })
+            throw error
+        }
+    },
 }))
 
 // ── Private ───────────────────────────────────────────────────────────────────
@@ -280,7 +306,7 @@ function withDay(stored: Month | null, year: number, month: number, day: number,
 {
     const base: Month = stored ?? { id: null, year, month, dates: [] }
     const existing = base.dates.find(date => date.day === day)
-    const updated = change(existing ?? { id: '', day, month, year, typeId: 0, cards: [] })
+    const updated = change(existing ?? { id: '', day, month, year, typeId: 0, cards: [], tags: [] })
 
     return {
         ...base,

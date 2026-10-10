@@ -34,6 +34,11 @@ import type { SxProps, Theme } from '@mui/material'
  * fields have no label — that is the whole point, the label was the duplicate
  * word this replaced — so without overriding it every one of them is a third
  * taller than its own text, with the text pushed to the bottom.
+ *
+ * A multiline field reserves it in a different place: on the root around the
+ * textarea, not on the input, so the single-line rule never reached it. The new
+ * card's description sat a whole empty line below the top of its box until the
+ * root was given the same padding and the textarea none.
  */
 export function paperField(stock?: 'blue' | 'red' | 'green' | 'yellow')
 {
@@ -55,6 +60,8 @@ export const paperFieldSx: SxProps<Theme> =
     '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
     '& .MuiFilledInput-root': { backgroundColor: 'transparent' },
     '& .MuiFilledInput-input': { padding: '9px 11px' },
+    '& .MuiFilledInput-root.MuiInputBase-multiline': { padding: '9px 11px' },
+    '& .MuiFilledInput-root.MuiInputBase-multiline .MuiFilledInput-input': { padding: 0 },
     '& .MuiInputBase-input': { color: 'arc.onPaperStrong', fontSize: '0.82rem' },
     '& .MuiInputBase-input::placeholder': { color: 'arc.onPaperMuted', opacity: 1 },
     // The helper sits on the pane below the card, so it takes the on-glass ramp.

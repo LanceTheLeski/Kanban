@@ -14,6 +14,7 @@
  */
 
 import type { Card } from '../../Entities/Card/Card.Types'
+import type { Tag } from '../../Entities/Tag/Tag.Types'
 
 /** One stored day of a month, and the cards the server placed on it. */
 export interface CalendarDate
@@ -32,6 +33,9 @@ export interface CalendarDate
     typeId: number
 
     cards: Card[]
+
+    /** The day's own tags, as distinct from its cards'. */
+    tags: Tag[]
 }
 
 /**

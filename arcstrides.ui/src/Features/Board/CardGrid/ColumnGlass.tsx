@@ -36,9 +36,12 @@ import type { Column } from '../Board.Types'
 interface ColumnGlassProps
 {
     columns: Column[]
+
+    /** Whether the board has swimlanes, and so a column of labels to keep clear of. */
+    labelled: boolean
 }
 
-export const ColumnGlass: React.FC<ColumnGlassProps> = ({ columns }) => (
+export const ColumnGlass: React.FC<ColumnGlassProps> = ({ columns, labelled }) => (
     <Box aria-hidden
          sx={{ position: 'absolute',
                inset: 0,
@@ -53,7 +56,7 @@ export const ColumnGlass: React.FC<ColumnGlassProps> = ({ columns }) => (
                pt: 1
             }}>
         {/* Where the labels are. Card, not glass — nothing is laid over them. */}
-        <Box sx={{ width: SWIMLANE_LABEL_WIDTH, flexShrink: 0 }} />
+        { labelled && <Box sx={{ width: SWIMLANE_LABEL_WIDTH, flexShrink: 0 }} /> }
 
         { columns.map(column =>
                       (

@@ -23,7 +23,7 @@
 
 import React, { useRef, useState } from 'react'
 import { Box, Button, Checkbox, FormControlLabel, TextField, Typography } from '@mui/material'
-import { paperField } from '../../../Styles/Paper'
+import { paperField, paperFieldSx } from '../../../Styles/Paper'
 import { ArcPopover } from '../../../Components/ArcPopover'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
 import { UpdateTimelinePanel } from '../Timeline/UpdateTimelinePanel'
@@ -31,7 +31,10 @@ import { CreateTaskTypeOverlay } from '../../TagGroup/TaskType/CreateTaskTypeOve
 import { useBoardActions } from '../useBoardActions'
 import { fetchTaskTypes, updateTask, type TaskPatch } from '../Board.APIs'
 import { saveTimeline, TIMELINE_PARENT_TASK, type TimelineDraft } from '../Timeline/Timeline.Draft'
-import { TASK_PANEL_ROW_MIN_HEIGHT, TASK_POPOVER_WIDTH } from '../../../Styles/Measures'
+import { TASK_PANEL_ROW_MIN_HEIGHT, TASK_POPOVER_WIDTH, TASK_TITLE_ROW_MIN_HEIGHT } from '../../../Styles/Measures'
+import { TagsPanel } from '../../TagGroup/Tag/TagsPanel'
+import { saveTags, sameTags } from '../../TagGroup/Tag/Tag.APIs'
+import type { Tag } from '../../../Entities/Tag/Tag.Types'
 import type { Task, TaskType } from '../../../Entities/Task/Task.Types'
 import type { Timeline } from '../../../Entities/Timeline/Timeline.Types'
 
@@ -76,8 +79,10 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
     const initialOrder = useRef(task.order)
     const initialTimeline = useRef<Timeline | null>(task.timeline)
     const initialIsCompleted = useRef(task.isCompleted)
+    const initialTags = useRef<Tag[]>(task.tags)
 
     const [timelineDraft, setTimelineDraft] = useState<TimelineDraft | null>(null)
+    const [tags, setTags] = useState<Tag[]>(task.tags)
     const [taskTypes, setTaskTypes] = useState<TaskType[]>([])
     const [createTaskTypeOpen, setCreateTaskTypeOpen] = useState(false)
 
@@ -137,11 +142,13 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
         // Any draft at all is a change: one taken back to Timeless clears the schedule.
         const timelineChanged = timelineDraft !== null
         const orderChanged = patch.order !== undefined
+        const tagsChanged = !sameTags(tags, initialTags.current)
 
-        if (Object.keys(patch).length === 0 && !timelineChanged)
+        if (Object.keys(patch).length === 0 && !timelineChanged && !tagsChanged)
             return true
 
         let savedTimeline: Timeline | null = existingTimeline
+        let savedTags = initialTags.current
 
         const saved = await run(
             'Saving task',
@@ -154,6 +161,9 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                 // kind, not the mode: see TIMELINE_PARENT_TASK.
                 if (timelineDraft)
                     savedTimeline = await saveTimeline(boardId, { id: task.id, kind: TIMELINE_PARENT_TASK }, existingTimeline, timelineDraft)
+
+                if (tagsChanged)
+                    savedTags = await saveTags({ id: task.id, kind: 'task' }, initialTags.current, tags)
             },
             /*
                An order change is the one task edit the client cannot predict the
@@ -177,6 +187,8 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
         initialOrder.current = order
         initialIsCompleted.current = isCompleted
         initialTimeline.current = savedTimeline
+        initialTags.current = savedTags
+        setTags(savedTags)
 
         /*
            An order change has already been answered by the refresh inside run(),
@@ -195,6 +207,7 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                 order,
                 isCompleted,
                 timeline: savedTimeline,
+                tags: savedTags,
                 taskType: taskTypes.find(taskType => taskType.id === selectedTaskTypeId)
                     ?? task.taskType,
             })
@@ -217,6 +230,7 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
         setOrder(initialOrder.current)
         setSelectedTaskTypeId(initialTypeId.current)
         setTimelineDraft(null)
+        setTags(initialTags.current)
     }
 
     return (
@@ -267,101 +281,118 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                         titleStock="green"
                         anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
                         transformOrigin={{ vertical: 'center', horizontal: 'left' }}>
-                <Box sx={{ width: TASK_POPOVER_WIDTH, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <TextField {...paperField('green')}
-                               placeholder="Task title"
-                               value={title}
-                               onChange={e => setTitle(e.target.value)}
-                               fullWidth />
+                {/*
+                    The title and its tags, then the fields in a row, then the
+                    timeline across the whole width.
 
-                    {/*
-                        A floor on the row, and explicit bases for its two halves.
-
-                        The three timeline modes are different heights, so without
-                        a floor the popover grew and shrank as you switched between
-                        them — and with both halves on a bare `flex: 1` the panel
-                        and the selectors fought over the width, which is what
-                        squashed the dropdowns.
-                    */}
+                    The timeline used to share a row with the fields, which left it
+                    a column about 300px wide: its nodes' day, time and Day pieces
+                    wrapped onto lines of their own, and the four nodes of a
+                    timeline were stacked like a list. On a card it has the width of
+                    the overlay's left pane, and it should have as much here.
+                */}
+                <Box sx={{ width: TASK_POPOVER_WIDTH,
+                           maxWidth: '90vw',
+                           display: 'flex',
+                           flexDirection: 'column',
+                           gap: 1.5
+                        }}>
                     <Box sx={{ display: 'flex',
-                               gap: 2,
+                               gap: 1,
                                alignItems: 'stretch',
-                               minHeight: TASK_PANEL_ROW_MIN_HEIGHT
+                               minHeight: TASK_TITLE_ROW_MIN_HEIGHT
                             }}>
-                        <Box sx={{ flex: '1 1 13rem',
-                                   minWidth: 0,
-                                   display: 'flex',
-                                   flexDirection: 'column',
-                                   gap: 1
-                                }}>
-                            {/*
-                                On card, with the box a smaller piece laid on it.
+                        <TextField {...paperField('green')}
+                                   placeholder="Task title"
+                                   value={title}
+                                   onChange={e => setTitle(e.target.value)}
+                                   multiline
+                                   minRows={2}
+                                   maxRows={3}
+                                   sx={{ ...paperFieldSx, flex: 1, minWidth: 0 }} />
 
-                                It was a checkbox and a word standing directly on
-                                the glass — the last control in the popover with
-                                nothing under it. The tick is drawn by MUI, so
-                                what the card gives it is a ground to sit on and
-                                an edge, which is also what makes the hit target
-                                visible before you reach for it.
-                            */}
-                            <FormControlLabel className="card-stock"
-                                              sx={{ alignSelf: 'flex-start',
-                                                    m: 0,
-                                                    pr: 1.25,
-                                                    '& .MuiCheckbox-root': { color: 'arc.onPaperMuted' },
-                                                    '& .Mui-checked': { color: 'arc.paperAccent' }
-                                                 }}
-                                              control={
-                                                  <Checkbox checked={isCompleted}
-                                                            onChange={e => setIsCompleted(e.target.checked)}
-                                                            size="small" />
-                                              }
-                                              label={<Typography variant="body2"
-                                                                 sx={{ color: 'arc.onPaperStrong',
-                                                                       fontWeight: 600
-                                                                    }}>
-                                                         Completed
-                                                     </Typography>} />
+                        <TagsPanel tags={tags}
+                                   onChange={setTags}
+                                   label="Task tags" />
+                    </Box>
 
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'flex-start' }}>
+                        {/*
+                            On card, with the box a smaller piece laid on it.
+
+                            It was a checkbox and a word standing directly on
+                            the glass — the last control in the popover with
+                            nothing under it. The tick is drawn by MUI, so
+                            what the card gives it is a ground to sit on and
+                            an edge, which is also what makes the hit target
+                            visible before you reach for it.
+                        */}
+                        <FormControlLabel className="card-stock"
+                                          sx={{ m: 0,
+                                                pr: 1.25,
+                                                '& .MuiCheckbox-root': { color: 'arc.onPaperMuted' },
+                                                '& .Mui-checked': { color: 'arc.paperAccent' }
+                                             }}
+                                          control={
+                                              <Checkbox checked={isCompleted}
+                                                        onChange={e => setIsCompleted(e.target.checked)}
+                                                        size="small" />
+                                          }
+                                          label={<Typography variant="body2"
+                                                             sx={{ color: 'arc.onPaperStrong',
+                                                                   fontWeight: 600
+                                                                }}>
+                                                     Completed
+                                                 </Typography>} />
+
+                        <Box sx={{ flex: '1 1 8rem', minWidth: 0 }}>
                             <ArcExpandingSelector options={orderOptions}
                                                   onSelect={v => setOrder(parseInt(v, 10) - 1)}
                                                   placeholder={`Order: ${order + 1}`} />
+                        </Box>
 
+                        <Box sx={{ flex: '1 1 10rem', minWidth: 0 }}>
                             <ArcExpandingSelector options={taskTypes.map(t => t.title ?? '')}
                                                   onSelect={handleSetTaskType}
                                                   placeholder={task.taskType?.title ?? 'Select task type'} />
-
-                            {/*
-                                Neutral card, matching "+ New task" on the card
-                                overlay: both are the one "add a thing" action in
-                                their panel, and they should not be two different
-                                shapes. Quiet within that — creating a task *type*
-                                is the least likely thing anyone opened this
-                                popover to do.
-                            */}
-                            <Button size="small"
-                                    variant="text"
-                                    className="card-stock"
-                                    onClick={() => setCreateTaskTypeOpen(true)}
-                                    sx={{ alignSelf: 'flex-start',
-                                          px: 1,
-                                          fontSize: '0.65rem',
-                                          textTransform: 'none',
-                                          color: 'arc.onPaperMuted',
-                                          '&:hover': { color: 'arc.onPaperStrong',
-                                                       backgroundColor: 'transparent' }
-                                       }}>
-                                + New task type
-                            </Button>
                         </Box>
 
-                        <Box sx={{ flex: '1 1 18rem', minWidth: 0, display: 'flex' }}>
-                            <UpdateTimelinePanel timeline={task.timeline}
-                                                 onDraftChange={setTimelineDraft}
-                                                 boardId={boardId}
-                                                 subject={{ kind: 'task', id: task.id }}
-                                                 subjectTitle={title} />
-                        </Box>
+                        {/*
+                            Neutral card, matching "+ New task" on the card
+                            overlay: both are the one "add a thing" action in
+                            their panel, and they should not be two different
+                            shapes. Quiet within that — creating a task *type*
+                            is the least likely thing anyone opened this
+                            popover to do.
+                        */}
+                        <Button size="small"
+                                variant="text"
+                                className="card-stock"
+                                onClick={() => setCreateTaskTypeOpen(true)}
+                                sx={{ alignSelf: 'center',
+                                      px: 1,
+                                      fontSize: '0.65rem',
+                                      textTransform: 'none',
+                                      color: 'arc.onPaperMuted',
+                                      '&:hover': { color: 'arc.onPaperStrong',
+                                                   backgroundColor: 'transparent' }
+                                   }}>
+                            + New task type
+                        </Button>
+                    </Box>
+
+                    {/*
+                        A floor under the panel, so the three timeline modes do
+                        not each make the popover a different height and move
+                        everything as you switch between them. A grid, so the
+                        panel takes the whole width whatever its mode holds.
+                    */}
+                    <Box sx={{ display: 'grid', minHeight: TASK_PANEL_ROW_MIN_HEIGHT }}>
+                        <UpdateTimelinePanel timeline={task.timeline}
+                                             onDraftChange={setTimelineDraft}
+                                             boardId={boardId}
+                                             subject={{ kind: 'task', id: task.id }}
+                                             subjectTitle={title} />
                     </Box>
                 </Box>
             </ArcPopover>

@@ -11,6 +11,12 @@
  * The uniqueness guard from the Blazor original is kept: two columns with the
  * same title is an error rather than a coin flip over which one is meant.
  *
+ * ── A board with no swimlanes ────────────────────────────────────────────────
+ * A board may have none, and its cards then sit straight in their columns. The
+ * swimlane selector is not shown there, the card is sent with no swimlane, and
+ * the server puts it in none. A board with no columns has nowhere for a card at
+ * all, and says so instead of offering a form that cannot be saved.
+ *
  * ── Why the board is re-read afterwards ──────────────────────────────────────
  * CardController.CreateCard responds with a CardPositionResponse whose `id` is
  * the new *position* row, not the new card — the card's own ID never makes it
@@ -19,7 +25,7 @@
  */
 
 import React, { useState } from 'react'
-import { Stack, TextField } from '@mui/material'
+import { Stack, TextField, Typography } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
 import { createCard } from '../Board.APIs'
@@ -71,14 +77,16 @@ export const CreateCardOverlay: React.FC<CreateCardOverlayProps> = ({ open, onCl
         setSelectedSwimlaneTitle(title)
     }
 
+    const laned = swimlanes.length > 0
+
     const handleSubmit = async () =>
     {
-        if (!boardId || !cardTitle.trim() || !selectedColumnTitle || !selectedSwimlaneTitle)
+        if (!boardId || !cardTitle.trim() || !selectedColumnTitle || (laned && !selectedSwimlaneTitle))
             return
 
         const column = columns.find(candidate => candidate.title === selectedColumnTitle)
         const swimlane = swimlanes.find(candidate => candidate.title === selectedSwimlaneTitle)
-        if (!column || !swimlane)
+        if (!column || (laned && !swimlane))
             return
 
         const created = await run('Adding card', () =>
@@ -86,7 +94,7 @@ export const CreateCardOverlay: React.FC<CreateCardOverlayProps> = ({ open, onCl
                 title: cardTitle.trim(),
                 description: cardDescription.trim(),
                 columnId: column.id,
-                swimlaneId: swimlane.id,
+                swimlaneId: swimlane?.id ?? null,
             })
         )
         if (!created)
@@ -99,11 +107,28 @@ export const CreateCardOverlay: React.FC<CreateCardOverlayProps> = ({ open, onCl
         onClose()
     }
 
+    if (columns.length === 0)
+    {
+        return (
+            <ArcOverlay open={open}
+                        onClose={onClose}
+                        discardLabel="Close"
+                        title="Add a card">
+                <Typography sx={{ fontSize: '0.8rem', color: 'arc.onGlass' }}>
+                    This board has no columns yet, and a card always sits in one. Add a column first.
+                </Typography>
+            </ArcOverlay>
+        )
+    }
+
     return (
         <ArcOverlay open={open}
                     onClose={onClose}
                     onSubmit={handleSubmit}
-                    title="Add a card">
+                    title="Add a card"
+                    titleCaption={laned
+                        ? undefined
+                        : 'This board has no swimlanes: the card goes straight into its column.'}>
             <Stack spacing={1.5}>
                 <TextField {...paperField()}
                            placeholder="Card title"
@@ -124,10 +149,13 @@ export const CreateCardOverlay: React.FC<CreateCardOverlayProps> = ({ open, onCl
                                       onSelect={handleSelectColumn}
                                       placeholder="Select Column" />
 
-                {/* Swimlane selector — mirrors @bind-Options="SwimlaneTitles" */}
-                <ArcExpandingSelector options={swimlanes.map(swimlane => swimlane.title)}
-                                      onSelect={handleSelectSwimlane}
-                                      placeholder="Select Swimlane" />
+                {/* Swimlane selector — mirrors @bind-Options="SwimlaneTitles". Only where there are swimlanes. */}
+                { laned && (
+                    <ArcExpandingSelector options={swimlanes.map(swimlane => swimlane.title)}
+                                          onSelect={handleSelectSwimlane}
+                                          placeholder="Select Swimlane" />
+                )
+                }
             </Stack>
         </ArcOverlay>
     )

@@ -36,7 +36,7 @@ import { DayDue } from './DayDue'
 import { DayArt } from './DayArt'
 import { DiscNumber } from './DiscNumber'
 import { CalendarContext, type CalendarActions } from './Calendar.Context'
-import { dayTypeOf } from './Calendar.DayTypes'
+import { useDayTypes } from './useDayTypes'
 import { dayOf, type GridDay } from './Calendar.Grid'
 import { isSubjects, stopsOf, stopsOn, uniqueStops, type PendingPoint, type Subject } from './Calendar.Stops'
 import { useMonthLoad } from './useMonthLoad'
@@ -67,7 +67,7 @@ export const DayPreview: React.FC<DayPreviewProps> = ({ date, title, points, sub
         : [], true)
     const key = date.format('YYYY-MM-DD')
     const day: GridDay = dayOf(load.weeks, key) ?? { key, date, stored: null, isToday: date.isSame(dayjs(), 'day') }
-    const type = dayTypeOf(day.stored?.typeId)
+    const type = useDayTypes().typeOf(day.date, day.stored?.typeId)
 
     // The day overlay's two lists, from the same cards, without the subject's saved points.
     const placedIds = new Set((day.stored?.cards ?? []).map(card => card.id))
@@ -101,6 +101,7 @@ export const DayPreview: React.FC<DayPreviewProps> = ({ date, title, points, sub
         openDay: nothing,
         taskUpdated: nothing,
         setDayType: nothing,
+        setDayTags: nothing,
         goToDay: nothing,
         knownCards: load.cards,
         stopsOnDay: () => [],

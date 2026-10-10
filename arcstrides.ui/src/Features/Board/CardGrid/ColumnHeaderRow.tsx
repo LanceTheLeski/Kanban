@@ -24,9 +24,12 @@ import type { Column } from '../Board.Types'
 interface ColumnHeaderRowProps
 {
     columns: Column[]
+
+    /** Whether the board has swimlanes, and so a column of labels to keep clear of. */
+    labelled: boolean
 }
 
-export const ColumnHeaderRow: React.FC<ColumnHeaderRowProps> = ({ columns }) => (
+export const ColumnHeaderRow: React.FC<ColumnHeaderRowProps> = ({ columns, labelled }) => (
     <Box sx={{ // Hidden below the label breakpoint, where the swimlane label moves
                // above its row and there is no longer a single header row that lines
                // up with anything.
@@ -39,9 +42,10 @@ export const ColumnHeaderRow: React.FC<ColumnHeaderRowProps> = ({ columns }) => 
         {/*
             The corner above the swimlane labels, kept empty and the labels'
             width, so the column headers stay over their cells. "Honu Boards"
-            is in the bar above — see BoardManagementNav.
+            is in the bar above — see BoardManagementNav. A board with no
+            swimlanes has no labels, and no corner.
         */}
-        <Box aria-hidden sx={{ width: BOARD_TITLE_WIDTH, flexShrink: 0 }} />
+        { labelled && <Box aria-hidden sx={{ width: BOARD_TITLE_WIDTH, flexShrink: 0 }} /> }
 
         { columns.map((column, index) =>
                       (

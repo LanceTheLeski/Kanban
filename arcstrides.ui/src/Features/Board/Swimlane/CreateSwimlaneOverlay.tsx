@@ -4,19 +4,25 @@
  * Mirrors: CreateSwimlaneOverlay.razor + CreateSwimlaneOverlay.cs
  *
  * Structurally identical to CreateColumnOverlay — see that file for the pattern
- * notes on useBoardActions and why the board is re-read after a create.
+ * notes on useBoardActions, why the board is re-read after a create, and how its
+ * place and its colours are chosen. Swimlanes are placed down the list rather
+ * than across it, and their suggested shades pale downwards, as the ramp does.
  */
 
 import React, { useState } from 'react'
 import { Stack, TextField } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
+import { useArcError } from '../../../Components/useArcError'
 import { createSwimlane } from '../Board.APIs'
 import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
 import { ArcColourPicker } from '../../../Components/ArcColourPicker'
-import { swimlaneColour, landingIndex } from '../Board.Colours'
+import { swimlaneColour, suggestedColour } from '../Board.Colours'
 import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
+import { PlacementList } from '../PlacementList'
+import { GlobalColourPanel } from '../GlobalColourPanel'
+import { useColourChoice } from '../useColourChoice'
 
 interface CreateSwimlaneOverlayProps
 {
@@ -32,30 +38,34 @@ export const CreateSwimlaneOverlay: React.FC<CreateSwimlaneOverlayProps> = ({ op
         swimlanes: state.swimlanes,
     })))
     const { run } = useBoardActions()
+    const { addError } = useArcError()
 
     const [title, setTitle] = useState('')
-    const [orderInput, setOrderInput] = useState('')
-    const [colour, setColour] = useState<string | null>(null)
+    // At the bottom, which is where most swimlanes go.
+    const [index, setIndex] = useState(swimlanes.length)
+
+    const before = swimlanes[index - 1] ?? null
+    const after = swimlanes[index] ?? null
+    const choice = useColourChoice('swimlane', null, suggestedColour('swimlane', before?.colour ?? null, after?.colour ?? null))
+    const ramp = swimlaneColour(null, index, swimlanes.length + 1)
 
     const handleSubmit = async () =>
     {
         if (!boardId || !title.trim())
             return
 
-        // Mirror Blazor fallback: if no order given, append at end
-        const order = orderInput.trim() !== ''
-            ? parseInt(orderInput, 10)
-            : swimlanes.length
+        if (choice.overrideTakenBy)
+        {
+            addError(`The global colour is "${choice.overrideTakenBy.title}"'s already. Choose another.`)
+            return
+        }
 
         const created = await run('Adding swimlane', () =>
-            createSwimlane(boardId, { title: title.trim(), order, colour, globalColour: colour })
+            createSwimlane(boardId, { title: title.trim(), order: index, colour: choice.colour, globalColour: choice.globalColour })
         )
         if (!created)
             return
 
-        setTitle('')
-        setOrderInput('')
-        setColour(null)
         onClose()
     }
 
@@ -72,21 +82,41 @@ export const CreateSwimlaneOverlay: React.FC<CreateSwimlaneOverlayProps> = ({ op
                            onChange={e => setTitle(e.target.value)}
                            fullWidth />
 
-                <TextField {...paperField()}
-                           placeholder="Order"
-                           helperText={`Leave blank to append at position ${swimlanes.length}`}
-                           value={orderInput}
-                           onChange={e => setOrderInput(e.target.value)}
-                           inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-                           fullWidth />
+                <PlacementList items={swimlanes.map((swimlane, at) =>
+                ({ id: swimlane.id,
+                   title: swimlane.title,
+                   colour: swimlaneColour(swimlane.colour, at, swimlanes.length) }))}
+                               moving={{ title: title.trim() || 'New swimlane', colour: choice.colour ?? ramp }}
+                               index={index}
+                               onChange={setIndex}
+                               direction="down"
+                               label="Where the swimlane goes" />
 
-                <ArcColourPicker value={colour}
-                                 onChange={setColour}
-                                 fallback={swimlaneColour(null, landingIndex(orderInput, swimlanes.length), swimlanes.length + 1)}
-                                 label="Swimlane colour" />
+                <ArcColourPicker value={choice.colour}
+                                 onChange={choice.pick}
+                                 fallback={ramp}
+                                 label="Swimlane colour"
+                                 hint={choice.suggested
+                                     ? hintFor(before?.title ?? null, after?.title ?? null)
+                                     : undefined} />
+
+                <GlobalColourPanel choice={choice}
+                                   kind="swimlane"
+                                   boardId={boardId} />
             </Stack>
         </ArcOverlay>
     )
 }
 
 export default CreateSwimlaneOverlay
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+/** Where the suggested colour came from, so it does not read as a choice already made. */
+function hintFor(before: string | null, after: string | null): string
+{
+    return before
+        ? `Suggested: one shade paler than "${before}", above it.`
+        : `Suggested: one shade stronger than "${after}", below it.`
+}

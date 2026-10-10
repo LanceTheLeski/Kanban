@@ -29,6 +29,8 @@ import { DEFAULT_BOARD_ID } from '../Board/Board.Defaults'
 import { MonthGrid } from './MonthGrid'
 import { DayOverlay } from './DayOverlay'
 import { CalendarCardOverlay } from './CalendarCardOverlay'
+import { DefaultTaskTypeContext } from '../Board/Task/Task.Defaults'
+import { useDayTypes } from './useDayTypes'
 import { useCalendarStore } from './Calendar.Store'
 import { dayOf, monthPath, weeksOf, type GridDay } from './Calendar.Grid'
 import { typeColours } from './Calendar.Stats'
@@ -54,6 +56,8 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) =>
     const addCard = useCalendarStore(state => state.addCard)
     const removeCard = useCalendarStore(state => state.removeCard)
     const setDayType = useCalendarStore(state => state.setDayType)
+    const setDayTags = useCalendarStore(state => state.setDayTags)
+    const { typeOf } = useDayTypes()
     const { addError } = useArcError()
     const navigate = useNavigate()
 
@@ -129,7 +133,16 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) =>
         {
             setDayType(day.date.date(), typeId).catch(error =>
             {
-                addError(`Could not make ${day.date.format('D MMMM')} a ${dayTypeOf(typeId).name} day: ${messageOf(error)}`)
+                addError(`Could not make ${day.date.format('D MMMM')} ${typeId
+                    ? `a ${dayTypeOf(typeId).name} day`
+                    : 'follow the week'}: ${messageOf(error)}`)
+            })
+        },
+        setDayTags: (day, tags) =>
+        {
+            setDayTags(day.date.date(), tags).catch(error =>
+            {
+                addError(`Could not change the tags on ${day.date.format('D MMMM')}: ${messageOf(error)}`)
             })
         },
         goToDay: date =>
@@ -143,7 +156,7 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) =>
         knownCards,
         stopsOnDay: key => stopsByDay.get(key) ?? NO_STOPS,
         readingBoards,
-    }), [colours, boardTitle, handleOpenCard, refresh, setDayType, year, month, navigate, addError, knownCards, stopsByDay, readingBoards])
+    }), [colours, boardTitle, handleOpenCard, refresh, setDayType, setDayTags, year, month, navigate, addError, knownCards, stopsByDay, readingBoards])
 
     const handleCloseCard = () =>
     {
@@ -191,7 +204,15 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) =>
 
             {/* After the day, so a card opened from a day stacks above it. */}
 
-            { openCard && <CalendarCardOverlay card={openCard} onClose={handleCloseCard} /> }
+            {/*
+                Opened over a day, a card's new tasks start as that kind of day
+                says — see Task.Defaults. Opened from the grid, as nothing.
+            */}
+            <DefaultTaskTypeContext.Provider value={openDay
+                                                 ? typeOf(openDay.date, openDay.stored?.typeId).defaultTaskTypeId
+                                                 : null}>
+                { openCard && <CalendarCardOverlay card={openCard} onClose={handleCloseCard} /> }
+            </DefaultTaskTypeContext.Provider>
         </CalendarContext.Provider>
     )
 }

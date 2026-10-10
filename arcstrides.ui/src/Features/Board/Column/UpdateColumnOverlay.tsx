@@ -8,25 +8,36 @@
  *   after an update but never re-inserted, leaving the UI with one fewer column.
  *   The comment literally said "This is not actually what we want."
  *
- * The Blazor version used OnParametersSet() to regenerate the order list whenever
- * columns changed. Here we derive it from the store directly in render — no lifecycle
- * hook needed because store subscriptions are reactive.
- *
  * Reordering rewrites sibling column orders and card positions server-side, so the
  * board is re-read afterwards rather than recomputed locally. See useBoardActions.
+ *
+ * ── Moving it ────────────────────────────────────────────────────────────────
+ * The column is shown among the others in PlacementList, where it is, and is
+ * moved by dragging it or clicking a gap — not by choosing a number from a list
+ * of numbers. Its place there is its new order, since every column before it
+ * is counted.
+ *
+ * ── Its colours ──────────────────────────────────────────────────────────────
+ * As CreateColumnOverlay, starting from what is stored. "Use default" puts it
+ * back on the ramp: sent as an empty colour, which the board reads as none —
+ * a null would be left out of the server's merge and change nothing.
  */
 
 import React, { useState } from 'react'
 import { Stack, TextField } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
-import { updateColumn } from '../Board.APIs'
+import { useArcError } from '../../../Components/useArcError'
+import { updateColumn, type OrderedItemPatchRequest } from '../Board.APIs'
 import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
 import { ArcColourPicker } from '../../../Components/ArcColourPicker'
-import { columnColour } from '../Board.Colours'
+import { columnColour, sameColour } from '../Board.Colours'
 import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
+import { PlacementList } from '../PlacementList'
+import { GlobalColourPanel } from '../GlobalColourPanel'
+import { useColourChoice } from '../useColourChoice'
 
 interface UpdateColumnOverlayProps
 {
@@ -42,15 +53,16 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
         columns: state.columns,
     })))
     const { run } = useBoardActions()
+    const { addError } = useArcError()
 
-    const [selectedTitle, setSelectedTitle] = useState<string | null>(null)
+    const [selectedId, setSelectedId] = useState<string | null>(null)
     const [replacementTitle, setReplacementTitle] = useState('')
-    const [selectedOrder, setSelectedOrder] = useState<number | null>(null)
-    const [colour, setColour] = useState<string | null>(null)
+    const [index, setIndex] = useState(0)
 
-    // Derived from store — mirrors Blazor's GetColumnIndexList() / OnParametersSet()
-    // but reactive: always reflects current column count
-    const orderOptions = columns.map((_, index) => String(index))
+    const selected = columns.find(column => column.id === selectedId) ?? null
+    const others = columns.filter(column => column.id !== selectedId)
+    const choice = useColourChoice('column', selectedId, null)
+    const ramp = columnColour(null, index, columns.length)
 
     const handleSelectColumn = (title: string) =>
     {
@@ -60,38 +72,38 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
             console.error(`Expected exactly 1 column with title "${title}", found ${matches.length}`)
             return
         }
-        setSelectedTitle(title)
+        setSelectedId(matches[0].id)
         setReplacementTitle(title) // Pre-fill with current title, mirrors Blazor
-        // And with its colour, so opening the picker does not read as "no colour"
+        setIndex(columns.indexOf(matches[0]))
+        // And with its colours, so opening the picker does not read as "no colour"
         // on a column that has one.
-        setColour(matches[0].colour)
+        choice.load(matches[0].colour, matches[0].globalColour)
     }
 
     const handleSubmit = async () =>
     {
-        if (!boardId || !selectedTitle)
+        if (!boardId || !selected)
             return
 
-        const column = columns.find(candidate => candidate.title === selectedTitle)
-        if (!column)
+        if (choice.overrideTakenBy)
+        {
+            addError(`The global colour is "${choice.overrideTakenBy.title}"'s already. Choose another.`)
             return
+        }
 
-        const patch: { title?: string; order?: number; colour?: string; globalColour?: string } = {}
+        const patch: OrderedItemPatchRequest = {}
 
-        if (replacementTitle.trim() && replacementTitle !== selectedTitle)
+        if (replacementTitle.trim() && replacementTitle.trim() !== selected.title)
             patch.title = replacementTitle.trim()
 
-        if (selectedOrder !== null && selectedOrder !== column.order)
-            patch.order = selectedOrder
+        if (index !== selected.order)
+            patch.order = index
 
-        // Only when it changed, and only when it is a colour: clearing back to
-        // Default is not expressible as a patch yet, because the operation would
-        // have to send null and the server treats null as "leave it alone".
-        if (colour && colour !== column.colour)
-        {
-            patch.colour = colour
-            patch.globalColour = colour
-        }
+        if (!sameColour(choice.colour, selected.colour) && (choice.colour || selected.colour))
+            patch.colour = choice.colour ?? ''
+
+        if (!sameColour(choice.globalColour, selected.globalColour) && (choice.globalColour || selected.globalColour))
+            patch.globalColour = choice.globalColour ?? ''
 
         if (Object.keys(patch).length === 0)
         {
@@ -99,14 +111,10 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
             return
         }
 
-        const updated = await run('Updating column', () => updateColumn(boardId, column.id, patch))
+        const updated = await run('Updating column', () => updateColumn(boardId, selected.id, patch))
         if (!updated)
             return
 
-        setSelectedTitle(null)
-        setReplacementTitle('')
-        setSelectedOrder(null)
-        setColour(null)
         onClose()
     }
 
@@ -121,20 +129,35 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
                                       onSelect={handleSelectColumn}
                                       placeholder="Select column to edit" />
 
-<TextField {...paperField()}
-           placeholder="New title"
-           value={replacementTitle}
-           onChange={e => setReplacementTitle(e.target.value)}
-           fullWidth />
+                { selected && (
+                    <>
+                        <TextField {...paperField()}
+                                   placeholder="New title"
+                                   value={replacementTitle}
+                                   onChange={e => setReplacementTitle(e.target.value)}
+                                   fullWidth />
 
-                <ArcExpandingSelector options={orderOptions}
-                                      onSelect={value => setSelectedOrder(parseInt(value, 10))}
-                                      placeholder="Select new order position" />
+                        <PlacementList items={others.map(column =>
+                        ({ id: column.id,
+                           title: column.title,
+                           colour: columnColour(column.colour, columns.indexOf(column), columns.length) }))}
+                                       moving={{ title: replacementTitle.trim() || selected.title, colour: choice.colour ?? ramp }}
+                                       index={index}
+                                       onChange={setIndex}
+                                       direction="across"
+                                       label="Where the column goes" />
 
-                <ArcColourPicker value={colour}
-                                 onChange={setColour}
-                                 fallback={columnColour(null, Math.max(columns.findIndex(column => column.title === selectedTitle), 0), columns.length)}
-                                 label="Column colour" />
+                        <ArcColourPicker value={choice.colour}
+                                         onChange={choice.pick}
+                                         fallback={ramp}
+                                         label="Column colour" />
+
+                        <GlobalColourPanel choice={choice}
+                                           kind="column"
+                                           boardId={boardId} />
+                    </>
+                )
+                }
             </Stack>
         </ArcOverlay>
     )

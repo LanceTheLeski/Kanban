@@ -398,6 +398,35 @@ crisp beside the label and frosted wherever a column's glass crosses it (see
 now; "Honu Boards" is in the navy bar, in gold foil, where it has room for one
 line and still shows on a phone.
 
+**A board may have no swimlanes.** Its cards then sit straight in their
+columns: one lane of sand with no label, and no corner kept for one. Deleting
+the last swimlane leaves every card in its column, in no swimlane; adding a
+swimlane to such a board takes every card into it. On a board that has
+swimlanes, a card in none is shown in a grey "No swimlane" lane under the rest
+until it is dragged out. The rule is `NO_SWIMLANE` in `Board.Types` and
+`placeUnlaned` in `Board.Store`; the server's half is in `docs/api-gaps.md`.
+
+**A board always has a column for its cards.** The last column cannot be
+deleted while it holds cards. The delete overlay offers instead to move them to
+a new grey column, "Orphaned", made for them first. Both delete overlays say,
+before you confirm, where the cards will go.
+
+**Where a column or swimlane goes** is chosen in a list of the ones there are
+(`PlacementList`): the titles in their colours — across for columns, down for
+swimlanes, as the board lays them out — with the one being placed among them,
+lifted. Click a gap, drag it, or use the arrow keys. A new one starts at the end.
+There is no number to type.
+
+**A new column's colour** is offered as the next shade along from its
+neighbour's own colour — deeper to the right for columns, paler downwards for
+swimlanes, as the ramps run — and follows its place in the list until a colour
+is picked; a neighbour on the ramp offers nothing, and the new one goes on the
+ramp too. A column also has a **global colour**, which tells it from every other
+column across boards: no two columns may share one (nor two swimlanes; a column
+and a swimlane may). It is the colour picked unless that is taken; then a panel
+under the picker (`GlobalColourPanel`) says whose it is and offers the nearest
+free shade. The board still shows the colour picked. See `useColourChoice`.
+
 ### The calendar
 
 Glass, then paper — the Blazor calendar's own arrangement, not the board's.
@@ -406,7 +435,8 @@ no pane round the month and nothing behind the days: glass seen through glass
 was fog. The slots before the 1st and after the last day are empty — the
 neighbouring months' days are not drawn, because drawn the same way they read
 as part of this month. The weekday names are paper tiles: blue for the working
-days, red for the weekend.
+days, red for the weekend's — Saturday and Sunday unless the calendar's options
+name others.
 
 Across the top of a day is a header of tiles — a tablet start screen, cut from
 card, each tile its own colour, laid on a sheet of sand card with a hairline of
@@ -442,7 +472,7 @@ picture, or an offer to add a card (or a task, to a day whose cards have none).
 
 A day has a type, and the type has a picture — a scene in cut paper, drawn by
 `DayArt.tsx` from the palette's ladders. The types are fixed, in `Calendar.DayTypes.ts`; the API stores
-only the number.
+only the number. As they come:
 
 | type | picture | ring | lines | an empty day shows |
 |---|---|---|---|---|
@@ -455,6 +485,21 @@ The picture is how the type is changed: click it at the top of the day
 overlay, or use the Theme items in a day's ⋮. On a phone, where a day has no
 header, it is a strip along the day's foot, and the date's disc sits on a scrap
 of the same sand sheet.
+
+**The calendar's options** (Calendar → Options, on the calendar's bar; stored
+by the API) change the table. They name the weekend's days — any of the seven,
+or none — and the type a weekend day is, and the type every other day is, when
+nobody has chosen one for the day; "no theme" is as good a choice as any. And
+for each of Work, Leisure and Vacation: its picture (or none), whether its
+progress lines show, and the task type a new task on a day of it starts as — a
+card opened over a day gives its editor that type (`Task.Defaults`).
+
+A day's own type always wins. So the picker's first entry is "As the week
+says", which stores 0 and follows the options, and choosing "No theme" stores
+a type of its own (`PLAIN_DAY_TYPE`), so a weekend day can be plain on a
+calendar whose weekends are Leisure. Nothing reads `typeId` off a stored day to
+draw it: `useDayTypes().typeOf(date, typeId)` is the one place a day's type is
+worked out.
 
 **Gold** is `.gold-foil`: Blazor's `.gold-text` gradient, re-cut from the
 yellow ladder (see "The palette"), with a dark drop-shadow under it so the
@@ -554,6 +599,28 @@ edit. The calendar is where the day itself is changed.
 A point lasts from its time forward: a deadline at 15:00 lasting 2 h fills
 15:00 to 17:00. The span shows wherever the time does: under the node, on the
 day overlay's timeline, and in the preview.
+
+### The task popover
+
+The title and its tags across the top, the fields in a row under them
+(Completed, order, type, "+ New task type"), and the timeline across the whole
+width under those. The timeline used to share a row with the fields, which left
+it about 300px: a node's day, time and Day pieces wrapped onto lines of their
+own. It now has a little more room than it has on a card. The new-task popover
+is laid out the same way.
+
+### Tags
+
+A card, a task and a calendar day each have a tags box (`TagsPanel`, in
+`Features/TagGroup/Tag`): small red pieces of card on a blue one, and a line to
+add one. Typing offers the tags that exist already, from anywhere, and choosing
+one puts that tag on — "Blocked" on a card and on its task is one tag. A typed
+title that matches an existing tag but for case is that tag too.
+
+The card editor and the task popover hold their tags as a draft like every
+other field, and write the difference on Save (`saveTags`). A day writes each
+change as it is made, as everything on a day is. Tags arrive with what they are
+on: a card's and its tasks' with the board, a day's with the month.
 
 ---
 

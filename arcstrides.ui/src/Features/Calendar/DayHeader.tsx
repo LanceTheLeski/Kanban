@@ -56,7 +56,8 @@ import { ProgressLines } from './ProgressLines'
 import { DayActions } from './DayActions'
 import { DayArt } from './DayArt'
 import { useCalendarActions, type CalendarActions } from './Calendar.Context'
-import { dayTypeOf, type DayType } from './Calendar.DayTypes'
+import { type DayType } from './Calendar.DayTypes'
+import { useDayTypes } from './useDayTypes'
 import type { DayStats } from './Calendar.Stats'
 import type { DayView } from './Calendar.Views'
 import type { GridDay } from './Calendar.Grid'
@@ -82,7 +83,7 @@ export const DayHeader: React.FC<DayHeaderProps> = ({ day, stats, views, current
     const actions = useCalendarActions()
     const { openDay } = actions
     const name = day.date.format('dddd D MMMM')
-    const type = dayTypeOf(day.stored?.typeId)
+    const type = useDayTypes().typeOf(day.date, day.stored?.typeId)
     const cards = day.stored?.cards ?? []
     const face = faceOf(type, cards.length, stats.total)
     const count = views.length

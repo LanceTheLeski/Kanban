@@ -12,18 +12,33 @@
  * The board is re-read rather than patched locally because inserting a column at a
  * given order shifts the order of every column after it *and* rewrites the affected
  * card positions server-side — see the note at the top of Board.Store.ts.
+ *
+ * ── Where it goes ────────────────────────────────────────────────────────────
+ * Chosen among the columns there are (PlacementList), at the end unless moved —
+ * the Order field it replaces asked for a number to count to.
+ *
+ * ── Its colour ───────────────────────────────────────────────────────────────
+ * Offered the next shade along from the column before it, when that one has a
+ * colour of its own, and following its place as it moves until one is picked
+ * (Board.Colours, suggestedColour). Its global colour is the same unless that
+ * is taken by another column, on any board; then GlobalColourPanel asks for
+ * another. See useColourChoice.
  */
 
 import React, { useState } from 'react'
 import { Stack, TextField } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
+import { useArcError } from '../../../Components/useArcError'
 import { createColumn } from '../Board.APIs'
 import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
 import { ArcColourPicker } from '../../../Components/ArcColourPicker'
-import { columnColour, landingIndex } from '../Board.Colours'
+import { columnColour, suggestedColour } from '../Board.Colours'
 import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
+import { PlacementList } from '../PlacementList'
+import { GlobalColourPanel } from '../GlobalColourPanel'
+import { useColourChoice } from '../useColourChoice'
 
 interface CreateColumnOverlayProps
 {
@@ -39,31 +54,34 @@ export const CreateColumnOverlay: React.FC<CreateColumnOverlayProps> = ({ open, 
         columns: state.columns,
     })))
     const { run } = useBoardActions()
+    const { addError } = useArcError()
 
     const [title, setTitle] = useState('')
-    const [orderInput, setOrderInput] = useState('')
-    // Null is the normal case: the column takes its place on the ramp.
-    const [colour, setColour] = useState<string | null>(null)
+    // At the end, which is where most columns go.
+    const [index, setIndex] = useState(columns.length)
+
+    const before = columns[index - 1] ?? null
+    const after = columns[index] ?? null
+    const choice = useColourChoice('column', null, suggestedColour('column', before?.colour ?? null, after?.colour ?? null))
+    const ramp = columnColour(null, index, columns.length + 1)
 
     const handleSubmit = async () =>
     {
         if (!boardId || !title.trim())
             return
 
-        // Mirror Blazor fallback: if no order given, append at end
-        const order = orderInput.trim() !== ''
-            ? parseInt(orderInput, 10)
-            : columns.length
+        if (choice.overrideTakenBy)
+        {
+            addError(`The global colour is "${choice.overrideTakenBy.title}"'s already. Choose another.`)
+            return
+        }
 
         const created = await run('Adding column', () =>
-            createColumn(boardId, { title: title.trim(), order, colour, globalColour: colour })
+            createColumn(boardId, { title: title.trim(), order: index, colour: choice.colour, globalColour: choice.globalColour })
         )
         if (!created)
             return
 
-        setTitle('')
-        setOrderInput('')
-        setColour(null)
         onClose()
     }
 
@@ -80,27 +98,41 @@ export const CreateColumnOverlay: React.FC<CreateColumnOverlayProps> = ({ open, 
                            onChange={e => setTitle(e.target.value)}
                            fullWidth />
 
-                <TextField {...paperField()}
-                           placeholder="Order"
-                           helperText={`Leave blank to append at position ${columns.length}`}
-                           value={orderInput}
-                           onChange={e => setOrderInput(e.target.value)}
-                           inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-                           fullWidth />
+                <PlacementList items={columns.map((column, at) =>
+                ({ id: column.id,
+                   title: column.title,
+                   colour: columnColour(column.colour, at, columns.length) }))}
+                               moving={{ title: title.trim() || 'New column', colour: choice.colour ?? ramp }}
+                               index={index}
+                               onChange={setIndex}
+                               direction="across"
+                               label="Where the column goes" />
 
-                {/*
-                    Both colours take the same value for now. They are separate
-                    fields because the per-board one may repeat and the global one
-                    may not — the API does not enforce that yet, which is noted in
-                    docs/api-gaps.md.
-                */}
-                <ArcColourPicker value={colour}
-                                 onChange={setColour}
-                                 fallback={columnColour(null, landingIndex(orderInput, columns.length), columns.length + 1)}
-                                 label="Column colour" />
+                <ArcColourPicker value={choice.colour}
+                                 onChange={choice.pick}
+                                 fallback={ramp}
+                                 label="Column colour"
+                                 hint={choice.suggested
+                                     ? hintFor(before?.title ?? null, after?.title ?? null)
+                                     : undefined} />
+
+                <GlobalColourPanel choice={choice}
+                                   kind="column"
+                                   boardId={boardId} />
             </Stack>
         </ArcOverlay>
     )
 }
 
 export default CreateColumnOverlay
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+/** Where the suggested colour came from, so it does not read as a choice already made. */
+function hintFor(before: string | null, after: string | null): string
+{
+    return before
+        ? `Suggested: one shade deeper than "${before}", beside it.`
+        : `Suggested: one shade paler than "${after}", beside it.`
+}

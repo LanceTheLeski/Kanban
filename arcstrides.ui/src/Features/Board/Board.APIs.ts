@@ -59,7 +59,8 @@ import { apiClient, ARC, type PatchOperation } from '../../Lib/Client'
 import type { Card } from '../../Entities/Card/Card.Types'
 import type { Task, TaskType } from '../../Entities/Task/Task.Types'
 import type { Timeline } from '../../Entities/Timeline/Timeline.Types'
-import type { Column, Swimlane } from './Board.Types'
+import { NO_SWIMLANE_ID, type Column, type Swimlane } from './Board.Types'
+import { mapTags, type TagResponse } from '../TagGroup/Tag/Tag.APIs'
 
 // ── Wire shapes ───────────────────────────────────────────────────────────────
 
@@ -117,6 +118,8 @@ interface TaskResponse
     timeline: TimelineResponse | null
 
     isComplete: boolean | null
+
+    tags: TagResponse[] | null
 }
 
 /** Mirrors ArcStrides.Contracts.Response.CardPositionResponse */
@@ -166,6 +169,8 @@ export interface CardResponse
     tasks: TaskResponse[] | null
 
     timeline: TimelineResponse | null
+
+    tags: TagResponse[] | null
 }
 
 /** Mirrors ArcStrides.Contracts.Response.ColumnResponse / SwimlaneResponse */
@@ -247,13 +252,14 @@ export function mapCard(response: CardResponse): Card
         columnId: position?.columnID ?? '',
         columnName: position?.columnTitle ?? '',
         columnNumber: position?.columnOrder ?? 0,
-        swimlaneId: position?.swimlaneID ?? '',
+        swimlaneId: position?.swimlaneID ?? NO_SWIMLANE_ID,
         swimlaneName: position?.swimlaneTitle ?? '',
         swimlaneNumber: position?.swimlaneOrder ?? 0,
         positionRank: position?.positionRank ?? 0,
         // Sort tasks by order on load — mirrors Blazor's OrderBy(task => task.Order)
         tasks: (response.tasks ?? []).map(mapTask).sort((a, b) => a.order - b.order),
         timeline: mapTimeline(response.timeline),
+        tags: mapTags(response.tags),
     }
 }
 
@@ -288,7 +294,8 @@ export interface CardCreateRequest
 
     columnId: string
 
-    swimlaneId: string
+    /** Null on a board with no swimlanes; the server refuses it on one with any. */
+    swimlaneId: string | null
 
     /** Where in the cell it lands. Defaults to the top. */
     positionRank?: number
@@ -473,6 +480,41 @@ export function updateSwimlane(boardId: string, swimlaneId: string, patch: Order
 export function deleteSwimlane(boardId: string, swimlaneId: string): Promise<void>
 {
     return apiClient.delete(`${ARC}/boards/${boardId}/swimlanes/${swimlaneId}`)
+}
+
+// ── Global colours ────────────────────────────────────────────────────────────
+
+/** A column or swimlane, on any board, and the global colour it has. */
+export interface GlobalColourHolder
+{
+    id: string
+
+    boardId: string
+
+    title: string
+
+    globalColour: string
+}
+
+/**
+ * GET arcstrides/columns/globalcolors, or swimlanes/globalcolors
+ *
+ * Every column (or swimlane) on every board that has a global colour. No two
+ * may share one, and the server refuses a second; the overlays read this to say
+ * so before saving, and to offer another.
+ */
+export async function fetchGlobalColours(kind: 'columns' | 'swimlanes'): Promise<GlobalColourHolder[]>
+{
+    const response = await apiClient.get<OrderedItemResponse[]>(`${ARC}/${kind}/globalcolors`)
+
+    return response.filter(item => item.id && item.globalColor)
+                   .map(item =>
+                   ({
+                       id: item.id!,
+                       boardId: item.boardID ?? '',
+                       title: item.title ?? '',
+                       globalColour: item.globalColor!,
+                   }))
 }
 
 // ── Task ──────────────────────────────────────────────────────────────────────
@@ -721,6 +763,7 @@ function mapTask(response: TaskResponse): Task
         taskType: mapTaskType(response.taskType),
         isCompleted: response.isComplete ?? null,
         timeline: mapTimeline(response.timeline),
+        tags: mapTags(response.tags),
     }
 }
 

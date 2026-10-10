@@ -4,20 +4,25 @@
  * Mirrors: UpdateSwimlaneOverlay.razor + UpdateSwimlaneOverlay.cs
  *
  * Structurally identical to UpdateColumnOverlay — same RemoveAt() bug in the
- * Blazor original, same fix here. See that file for the pattern notes.
+ * Blazor original, same fix here, and the same way of moving it and colouring
+ * it. See that file for the pattern notes.
  */
 
 import React, { useState } from 'react'
 import { Stack, TextField } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
-import { updateSwimlane } from '../Board.APIs'
+import { useArcError } from '../../../Components/useArcError'
+import { updateSwimlane, type OrderedItemPatchRequest } from '../Board.APIs'
 import { useBoardActions } from '../useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
 import { ArcColourPicker } from '../../../Components/ArcColourPicker'
-import { swimlaneColour } from '../Board.Colours'
+import { swimlaneColour, sameColour } from '../Board.Colours'
 import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
+import { PlacementList } from '../PlacementList'
+import { GlobalColourPanel } from '../GlobalColourPanel'
+import { useColourChoice } from '../useColourChoice'
 
 interface UpdateSwimlaneOverlayProps
 {
@@ -33,15 +38,16 @@ export const UpdateSwimlaneOverlay: React.FC<UpdateSwimlaneOverlayProps> = ({ op
         swimlanes: state.swimlanes,
     })))
     const { run } = useBoardActions()
+    const { addError } = useArcError()
 
-    const [selectedTitle, setSelectedTitle] = useState<string | null>(null)
+    const [selectedId, setSelectedId] = useState<string | null>(null)
     const [replacementTitle, setReplacementTitle] = useState('')
-    const [selectedOrder, setSelectedOrder] = useState<number | null>(null)
-    const [colour, setColour] = useState<string | null>(null)
+    const [index, setIndex] = useState(0)
 
-    // Derived from store — mirrors Blazor's GetSwimlaneIndexList() / OnParametersSet()
-    // but reactive: always reflects current swimlane count
-    const orderOptions = swimlanes.map((_, index) => String(index))
+    const selected = swimlanes.find(swimlane => swimlane.id === selectedId) ?? null
+    const others = swimlanes.filter(swimlane => swimlane.id !== selectedId)
+    const choice = useColourChoice('swimlane', selectedId, null)
+    const ramp = swimlaneColour(null, index, swimlanes.length)
 
     const handleSelectSwimlane = (title: string) =>
     {
@@ -51,38 +57,38 @@ export const UpdateSwimlaneOverlay: React.FC<UpdateSwimlaneOverlayProps> = ({ op
             console.error(`Expected exactly 1 swimlane with title "${title}", found ${matches.length}`)
             return
         }
-        setSelectedTitle(title)
+        setSelectedId(matches[0].id)
         setReplacementTitle(title) // Pre-fill with current title, mirrors Blazor
-        // And with its colour, so opening the picker does not read as "no colour"
+        setIndex(swimlanes.indexOf(matches[0]))
+        // And with its colours, so opening the picker does not read as "no colour"
         // on a swimlane that has one.
-        setColour(matches[0].colour)
+        choice.load(matches[0].colour, matches[0].globalColour)
     }
 
     const handleSubmit = async () =>
     {
-        if (!boardId || !selectedTitle)
+        if (!boardId || !selected)
             return
 
-        const swimlane = swimlanes.find(candidate => candidate.title === selectedTitle)
-        if (!swimlane)
+        if (choice.overrideTakenBy)
+        {
+            addError(`The global colour is "${choice.overrideTakenBy.title}"'s already. Choose another.`)
             return
+        }
 
-        const patch: { title?: string; order?: number; colour?: string; globalColour?: string } = {}
+        const patch: OrderedItemPatchRequest = {}
 
-        if (replacementTitle.trim() && replacementTitle !== selectedTitle)
+        if (replacementTitle.trim() && replacementTitle.trim() !== selected.title)
             patch.title = replacementTitle.trim()
 
-        if (selectedOrder !== null && selectedOrder !== swimlane.order)
-            patch.order = selectedOrder
+        if (index !== selected.order)
+            patch.order = index
 
-        // Only when it changed, and only when it is a colour: clearing back to
-        // Default is not expressible as a patch yet, because the operation would
-        // have to send null and the server treats null as "leave it alone".
-        if (colour && colour !== swimlane.colour)
-        {
-            patch.colour = colour
-            patch.globalColour = colour
-        }
+        if (!sameColour(choice.colour, selected.colour) && (choice.colour || selected.colour))
+            patch.colour = choice.colour ?? ''
+
+        if (!sameColour(choice.globalColour, selected.globalColour) && (choice.globalColour || selected.globalColour))
+            patch.globalColour = choice.globalColour ?? ''
 
         if (Object.keys(patch).length === 0)
         {
@@ -90,14 +96,10 @@ export const UpdateSwimlaneOverlay: React.FC<UpdateSwimlaneOverlayProps> = ({ op
             return
         }
 
-        const updated = await run('Updating swimlane', () => updateSwimlane(boardId, swimlane.id, patch))
+        const updated = await run('Updating swimlane', () => updateSwimlane(boardId, selected.id, patch))
         if (!updated)
             return
 
-        setSelectedTitle(null)
-        setReplacementTitle('')
-        setSelectedOrder(null)
-        setColour(null)
         onClose()
     }
 
@@ -112,20 +114,35 @@ export const UpdateSwimlaneOverlay: React.FC<UpdateSwimlaneOverlayProps> = ({ op
                                       onSelect={handleSelectSwimlane}
                                       placeholder="Select swimlane to edit" />
 
-<TextField {...paperField()}
-           placeholder="New title"
-           value={replacementTitle}
-           onChange={e => setReplacementTitle(e.target.value)}
-           fullWidth />
+                { selected && (
+                    <>
+                        <TextField {...paperField()}
+                                   placeholder="New title"
+                                   value={replacementTitle}
+                                   onChange={e => setReplacementTitle(e.target.value)}
+                                   fullWidth />
 
-                <ArcExpandingSelector options={orderOptions}
-                                      onSelect={value => setSelectedOrder(parseInt(value, 10))}
-                                      placeholder="Select new order position" />
+                        <PlacementList items={others.map(swimlane =>
+                        ({ id: swimlane.id,
+                           title: swimlane.title,
+                           colour: swimlaneColour(swimlane.colour, swimlanes.indexOf(swimlane), swimlanes.length) }))}
+                                       moving={{ title: replacementTitle.trim() || selected.title, colour: choice.colour ?? ramp }}
+                                       index={index}
+                                       onChange={setIndex}
+                                       direction="down"
+                                       label="Where the swimlane goes" />
 
-                <ArcColourPicker value={colour}
-                                 onChange={setColour}
-                                 fallback={swimlaneColour(null, Math.max(swimlanes.findIndex(swimlane => swimlane.title === selectedTitle), 0), swimlanes.length)}
-                                 label="Swimlane colour" />
+                        <ArcColourPicker value={choice.colour}
+                                         onChange={choice.pick}
+                                         fallback={ramp}
+                                         label="Swimlane colour" />
+
+                        <GlobalColourPanel choice={choice}
+                                           kind="swimlane"
+                                           boardId={boardId} />
+                    </>
+                )
+                }
             </Stack>
         </ArcOverlay>
     )

@@ -26,6 +26,7 @@ import { SwimlaneRow } from './SwimlaneRow'
 import { ColumnGlass } from './ColumnGlass'
 import { groupCardsByCell } from './CardGrid.Cells'
 import { useCardDrag } from './useCardDrag'
+import { NO_SWIMLANE } from '../Board.Types'
 
 interface CardGridProps
 {
@@ -48,6 +49,18 @@ export const CardGrid: React.FC<CardGridProps> = ({ boardId }) =>
 
     const cardsByCell = useMemo(() => groupCardsByCell(cards), [cards])
 
+    /*
+       A board may have no swimlanes. Its cards then sit straight in their
+       columns: one row, with no label and no corner kept for one. On a board
+       that has swimlanes, the same row appears under them, labelled, only while
+       a card is in no swimlane — see placeUnlaned in Board.Store.
+    */
+    const labelled = swimlanes.length > 0
+    const unlaned = !labelled || cards.some(card => card.swimlaneId === NO_SWIMLANE.id)
+    const lanes = unlaned
+        ? [...swimlanes, NO_SWIMLANE]
+        : swimlanes
+
     return (
         /*
             The grid scrolls sideways as a unit so the column headers stay lined up
@@ -65,24 +78,27 @@ export const CardGrid: React.FC<CardGridProps> = ({ boardId }) =>
                        // window, the way it starts on it above the first.
                        pb: 1
                     }}>
-                <ColumnGlass columns={columns} />
+                <ColumnGlass columns={columns}
+                             labelled={labelled} />
 
-                <ColumnHeaderRow columns={columns} />
+                <ColumnHeaderRow columns={columns}
+                                 labelled={labelled} />
 
                 <DndContext sensors={sensors}
                             onDragStart={handleDragStart}
                             onDragEnd={handleDragEnd}
                             onDragCancel={handleDragCancel}>
-                    { swimlanes.map((swimlane, index) =>
-                                    (
-                                        <SwimlaneRow key={swimlane.id}
-                                                     swimlane={swimlane}
-                                                     columns={columns}
-                                                     cardsByCell={cardsByCell}
-                                                     boardId={boardId}
-                                                     laneIndex={index}
-                                                     laneCount={swimlanes.length} />
-                                    ))
+                    { lanes.map((swimlane, index) =>
+                                (
+                                    <SwimlaneRow key={swimlane.id}
+                                                 swimlane={swimlane}
+                                                 columns={columns}
+                                                 cardsByCell={cardsByCell}
+                                                 boardId={boardId}
+                                                 laneIndex={index}
+                                                 laneCount={swimlanes.length}
+                                                 labelled={labelled} />
+                                ))
                     }
 
                     {/*

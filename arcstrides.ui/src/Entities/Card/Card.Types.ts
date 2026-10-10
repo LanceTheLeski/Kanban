@@ -20,6 +20,7 @@
  * meant every column or swimlane reorder silently invalidated it.
  */
 
+import type { Tag } from '../Tag/Tag.Types'
 import type { Task } from '../Task/Task.Types'
 import type { Timeline } from '../Timeline/Timeline.Types'
 
@@ -49,6 +50,10 @@ export interface Card
 
     swimlaneNumber: number
 
+    /**
+     * The card's swimlane, or NO_SWIMLANE_ID (Board.Types) on a board that has
+     * none — its cards then sit straight in their columns.
+     */
     swimlaneId: string
 
     swimlaneName: string
@@ -64,4 +69,7 @@ export interface Card
     tasks: Task[]
 
     timeline: Timeline | null
+
+    /** The card's tags, by title. */
+    tags: Tag[]
 }
