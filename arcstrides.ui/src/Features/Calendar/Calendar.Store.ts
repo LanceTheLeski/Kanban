@@ -24,7 +24,6 @@
  */
 
 import { create } from 'zustand'
-import type { Dayjs } from 'dayjs'
 import { addCardToDate, fetchMonthOf, removeCardFromDate, setDateType } from './Calendar.APIs'
 import { fetchTaskTypes } from '../Board/Board.APIs'
 import type { Card } from '../../Entities/Card/Card.Types'
@@ -77,14 +76,6 @@ interface CalendarState {
 
     /** Sets what kind of day it is now, then uploads it. Throws, rolled back, if it fails. */
     setDayType: (day: number, typeId: number) => Promise<void>
-
-    /**
-     * Moves cards from a day on screen to another day, which may be in another
-     * month. Shown moved at once where both days are on screen; on a failure
-     * part-way the month is re-read, so the screen shows what did move, and
-     * the error is thrown.
-     */
-    moveCards: (day: number, to: Dayjs, cards: Card[]) => Promise<void>
 
     /**
      * Each day's tags, by day key. Held for the session only: the API has no
@@ -191,34 +182,6 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
         } catch (error) {
             if (isShowing(get(), year, month)) set({ stored: before })
             throw error
-        }
-    },
-
-    moveCards: async (day, to, cards) => {
-        const { year, month, refresh } = get()
-        if (year === null || month === null || cards.length === 0) return
-
-        const moving = new Set(cards.map(card => card.id))
-        const here = to.year() === year && to.month() === month
-        let stored = withDay(get().stored, year, month, day, date => ({
-            ...date,
-            cards: date.cards.filter(card => !moving.has(card.id)),
-        }))
-        if (here) {
-            stored = withDay(stored, year, month, to.date(), date => ({
-                ...date,
-                cards: [...date.cards.filter(card => !moving.has(card.id)), ...cards],
-            }))
-        }
-        set({ stored })
-
-        // On first, then off: a failure between the two leaves a card on both
-        // days, which is visible and easy to undo, never on neither.
-        try {
-            for (const card of cards) await addCardToDate(to.year(), to.month(), to.date(), card.id)
-            for (const card of cards) await removeCardFromDate(year, month, day, card.id)
-        } finally {
-            if (isShowing(get(), year, month)) await refresh()
         }
     },
 }))

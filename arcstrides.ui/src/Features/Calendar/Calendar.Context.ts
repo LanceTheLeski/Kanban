@@ -35,12 +35,6 @@ export interface CalendarActions
     /** Sets what kind of day it is — see Calendar.DayTypes. A failure is reported, not thrown. */
     setDayType: (day: GridDay, typeId: number) => void
 
-    /** Moves the day's unfinished cards to the next working day — see Calendar.Moves. */
-    carryOver: (day: GridDay) => void
-
-    /** The day unfinished cards would be carried to. */
-    carryTarget: (day: GridDay) => Dayjs
-
     /**
      * Opens another day, in its overlay — moving the calendar to that day's
      * month first, if it is not this one.

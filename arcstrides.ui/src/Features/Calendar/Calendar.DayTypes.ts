@@ -27,8 +27,7 @@
  * Work is measured: how far along each type of task is, which is what the lines
  * are for. Leisure is not a day of targets, so it keeps the ring — what is on —
  * and gives the lines' tile to its picture. A vacation expects nothing at all;
- * anything that is on one shows as a count on its picture, and the day's quick
- * actions offer to move it to the next working day.
+ * anything that is on one shows as a count on its picture.
  */
 
 /** Which picture a type is drawn with — see DayArt. */
@@ -48,8 +47,6 @@ export interface DayType {
     progress: boolean
     /** An empty day offers to add a card, rather than showing its picture. */
     invites: boolean
-    /** Where carried-over work may land. */
-    working: boolean
     /** What the day overlay says with no cards on the day. */
     emptyNote: string
     /** What it says above the cards, on a day that does not expect work. */
@@ -65,7 +62,6 @@ export const NO_DAY_TYPE: DayType = {
     ring: true,
     progress: true,
     invites: true,
-    working: true,
     emptyNote: 'Nothing is on this day yet.',
 }
 
@@ -79,7 +75,6 @@ export const DAY_TYPES: DayType[] = [
         ring: true,
         progress: true,
         invites: true,
-        working: true,
         emptyNote: 'Nothing is on this day yet.',
     },
     {
@@ -90,7 +85,6 @@ export const DAY_TYPES: DayType[] = [
         ring: true,
         progress: false,
         invites: false,
-        working: false,
         emptyNote: 'Nothing planned yet.',
         busyNote: 'A day off: these are plans, not targets.',
     },
@@ -102,7 +96,6 @@ export const DAY_TYPES: DayType[] = [
         ring: false,
         progress: false,
         invites: false,
-        working: false,
         emptyNote: 'Nothing is on — as it should be.',
         busyNote: 'A vacation day: nothing on it is expected to get done.',
     },

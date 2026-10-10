@@ -337,8 +337,7 @@ only the number.
 The picture is how the type is changed: click it at the top of the day
 overlay, or use the Theme items in a day's ⋮. On a phone, where a day has no
 header, it is a strip along the day's foot, and the date's disc sits on a scrap
-of the same sand sheet. Leisure and Vacation are not
-working days, so work carried over from the day before steps past them.
+of the same sand sheet.
 
 **Gold** is `.gold-foil`: Blazor's `.gold-text` gradient, re-cut from the
 yellow ladder (see "The palette"), with a dark drop-shadow under it so the

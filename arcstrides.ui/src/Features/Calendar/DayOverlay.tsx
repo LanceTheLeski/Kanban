@@ -37,7 +37,7 @@
  */
 
 import React from 'react'
-import { Box, Button, IconButton, Paper, Typography } from '@mui/material'
+import { Box, IconButton, Paper, Typography } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import { ArcOverlay } from '../../Components/ArcOverlay'
 import { ArcTitleBar } from '../../Components/ArcTitleBar'
@@ -52,7 +52,6 @@ import { AddCardPicker } from './AddCardPicker'
 import { dayStats, type DayStats } from './Calendar.Stats'
 import { dayTypeOf } from './Calendar.DayTypes'
 import { stopsOf } from './Calendar.Stops'
-import { unfinished } from './Calendar.Moves'
 import { boardLabel } from './Calendar.Views'
 import { useCalendarActions } from './Calendar.Context'
 import { useGridDaySize } from './useGridDaySize'
@@ -92,7 +91,6 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
     const gridDay = useGridDaySize(day.key)
     const manyBoards = new Set(cards.map(card => card.boardId)).size > 1
     const timed = stopsOf(cards).length > 0
-    const carry = unfinished(cards)
 
     return (
         <ArcOverlay open onClose={onClose} discardLabel="Close" width={DAY_OVERLAY_WIDTH}>
@@ -175,17 +173,6 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
                                                onPick={onAddCard}
                                                startOpen={startAdding} />
                             </Box>
-
-                            {/* The evening chore: what is left, onto the next working day. */}
-                            {carry.length > 0 && (
-                                <Button size="small"
-                                        onClick={() => actions.carryOver(day)}
-                                        sx={{ color: 'arc.onPaperStrong',
-                                              textTransform: 'none',
-                                              fontSize: '0.74rem' }}>
-                                    Carry {carry.length} unfinished to {actions.carryTarget(day).format('ddd D MMM')}
-                                </Button>
-                            )}
                         </Box>
                     </Paper>
                 </Box>

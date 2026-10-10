@@ -164,11 +164,6 @@ Still missing:
   same warning dot the card's carries. Unlike a card's (#2), there is nowhere
   to write them either: a date's `CardTagGroupID` is its cards. A second group
   ID on `Date` for its own tags, and a read of them on `DateResponse`, would do.
-- **Moving a card between days is two calls.** Carrying a day's unfinished
-  cards over puts each on the new day, then takes it off the old one — on
-  first, so a failure between the two leaves a card on both days rather than
-  on neither. One `POST dates/{y}/{m}/{d}/cards/{cardID}/move` would make it a
-  single write.
 
 Fixed, each reproduced against Azurite first. The first two each returned 500
 for the whole month, not just the day:

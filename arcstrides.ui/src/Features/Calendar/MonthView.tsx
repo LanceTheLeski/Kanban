@@ -33,7 +33,6 @@ import { useCalendarStore } from './Calendar.Store'
 import { dayOf, monthPath, weeksOf, type GridDay } from './Calendar.Grid'
 import { typeColours } from './Calendar.Stats'
 import { dayTypeOf } from './Calendar.DayTypes'
-import { nextWorkingDay, unfinished } from './Calendar.Moves'
 import { CalendarContext, type CalendarActions } from './Calendar.Context'
 import { useBoardTitles } from './useBoardTitles'
 import type { Card } from '../../Entities/Card/Card.Types'
@@ -53,7 +52,6 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) =>
     const addCard = useCalendarStore(state => state.addCard)
     const removeCard = useCalendarStore(state => state.removeCard)
     const setDayType = useCalendarStore(state => state.setDayType)
-    const moveCards = useCalendarStore(state => state.moveCards)
     const { addError } = useArcError()
     const navigate = useNavigate()
 
@@ -109,16 +107,6 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) =>
                 addError(`Could not make ${day.date.format('D MMMM')} a ${dayTypeOf(typeId).name} day: ${messageOf(error)}`)
             })
         },
-        carryTarget: day => nextWorkingDay(day.date, stored),
-        carryOver: day =>
-        {
-            const cards = unfinished(day.stored?.cards ?? [])
-            const to = nextWorkingDay(day.date, stored)
-            moveCards(day.date.date(), to, cards).catch(error =>
-            {
-                addError(`Could not move ${day.date.format('D MMMM')}'s cards to ${to.format('D MMMM')}: ${messageOf(error)}`)
-            })
-        },
         goToDay: date =>
         {
             // The open day is held by key, so it is found again once the
@@ -126,7 +114,7 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) =>
             setOpened(previous => ({ key: date.format('YYYY-MM-DD'), adding: false, request: previous?.request ?? 0 }))
             if (date.year() !== year || date.month() !== month) navigate(monthPath(date))
         },
-    }), [colours, boardTitle, handleOpenCard, refresh, setDayType, moveCards, stored, year, month, navigate, addError])
+    }), [colours, boardTitle, handleOpenCard, refresh, setDayType, year, month, navigate, addError])
 
     const handleCloseCard = () =>
     {
@@ -181,7 +169,10 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) =>
 
 export default MonthView
 
-function messageOf (error: unknown) : string
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+function messageOf(error: unknown): string
 {
     return error instanceof Error
         ? error.message

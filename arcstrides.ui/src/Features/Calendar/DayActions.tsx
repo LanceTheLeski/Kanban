@@ -9,13 +9,8 @@
  * in ACTIONS.
  *
  *   Add a card…                    opens the day with the search open
- *   Carry 2 unfinished cards to …  moves them to the next working day
  *   Theme: Work / Leisure / …      what kind of day it is, with its picture
  *   Open this day                  (not in the day's own overlay)
- *
- * Carrying over is the chore a calendar of tasks makes every evening; the
- * target is worked out from the days' types, so it steps over a weekend marked
- * Leisure or the rest of a vacation — see Calendar.Moves.
  *
  * The whole tile is the button, so its hit area is the piece of card you can
  * see rather than the glyph in the middle of it.
@@ -27,7 +22,6 @@ import MoreVertIcon from '@mui/icons-material/MoreVert'
 import CheckIcon from '@mui/icons-material/Check'
 import { DayArt } from './DayArt'
 import { DAY_TYPES, NO_DAY_TYPE, dayTypeOf } from './Calendar.DayTypes'
-import { unfinished } from './Calendar.Moves'
 import { useCalendarActions, type CalendarActions } from './Calendar.Context'
 import type { GridDay } from './Calendar.Grid'
 
@@ -131,6 +125,9 @@ export const DayActions: React.FC<DayActionsProps> = ({ day, mini = false }) =>
 
 export default DayActions
 
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
 interface DayAction
 {
     key: string
@@ -155,16 +152,6 @@ const ACTIONS: DayAction[] =
         key: 'add',
         label: () => 'Add a card…',
         run: (actions, day) => actions.openDay(day, { adding: true }),
-    },
-    {
-        key: 'carry',
-        label: (actions, day) =>
-        {
-            const count = unfinished(day.stored?.cards ?? []).length
-            return `Carry ${count} unfinished ${count === 1 ? 'card' : 'cards'} to ${actions.carryTarget(day).format('ddd D MMM')}`
-        },
-        run: (actions, day) => actions.carryOver(day),
-        shows: day => unfinished(day.stored?.cards ?? []).length > 0,
     },
     {
         key: 'open',
