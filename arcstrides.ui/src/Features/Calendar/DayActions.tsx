@@ -60,7 +60,8 @@ export const DayActions: React.FC<DayActionsProps> = ({ day, mini = false }) =>
                               borderRadius: '1px',
                               color: 'arc.onPaper',
                               '&:hover': { backgroundColor: 'arc.paperHover', color: 'arc.onPaperStrong' },
-                              '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 } }}>
+                              '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 } 
+                           }}>
                 <MoreVertIcon sx={{ fontSize: '0.95rem' }} />
             </ButtonBase>
 
