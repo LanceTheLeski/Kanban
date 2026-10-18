@@ -77,9 +77,13 @@ interface TimelineResponse
 
     startPreferenceDurationMinutes: number | null
 
+    startPreferenceTimeIsRelative: boolean | null
+
     startDeadlineUTC: string | null
 
     startDeadlineDurationMinutes: number | null
+
+    startDeadlineTimeIsRelative: boolean | null
 
     endDependencyTagGroupID: string | null
 
@@ -87,9 +91,13 @@ interface TimelineResponse
 
     endPreferenceDurationMinutes: number | null
 
+    endPreferenceTimeIsRelative: boolean | null
+
     endDeadlineUTC: string | null
 
     endDeadlineDurationMinutes: number | null
+
+    endDeadlineTimeIsRelative: boolean | null
 }
 
 /** Mirrors ArcStrides.Contracts.Response.TaskTypeResponse */
@@ -660,17 +668,25 @@ export interface TimelineCreateRequest
 
     startPreferenceDurationMinutes: number | null
 
+    startPreferenceTimeIsRelative: boolean
+
     startDeadlineUTC: Date | null
 
     startDeadlineDurationMinutes: number | null
+
+    startDeadlineTimeIsRelative: boolean
 
     endPreferenceUTC: Date | null
 
     endPreferenceDurationMinutes: number | null
 
+    endPreferenceTimeIsRelative: boolean
+
     endDeadlineUTC: Date | null
 
     endDeadlineDurationMinutes: number | null
+
+    endDeadlineTimeIsRelative: boolean
 }
 
 /**
@@ -688,12 +704,16 @@ export async function createTimeline(boardId: string, request: TimelineCreateReq
             TimelineTypeID: request.timelineTypeId,
             StartPreferenceUTC: request.startPreferenceUTC?.toISOString() ?? null,
             StartPreferenceDurationMinutes: request.startPreferenceDurationMinutes,
+            StartPreferenceTimeIsRelative: request.startPreferenceTimeIsRelative,
             StartDeadlineUTC: request.startDeadlineUTC?.toISOString() ?? null,
             StartDeadlineDurationMinutes: request.startDeadlineDurationMinutes,
+            StartDeadlineTimeIsRelative: request.startDeadlineTimeIsRelative,
             EndPreferenceUTC: request.endPreferenceUTC?.toISOString() ?? null,
             EndPreferenceDurationMinutes: request.endPreferenceDurationMinutes,
+            EndPreferenceTimeIsRelative: request.endPreferenceTimeIsRelative,
             EndDeadlineUTC: request.endDeadlineUTC?.toISOString() ?? null,
             EndDeadlineDurationMinutes: request.endDeadlineDurationMinutes,
+            EndDeadlineTimeIsRelative: request.endDeadlineTimeIsRelative,
         }
     )
     return mapTimeline(response)
@@ -754,13 +774,17 @@ function mapTimeline(response: TimelineResponse | null | undefined): Timeline | 
         startDependencyTagGroupId: response.startDependencyTagGroupID ?? null,
         startPreferenceUTC: toDate(response.startPreferenceUTC),
         startPreferenceDurationMinutes: response.startPreferenceDurationMinutes ?? null,
+        startPreferenceTimeIsRelative: response.startPreferenceTimeIsRelative ?? false,
         startDeadlineUTC: toDate(response.startDeadlineUTC),
         startDeadlineDurationMinutes: response.startDeadlineDurationMinutes ?? null,
+        startDeadlineTimeIsRelative: response.startDeadlineTimeIsRelative ?? false,
         endDependencyTagGroupId: response.endDependencyTagGroupID ?? null,
         endPreferenceUTC: toDate(response.endPreferenceUTC),
         endPreferenceDurationMinutes: response.endPreferenceDurationMinutes ?? null,
+        endPreferenceTimeIsRelative: response.endPreferenceTimeIsRelative ?? false,
         endDeadlineUTC: toDate(response.endDeadlineUTC),
         endDeadlineDurationMinutes: response.endDeadlineDurationMinutes ?? null,
+        endDeadlineTimeIsRelative: response.endDeadlineTimeIsRelative ?? false,
     }
 }
 

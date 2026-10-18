@@ -155,7 +155,7 @@ function PendingNote({ points }: { points: PendingPoint[] })
                              <Typography key={point.key}
                                          sx={{ fontSize: '0.68rem', color: 'arc.onPaperStrong' }}>
                                  { point.name } · { point.timed
-                                     ? spanLabel(point.at, point.duration)
+                                     ? spanLabel(point.at, point.duration, point.relative)
                                      : `no time${point.duration
                                          ? ` · ${durationLabel(point.duration)}`
                                          : ''}`

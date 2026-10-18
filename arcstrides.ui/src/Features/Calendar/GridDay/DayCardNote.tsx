@@ -133,7 +133,7 @@ export const DayCardNote: React.FC<DayCardNoteProps> = ({ card, tasks, size = 's
                                    color: 'arc.onPaperStrong'
                                 }}>
                             { first.timed
-                                ? first.at.format('HH:mm')
+                                ? spanLabel(first.at, null, first.relative)
                                 : 'Due'
                             }
                         </Box>
@@ -293,7 +293,7 @@ export const DayCardNote: React.FC<DayCardNoteProps> = ({ card, tasks, size = 's
                                                                    { medium
                                                                        ? `${pointName(stop)} · ${whenOf(stop)}`
                                                                        : stop.timed
-                                                                           ? stop.at.format('HH:mm')
+                                                                           ? spanLabel(stop.at, null, stop.relative)
                                                                            : 'due'
                                                                    }
                                                                </Box>
@@ -332,6 +332,6 @@ function reasonOf(entry: DayCardEntry): string
 function whenOf(stop: Stop): string
 {
     return stop.timed
-        ? spanLabel(stop.at, stop.duration)
+        ? spanLabel(stop.at, stop.duration, stop.relative)
         : 'no time'
 }

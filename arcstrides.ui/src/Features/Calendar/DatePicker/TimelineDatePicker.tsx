@@ -89,16 +89,21 @@ export const TimelineDatePicker: React.FC<TimelineDatePickerProps> = ({ name, va
                      ? onDay(date, other.value.time)
                      : date,
                  timed: other.value.time !== null,
-                 duration: other.value.duration }]
+                 duration: other.value.duration,
+                 relative: other.value.relative }]
             : []))
         : []
 
-    // "15:00–17:00", "No time", or "No time · 2 h".
+    // "15:00–17:00", "Relative · 2 h" — no clock for a point placed in the day's
+    // order — "No time", or "No time · 2 h".
+    const lasts = value.duration
+        ? ` · ${durationLabel(value.duration)}`
+        : ''
     const timeText = value.time
-        ? spanLabel(value.time, value.duration)
-        : `No time${value.duration
-            ? ` · ${durationLabel(value.duration)}`
-            : ''}`
+        ? value.relative
+            ? `Relative${lasts}`
+            : spanLabel(value.time, value.duration)
+        : `No time${lasts}`
 
     return (
         <>
@@ -170,6 +175,7 @@ export const TimelineDatePicker: React.FC<TimelineDatePickerProps> = ({ name, va
                                         marks={marks}
                                         colours={load.colours}
                                         duration={value.duration}
+                                        relative={value.relative}
                                         onChange={change => onChange({ ...value, date, ...change })}
                                         onBack={() => go('month')}
                                         onDone={() => setStep(null)}

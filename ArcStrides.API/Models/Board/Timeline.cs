@@ -25,9 +25,19 @@ public class Timeline : ArcBoardsEntity
     /// </summary>
     public int? StartPreferenceDurationMinutes { get; set; }
 
+    /// <summary>
+    /// True when the point was placed among the day's other points rather than at a
+    /// time chosen for it: its time is only where it was put, after whatever came
+    /// before it, and a calendar may move it. Null or false for a time chosen
+    /// exactly. The same for the three points after it.
+    /// </summary>
+    public bool? StartPreferenceTimeIsRelative { get; set; }
+
     public DateTime? StartDeadlineUTC { get; set; }
 
     public int? StartDeadlineDurationMinutes { get; set; }
+
+    public bool? StartDeadlineTimeIsRelative { get; set; }
 
     public Guid? EndDependencyTagGroupID { get; set; }
 
@@ -35,7 +45,11 @@ public class Timeline : ArcBoardsEntity
 
     public int? EndPreferenceDurationMinutes { get; set; }
 
+    public bool? EndPreferenceTimeIsRelative { get; set; }
+
     public DateTime? EndDeadlineUTC { get; set; }
 
     public int? EndDeadlineDurationMinutes { get; set; }
+
+    public bool? EndDeadlineTimeIsRelative { get; set; }
 }

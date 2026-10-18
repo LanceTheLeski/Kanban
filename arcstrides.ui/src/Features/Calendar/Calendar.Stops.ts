@@ -49,6 +49,9 @@ export interface Stop
 
     /** How long it lasts from `at`, in minutes; null for an instant. */
     duration: number | null
+
+    /** Its time was placed in the day's order, not chosen — see NodeValue.relative. */
+    relative: boolean
 }
 
 /** What is being scheduled, whose own saved points a picker leaves out. */
@@ -79,6 +82,8 @@ export interface PendingPoint
     timed: boolean
 
     duration: number | null
+
+    relative: boolean
 }
 
 /**
@@ -252,7 +257,13 @@ function timelinePoints(timeline: Timeline | null, card: Card, task: Task | null
         if (!seeded)
             return []
         const at = dayjs(seeded)
-        return [{ task, card, node, at, timed: isTimed(at), duration: node.seedDuration(timeline) }]
+        return [{ task,
+                  card,
+                  node,
+                  at,
+                  timed: isTimed(at),
+                  duration: node.seedDuration(timeline),
+                  relative: isTimed(at) && node.seedRelative(timeline) }]
     })
 }
 

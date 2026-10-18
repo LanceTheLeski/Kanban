@@ -89,6 +89,7 @@ export const DayPreviewOverlay: React.FC<DayPreviewOverlayProps> = ({ date, titl
                 : date,
             timed: value.time !== null,
             duration: value.duration,
+            relative: value.relative,
         }]
         : []))
 

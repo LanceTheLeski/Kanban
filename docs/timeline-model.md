@@ -275,6 +275,36 @@ dropped when the draft is saved (`draftToTimelineDates`).
 
 ---
 
+## Relative placement
+
+A point can be put among a day's other points instead of at a time: "after
+breakfast", "between breakfast and lunch". The day picker's Relative mode does
+it (see "Choosing a day for a timeline point" in `docs/ui-conventions.md`;
+the arithmetic is `Calendar.RelativePlacement`).
+
+The API still stores one instant per point, so a placed point is given one:
+where the thing before it ends, or, before the first thing, early enough to end
+as the first begins. Beside it, each point has a flag saying the time was
+placed, not chosen:
+
+| point | placed |
+|---|---|
+| `StartPreferenceUTC` | `StartPreferenceTimeIsRelative` |
+| `StartDeadlineUTC` | `StartDeadlineTimeIsRelative` |
+| `EndPreferenceUTC` | `EndPreferenceTimeIsRelative` |
+| `EndDeadlineUTC` | `EndDeadlineTimeIsRelative` |
+
+Null (every row saved before it) and false are a chosen time. A point with no
+time is never placed: the flag is cleared with the time (`draftToTimelineDates`).
+A card inheriting from its tasks keeps the flag of the task point it took.
+
+**Not done yet.** The time is fixed once given. When the thing before a placed
+point moves, the point stays where it was, and may no longer be after it.
+Keeping placed points in order as the day changes — and choosing their times
+from the day as a whole — is the day's job, and is the next step for this.
+
+---
+
 ## Not started: dependency tag groups
 
 `StartDependencyTagGroupID` and `EndDependencyTagGroupID` are declared,

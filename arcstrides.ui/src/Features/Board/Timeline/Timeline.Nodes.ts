@@ -31,6 +31,9 @@ export interface NodeSpec
 
     /** And how long it lasts, in minutes — see NodeValue. */
     seedDuration: (timeline: Timeline) => number | null
+
+    /** And whether its time was placed in the day's order — see NodeValue. */
+    seedRelative: (timeline: Timeline) => boolean
 }
 
 /**
@@ -49,6 +52,7 @@ export const NODES: NodeSpec[] =
         meaning: 'When this would ideally begin',
         seed: timeline => timeline.startPreferenceUTC,
         seedDuration: timeline => timeline.startPreferenceDurationMinutes,
+        seedRelative: timeline => timeline.startPreferenceTimeIsRelative,
     },
     {
         id: 'requiredStart',
@@ -56,6 +60,7 @@ export const NODES: NodeSpec[] =
         meaning: 'The latest this can begin',
         seed: timeline => timeline.startDeadlineUTC,
         seedDuration: timeline => timeline.startDeadlineDurationMinutes,
+        seedRelative: timeline => timeline.startDeadlineTimeIsRelative,
     },
     {
         id: 'preferredEnd',
@@ -63,6 +68,7 @@ export const NODES: NodeSpec[] =
         meaning: 'When this would ideally be finished',
         seed: timeline => timeline.endPreferenceUTC,
         seedDuration: timeline => timeline.endPreferenceDurationMinutes,
+        seedRelative: timeline => timeline.endPreferenceTimeIsRelative,
     },
     {
         id: 'requiredEnd',
@@ -70,6 +76,7 @@ export const NODES: NodeSpec[] =
         meaning: 'The hard deadline',
         seed: timeline => timeline.endDeadlineUTC,
         seedDuration: timeline => timeline.endDeadlineDurationMinutes,
+        seedRelative: timeline => timeline.endDeadlineTimeIsRelative,
     },
 ]
 
@@ -120,16 +127,23 @@ export interface NodeValue
      * a two-hour job, some time that day.
      */
     duration: number | null
+
+    /**
+     * The time was placed among the day's other points — "after lunch" — rather
+     * than chosen: it is where the point was put, not a time anybody asked for.
+     * False for a time chosen exactly, and for no time. See DatePickerTimeStep.
+     */
+    relative: boolean
 }
 
 export type NodeValues = Record<NodeId, NodeValue>
 
 export const EMPTY: NodeValues =
 {
-    preferredStart: { date: null, time: null, duration: null },
-    requiredStart: { date: null, time: null, duration: null },
-    preferredEnd: { date: null, time: null, duration: null },
-    requiredEnd: { date: null, time: null, duration: null },
+    preferredStart: { date: null, time: null, duration: null, relative: false },
+    requiredStart: { date: null, time: null, duration: null, relative: false },
+    preferredEnd: { date: null, time: null, duration: null, relative: false },
+    requiredEnd: { date: null, time: null, duration: null, relative: false },
 }
 
 /**
@@ -153,7 +167,8 @@ export function seedValues(timeline: Timeline | null): NodeValues
                                 time: isTimed(dayjs(at))
                                     ? dayjs(at)
                                     : null,
-                                duration: node.seedDuration(timeline) }
+                                duration: node.seedDuration(timeline),
+                                relative: isTimed(dayjs(at)) && node.seedRelative(timeline) }
     }
     return seeded
 }
@@ -185,18 +200,29 @@ export function durationLabel(minutes: number): string
 }
 
 /**
- * A point's time as it reads: "15:00", or "15:00–17:00" when it lasts; for a
+ * What a time placed in the day's order carries wherever it is shown: it is
+ * where the point was put — after whatever came before it — not a time anybody
+ * chose. See NodeValue.relative.
+ */
+export const RELATIVE_MARK = '≈'
+
+/**
+ * A point's time as it reads: "15:00", or "15:00–17:00" when it lasts — with
+ * RELATIVE_MARK before it when the time was placed rather than chosen; for a
  * point with no time, how long it lasts, if anything — "2 h".
  */
-export function spanLabel(time: Dayjs | null, duration: number | null): string
+export function spanLabel(time: Dayjs | null, duration: number | null, relative = false): string
 {
     if (!time)
         return duration
             ? durationLabel(duration)
             : ''
+    const mark = relative
+        ? RELATIVE_MARK
+        : ''
     return duration
-        ? `${time.format('HH:mm')}–${time.add(duration, 'minute').format('HH:mm')}`
-        : time.format('HH:mm')
+        ? `${mark}${time.format('HH:mm')}–${time.add(duration, 'minute').format('HH:mm')}`
+        : `${mark}${time.format('HH:mm')}`
 }
 
 /**

@@ -101,13 +101,16 @@ public class TaskController : ArcController
 
             // We need to add a new timeline and then assign the ID to the task.
 
-            await _taskRepository.AddTaskAsync (newTask);
-
+            // The type is checked before the task is written. It was checked after,
+            // so a task with a type that does not exist was answered 400 and kept,
+            // and the board it was on could no longer be read.
             var taskTypeCollection = await _taskRepository.QueryTaskTypesAsync (taskType => taskType.RowKey == taskCreateRequest.TaskTypeID.ToString ());
             if (taskTypeCollection.Count is 0)
                 return BadRequest (ErrorResponseMessages.FieldDoesNotExistInDatabaseErrorResponse (nameof (Models.Board.Task.TaskTypeID)));
             if (taskTypeCollection.Count is not 1)
                 return Problem (ErrorResponseMessages.TooManyEntitiesErrorResponse (nameof (TaskType)));
+
+            await _taskRepository.AddTaskAsync (newTask);
 
             var taskResponse = _taskMapper.MapTaskToTaskResponse (newTask);
             return Created (default (Uri), taskResponse);

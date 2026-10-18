@@ -125,7 +125,10 @@ public class BoardController : Controller
             {
                 var cardTask = cardTasks.Single (task => Guid.Parse (task.RowKey!) == mappedTask.ID);
                 var taskType = taskTypeCollection.SingleOrDefault (taskType => int.Parse (taskType.RowKey) == cardTask.TaskTypeID);
-                mappedTask.TaskType = _taskMapper.MapTaskTypeToTaskTypeResponse (taskType);// Assumes TaskType is real
+                // A task whose type is gone reads as untyped, as it does on the
+                // calendar, rather than failing the whole board.
+                if (taskType is not null)
+                    mappedTask.TaskType = _taskMapper.MapTaskTypeToTaskTypeResponse (taskType);
 
                 // Matched on the timeline's ParentObjectID, not on Task.TimelineID.
                 //

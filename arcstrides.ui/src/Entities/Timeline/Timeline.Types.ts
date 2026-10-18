@@ -12,7 +12,8 @@
  * UpdateTimelinePanel uses these fields to populate its date/time pickers. The
  * "preference" fields map to the green Timeline mode, the "deadline" fields to
  * the yellow Deadline mode; both null means Timeless. Each point can last a
- * while — its `…DurationMinutes`, from its time.
+ * while — its `…DurationMinutes`, from its time — and can have been placed in the
+ * day's order rather than at a time — its `…TimeIsRelative`.
  */
 
 export interface Timeline
@@ -26,9 +27,18 @@ export interface Timeline
     /** How long the point lasts from its time, in minutes; null for an instant. Likewise for the other three. */
     startPreferenceDurationMinutes: number | null
 
+    /**
+     * The point was placed among the day's other points, not at a time chosen for
+     * it: its time is where it was put — after whatever came before it — and not a
+     * time anybody asked for. Likewise for the other three. See DatePickerTimeStep.
+     */
+    startPreferenceTimeIsRelative: boolean
+
     startDeadlineUTC: Date | null
 
     startDeadlineDurationMinutes: number | null
+
+    startDeadlineTimeIsRelative: boolean
 
     endDependencyTagGroupId: string | null
 
@@ -36,7 +46,11 @@ export interface Timeline
 
     endPreferenceDurationMinutes: number | null
 
+    endPreferenceTimeIsRelative: boolean
+
     endDeadlineUTC: Date | null
 
     endDeadlineDurationMinutes: number | null
+
+    endDeadlineTimeIsRelative: boolean
 }

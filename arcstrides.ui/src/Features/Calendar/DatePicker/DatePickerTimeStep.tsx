@@ -5,6 +5,7 @@
  * for how long.
  *
  *     ‹ October         Tuesday 14 October
+ *     [ Exact time ] [ Relative ]
  *     ┌───────────────────────────────────┐
  *     │ 08:00 ┃                           │   the day's hours, on the gold rail
  *     │       ● 09:30–11:00 Draft · …     │   what already has a time today
@@ -13,7 +14,7 @@
  *     └───────────────────────────────────┘
  *     No time on this day: Review · Write up
  *     [🕑 14:00 ]  No time
- *     Lasts  —  15 min  30 min  1 h  2 h  3 h  4 h
+ *     Lasts  —  15 min  30 min  1 h  2 h  3 h  4 h  Custom…
  *     See the whole day                  Done
  *
  * The day's timeline is the day overlay's, laid on an hour scale so that a
@@ -34,6 +35,23 @@
  * down makes it last a quarter hour less or more, and Delete takes the time
  * off. Midnight is not on it — a point at midnight reads back as one with no
  * time (see isTimed), so the scale runs from 00:15 to 23:45.
+ *
+ * ── Two modes ────────────────────────────────────────────────────────────────
+ * Exact time is the hours above. Relative puts the point among the day's timed
+ * things instead, with no clock in sight: the scale gives way to the things in
+ * order with a place between each two (DatePickerOrderList), and the point goes
+ * where it is put. It is given the time the thing before it ends — that is what
+ * Calendar.RelativePlacement works out — and saved as placed, not chosen, so it
+ * opens in Relative again and shows as "≈" wherever a time is shown. One too
+ * long for its place goes there anyway, red, saying why.
+ *
+ * Switching to Relative puts a point that has a time in the place its time is
+ * in; on a day with nothing timed, there is nothing to put it among, and it is
+ * on the day with no time. Switching to Exact keeps the time it was given, as
+ * a time now chosen.
+ *
+ * "Custom…", beside the lengths in either mode, opens CustomDurationPopover for
+ * any length from a minute to a week.
  */
 
 import React, { useEffect, useRef, useState } from 'react'
@@ -46,6 +64,9 @@ import { MONO, SERIF } from '../../../Styles/Fonts'
 import { durationLabel, spanLabel } from '../../Board/Timeline/Timeline.Nodes'
 import { colourOf } from '../Calendar.Stats'
 import { stopDone, stopKey, stopTypeId, type Stop } from '../Calendar.Stops'
+import { FIRST_MINUTE, LAST_MINUTE, gapAt, gapOf, groupItems, type PlacedItem } from '../Calendar.RelativePlacement'
+import { DatePickerOrderList, type OrderItem } from './DatePickerOrderList'
+import { CustomDurationPopover } from './CustomDurationPopover'
 import { NO_DAY_TYPE } from '../Calendar.DayTypes'
 import { useDayTypes } from '../Hooks/useDayTypes'
 import type { CalendarDate } from '../Calendar.Types'
@@ -60,6 +81,9 @@ export interface DayMark
     timed: boolean
 
     duration: number | null
+
+    /** Placed in the day's order, not at a chosen time — see the header. */
+    relative: boolean
 }
 
 /** A change to the point: its time, how long it lasts, or both — a drag sets both. */
@@ -68,6 +92,9 @@ export interface PointChange
     time?: Dayjs | null
 
     duration?: number | null
+
+    /** Whether the time was placed in the day's order rather than chosen. */
+    relative?: boolean
 }
 
 interface DatePickerTimeStepProps
@@ -85,6 +112,9 @@ interface DatePickerTimeStepProps
 
     /** Minutes from `time`, or null for an instant. */
     duration: number | null
+
+    /** The time was placed in the day's order: the step opens in Relative. */
+    relative: boolean
 
     /** Everything on the day, from every card the calendar can read, without the one being scheduled. */
     stops: Stop[]
@@ -109,6 +139,7 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
     name,
     time,
     duration,
+    relative,
     stops,
     marks,
     colours,
@@ -121,12 +152,42 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
     const scale = useRef<HTMLDivElement>(null)
     const [hover, setHover] = useState<number | null>(null)
     const [drag, setDrag] = useState<{ from: number; to: number } | null>(null)
+    const [mode, setMode] = useState<'exact' | 'relative'>(relative
+        ? 'relative'
+        : 'exact')
+    const custom = useRef<HTMLSpanElement>(null)
+    const [customOpen, setCustomOpen] = useState(false)
     const type = useDayTypes().typeOf(date, stored?.typeId)
     const timed = stops.filter(stop => stop.timed)
     const untimed = stops.filter(stop => !stop.timed)
     const minutes = time
         ? minutesOf(time)
         : null
+
+    // What Relative puts the point among: everything timed on the day, in order.
+    const groups = groupItems<OrderItem>([
+        ...timed.map(stop => placed(minutesOf(stop.at), stop.duration, {
+            key: stopKey(stop),
+            title: stop.card.title,
+            name: stop.task?.title ?? stop.card.title,
+            caption: stop.task
+                ? stop.task.title
+                : "the card's own",
+            colour: colourOf(stopTypeId(stop), colours),
+            length: stop.duration,
+            done: stopDone(stop),
+        })),
+        ...marks.filter(mark => mark.timed)
+                .map(mark => placed(minutesOf(mark.at), mark.duration, {
+                    key: `mark:${mark.label}`,
+                    title: mark.label,
+                    name: `its ${mark.label.toLowerCase()}`,
+                    caption: 'this one',
+                    colour: null,
+                    length: mark.duration,
+                    done: false,
+                })),
+    ])
 
     // Opened to show the point and the first thing already on the day, when both
     // fit; else the point; else the first thing; else the working day.
@@ -144,9 +205,10 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
             : (minutes ?? earliest) - 90
         scale.current?.scrollTo({ top: Math.max(0, top / 60 * HOUR) })
         scale.current?.focus({ preventScroll: true })
-        // Once, on opening: after that the scale is where its user has put it.
+        // On opening, and when Exact brings the scale back: after that the scale
+        // is where its user has put it.
         // eslint-disable-next-line react-hooks/exhaustive-deps -- opening position only
-    }, [])
+    }, [mode])
 
     const labels = placeLabels([
         ...timed.map(stop => ({ key: stopKey(stop), minutes: minutesOf(stop.at) })),
@@ -192,185 +254,211 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
                 </Box>
             </Box>
 
-            {/* The hours: the slider, scrolled to where the day is busy. */}
-            <Box ref={scale}
-                 role="slider"
-                 tabIndex={0}
-                 aria-label={`${name} time on ${date.format('dddd D MMMM')}`}
-                 aria-orientation="vertical"
-                 aria-valuemin={FIRST}
-                 aria-valuemax={LAST}
-                 aria-valuenow={minutes ?? undefined}
-                 aria-valuetext={minutes === null
-                     ? 'No time'
-                     : spanLabel(time, duration)}
-                 onKeyDown={key}
-                 onPointerDown={press}
-                 onPointerMove={move}
-                 onPointerUp={release}
-                 onPointerCancel={() => setDrag(null)}
-                 onPointerLeave={() => setHover(null)}
-                 className="card-stock-flat"
-                 sx={{ position: 'relative',
-                       height: VIEW,
-                       overflowY: 'auto',
-                       cursor: 'crosshair',
-                       touchAction: 'pan-y',
-                       userSelect: 'none',
-                       borderRadius: '2px',
-                       '&:focus-visible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 }
-                    }}>
-                <Box sx={{ position: 'relative', height: 24 * HOUR }}>
-                    {/* Hour lines, labelled every second hour. */}
-                    { Array.from({ length: 24 }, (_, hour) =>
-                                                 (
-                                                     <Box key={hour}
-                                                          aria-hidden
-                                                          sx={{ position: 'absolute',
-                                                                top: hour * HOUR,
-                                                                left: 0,
-                                                                right: 0,
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                gap: 0.5,
-                                                                transform: 'translateY(-50%)',
-                                                                pointerEvents: 'none'
-                                                             }}>
-                                                         <Box component="span"
-                                                              sx={{ width: LABELS,
-                                                                    flexShrink: 0,
-                                                                    pr: 0.5,
-                                                                    textAlign: 'right',
-                                                                    fontFamily: MONO,
-                                                                    fontSize: '0.56rem',
-                                                                    color: 'arc.onPaperMuted'
-                                                                 }}>
-                                                             { hour % 2 === 0
-                                                                 ? clock(hour * 60)
-                                                                 : ''
-                                                             }
-                                                         </Box>
-                                                         <Box sx={{ flex: 1,
-                                                                    borderTop: '1px solid',
-                                                                    borderTopColor: 'arc.paperDivider'
-                                                                 }} />
-                                                     </Box>
-                                                 ))
-                    }
-
-                    {/* The rail: the day overlay's gold strip, top to bottom of the day. */}
-                    <Box aria-hidden
-                         className="card-stock-glued paper-gold"
-                         sx={{ position: 'absolute',
-                               left: RAIL - 2,
-                               width: '4px',
-                               top: 0,
-                               bottom: 0,
-                               pointerEvents: 'none'
-                            }} />
-
-                    { timed.map(stop =>
-                                (
-                                    <Marker key={stopKey(stop)}
-                                            minutes={minutesOf(stop.at)}
-                                            duration={stop.duration}
-                                            labelTop={labels.get(stopKey(stop)) ?? 0}
-                                            colour={colourOf(stopTypeId(stop), colours)}
-                                            text={`${spanLabel(stop.at, stop.duration)} ${stop.card.title}`}
-                                            caption={stop.task
-                                                ? stop.task.title
-                                                : "the card's own"}
-                                            done={stopDone(stop)} />
-                                ))
-                    }
-                    { marks.filter(mark => mark.timed)
-                           .map(mark =>
-                                (
-                                    <Marker key={`mark:${mark.label}`}
-                                            minutes={minutesOf(mark.at)}
-                                            duration={mark.duration}
-                                            labelTop={labels.get(`mark:${mark.label}`) ?? 0}
-                                            colour={null}
-                                            text={`${spanLabel(mark.at, mark.duration)} ${mark.label}`}
-                                            caption="this one" />
-                                ))
-                    }
-
-                    {/* Where the pointer would put the point. */}
-                    { hover !== null && !drag && hover !== minutes && (
-                        <Box aria-hidden
-                             sx={{ position: 'absolute',
-                                   top: hover / 60 * HOUR,
-                                   left: LABELS,
-                                   right: 0,
-                                   borderTop: '1px dashed',
-                                   borderTopColor: 'arc.onPaperMuted',
-                                   pointerEvents: 'none'
-                                }}>
-                            <Box component="span"
-                                 sx={{ position: 'absolute',
-                                       right: 4,
-                                       top: -14,
-                                       fontFamily: MONO,
-                                       fontSize: '0.58rem',
-                                       color: 'arc.onPaper'
-                                    }}>
-                                { clock(hover) }
-                            </Box>
-                        </Box>
-                    )
-                    }
-
-                    {/* The point being set, as long as it lasts. */}
-                    { shownFrom !== null && (
-                        <Box aria-hidden
-                             sx={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-                            { shownLength > 0 && (
-                                <Box className="card-stock-flat paper-ink"
-                                     sx={{ position: 'absolute',
-                                           left: RAIL - 5,
-                                           width: 10,
-                                           top: shownFrom / 60 * HOUR,
-                                           height: shownLength / 60 * HOUR,
-                                           borderRadius: '5px',
-                                           opacity: drag
-                                               ? 0.6
-                                               : 0.85
-                                        }} />
-                            )
-                            }
-                            <Box className="card-disc card-stock paper-ink"
-                                 sx={{ position: 'absolute',
-                                       left: RAIL - 7,
-                                       top: shownFrom / 60 * HOUR - 7,
-                                       width: 14,
-                                       height: 14,
-                                       borderRadius: '50%'
-                                    }} />
-                            <Box className="card-stock-flat paper-blue"
-                                 sx={{ position: 'absolute',
-                                       left: TEXT,
-                                       top: drag
-                                           ? shownFrom / 60 * HOUR
-                                           : labels.get('point') ?? 0,
-                                       transform: 'translateY(-50%)',
-                                       px: 0.75,
-                                       py: '1px',
-                                       fontSize: '0.66rem',
-                                       fontWeight: 700,
-                                       whiteSpace: 'nowrap',
-                                       color: 'arc.onPaperStrong'
-                                    }}>
-                                { name } · { clock(shownFrom) }{ shownLength > 0
-                                    ? `–${clock(shownFrom + shownLength)}`
-                                    : ''
-                                                               }
-                            </Box>
-                        </Box>
-                    )
-                    }
-                </Box>
+            {/* Exact time, on the hours; or Relative, among the day's things. */}
+            <Box role="group"
+                 aria-label={`How the ${name.toLowerCase()} is placed in the day`}
+                 sx={{ display: 'flex', gap: 0.5 }}>
+                <Piece chosen={mode === 'exact'}
+                       onClick={() => changeMode('exact')}>
+                    Exact time
+                </Piece>
+                <Piece chosen={mode === 'relative'}
+                       onClick={() => changeMode('relative')}>
+                    Relative
+                </Piece>
             </Box>
+
+            { mode === 'relative' && (
+                <DatePickerOrderList groups={groups}
+                                     name={name}
+                                     minutes={minutes}
+                                     duration={duration}
+                                     onPlace={index => onChange({ time: at(gapAt(groups, index, duration).start), relative: true })} />
+            )
+            }
+
+            {/* The hours: the slider, scrolled to where the day is busy. */}
+            { mode === 'exact' && (
+                <Box ref={scale}
+                     role="slider"
+                     tabIndex={0}
+                     aria-label={`${name} time on ${date.format('dddd D MMMM')}`}
+                     aria-orientation="vertical"
+                     aria-valuemin={FIRST_MINUTE}
+                     aria-valuemax={LAST_MINUTE}
+                     aria-valuenow={minutes ?? undefined}
+                     aria-valuetext={minutes === null
+                         ? 'No time'
+                         : spanLabel(time, duration)}
+                     onKeyDown={key}
+                     onPointerDown={press}
+                     onPointerMove={move}
+                     onPointerUp={release}
+                     onPointerCancel={() => setDrag(null)}
+                     onPointerLeave={() => setHover(null)}
+                     className="card-stock-flat"
+                     sx={{ position: 'relative',
+                           height: VIEW,
+                           overflowY: 'auto',
+                           cursor: 'crosshair',
+                           touchAction: 'pan-y',
+                           userSelect: 'none',
+                           borderRadius: '2px',
+                           '&:focus-visible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 }
+                        }}>
+                    <Box sx={{ position: 'relative', height: 24 * HOUR }}>
+                        {/* Hour lines, labelled every second hour. */}
+                        { Array.from({ length: 24 }, (_, hour) =>
+                                                     (
+                                                         <Box key={hour}
+                                                              aria-hidden
+                                                              sx={{ position: 'absolute',
+                                                                    top: hour * HOUR,
+                                                                    left: 0,
+                                                                    right: 0,
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    gap: 0.5,
+                                                                    transform: 'translateY(-50%)',
+                                                                    pointerEvents: 'none'
+                                                                 }}>
+                                                             <Box component="span"
+                                                                  sx={{ width: LABELS,
+                                                                        flexShrink: 0,
+                                                                        pr: 0.5,
+                                                                        textAlign: 'right',
+                                                                        fontFamily: MONO,
+                                                                        fontSize: '0.56rem',
+                                                                        color: 'arc.onPaperMuted'
+                                                                     }}>
+                                                                 { hour % 2 === 0
+                                                                     ? clock(hour * 60)
+                                                                     : ''
+                                                                 }
+                                                             </Box>
+                                                             <Box sx={{ flex: 1,
+                                                                        borderTop: '1px solid',
+                                                                        borderTopColor: 'arc.paperDivider'
+                                                                     }} />
+                                                         </Box>
+                                                     ))
+                        }
+
+                        {/* The rail: the day overlay's gold strip, top to bottom of the day. */}
+                        <Box aria-hidden
+                             className="card-stock-glued paper-gold"
+                             sx={{ position: 'absolute',
+                                   left: RAIL - 2,
+                                   width: '4px',
+                                   top: 0,
+                                   bottom: 0,
+                                   pointerEvents: 'none'
+                                }} />
+
+                        { timed.map(stop =>
+                                    (
+                                        <Marker key={stopKey(stop)}
+                                                minutes={minutesOf(stop.at)}
+                                                duration={stop.duration}
+                                                labelTop={labels.get(stopKey(stop)) ?? 0}
+                                                colour={colourOf(stopTypeId(stop), colours)}
+                                                text={`${spanLabel(stop.at, stop.duration, stop.relative)} ${stop.card.title}`}
+                                                caption={stop.task
+                                                    ? stop.task.title
+                                                    : "the card's own"}
+                                                done={stopDone(stop)} />
+                                    ))
+                        }
+                        { marks.filter(mark => mark.timed)
+                               .map(mark =>
+                                    (
+                                        <Marker key={`mark:${mark.label}`}
+                                                minutes={minutesOf(mark.at)}
+                                                duration={mark.duration}
+                                                labelTop={labels.get(`mark:${mark.label}`) ?? 0}
+                                                colour={null}
+                                                text={`${spanLabel(mark.at, mark.duration, mark.relative)} ${mark.label}`}
+                                                caption="this one" />
+                                    ))
+                        }
+
+                        {/* Where the pointer would put the point. */}
+                        { hover !== null && !drag && hover !== minutes && (
+                            <Box aria-hidden
+                                 sx={{ position: 'absolute',
+                                       top: hover / 60 * HOUR,
+                                       left: LABELS,
+                                       right: 0,
+                                       borderTop: '1px dashed',
+                                       borderTopColor: 'arc.onPaperMuted',
+                                       pointerEvents: 'none'
+                                    }}>
+                                <Box component="span"
+                                     sx={{ position: 'absolute',
+                                           right: 4,
+                                           top: -14,
+                                           fontFamily: MONO,
+                                           fontSize: '0.58rem',
+                                           color: 'arc.onPaper'
+                                        }}>
+                                    { clock(hover) }
+                                </Box>
+                            </Box>
+                        )
+                        }
+
+                        {/* The point being set, as long as it lasts. */}
+                        { shownFrom !== null && (
+                            <Box aria-hidden
+                                 sx={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+                                { shownLength > 0 && (
+                                    <Box className="card-stock-flat paper-ink"
+                                         sx={{ position: 'absolute',
+                                               left: RAIL - 5,
+                                               width: 10,
+                                               top: shownFrom / 60 * HOUR,
+                                               height: shownLength / 60 * HOUR,
+                                               borderRadius: '5px',
+                                               opacity: drag
+                                                   ? 0.6
+                                                   : 0.85
+                                            }} />
+                                )
+                                }
+                                <Box className="card-disc card-stock paper-ink"
+                                     sx={{ position: 'absolute',
+                                           left: RAIL - 7,
+                                           top: shownFrom / 60 * HOUR - 7,
+                                           width: 14,
+                                           height: 14,
+                                           borderRadius: '50%'
+                                        }} />
+                                <Box className="card-stock-flat paper-blue"
+                                     sx={{ position: 'absolute',
+                                           left: TEXT,
+                                           top: drag
+                                               ? shownFrom / 60 * HOUR
+                                               : labels.get('point') ?? 0,
+                                           transform: 'translateY(-50%)',
+                                           px: 0.75,
+                                           py: '1px',
+                                           fontSize: '0.66rem',
+                                           fontWeight: 700,
+                                           whiteSpace: 'nowrap',
+                                           color: 'arc.onPaperStrong'
+                                        }}>
+                                    { name } · { clock(shownFrom) }{ shownLength > 0
+                                        ? `–${clock(shownFrom + shownLength)}`
+                                        : ''
+                                                                   }
+                                </Box>
+                            </Box>
+                        )
+                        }
+                    </Box>
+                </Box>
+            )
+            }
 
             { (untimed.length > 0 || marks.some(mark => !mark.timed)) && (
                 <Box sx={{ fontSize: '0.64rem', color: 'arc.onPaper', lineHeight: 1.5 }}>
@@ -392,11 +480,15 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
             )
             }
 
+            {/* A typed time is an exact one; no time is as timeless as a point gets, in either mode. */}
             <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 0.75 }}>
-                <TimePiece time={time}
-                           onTime={value => onChange({ time: at(value) })} />
+                { mode === 'exact' && (
+                    <TimePiece time={time}
+                               onTime={value => onChange({ time: at(value), relative: false })} />
+                )
+                }
                 <Piece chosen={time === null}
-                       onClick={() => onChange({ time: null })}>
+                       onClick={() => onChange({ time: null, relative: false })}>
                     No time
                 </Piece>
             </Box>
@@ -411,7 +503,7 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
                 </Typography>
                 <Piece chosen={duration === null}
                        label="No length"
-                       onClick={() => onChange({ duration: null })}>
+                       onClick={() => changeDuration(null)}>
                     —
                 </Piece>
                 { [...DURATIONS, ...(duration !== null && !DURATIONS.includes(duration)
@@ -421,12 +513,27 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
                          (
                              <Piece key={choice}
                                     chosen={duration === choice}
-                                    onClick={() => onChange({ duration: choice })}>
+                                    onClick={() => changeDuration(choice)}>
                                  { durationLabel(choice) }
                              </Piece>
                          ))
                 }
+                <Box component="span"
+                     ref={custom}>
+                    <Piece chosen={false}
+                           label={`A length of your own for the ${name.toLowerCase()}`}
+                           onClick={() => setCustomOpen(true)}>
+                        Custom…
+                    </Piece>
+                </Box>
             </Box>
+            <CustomDurationPopover anchor={customOpen
+                                       ? custom.current
+                                       : null}
+                                   name={name}
+                                   duration={duration}
+                                   onSet={changeDuration}
+                                   onClose={() => setCustomOpen(false)} />
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 { onOpenDay && (
@@ -458,6 +565,39 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
         if (value === null || value <= 0)
             return null
         return date.hour(Math.floor(value / 60)).minute(value % 60).second(0).millisecond(0)
+    }
+
+    /**
+     * Relative puts a point with a time in the place its time is in — or, on a
+     * day with nothing timed, takes the time off. Exact keeps the time as chosen.
+     */
+    function changeMode(next: 'exact' | 'relative')
+    {
+        setMode(next)
+        if (next === 'exact')
+        {
+            if (relative)
+                onChange({ relative: false })
+            return
+        }
+        if (minutes === null)
+            return
+        onChange(groups.length === 0
+            ? { time: null, relative: false }
+            : { time: at(gapAt(groups, gapOf(groups, minutes), duration).start), relative: true })
+    }
+
+    /**
+     * A new length. A point placed before the first thing ends where that begins,
+     * so in Relative its start moves with its length; elsewhere it starts where it
+     * did.
+     */
+    function changeDuration(next: number | null)
+    {
+        if (mode === 'relative' && minutes !== null && groups.length > 0)
+            onChange({ duration: next, time: at(gapAt(groups, gapOf(groups, minutes), next).start), relative: true })
+        else
+            onChange({ duration: next })
     }
 
     function pointerMinutes(event: React.PointerEvent<HTMLDivElement>): number
@@ -495,8 +635,8 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
         const length = Math.abs(drag.to - drag.from)
         setDrag(null)
         onChange(length > 0
-            ? { time: at(start), duration: length }
-            : { time: at(start) })
+            ? { time: at(start), duration: length, relative: false }
+            : { time: at(start), relative: false })
     }
 
     function key(event: React.KeyboardEvent<HTMLDivElement>)
@@ -504,7 +644,7 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
         if (event.key === 'Delete' || event.key === 'Backspace')
         {
             event.preventDefault()
-            onChange({ time: null })
+            onChange({ time: null, relative: false })
             return
         }
         if (event.shiftKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown'))
@@ -526,7 +666,7 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
         const next = event.key === 'Home' || event.key === 'End'
             ? by
             : clamp(from + by)
-        onChange({ time: at(next) })
+        onChange({ time: at(next), relative: false })
         // Keep the point in sight as it moves.
         const top = next / 60 * HOUR
         const view = event.currentTarget
@@ -545,10 +685,6 @@ const HOUR = 30
 
 /** How much of the day shows at once: nine hours. */
 const VIEW = 9 * HOUR
-
-const FIRST = 15
-
-const LAST = 24 * 60 - 15
 
 /** Where the scale starts from when an arrow is pressed with no time set: the working day. */
 const START = 9 * 60
@@ -571,8 +707,8 @@ const KEY_MINUTES: Record<string, number> =
     ArrowRight: 15,
     PageUp: -60,
     PageDown: 60,
-    Home: FIRST,
-    End: LAST,
+    Home: FIRST_MINUTE,
+    End: LAST_MINUTE,
 }
 
 /** The lengths offered in a click; a drag on the hours gives any other. */
@@ -583,6 +719,12 @@ function minutesOf(time: Dayjs): number
     return time.hour() * 60 + time.minute()
 }
 
+/** Something on the day, for Calendar.RelativePlacement: from its time, for as long as it lasts. */
+function placed(start: number, duration: number | null, item: OrderItem): PlacedItem<OrderItem>
+{
+    return { item, start, end: start + (duration ?? 0) }
+}
+
 /** To the quarter hour, kept off midnight at both ends — midnight is no time. */
 function snap(value: number): number
 {
@@ -591,7 +733,7 @@ function snap(value: number): number
 
 function clamp(value: number): number
 {
-    return Math.min(LAST, Math.max(FIRST, value))
+    return Math.min(LAST_MINUTE, Math.max(FIRST_MINUTE, value))
 }
 
 function clock(value: number): string

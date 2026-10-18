@@ -91,6 +91,7 @@ export const DayTimelineList: React.FC<DayTimelineListProps> = ({ day, stops, pe
                            at={row.stop.at}
                            timed={row.stop.timed}
                            duration={row.stop.duration}
+                           relative={row.stop.relative}
                            onDay={row.stop.at.isSame(day.date, 'day')}
                            colour={colourOf(stopTypeId(row.stop), colours)}
                            title={row.stop.card.title}
@@ -113,6 +114,7 @@ export const DayTimelineList: React.FC<DayTimelineListProps> = ({ day, stops, pe
                            at={row.point!.at}
                            timed={row.point!.timed}
                            duration={row.point!.duration}
+                           relative={row.point!.relative}
                            onDay
                            colour={null}
                            title={row.point!.title}
@@ -145,6 +147,9 @@ interface RowProps
 
     duration: number | null
 
+    /** Placed in the day's order, not at a chosen time: "≈" before it. */
+    relative: boolean
+
     /** At full strength on the day; paler, and dated, on another. */
     onDay: boolean
 
@@ -169,7 +174,7 @@ interface RowProps
     onOpen?: () => void
 }
 
-function Row({ at, timed, duration, onDay, colour, title, caption, done = false, label, card, onOpen }: RowProps)
+function Row({ at, timed, duration, relative, onDay, colour, title, caption, done = false, label, card, onOpen }: RowProps)
 {
     const face =
     {
@@ -190,7 +195,7 @@ function Row({ at, timed, duration, onDay, colour, title, caption, done = false,
             <Typography component="span"
                         sx={{ ...WHEN, color: 'arc.onPaper' }}>
                 { timed
-                    ? spanLabel(at, duration)
+                    ? spanLabel(at, duration, relative)
                     : '—'
                 }
             </Typography>

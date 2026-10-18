@@ -271,6 +271,17 @@ has any.
 A card is never in no column: the last column cannot be deleted while it holds
 cards (400). The UI makes an "Orphaned" column for them first.
 
+### 12. A task with a type that does not exist was kept, and broke its board — fixed
+
+`ArcStrides.API/Controllers/TaskController.cs`, `BoardController.cs`
+
+`CreateTask` wrote the task and then looked its type up, so a `TaskTypeID` that
+does not exist was answered 400 — and the task stayed. `FetchBoard` then mapped
+the missing type and threw a `NullReferenceException`, and the whole board
+answered 500 until the row was deleted by hand. The type is now checked before
+anything is written, and the board reads a task whose type is gone as untyped,
+as the calendar already did.
+
 ## Not a gap, but worth knowing
 
 - `CardController` has no `GET` for a board's cards; they arrive nested on

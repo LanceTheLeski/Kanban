@@ -15,7 +15,8 @@
  *
  * — so a card is a span from the first thing its tasks start to the last thing
  * they finish, mixing deadlines and timelines however the tasks do. Each point
- * keeps the length of the task point it came from.
+ * keeps the length of the task point it came from, and whether it was placed in
+ * the day's order.
  *
  * A card can instead keep dates of its own ("overrides" its tasks): then its own
  * timeline is the one it goes by, and its tasks keep theirs. On the calendar a
@@ -84,12 +85,16 @@ export function inheritedTimeline(tasks: Task[]): Timeline | null
         endDependencyTagGroupId: null,
         startPreferenceUTC: startPreference?.startPreferenceUTC ?? null,
         startPreferenceDurationMinutes: startPreference?.startPreferenceDurationMinutes ?? null,
+        startPreferenceTimeIsRelative: startPreference?.startPreferenceTimeIsRelative ?? false,
         startDeadlineUTC: startDeadline?.startDeadlineUTC ?? null,
         startDeadlineDurationMinutes: startDeadline?.startDeadlineDurationMinutes ?? null,
+        startDeadlineTimeIsRelative: startDeadline?.startDeadlineTimeIsRelative ?? false,
         endPreferenceUTC: endPreference?.endPreferenceUTC ?? null,
         endPreferenceDurationMinutes: endPreference?.endPreferenceDurationMinutes ?? null,
+        endPreferenceTimeIsRelative: endPreference?.endPreferenceTimeIsRelative ?? false,
         endDeadlineUTC: endDeadline?.endDeadlineUTC ?? null,
         endDeadlineDurationMinutes: endDeadline?.endDeadlineDurationMinutes ?? null,
+        endDeadlineTimeIsRelative: endDeadline?.endDeadlineTimeIsRelative ?? false,
     }
 }
 

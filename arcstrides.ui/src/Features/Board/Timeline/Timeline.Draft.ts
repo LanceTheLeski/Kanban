@@ -50,6 +50,15 @@ export interface TimelineDraft
     requiredStartDuration: number | null
 
     requiredEndDuration: number | null
+
+    /** Whether each point's time was placed in the day's order rather than chosen — see NodeValue. */
+    preferredStartRelative: boolean
+
+    preferredEndRelative: boolean
+
+    requiredStartRelative: boolean
+
+    requiredEndRelative: boolean
 }
 
 export interface TimelineDates
@@ -69,6 +78,14 @@ export interface TimelineDates
     endPreferenceDurationMinutes: number | null
 
     endDeadlineDurationMinutes: number | null
+
+    startPreferenceTimeIsRelative: boolean
+
+    startDeadlineTimeIsRelative: boolean
+
+    endPreferenceTimeIsRelative: boolean
+
+    endDeadlineTimeIsRelative: boolean
 }
 
 /**
@@ -96,6 +113,11 @@ export function draftToTimelineDates(draft: TimelineDraft): TimelineDates
         endDeadlineDurationMinutes: draft.requiredEnd
             ? draft.requiredEndDuration
             : null,
+        // So is being placed in order: with no time, there is nothing that was placed.
+        startPreferenceTimeIsRelative: !!draft.preferredStartTime && draft.preferredStartRelative,
+        endPreferenceTimeIsRelative: !!draft.preferredEndTime && draft.preferredEndRelative,
+        startDeadlineTimeIsRelative: !!draft.requiredStartTime && draft.requiredStartRelative,
+        endDeadlineTimeIsRelative: !!draft.requiredEndTime && draft.requiredEndRelative,
     }
 }
 
@@ -117,6 +139,7 @@ export function draftOf(values: NodeValues, mode: TimelineMode): TimelineDraft
     const durationOf = (id: NodeId) => (on.includes(id)
         ? values[id].duration
         : null)
+    const relativeOf = (id: NodeId) => on.includes(id) && values[id].relative
 
     return {
         mode,
@@ -132,6 +155,10 @@ export function draftOf(values: NodeValues, mode: TimelineMode): TimelineDraft
         requiredStartDuration: durationOf('requiredStart'),
         preferredEndDuration: durationOf('preferredEnd'),
         requiredEndDuration: durationOf('requiredEnd'),
+        preferredStartRelative: relativeOf('preferredStart'),
+        requiredStartRelative: relativeOf('requiredStart'),
+        preferredEndRelative: relativeOf('preferredEnd'),
+        requiredEndRelative: relativeOf('requiredEnd'),
     }
 }
 
@@ -191,6 +218,10 @@ export function timelineOperations(dates: TimelineDates): PatchOperation[]
         { op: 'replace', path: '/startDeadlineDurationMinutes', value: dates.startDeadlineDurationMinutes },
         { op: 'replace', path: '/endPreferenceDurationMinutes', value: dates.endPreferenceDurationMinutes },
         { op: 'replace', path: '/endDeadlineDurationMinutes', value: dates.endDeadlineDurationMinutes },
+        { op: 'replace', path: '/startPreferenceTimeIsRelative', value: dates.startPreferenceTimeIsRelative },
+        { op: 'replace', path: '/startDeadlineTimeIsRelative', value: dates.startDeadlineTimeIsRelative },
+        { op: 'replace', path: '/endPreferenceTimeIsRelative', value: dates.endPreferenceTimeIsRelative },
+        { op: 'replace', path: '/endDeadlineTimeIsRelative', value: dates.endDeadlineTimeIsRelative },
     ]
 }
 

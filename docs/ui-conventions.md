@@ -101,7 +101,8 @@ Features/Calendar/
   DayOverlay/  a day opened: DayOverlay, DayHeaderPanel, DayCardsPanel,
                DayTimelineList, DayConnectionsPanel, AddCardPicker,
                DayPreviewOverlay
-  DatePicker/  under a timeline node: TimelineDatePicker and its two steps
+  DatePicker/  under a timeline node: TimelineDatePicker, its two steps,
+               DatePickerOrderList, CustomDurationPopover
   Options/     CalendarOptionsOverlay
   Charts/      TaskTypeRingChart  TaskProgressLineChart
   Assets/      DayTypeSceneArt
@@ -683,14 +684,34 @@ A point on a card's or a task's timeline is chosen from the calendar
    - the time, typed on a piece of card (`9`, `930`, `9:30`, `21:05`), kept on
      Enter or on leaving it, refused with a red underline if it is not a time;
    - "No time", which leaves the point on the day;
-   - **Lasts**: no length, 15 min, 30 min, 1 h, 2 h, 3 h or 4 h, and any other
-     length a drag gave it. A point with no time can still last a while.
+   - **Lasts**: no length, 15 min, 30 min, 1 h, 2 h, 3 h or 4 h, any other
+     length a drag gave it, and **Custom…** (`CustomDurationPopover`), any
+     length from a minute to a week typed as hours and minutes. A point with no
+     time can still last a while.
 
    "See the whole day" opens the preview below; Done closes the popup.
 
+   That is **Exact time**, the first of two modes along the top of the day.
+   **Relative** puts the point among the day's things instead, with no clock
+   in sight (`DatePickerOrderList`): everything timed on the day in order, as
+   names and lengths, with "+ here" between each two and at either end. Things
+   that overlap are one block, with no place between them. A point put in a
+   place is given the time the thing before it ends (before the first, it ends
+   where the first begins), and is saved as placed rather than chosen — see
+   "Relative placement" in `docs/timeline-model.md`. One too long for its place
+   goes there anyway, on red, with an (i) that says why: "4 h does not fit
+   between Breakfast and Lunch: there is 2 h between them…". Switching to
+   Relative puts a point that has a time in the place its time falls in; on a
+   day with nothing timed there is nothing to put it among, and it is left on
+   the day with no time. Switching to Exact keeps the time it was given, as a
+   chosen one. The lengths and Custom… are the same in both.
+
 Under the node are three pieces of card: the day, which opens the month; the
-time and its span (`15:00–17:00`, or "No time · 2 h"), which opens the day
-directly; and **Day**, which opens the preview.
+time and its span (`15:00–17:00`, "Relative · 2 h" for a placed point, or
+"No time · 2 h"), which opens the day directly; and **Day**, which opens the
+preview. A placed point's time shows elsewhere with "≈" before it — `≈09:00` on
+the calendar's notes and timeline — because it is where the point was put, not
+a time anybody chose.
 
 **The preview** (`DayPreviewOverlay`) is the day as the day overlay draws it: the
 number and the date, the timeline, and the Cards panel, from the same cards. It
