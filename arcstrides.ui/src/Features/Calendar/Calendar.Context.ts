@@ -48,7 +48,7 @@ export interface CalendarActions
 
     /**
      * Every card the calendar can read: the month's, and those on the boards it
-     * knows — where a day's deadlines are found. See useBoards and Calendar.Stops.
+     * knows — where a day's deadlines are found. See useCalendarBoards and Calendar.Stops.
      */
     knownCards: Card[]
 

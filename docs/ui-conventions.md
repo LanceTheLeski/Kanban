@@ -8,6 +8,19 @@ its own, in `csharp-conventions.md`.
 
 ---
 
+## Names say what a thing is
+
+**Clear over concise.** A name says what the thing is and where it appears, in
+words, with nothing to decode. `TaskTypeRingChart`, not `TypeRing`;
+`DatePickerMonthStep`, not `MiniMonth`; `useCalendarBoards`, not `useBoards`.
+A longer name costs a few characters at each use; a vague one costs a trip into
+the file at each read. The same goes for comments: say what happens and why, in
+sentences, rather than leaving the reader to reconstruct it.
+
+This was the intent all along but was never written down here, and the calendar
+grew a set of short names (`DayBand`, `TypeRing`, `DiscNumber`) that only made
+sense to whoever wrote them. They were renamed together, with the folders below.
+
 ## File naming
 
 The name matches the file's primary export, and its case says what kind of
@@ -15,26 +28,104 @@ thing that is.
 
 | kind | case | example |
 |---|---|---|
-| Component | `PascalCase.tsx` | `BoardCard.tsx`, `ArcOverlay.tsx` |
-| Hook | `camelCase.ts`, named for the hook | `useBoardActions.ts`, `useCardDrag.ts` |
+| Component | `PascalCase.tsx`, ending in its role | `BoardCardNote.tsx`, `DayTimelineList.tsx` |
+| Hook | `camelCase.ts`, named for the hook, in a `Hooks/` folder | `Hooks/useBoardActions.ts` |
 | Module of related helpers | `Feature.Thing.ts` | `Board.Store.ts`, `CardGrid.Cells.ts` |
 | Module that belongs to no feature | `PascalCase.ts` in `Styles/` or `Lib/`, named for what it holds | `Palette.ts`, `Fonts.ts`, `Client.ts` |
 
-The third case is the one that had drifted. A module has no single primary
-export to be named after, so it takes the feature it belongs to plus what it
-holds, dotted. That is what `Board.APIs.ts`, `Board.Layout.ts` and
-`Board.Types.ts` were already doing; `cardSensors.ts` and `timelineDraft.ts`
-were not, for no reason other than the order they were written in. They are now
-`CardGrid.Sensors.ts` and `Timeline.Draft.ts`.
+A module has no single primary export to be named after, so it takes the
+feature it belongs to plus what it holds, dotted: `Board.APIs.ts`,
+`Board.Layout.ts`, `Timeline.Draft.ts`.
 
-Hooks stay camelCase deliberately. The file is named after its export like
-every other file here, and the export is `useCardDrag` — React's own convention
-requires the `use` prefix, and matching the file to it is what makes the import
-line read the same as the call.
+**Why a hook starts with a lower-case `use`.** A hook is a function, not a
+component, so it is camelCase like any function. The `use` is React's own rule,
+not this project's: React — and its lint rule, `react-hooks/rules-of-hooks` —
+recognise a hook by a name beginning `use` and a capital letter, and only then
+check that it is called at the top of a component, the same number of times on
+every render. Named anything else, a hook would work and lose that check. The
+file is named after the export, like every other file here, so the import line
+reads the same as the call. What follows `use` is what it gives you:
+`useCalendarBoards` gives the boards the calendar reads.
 
-`main.tsx` is Vite's entry point and exports nothing. Checked by
-`arc/file-named-for-export`, which leaves out the dotted modules, `Styles/`,
-`Lib/` and `main.tsx`.
+`main.tsx` is Vite's entry point and exports nothing; `App.tsx` is the root.
+Checked by `arc/file-named-for-export`, which leaves out the dotted modules,
+`Styles/`, `Lib/` and `main.tsx`.
+
+### Roles
+
+A component's name ends in what it is. A word before the role says which one:
+`DayTimelineList` is the list on the day overlay's timeline, `GridDayCell` the
+cell of one day on the month grid.
+
+| role | is | example |
+|---|---|---|
+| Page | a route | `BoardPage`, `CalendarPage` |
+| Layout | arranges other components and owns no content | `AppLayout`, `ArcSplitLayout` |
+| View | the body a page shows | `MonthView` |
+| Grid | a two-way arrangement of cells | `CardGrid`, `MonthGrid` |
+| Overlay | a modal window over the page (`ArcOverlay`) | `DayOverlay`, `CreateCardOverlay` |
+| Popover | a window anchored to what opened it (`ArcPopover`) | `UpdateTaskPopover`, `CreateTaskPopover` |
+| Menu | a list of actions that drops down | `DayActionsMenu`, `AppMenu` |
+| Bar | a strip of controls along an edge | `BoardNavBar`, `ArcActionBar` |
+| Panel | a self-contained section of an overlay or a view, with its own heading | `DayHeaderPanel`, `UpdateTimelinePanel`, `TagsPanel` |
+| Header | the top of something, holding its name and its controls | `GridDayHeader` |
+| List | a list of entries | `DayTimelineList`, `PlacementList` |
+| Row | one line of a grid or a list | `SwimlaneRow`, `ColumnHeaderRow` |
+| Cell | one square of a grid | `GridDayCell`, `DroppableCell` |
+| Strip | a narrow band laid across something | `GridDayDueStrip` |
+| Note | a card, drawn as a paper note | `BoardCardNote`, `DayCardNote` |
+| Node, Rail | a point on a timeline's rail, and the rail | `TimelineNode`, `TimelineRail` |
+| Chart | draws numbers | `TaskTypeRingChart`, `TaskProgressLineChart` |
+| Art | a picture, there to be looked at | `DayTypeSceneArt`, `LaneWavesArt` |
+| Picker | a control that chooses a value | `ArcColourPicker`, `TimelineDatePicker` |
+| Step | one stage of a picker | `DatePickerMonthStep`, `DatePickerTimeStep` |
+| Number | a figure drawn to fit a shape | `DateDiscNumber` |
+| Provider | puts a context or a service around its children | `ArcErrorProvider` |
+
+A component inside a file, not exported — a `Section`, a `Chip` — is not held
+to this; it is named for what it is in the file that uses it. A role the table
+lacks is added to the table and to `ROLES` in `tools/eslint-arc.js` in the same
+commit, rather than worked around.
+
+### Folders
+
+A feature's files are grouped by where they appear. Its modules
+(`Feature.Thing.ts`) stay at the feature's root, because the whole feature uses
+them.
+
+```
+Features/Calendar/
+  Calendar.APIs.ts  Calendar.Store.ts  Calendar.DayTypes.ts  …
+  Month/       MonthView  MonthGrid  CalendarNavBar  CalendarCardOverlay
+  GridDay/     one day on the grid: GridDayCell  GridDayHeader  GridDayDueStrip
+               DayCardNote  DayActionsMenu  DateDiscNumber
+  DayOverlay/  a day opened: DayOverlay and its panels and lists, AddCardPicker,
+               DayPreviewOverlay
+  DatePicker/  under a timeline node: TimelineDatePicker and its two steps
+  Options/     CalendarOptionsOverlay
+  Charts/      TaskTypeRingChart  TaskProgressLineChart
+  Assets/      DayTypeSceneArt
+  Hooks/       useCalendarBoards  useBoardTitles  useAddableCards  useDayTypes
+               useGridDaySize  usePickerMonth
+
+Features/Board/
+  Board.APIs.ts  Board.Store.ts  …  BoardNavBar
+  Grid/        CardGrid  CardGrid.Cells.ts  CardGrid.Sensors.ts  BoardCardNote
+               SwimlaneRow  ColumnHeaderRow  DroppableCell  DraggableCardNote
+  Card/  Task/  Timeline/  Commands/  Column/  Swimlane/
+  ColumnAndSwimlane/   what the column and swimlane overlays share:
+               PlacementList  GlobalColourPanel
+  Assets/      LaneWavesArt  ColumnGlassArt
+  Hooks/       useBoardActions  useCardDrag  useColourChoice
+```
+
+**Art** — anything drawn to be looked at rather than read: the day types'
+scenes, the lanes' waves, the columns' glass — lives in the feature's `Assets/`.
+The frame every scene is drawn in, `ArcPaperSceneArt`, is shared and lives in
+`Components/` with the other building blocks, each named `Arc` and its role.
+
+Checked by `arc/component-role`: a component's file ends in a role from the
+table, and inside a feature a hook sits in `Hooks/` and art in `Assets/`.
 
 ---
 
@@ -84,7 +175,7 @@ export that has ended up below the banner.
 
 ## Layout
 
-Written from Lance's own edits to `DayActions`, `MonthView` and
+Written from Lance's own edits to `DayActionsMenu`, `MonthView` and
 `Calendar.Context`, so the TypeScript reads the way the C# does: braces on
 lines of their own, and one thing per line wherever a line would otherwise hold
 two. Each rule below is an ESLint rule with a fixer (`tools/eslint-arc-layout.js`),
@@ -379,7 +470,7 @@ the chart palette, is the one file outside `Styles/` it leaves alone.
 
 The cut-paper pictures — the day types' scenes and the lanes' waves —
 draw from the same ladders, by name, through `src/Styles/Scenery.ts`, and share
-one frame, `Components/PaperScene.tsx`: flat shapes, each casting the same
+one frame, `Components/ArcPaperSceneArt.tsx`: flat shapes, each casting the same
 small shadow on the one behind. Nothing in a picture is a hue the rest of the
 app does not have.
 
@@ -394,7 +485,7 @@ it runs.
 
 Along the foot of every lane runs a strip of cut-paper water — a swim lane —
 crisp beside the label and frosted wherever a column's glass crosses it (see
-`Features/Board/LaneWaves.tsx`). The corner above the labels is left empty for
+`Features/Board/Assets/LaneWavesArt.tsx`). The corner above the labels is left empty for
 now; "Honu Boards" is in the navy bar, in gold foil, where it has room for one
 line and still shows on a phone.
 
@@ -446,7 +537,7 @@ glass, which still shows between the header and the cards under it:
 
 | tile | stock | what it is |
 |---|---|---|
-| the date | a card disc, ringed | the number in gold foil, as large as the disc takes — every day at the size at which the widest date's figures all but touch its edge (`DiscNumber`); ringed with its tasks by type; the disc fills the ring to its inner edge; today is oxblood |
+| the date | a card disc, ringed | the number in gold foil, as large as the disc takes — every day at the size at which the widest date's figures all but touch its edge (`DateDiscNumber`); ringed with its tasks by type; the disc fills the ring to its inner edge; today is oxblood |
 | middle | cream | the progress lines (no count in the corner), the day type's picture, or "+ Add card" — see below |
 | ⋮ | yellow | quick actions |
 | ‹ › | blue | step through the day's views; not drawn on a day with no cards |
@@ -454,7 +545,7 @@ glass, which still shows between the header and the cards under it:
 
 How the tiles arrange is decided by the day's own width (a container query),
 not the window's, because the same day is also drawn as a live copy inside its
-overlay. Under the header, what is due on the day (`DayDueStrip`): a piece of
+overlay. Under the header, what is due on the day (`GridDayDueStrip`): a piece of
 yellow, the Deadline tab's stock, with a line for each point that falls on the
 day, from any card or task the calendar can read. Each line is the time (or a
 dash for none) and what it is the point of, three lines at most and then
@@ -471,7 +562,7 @@ picture, or an offer to add a card (or a task, to a day whose cards have none).
 ### Day types
 
 A day has a type, and the type has a picture — a scene in cut paper, drawn by
-`DayArt.tsx` from the palette's ladders. The types are fixed, in `Calendar.DayTypes.ts`; the API stores
+`DayTypeSceneArt.tsx` from the palette's ladders. The types are fixed, in `Calendar.DayTypes.ts`; the API stores
 only the number. As they come:
 
 | type | picture | ring | lines | an empty day shows |
@@ -539,7 +630,7 @@ stops on other days are paler and carry their date.
 card or a task, and the card may never have been put on the day. So the
 timeline and Due are read from every card the calendar can read: the day's own,
 and the boards it knows (the default board and the boards of the month's cards;
-see `useBoards`). `MonthView` reads them with the month, and again with each
+see `useCalendarBoards`). `MonthView` reads them with the month, and again with each
 re-read of it, and hands every day its points through `Calendar.Context`. A
 card's own timeline counts as well as its tasks'. The timeline has the day's
 cards' whole schedules, other days included, and anything with a time on this
@@ -560,9 +651,9 @@ A point "with no time" is one saved at midnight: see "A point with no time" in
 ### Choosing a day for a timeline point
 
 A point on a card's or a task's timeline is chosen from the calendar
-(`CalendarDatePicker`), in two steps in one popup:
+(`TimelineDatePicker`), in two steps in one popup:
 
-1. **The month** (`MiniMonth`), the calendar page folded down: each day its
+1. **The month** (`DatePickerMonthStep`), the calendar page folded down: each day its
    number on a small disc (oxblood for today), ringed with its tasks by type,
    which is the same ring the grid draws from the same cards. Under the ring,
    each type's count beside a dot of its colour, three types at most and then
@@ -570,7 +661,7 @@ A point on a card's or a task's timeline is chosen from the calendar
    names the types for the day pointed at or focused, so colour is never the
    only key, and counts what is already due on it. The arrow keys move between
    days and across months.
-2. **The day** (`DayTimePicker`), which always follows a pick: the day's hours
+2. **The day** (`DatePickerTimeStep`), which always follows a pick: the day's hours
    on the timeline's gold rail, with everything already timed on the day from
    any board, each as long as it lasts, and the task's own other points drawn
    hollow. A click on the hours puts the point there, to the quarter hour; a
@@ -588,7 +679,7 @@ Under the node are three pieces of card: the day, which opens the month; the
 time and its span (`15:00–17:00`, or "No time · 2 h"), which opens the day
 directly; and **Day**, which opens the preview.
 
-**The preview** (`DayPreview`) is the day as the day overlay draws it: the
+**The preview** (`DayPreviewOverlay`) is the day as the day overlay draws it: the
 number and the date, the timeline, and Due beside Cards, from the same cards. It
 also shows the points being edited, in their places on blue, marked "as in the
 editor, not saved yet", so a time can be tried and seen against the rest of the
@@ -698,6 +789,7 @@ the section of this page it enforces:
 | rule | section |
 |---|---|
 | `arc/file-named-for-export` | File naming |
+| `arc/component-role` | Roles, Folders |
 | `arc/private-last` | Member ordering |
 | `arc/no-space-before-paren` | C# style is not carried across |
 | `arc/fonts-from-fonts` | Shared values live in a module |

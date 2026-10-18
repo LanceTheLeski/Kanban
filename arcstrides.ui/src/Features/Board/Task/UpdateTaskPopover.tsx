@@ -25,10 +25,10 @@ import React, { useRef, useState } from 'react'
 import { Box, Button, Checkbox, FormControlLabel, TextField, Typography } from '@mui/material'
 import { paperField, paperFieldSx } from '../../../Styles/Paper'
 import { ArcPopover } from '../../../Components/ArcPopover'
-import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
+import { ArcExpandingPicker } from '../../../Components/ArcExpandingPicker'
 import { UpdateTimelinePanel } from '../Timeline/UpdateTimelinePanel'
 import { CreateTaskTypeOverlay } from '../../TagGroup/TaskType/CreateTaskTypeOverlay'
-import { useBoardActions } from '../useBoardActions'
+import { useBoardActions } from '../Hooks/useBoardActions'
 import { fetchTaskTypes, updateTask, type TaskPatch } from '../Board.APIs'
 import { saveTimeline, TIMELINE_PARENT_TASK, type TimelineDraft } from '../Timeline/Timeline.Draft'
 import { TASK_PANEL_ROW_MIN_HEIGHT, TASK_POPOVER_WIDTH, TASK_TITLE_ROW_MIN_HEIGHT } from '../../../Styles/Measures'
@@ -346,15 +346,15 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
                                                  </Typography>} />
 
                         <Box sx={{ flex: '1 1 8rem', minWidth: 0 }}>
-                            <ArcExpandingSelector options={orderOptions}
-                                                  onSelect={v => setOrder(parseInt(v, 10) - 1)}
-                                                  placeholder={`Order: ${order + 1}`} />
+                            <ArcExpandingPicker options={orderOptions}
+                                                onSelect={v => setOrder(parseInt(v, 10) - 1)}
+                                                placeholder={`Order: ${order + 1}`} />
                         </Box>
 
                         <Box sx={{ flex: '1 1 10rem', minWidth: 0 }}>
-                            <ArcExpandingSelector options={taskTypes.map(t => t.title ?? '')}
-                                                  onSelect={handleSetTaskType}
-                                                  placeholder={task.taskType?.title ?? 'Select task type'} />
+                            <ArcExpandingPicker options={taskTypes.map(t => t.title ?? '')}
+                                                onSelect={handleSetTaskType}
+                                                placeholder={task.taskType?.title ?? 'Select task type'} />
                         </Box>
 
                         {/*

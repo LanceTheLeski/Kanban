@@ -4,11 +4,11 @@
  * Root application shell with routing.
  *
  * Provider stack (outermost → innermost):
- *   BrowserRouter      — React Router, reads the URL
- *   ThemeProvider      — MUI theme (arcTheme / arcBoardDefaultTheme)
- *   LocalizationProvider — required by @mui/x-date-pickers (DatePicker, TimePicker)
- *   ArcErrorDisplay    — notistack SnackbarProvider + useArcError hook
- *   Routes             — renders the matched page
+ *   BrowserRouter         — React Router, reads the URL
+ *   ThemeProvider         — MUI theme (arcTheme / arcBoardDefaultTheme)
+ *   LocalizationProvider  — required by @mui/x-date-pickers (DatePicker, TimePicker)
+ *   ArcErrorProvider      — notistack SnackbarProvider + useArcError hook
+ *   Routes                — renders the matched page
  *
  * Routes:
  *   /                   → redirect to the demo board (a board picker is still to come)
@@ -25,7 +25,7 @@ import { ThemeProvider, CssBaseline, GlobalStyles, StyledEngineProvider } from '
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { ArcErrorDisplay } from './Components/ArcErrorDisplay'
+import { ArcErrorProvider } from './Components/ArcErrorProvider'
 import { arcTheme } from './Styles/Theme'
 import { PALETTE_VARIABLES } from './Styles/Palette'
 import { AppLayout } from './Layouts/AppLayout'
@@ -62,7 +62,7 @@ function App()
                 {/* The paper palette, as custom properties for ArcStyles.css — see Palette.ts. */}
                 <GlobalStyles styles={{ ':root': PALETTE_VARIABLES }} />
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <ArcErrorDisplay>
+                    <ArcErrorProvider>
                         <Routes>
                             {/* AppLayout is the shell every page renders inside — mirrors
                   DefaultLayout="@typeof(Layouts.MainLayout)" in Routes.razor */}
@@ -92,7 +92,7 @@ function App()
                                                           replace />} />
                             </Route>
                         </Routes>
-                    </ArcErrorDisplay>
+                    </ArcErrorProvider>
                 </LocalizationProvider>
             </ThemeProvider>
             </StyledEngineProvider>

@@ -16,10 +16,10 @@
  *   addError('Not found', 404)
  *   addError('Something went wrong')
  *
- * Must be called inside a component that is a descendant of <ArcErrorDisplay>,
+ * Must be called inside a component that is a descendant of <ArcErrorProvider>,
  * which is mounted at the app root in App.tsx.
  *
- * This lives apart from ArcErrorDisplay.tsx so that file only exports a
+ * This lives apart from ArcErrorProvider.tsx so that file only exports a
  * component — a module mixing components and plain functions breaks Fast Refresh.
  */
 

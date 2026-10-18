@@ -32,6 +32,7 @@ export default defineConfig([
     plugins: { arc },
     rules: {
       'arc/file-named-for-export': 'error',
+      'arc/component-role': 'error',
       'arc/private-last': 'error',
       'arc/no-space-before-paren': 'error',
       'arc/fonts-from-fonts': 'error',

@@ -27,7 +27,7 @@
  *   CSS           as custom properties — PALETTE_VARIABLES, set on :root by
  *                 App.tsx; ArcStyles.css cuts its stocks from those
  *   the MUI theme the hex values, since MUI works colours out from them
- *   drawings     the hex values, for SVG fills — see DayArt
+ *   drawings     the hex values, for SVG fills — see DayTypeSceneArt
  *
  * Chart colours are not here. A task type's colour has to be told apart from
  * seven others at a glance, which a paper palette of four soft hues cannot do;

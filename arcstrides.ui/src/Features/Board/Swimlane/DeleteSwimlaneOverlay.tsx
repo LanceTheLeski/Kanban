@@ -10,9 +10,9 @@
 import React, { useState } from 'react'
 import { Stack, Typography } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
-import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
+import { ArcExpandingPicker } from '../../../Components/ArcExpandingPicker'
 import { deleteSwimlane } from '../Board.APIs'
-import { useBoardActions } from '../useBoardActions'
+import { useBoardActions } from '../Hooks/useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
 import { useBoardStore } from '../Board.Store'
 
@@ -78,9 +78,9 @@ export const DeleteSwimlaneOverlay: React.FC<DeleteSwimlaneOverlayProps> = ({ op
                     title="Delete swimlane"
                     titleStock="red">
             <Stack spacing={1.5}>
-                <ArcExpandingSelector options={swimlanes.map(swimlane => swimlane.title)}
-                                      onSelect={handleSelect}
-                                      placeholder="Select swimlane to delete" />
+                <ArcExpandingPicker options={swimlanes.map(swimlane => swimlane.title)}
+                                    onSelect={handleSelect}
+                                    placeholder="Select swimlane to delete" />
 
                 { selected && (
                     <Typography sx={{ fontSize: '0.78rem', color: 'arc.onGlass' }}>

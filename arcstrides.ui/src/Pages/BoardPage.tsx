@@ -17,16 +17,17 @@
  * the drag handlers without touching the geometry — but while they shared a file
  * every one of those changes had to be made while scrolling past the others.
  *
- * They now live under Features/Board/CardGrid, one concern per file:
+ * They now live under Features/Board/Grid, one concern per file:
  *
- *   CardGrid           the scroll container, the headers, the rows, the DndContext
- *   ColumnHeaderRow    the strip of column titles
- *   SwimlaneRow        one swimlane: its label and its cells
- *   DroppableCell      one column × swimlane intersection
- *   DraggableCard      a card with drag behaviour attached
- *   useCardDrag        pick up, drop, patch, roll back on failure
- *   CardGrid.Cells     how a card is addressed to a cell
- *   CardGrid.Sensors   what counts as picking a card up
+ *   CardGrid             the scroll container, the headers, the rows, the DndContext
+ *   ColumnHeaderRow      the strip of column titles
+ *   SwimlaneRow          one swimlane: its label and its cells
+ *   DroppableCell        one column × swimlane intersection
+ *   DraggableCardNote    a card with drag behaviour attached
+ *   CardGrid.Cells       how a card is addressed to a cell
+ *   CardGrid.Sensors     what counts as picking a card up
+ *
+ * and Hooks/useCardDrag: pick up, drop, patch, roll back on failure.
  *
  * ── Data loading ─────────────────────────────────────────────────────────────
  * Blazor used OnInitializedAsync(), which ran once on first render. The effect
@@ -38,8 +39,8 @@ import React, { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { Box, Button, CircularProgress, Paper, Typography } from '@mui/material'
 import { useShallow } from 'zustand/react/shallow'
-import { BoardManagementNav } from '../Features/Board/BoardManagementNav'
-import { CardGrid } from '../Features/Board/CardGrid/CardGrid'
+import { BoardNavBar } from '../Features/Board/BoardNavBar'
+import { CardGrid } from '../Features/Board/Grid/CardGrid'
 import { useBoardStore } from '../Features/Board/Board.Store'
 import { AppMenu } from '../Layouts/AppMenu'
 
@@ -94,7 +95,7 @@ export const BoardPage: React.FC = () =>
                    elevation={0}>
                 {/* Mirrors: MudPaper Height="50px" Width="100%" Class="mud-theme-primary" */}
                 <Box sx={{ width: '100%' }}>
-                    <BoardManagementNav menu={<AppMenu />} />
+                    <BoardNavBar menu={<AppMenu />} />
                 </Box>
 
                 {/*

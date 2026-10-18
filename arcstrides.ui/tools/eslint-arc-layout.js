@@ -2,7 +2,7 @@
  * eslint-arc-layout.js
  *
  * How a TypeScript file here is laid out — docs/ui-conventions.md, "Layout" —
- * as lint rules. They were written from Lance's own edits to DayActions,
+ * as lint rules. They were written from Lance's own edits to DayActionsMenu,
  * MonthView and Calendar.Context, so the code reads the way he writes it,
  * C#-like: braces on their own lines, one thing per line where a line would
  * otherwise hold two.
@@ -719,7 +719,7 @@ function objectValue(attribute) {
     return value?.type === 'JSXExpressionContainer' && value.expression.type === 'ObjectExpression' ? value.expression : null
 }
 
-/** A component's tag — `<DayCard>`, `<Menu.Item>` — rather than an element's, `<div>`, `<path>`. */
+/** A component's tag — `<DayCardNote>`, `<Menu.Item>` — rather than an element's, `<div>`, `<path>`. */
 function isComponent(name) {
     return name.type === 'JSXMemberExpression' || (name.type === 'JSXIdentifier' && /^[A-Z]/.test(name.name))
 }

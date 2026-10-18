@@ -16,7 +16,7 @@
  * A deadline belongs to a task, not to a day, so the tasks due on a day are
  * not only the tasks on the cards put on it. They are found among every card
  * the calendar can read: the day's own, and those of the boards it knows
- * (see useBoards). The same card can come from both, so they are merged first.
+ * (see useCalendarBoards). The same card can come from both, so they are merged first.
  */
 
 import dayjs, { type Dayjs } from 'dayjs'

@@ -36,7 +36,7 @@
  * nodes without a translation step.
  *
  * ── Choosing a point's day and time ──────────────────────────────────────────
- * From the calendar, not from a bare date picker: CalendarDatePicker opens the
+ * From the calendar, not from a bare date picker: TimelineDatePicker opens the
  * calendar's month, folded down, with what is already on each day; picking a
  * day opens the day, where a click on its hours sets the time. A time is not
  * required. One point at a time, still — a range picker could not express four
@@ -51,7 +51,7 @@
 import React, { useMemo, useState } from 'react'
 import { Box, Button, Paper, Typography } from '@mui/material'
 import { TimelineRail } from './TimelineRail'
-import { CalendarDatePicker } from '../../Calendar/CalendarDatePicker'
+import { TimelineDatePicker } from '../../Calendar/DatePicker/TimelineDatePicker'
 import type { Subject } from '../../Calendar/Calendar.Stops'
 import { MODES, NODES, NODES_FOR, modeOf, seedValues } from './Timeline.Nodes'
 import type { NodeId, NodeValue, NodeValues, TimelineMode } from './Timeline.Nodes'
@@ -261,7 +261,7 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                         }
                     </Typography>
 
-                    <CalendarDatePicker name={showRail
+                    <TimelineDatePicker name={showRail
                                             ? openSpec.label.join(' ')
                                             : 'Deadline'}
                                         value={values[openSpec.id]}

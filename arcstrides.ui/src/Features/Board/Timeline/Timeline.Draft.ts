@@ -6,7 +6,7 @@
  * The panel keeps dates and times in separate pickers because Blazor's
  * MudDatePicker and MudTimePicker were separate controls. The API takes a single
  * timestamp per field, so the two halves are folded back together here — in one
- * place, since both CreateTaskOverlay and UpdateTaskPopover need it.
+ * place, since both CreateTaskPopover and UpdateTaskPopover need it.
  */
 
 import type { PatchOperation } from '../../../Lib/Client'
@@ -18,7 +18,7 @@ import type { TimelineMode } from './Timeline.Nodes'
  * Structured output the panel sends its parent on every change.
  *
  * It lives here rather than on the panel because it is the contract between the
- * panel and everything downstream of it — CreateTaskOverlay, UpdateTaskPopover
+ * panel and everything downstream of it — CreateTaskPopover, UpdateTaskPopover
  * and the folding below all speak it, and only one of them draws anything. It
  * replaces the Blazor version's @ref-based field access.
  */

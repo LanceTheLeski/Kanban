@@ -11,18 +11,18 @@
 import React, { useState } from 'react'
 import { Stack, TextField } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
-import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
+import { ArcExpandingPicker } from '../../../Components/ArcExpandingPicker'
 import { useArcError } from '../../../Components/useArcError'
 import { updateSwimlane, type OrderedItemPatchRequest } from '../Board.APIs'
-import { useBoardActions } from '../useBoardActions'
+import { useBoardActions } from '../Hooks/useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
 import { ArcColourPicker } from '../../../Components/ArcColourPicker'
 import { swimlaneColour, sameColour } from '../Board.Colours'
 import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
-import { PlacementList } from '../PlacementList'
-import { GlobalColourPanel } from '../GlobalColourPanel'
-import { useColourChoice } from '../useColourChoice'
+import { PlacementList } from '../ColumnAndSwimlane/PlacementList'
+import { GlobalColourPanel } from '../ColumnAndSwimlane/GlobalColourPanel'
+import { useColourChoice } from '../Hooks/useColourChoice'
 
 interface UpdateSwimlaneOverlayProps
 {
@@ -110,9 +110,9 @@ export const UpdateSwimlaneOverlay: React.FC<UpdateSwimlaneOverlayProps> = ({ op
                     title="Edit swimlane"
                     titleStock="red">
             <Stack spacing={1.5}>
-                <ArcExpandingSelector options={swimlanes.map(swimlane => swimlane.title)}
-                                      onSelect={handleSelectSwimlane}
-                                      placeholder="Select swimlane to edit" />
+                <ArcExpandingPicker options={swimlanes.map(swimlane => swimlane.title)}
+                                    onSelect={handleSelectSwimlane}
+                                    placeholder="Select swimlane to edit" />
 
                 { selected && (
                     <>

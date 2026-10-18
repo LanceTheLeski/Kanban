@@ -23,8 +23,8 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Box, Button, Paper, Typography } from '@mui/material'
 import { useShallow } from 'zustand/react/shallow'
 import dayjs, { type Dayjs } from 'dayjs'
-import { CalendarNav } from '../Features/Calendar/CalendarNav'
-import { MonthView } from '../Features/Calendar/MonthView'
+import { CalendarNavBar } from '../Features/Calendar/Month/CalendarNavBar'
+import { MonthView } from '../Features/Calendar/Month/MonthView'
 import { useCalendarStore } from '../Features/Calendar/Calendar.Store'
 import { monthPath } from '../Features/Calendar/Calendar.Grid'
 import { AppMenu } from '../Layouts/AppMenu'
@@ -72,11 +72,11 @@ export const CalendarPage: React.FC = () =>
                 it, each day is a window onto the picture behind it.
             */}
             <Box sx={{ width: '92%', mx: 'auto', pt: '10px' }}>
-                <CalendarNav start={start}
-                             busy={status === 'loading'}
-                             onPrevious={() => go(start.subtract(1, 'month'))}
-                             onNext={() => go(start.add(1, 'month'))}
-                             menu={<AppMenu />} />
+                <CalendarNavBar start={start}
+                                busy={status === 'loading'}
+                                onPrevious={() => go(start.subtract(1, 'month'))}
+                                onNext={() => go(start.add(1, 'month'))}
+                                menu={<AppMenu />} />
 
                 { status === 'error' && <ReadFailed error={error}
                                                     onRetry={() => loadMonth(year, month)} />

@@ -10,7 +10,7 @@
  * and what kind of work they are. That is what these compute.
  *
  *   progress   done of total for each type — a line per type, levelling out at
- *              its share done, so the types can be compared (see ProgressLines)
+ *              its share done, so the types can be compared (see TaskProgressLineChart)
  *   breakdown  tasks per type — a ring round the day's number, part-to-whole
  *
  * ── Colour follows the type, not its place in the day ────────────────────────

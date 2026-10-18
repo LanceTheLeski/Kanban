@@ -36,7 +36,7 @@
 
 import { create } from 'zustand'
 import { fetchBoard } from './Board.APIs'
-import type { CardPlacement } from './CardGrid/CardGrid.Cells'
+import type { CardPlacement } from './Grid/CardGrid.Cells'
 import type { Card } from '../../Entities/Card/Card.Types'
 import { NO_SWIMLANE_ID, type Column, type Swimlane } from './Board.Types'
 

@@ -13,7 +13,7 @@
  * ── Fixed, and defined here ──────────────────────────────────────────────────
  * The API stores only the number, as Date.DateTypeID. What each number means —
  * its name, its picture, what it does to the graphs — lives here, because the
- * picture is drawn by code (see DayArt) and the rules change behaviour. A type
+ * picture is drawn by code (see DayTypeSceneArt) and the rules change behaviour. A type
  * someone could make up would have neither. If user-made types come, they would
  * be a table of their own, each built on one of these as its base theme.
  *
@@ -44,7 +44,7 @@
 
 import type { Dayjs } from 'dayjs'
 
-/** Which picture a type is drawn with — see DayArt. */
+/** Which picture a type is drawn with — see DayTypeSceneArt. */
 export type Scene = 'city' | 'park' | 'beach'
 
 export interface DayType

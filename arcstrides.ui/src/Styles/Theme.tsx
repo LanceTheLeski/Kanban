@@ -99,7 +99,7 @@ export interface ArcPalette
 
     // ── On glass ──────────────────────────────────────────────────────────────
     // Glass is a dark translucent surface, so anything drawn on it is a white at
-    // some opacity. These were an unnamed ramp inside ArcExpandingSelector —
+    // some opacity. These were an unnamed ramp inside ArcExpandingPicker —
     // 0.95, 0.9, 0.7, 0.6, 0.2, 0.15, 0.12 — which is exactly the kind of thing
     // the next glass component copies out and then drifts from.
     /** A selected or active label on glass. */

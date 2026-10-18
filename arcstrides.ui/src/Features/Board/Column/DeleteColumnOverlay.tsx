@@ -28,10 +28,10 @@
 import React, { useState } from 'react'
 import { Stack, Typography } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
-import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
+import { ArcExpandingPicker } from '../../../Components/ArcExpandingPicker'
 import { createColumn, deleteColumn } from '../Board.APIs'
 import { NEUTRALS } from '../../../Styles/Palette'
-import { useBoardActions } from '../useBoardActions'
+import { useBoardActions } from '../Hooks/useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
 import { useBoardStore } from '../Board.Store'
 
@@ -116,9 +116,9 @@ export const DeleteColumnOverlay: React.FC<DeleteColumnOverlayProps> = ({ open, 
                     title="Delete column"
                     titleStock="blue">
             <Stack spacing={1.5}>
-                <ArcExpandingSelector options={columns.map(column => column.title)}
-                                      onSelect={handleSelect}
-                                      placeholder="Select column to delete" />
+                <ArcExpandingPicker options={columns.map(column => column.title)}
+                                    onSelect={handleSelect}
+                                    placeholder="Select column to delete" />
 
                 { selected && (
                     <Typography role={orphaning

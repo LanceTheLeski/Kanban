@@ -27,9 +27,9 @@
 import React, { useState } from 'react'
 import { Stack, TextField, Typography } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
-import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
+import { ArcExpandingPicker } from '../../../Components/ArcExpandingPicker'
 import { createCard } from '../Board.APIs'
-import { useBoardActions } from '../useBoardActions'
+import { useBoardActions } from '../Hooks/useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
 import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
@@ -145,15 +145,15 @@ export const CreateCardOverlay: React.FC<CreateCardOverlayProps> = ({ open, onCl
                            fullWidth />
 
                 {/* Column selector — mirrors @bind-Options="ColumnTitles" */}
-                <ArcExpandingSelector options={columns.map(column => column.title)}
-                                      onSelect={handleSelectColumn}
-                                      placeholder="Select Column" />
+                <ArcExpandingPicker options={columns.map(column => column.title)}
+                                    onSelect={handleSelectColumn}
+                                    placeholder="Select Column" />
 
                 {/* Swimlane selector — mirrors @bind-Options="SwimlaneTitles". Only where there are swimlanes. */}
                 { laned && (
-                    <ArcExpandingSelector options={swimlanes.map(swimlane => swimlane.title)}
-                                          onSelect={handleSelectSwimlane}
-                                          placeholder="Select Swimlane" />
+                    <ArcExpandingPicker options={swimlanes.map(swimlane => swimlane.title)}
+                                        onSelect={handleSelectSwimlane}
+                                        placeholder="Select Swimlane" />
                 )
                 }
             </Stack>

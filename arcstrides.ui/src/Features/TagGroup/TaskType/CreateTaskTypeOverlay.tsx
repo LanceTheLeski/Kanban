@@ -3,7 +3,7 @@
  *
  * Mirrors: TagGroup/TaskType/CreateTaskTypeOverlay.razor
  *
- * Referenced by both CreateTaskOverlay and UpdateTaskPopover.
+ * Referenced by both CreateTaskPopover and UpdateTaskPopover.
  *
  * ── This used to be a stub ───────────────────────────────────────────────────
  * The Blazor source for this overlay was not among the files provided during the
@@ -30,7 +30,7 @@ import { Stack, TextField } from '@mui/material'
 import { paperField } from '../../../Styles/Paper'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { createTaskType } from '../../Board/Board.APIs'
-import { useBoardActions } from '../../Board/useBoardActions'
+import { useBoardActions } from '../../Board/Hooks/useBoardActions'
 import type { TaskType } from '../../../Entities/Task/Task.Types'
 
 interface CreateTaskTypeOverlayProps

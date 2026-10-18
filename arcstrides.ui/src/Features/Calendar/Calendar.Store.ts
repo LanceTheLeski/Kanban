@@ -51,7 +51,7 @@ interface CalendarState
     /**
      * Counts the reads of a month that came back. Each edit made from the
      * calendar ends in one, so anything read alongside the month — the boards
-     * a day's deadlines are found on, see useBoards — reads again when it moves.
+     * a day's deadlines are found on, see useCalendarBoards — reads again when it moves.
      */
     revision: number
 

@@ -6,6 +6,8 @@
  * are kept rather than remembered.
  *
  *   arc/file-named-for-export    a file is named for what it exports
+ *   arc/component-role           a component's name ends in what it is; hooks
+ *                                and art sit in Hooks/ and Assets/
  *   arc/private-last             unexported helpers go last, under the banner
  *   arc/no-space-before-paren    `foo(bar)`, not the API's C# `Foo (bar)`
  *   arc/fonts-from-fonts         font stacks come from Styles/Fonts.ts
@@ -29,7 +31,7 @@ const DOC = 'docs/ui-conventions.md'
 // ── arc/file-named-for-export ────────────────────────────────────────────────
 
 /**
- * The file's name matches its primary export: `DayCell.tsx` exports DayCell,
+ * The file's name matches its primary export: `GridDayCell.tsx` exports GridDayCell,
  * `useGridDaySize.ts` exports useGridDaySize. Two kinds of module are named for
  * what they hold instead, and are not checked: a feature's module of related
  * helpers, `Feature.Thing.ts`, and a module in Styles/ or Lib/, which belongs
@@ -72,6 +74,62 @@ const fileNamedForExport = {
                         expected: base,
                     },
                 })
+            },
+        }
+    },
+}
+
+// ── arc/component-role ───────────────────────────────────────────────────────
+
+/**
+ * What kind of thing a component is, in the last word of its name. The list is
+ * the conventions doc's "Roles" table; a component that is none of these is
+ * either one of them under another name, or a role the table should gain — in
+ * the same commit as the doc.
+ */
+const ROLES = [
+    'Page', 'Layout', 'View', 'Grid', 'Overlay', 'Popover', 'Menu', 'Bar', 'Panel', 'Header',
+    'List', 'Row', 'Cell', 'Strip', 'Note', 'Node', 'Rail', 'Chart', 'Art', 'Picker', 'Step',
+    'Number', 'Provider',
+]
+
+/**
+ * A component's file ends in its role: `GridDayCell.tsx`, `DayTimelinePanel.tsx`,
+ * `TaskTypeRingChart.tsx`. Inside a feature, a hook's file sits in its Hooks/
+ * folder and a picture's (…Art.tsx) in its Assets/ folder. App.tsx, main.tsx and
+ * Styles/ are not components in this sense.
+ */
+const componentRole = {
+    meta: {
+        type: 'suggestion',
+        docs: { description: 'A component is named for its role; hooks and art sit in Hooks/ and Assets/.' },
+        schema: [],
+        messages: {
+            role: `{{name}} does not end in a role. End it in what it is — {{roles}} (${DOC}, "Roles").`,
+            hookFolder: `{{name}} is a hook; inside a feature it belongs in a Hooks/ folder (${DOC}, "Folders").`,
+            artFolder: `{{name}} is a picture; inside a feature it belongs in an Assets/ folder (${DOC}, "Folders").`,
+        },
+    },
+    create(context) {
+        const file = context.filename
+        const name = path.basename(file).replace(/\.(tsx?|jsx?)$/, '')
+        const parts = file.split(path.sep)
+        const folder = parts[parts.length - 2]
+        const inFeature = parts.includes('Features')
+        if (name.includes('.') || name === 'main' || name === 'App' || parts.includes('Styles') || parts.includes('Lib')) return {}
+
+        return {
+            Program(program) {
+                const report = (messageId) => context.report({ node: program, messageId, data: { name, roles: ROLES.join(', ') } })
+                if (/^use[A-Z]/.test(name)) {
+                    if (inFeature && folder !== 'Hooks') report('hookFolder')
+                    return
+                }
+                if (!/\.tsx$/.test(file) || !/^[A-Z]/.test(name)) return
+                if (!ROLES.some(role => name.endsWith(role) && name !== role || name === role && parts.includes('Components')))
+                    report('role')
+                else if (inFeature && name.endsWith('Art') && folder !== 'Assets')
+                    report('artFolder')
             },
         }
     },
@@ -267,6 +325,7 @@ export default {
     meta: { name: 'eslint-plugin-arc' },
     rules: {
         'file-named-for-export': fileNamedForExport,
+        'component-role': componentRole,
         'private-last': privateLast,
         'no-space-before-paren': noSpaceBeforeParen,
         'fonts-from-fonts': fontsFromFonts,

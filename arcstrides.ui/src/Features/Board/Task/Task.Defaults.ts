@@ -8,7 +8,7 @@
  * kind — Work, Leisure — whose options can name the task type its new tasks
  * start as (Calendar → Options). The card editor is the board's and knows
  * nothing of days, so the calendar says it through this, around the card, and
- * CreateTaskOverlay reads it. Anywhere else there is no provider, and a new task
+ * CreateTaskPopover reads it. Anywhere else there is no provider, and a new task
  * starts with no type chosen, as it always has.
  */
 

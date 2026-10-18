@@ -26,18 +26,18 @@
 import React, { useState } from 'react'
 import { Stack, TextField } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
-import { ArcExpandingSelector } from '../../../Components/ArcExpandingSelector'
+import { ArcExpandingPicker } from '../../../Components/ArcExpandingPicker'
 import { useArcError } from '../../../Components/useArcError'
 import { updateColumn, type OrderedItemPatchRequest } from '../Board.APIs'
-import { useBoardActions } from '../useBoardActions'
+import { useBoardActions } from '../Hooks/useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
 import { ArcColourPicker } from '../../../Components/ArcColourPicker'
 import { columnColour, sameColour } from '../Board.Colours'
 import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
-import { PlacementList } from '../PlacementList'
-import { GlobalColourPanel } from '../GlobalColourPanel'
-import { useColourChoice } from '../useColourChoice'
+import { PlacementList } from '../ColumnAndSwimlane/PlacementList'
+import { GlobalColourPanel } from '../ColumnAndSwimlane/GlobalColourPanel'
+import { useColourChoice } from '../Hooks/useColourChoice'
 
 interface UpdateColumnOverlayProps
 {
@@ -125,9 +125,9 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
                     title="Edit column"
                     titleStock="blue">
             <Stack spacing={1.5}>
-                <ArcExpandingSelector options={columns.map(column => column.title)}
-                                      onSelect={handleSelectColumn}
-                                      placeholder="Select column to edit" />
+                <ArcExpandingPicker options={columns.map(column => column.title)}
+                                    onSelect={handleSelectColumn}
+                                    placeholder="Select column to edit" />
 
                 { selected && (
                     <>

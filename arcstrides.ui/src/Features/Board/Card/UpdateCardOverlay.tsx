@@ -6,7 +6,7 @@
  * This is the most complex component in the board feature. In Blazor it contained:
  *   - Editable title + description fields bound to ActiveCard
  *   - A task list built as a RenderFragment factory (_taskListRenderFragment)
- *   - Nested CreateTaskOverlay, UpdateTaskPopover per task
+ *   - Nested CreateTaskPopover, UpdateTaskPopover per task
  *   - UpdateTimelinePanel
  *   - CommandPanel stub
  *   - Delete card + delete task operations
@@ -18,7 +18,7 @@
  * pattern needed.
  *
  * ── Editable state and the card prop ────────────────────────────────────────
- * BoardCard mounts this only while it is open, so the useState initialisers below
+ * BoardCardNote mounts this only while it is open, so the useState initialisers below
  * re-run on every open and the draft always starts from the current card. That
  * replaces Blazor's Fire() callback, which re-seeded the fields by hand.
  *
@@ -59,13 +59,13 @@ import {
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
-import { ArcSplitPane } from '../../../Components/ArcSplitPane'
+import { ArcSplitLayout } from '../../../Components/ArcSplitLayout'
 import { UpdateTimelinePanel } from '../Timeline/UpdateTimelinePanel'
 import { saveTimeline, TIMELINE_PARENT_CARD, type TimelineDraft } from '../Timeline/Timeline.Draft'
 import { UpdateTaskPopover } from '../Task/UpdateTaskPopover'
-import { CreateTaskOverlay } from '../Task/CreateTaskOverlay'
+import { CreateTaskPopover } from '../Task/CreateTaskPopover'
 import { CommandPanel } from '../Commands/CommandPanel'
-import { useBoardActions } from '../useBoardActions'
+import { useBoardActions } from '../Hooks/useBoardActions'
 import { deleteCard, deleteTask, updateCard } from '../Board.APIs'
 import { useBoardStore } from '../Board.Store'
 import { TagsPanel } from '../../TagGroup/Tag/TagsPanel'
@@ -236,7 +236,7 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
         })
     }
 
-    // Called by CreateTaskOverlay with the task the server assigned an ID to
+    // Called by CreateTaskPopover with the task the server assigned an ID to
     const handleTaskCreated = (createdTask: Task) =>
     {
         replaceCard({
@@ -271,49 +271,49 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                     produce a different shape of dialog from a full one.
                 */}
                 <Box sx={{ minHeight: CARD_DETAIL_ROW_MIN_HEIGHT, display: 'flex', flexDirection: 'column' }}>
-                    <ArcSplitPane ratio={split}
-                                  onRatioChange={setSplit}
-                                  minLeftRem={CARD_LEFT_PANE_MIN_REM}
-                                  minRightRem={CARD_RIGHT_PANE_MIN_REM}
-                                  // A card that is only a checklist should be able to drop
-                                  // the description entirely rather than keep a sliver of it.
-                                  collapsibleRight
-                                  resetRatio={CARD_SPLIT_DEFAULT}
-                                  stackBelow={STACK_BELOW}
-                                  label="Resize card detail and description"
-                                  left={
-                                      <Box sx={{ display: 'flex',
-                                                 flexDirection: 'column',
-                                                 gap: 1,
-                                                 minWidth: 0,
-                                                 minHeight: 0,
-                                                 flex: 1,
-                                                 pr: 1
-                                              }}>
-                                          <TitleAndTags title={title}
-                                                        onTitleChange={setTitle}
-                                                        tags={tags}
-                                                        onTagsChange={setTags} />
-                                          <TaskList tasks={tasks}
-                                                    boardId={boardId}
-                                                    cardId={card.id}
-                                                    onTaskUpdated={handleTaskUpdated}
-                                                    onTaskCreated={handleTaskCreated}
-                                                    onTaskDeleted={handleDeleteTask} />
-                                      </Box>
-                                  }
-                                  right={
-                                      <Box sx={{ display: 'flex',
-                                                 flexDirection: 'column',
-                                                 minWidth: 0,
-                                                 minHeight: 0,
-                                                 flex: 1,
-                                                 pl: 1
-                                              }}>
-                                          <DescriptionField value={description}
-                                                            onChange={setDescription} />
-                                      </Box>
-                                  } />
+                    <ArcSplitLayout ratio={split}
+                                    onRatioChange={setSplit}
+                                    minLeftRem={CARD_LEFT_PANE_MIN_REM}
+                                    minRightRem={CARD_RIGHT_PANE_MIN_REM}
+                                    // A card that is only a checklist should be able to drop
+                                    // the description entirely rather than keep a sliver of it.
+                                    collapsibleRight
+                                    resetRatio={CARD_SPLIT_DEFAULT}
+                                    stackBelow={STACK_BELOW}
+                                    label="Resize card detail and description"
+                                    left={
+                                        <Box sx={{ display: 'flex',
+                                                   flexDirection: 'column',
+                                                   gap: 1,
+                                                   minWidth: 0,
+                                                   minHeight: 0,
+                                                   flex: 1,
+                                                   pr: 1
+                                                }}>
+                                            <TitleAndTags title={title}
+                                                          onTitleChange={setTitle}
+                                                          tags={tags}
+                                                          onTagsChange={setTags} />
+                                            <TaskList tasks={tasks}
+                                                      boardId={boardId}
+                                                      cardId={card.id}
+                                                      onTaskUpdated={handleTaskUpdated}
+                                                      onTaskCreated={handleTaskCreated}
+                                                      onTaskDeleted={handleDeleteTask} />
+                                        </Box>
+                                    }
+                                    right={
+                                        <Box sx={{ display: 'flex',
+                                                   flexDirection: 'column',
+                                                   minWidth: 0,
+                                                   minHeight: 0,
+                                                   flex: 1,
+                                                   pl: 1
+                                                }}>
+                                            <DescriptionField value={description}
+                                                              onChange={setDescription} />
+                                        </Box>
+                                    } />
                 </Box>
 
                 {/*
@@ -355,7 +355,7 @@ export default UpdateCardOverlay
 //
 // The 4:7 those numbers described is now only where the split *starts*
 // (CARD_SPLIT_DEFAULT): the reader drags the bar between the two panes from
-// there. See ArcSplitPane.
+// there. See ArcSplitLayout.
 const OVERLAY_MAX_WIDTH = 1100
 
 // Below this the two columns stop being readable side by side and stack.
@@ -578,7 +578,7 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
                     not line up with the others.
                 */}
                 <ListItem disablePadding>
-                    <CreateTaskOverlay boardId={boardId}
+                    <CreateTaskPopover boardId={boardId}
                                        cardId={cardId}
                                        tasksCount={tasks.length}
                                        onCreated={onTaskCreated} />

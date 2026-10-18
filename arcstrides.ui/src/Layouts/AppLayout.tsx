@@ -11,7 +11,7 @@
  *
  * MainLayout also mounted MudBlazor's four providers (Theme, Popover, Dialog,
  * Snackbar). Their React counterparts live in App.tsx — ThemeProvider,
- * CssBaseline and ArcErrorDisplay — because MUI's Popover and Dialog portal
+ * CssBaseline and ArcErrorProvider — because MUI's Popover and Dialog portal
  * themselves and need no app-level provider.
  *
  * The Blazor `#blazor-error-ui` bar has no equivalent: React surfaces failures

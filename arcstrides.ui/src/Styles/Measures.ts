@@ -69,7 +69,7 @@ export const TASK_PANEL_ROW_MIN_HEIGHT = rem(200)
 
 // ── Controls ──────────────────────────────────────────────────────────────────
 
-/** ArcExpandingSelector's collapsed bar — one line of text plus its padding. */
+/** ArcExpandingPicker's collapsed bar — one line of text plus its padding. */
 export const SELECTOR_SUMMARY_MIN_HEIGHT = rem(40)
 
 /** How far the selector's option list opens before it scrolls. */
