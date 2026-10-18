@@ -8,6 +8,12 @@ public class CardResponse
 
     public string? Description { get; init; } = null;
 
+    /// <summary>
+    /// Whether the card keeps dates of its own rather than taking its tasks'; null
+    /// when it was never set. See Card.OverridesTaskTimelines.
+    /// </summary>
+    public bool? OverridesTaskTimelines { get; init; } = null;
+
     public CardPositionResponse? Position { get; set; } = null; //This line differs
 
     public IEnumerable<TaskResponse>? Tasks { get; set; } = null;

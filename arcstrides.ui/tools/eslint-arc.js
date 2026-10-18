@@ -89,7 +89,7 @@ const fileNamedForExport = {
  */
 const ROLES = [
     'Page', 'Layout', 'View', 'Grid', 'Overlay', 'Popover', 'Menu', 'Bar', 'Panel', 'Header',
-    'List', 'Row', 'Cell', 'Strip', 'Note', 'Node', 'Rail', 'Chart', 'Art', 'Picker', 'Step',
+    'List', 'Row', 'Cell', 'Note', 'Node', 'Rail', 'Chart', 'Art', 'Picker', 'Step',
     'Number', 'Provider',
 ]
 

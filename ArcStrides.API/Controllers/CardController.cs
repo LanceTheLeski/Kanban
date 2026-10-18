@@ -148,7 +148,8 @@ public class CardController : ControllerBase
     }
 
     /// <summary>
-    /// Updates a card's own content (title, description).
+    /// Updates a card's own content (title, description, and whether it keeps
+    /// dates of its own rather than its tasks').
     ///
     /// The card position endpoint on BoardController only moves a card between
     /// columns and swimlanes — Title and Description live on the Card entity, so
@@ -169,7 +170,8 @@ public class CardController : ControllerBase
         var convertedCardToUpdate = new CardPatchRequest
         {
             Title = cardToUpdate.Title,
-            Description = cardToUpdate.Description
+            Description = cardToUpdate.Description,
+            OverridesTaskTimelines = cardToUpdate.OverridesTaskTimelines
         };
 
         try { cardPatchRequest.ApplyTo (convertedCardToUpdate); }
@@ -178,6 +180,7 @@ public class CardController : ControllerBase
 
         cardToUpdate.Title = convertedCardToUpdate.Title;
         cardToUpdate.Description = convertedCardToUpdate.Description;
+        cardToUpdate.OverridesTaskTimelines = convertedCardToUpdate.OverridesTaskTimelines;
 
         await _cardRepository.UpdateCardAsync (cardToUpdate);
 

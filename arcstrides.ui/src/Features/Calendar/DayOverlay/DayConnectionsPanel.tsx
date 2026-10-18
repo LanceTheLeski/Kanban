@@ -16,8 +16,9 @@
  * Mirrors: nothing that was built. UpdateDateOverlay.razor had a second
  * timeline of "Event 1" to "Event 6" beside the real one — a placeholder for
  * things beyond the day's own tasks. These are what the day's data can say
- * about that. Deadlines were part of it too, as "Due"; they are the overlay's
- * Due column now, beside the cards, where what is due on this day is listed.
+ * about that. Deadlines were part of it too, as "Due"; they are under their
+ * cards now, in the overlay's Cards panel, where what is due on this day is
+ * listed.
  */
 
 import React from 'react'

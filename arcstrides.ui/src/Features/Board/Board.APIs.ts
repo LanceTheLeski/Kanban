@@ -170,6 +170,8 @@ export interface CardResponse
 
     timeline: TimelineResponse | null
 
+    overridesTaskTimelines: boolean | null
+
     tags: TagResponse[] | null
 }
 
@@ -259,6 +261,7 @@ export function mapCard(response: CardResponse): Card
         // Sort tasks by order on load — mirrors Blazor's OrderBy(task => task.Order)
         tasks: (response.tasks ?? []).map(mapTask).sort((a, b) => a.order - b.order),
         timeline: mapTimeline(response.timeline),
+        overridesTasks: response.overridesTaskTimelines ?? null,
         tags: mapTags(response.tags),
     }
 }
@@ -368,7 +371,11 @@ export function moveCard(boardId: string, positionId: string, request: CardMoveR
 export interface CardPatchRequest
 {
     title?: string
+
     description?: string
+
+    /** Whether the card keeps dates of its own rather than taking its tasks'. */
+    overridesTasks?: boolean
 }
 
 /**
@@ -389,6 +396,9 @@ export function updateCard(boardId: string, cardId: string, patch: CardPatchRequ
 
     if (patch.description !== undefined)
         operations.push({ op: 'replace', path: '/description', value: patch.description })
+
+    if (patch.overridesTasks !== undefined)
+        operations.push({ op: 'replace', path: '/overridesTaskTimelines', value: patch.overridesTasks })
 
     return apiClient.patch(`${ARC}/boards/${boardId}/cards/${cardId}`, operations)
 }

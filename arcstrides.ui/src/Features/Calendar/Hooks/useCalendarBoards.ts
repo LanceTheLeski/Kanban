@@ -12,7 +12,7 @@
  * guesswork when there is one.
  *
  * Three things read through here: the cards "+ Add card" offers (useAddableCards),
- * and the deadlines a day has — in the day overlay's Due column, and in the date
+ * and the deadlines a day has — in the day overlay's cards, and in the date
  * picker under a timeline node — which are found among these boards' tasks as
  * well as the day's own cards (see Calendar.Stops).
  *

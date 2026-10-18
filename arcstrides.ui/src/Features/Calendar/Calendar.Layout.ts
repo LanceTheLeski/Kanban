@@ -15,17 +15,15 @@ import { rem } from '../../Styles/Measures'
 export const CALENDAR_GAP = 1
 
 /**
- * A day's floor: the header, the view row and a card, on a desktop. On a phone
- * a day is forty pixels wide and holds a number and a tally, so it may be short.
+ * A day's height on the grid — fixed, not a floor. Every day of a week is the
+ * same height whatever is on it, and what does not fit scrolls inside the day
+ * (see GridDayCell), so one busy day does not stretch its whole week and push
+ * the rest of the month down the page.
+ *
+ * On a phone a day is forty pixels wide and holds its number, a count of its
+ * cards — on yellow when one of them is due — and its picture's strip.
  */
-export const DAY_MIN_HEIGHT = { xs: rem(56), sm: rem(118), md: rem(150) }
-
-/**
- * The ceiling on a day's cards before they scroll — the Blazor date's 120px
- * carousel, given more room. Without one, the busiest day would set the height
- * of its whole week.
- */
-export const DAY_BODY_MAX_HEIGHT = { sm: rem(170), md: rem(210) }
+export const DAY_HEIGHT = { xs: rem(80), sm: rem(156), md: rem(196) }
 
 /** Below this a day is too narrow for its header and cards, and shows a count. */
 export const NOTES_FROM = 'sm'

@@ -7,7 +7,8 @@
  * Which stops those are is the overlay's to say: every point of the tasks on
  * the day's cards, and every point with a time that falls on this day from a
  * task anywhere the calendar can read. A point on this day with no time is not
- * here — it has no place on a line of times — but in the Due column under it.
+ * here — it has no place on a line of times — but under its card, in the
+ * Cards panel below (DayCardsPanel).
  *
  * Mirrors: the MudTimeline in UpdateDateOverlay.razor, which listed each task
  * of the day's cards as "{EndDeadlineUTC}: {Title}", ordered by that deadline.
@@ -17,9 +18,11 @@
  * as both. It is the same rail the task's own timeline panel draws, in the same
  * gold, standing on its end.
  *
- * Each stop's dot is its task's type colour — the ring's and the lines' — and
- * the point's name and the card are written beside it, so the colour is a link
- * to the graphs, never the only thing saying which task it is. Stops on this
+ * Each line leads with its card — a task is never shown without the card it
+ * belongs to — and under the card says which task and which point, or that the
+ * point is the card's own. Each stop's dot is its task's type colour — the
+ * ring's and the lines' — so the colour is a link to the graphs, never the only
+ * thing saying which task it is. Stops on this
  * day are at full strength; stops on other days are paler and carry their
  * date. The day itself is not marked on the rail: the panel is already the
  * day's, and a label for it was a second heading in a panel of paper.
@@ -90,10 +93,10 @@ export const DayTimelineList: React.FC<DayTimelineListProps> = ({ day, stops, pe
                            duration={row.stop.duration}
                            onDay={row.stop.at.isSame(day.date, 'day')}
                            colour={colourOf(stopTypeId(row.stop), colours)}
-                           title={stopTitle(row.stop)}
-                           caption={`${pointName(row.stop)} · ${row.stop.task
-                               ? row.stop.card.title
-                               : 'card'}`}
+                           title={row.stop.card.title}
+                           caption={row.stop.task
+                               ? `${row.stop.task.title} · ${pointName(row.stop).toLowerCase()}`
+                               : `the card's own ${pointName(row.stop).toLowerCase()}`}
                            done={stopDone(row.stop)}
                            label={`${stopTitle(row.stop)}, ${pointName(row.stop).toLowerCase()} ${row.stop.at.format(row.stop.timed
                                ? 'D MMMM HH:mm'
@@ -148,10 +151,13 @@ interface RowProps
     /** The task's type colour; null for a pending point, which is drawn hollow on blue. */
     colour: string | null
 
+    /** The card's title. */
     title: string
 
+    /** Which task and which point — or that the point is the card's own. */
     caption: string
 
+    /** The task is done: its caption is struck through. */
     done?: boolean
 
     label: string
@@ -191,12 +197,7 @@ function Row({ at, timed, duration, onDay, colour, title, caption, done = false,
             <Typography component="span"
                         sx={{ fontSize: '0.76rem',
                               fontWeight: 600,
-                              color: done
-                                  ? 'arc.onPaperMuted'
-                                  : 'arc.onPaperStrong',
-                              textDecoration: done
-                                  ? 'line-through'
-                                  : 'none',
+                              color: 'arc.onPaperStrong',
                               overflowWrap: 'anywhere'
                            }}>
                 { title }
@@ -208,9 +209,13 @@ function Row({ at, timed, duration, onDay, colour, title, caption, done = false,
                     : at.format('DD MMM')
                 }
             </Typography>
+            {/* The task, struck through when it is done: the card above it is not. */}
             <Typography component="span"
                         sx={{ fontSize: '0.64rem',
                               color: 'arc.onPaperMuted',
+                              textDecoration: done
+                                  ? 'line-through'
+                                  : 'none',
                               overflowWrap: 'anywhere'
                            }}>
                 { caption }

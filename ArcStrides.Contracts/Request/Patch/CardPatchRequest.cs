@@ -12,4 +12,9 @@ public class CardPatchRequest
     public string? Title { get; set; } = null;
 
     public string? Description { get; set; } = null;
+
+    /// <summary>
+    /// Whether the card keeps dates of its own rather than taking its tasks'.
+    /// </summary>
+    public bool? OverridesTaskTimelines { get; set; } = null;
 }

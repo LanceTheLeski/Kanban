@@ -68,7 +68,19 @@ export interface Card
 
     tasks: Task[]
 
+    /**
+     * The card's own timeline. Whether it is the one the card goes by is
+     * `overridesTasks`'s to say — see Timeline.Inheritance.
+     */
     timeline: Timeline | null
+
+    /**
+     * Whether the card keeps dates of its own rather than taking its tasks'.
+     * Null when it was never set: then a card with a timeline of its own keeps
+     * it, and one without takes its tasks'. Read through `overridesTasks()` in
+     * Timeline.Inheritance rather than directly.
+     */
+    overridesTasks: boolean | null
 
     /** The card's tags, by title. */
     tags: Tag[]

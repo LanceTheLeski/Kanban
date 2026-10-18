@@ -61,12 +61,13 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcSplitLayout } from '../../../Components/ArcSplitLayout'
 import { UpdateTimelinePanel } from '../Timeline/UpdateTimelinePanel'
-import { saveTimeline, TIMELINE_PARENT_CARD, type TimelineDraft } from '../Timeline/Timeline.Draft'
+import { draftFromTimeline, saveTimeline, TIMELINE_PARENT_CARD, type TimelineDraft } from '../Timeline/Timeline.Draft'
+import { inheritedTimeline, overridesTasks, timelineKey } from '../Timeline/Timeline.Inheritance'
 import { UpdateTaskPopover } from '../Task/UpdateTaskPopover'
 import { CreateTaskPopover } from '../Task/CreateTaskPopover'
 import { CommandPanel } from '../Commands/CommandPanel'
 import { useBoardActions } from '../Hooks/useBoardActions'
-import { deleteCard, deleteTask, updateCard } from '../Board.APIs'
+import { deleteCard, deleteTask, updateCard, type CardPatchRequest } from '../Board.APIs'
 import { useBoardStore } from '../Board.Store'
 import { TagsPanel } from '../../TagGroup/Tag/TagsPanel'
 import { saveTags, sameTags } from '../../TagGroup/Tag/Tag.APIs'
@@ -115,6 +116,10 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
     // set here were gone when the card closed.
     const [timelineDraft, setTimelineDraft] = useState<TimelineDraft | null>(null)
 
+    // Whether the card keeps dates of its own rather than its tasks' — see
+    // Timeline.Inheritance. Saved with the card.
+    const [overriding, setOverriding] = useState(() => overridesTasks(card))
+
     // The card's tags as edited, written with the rest of it on Save (saveTags).
     const [tags, setTags] = useState<Tag[]>(card.tags)
 
@@ -148,9 +153,26 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
         state => state.cards.find(candidate => candidate.id === card.id)?.tasks ?? card.tasks,
     )
 
+    // The card's tasks' dates put together, from the tasks as they are now.
+    const inherited = inheritedTimeline(tasks)
+
+    /**
+     * Ticked, the card keeps dates of its own. With none saved yet, it starts
+     * from the ones it inherited, as a draft, so they are kept as its own even
+     * if nothing is changed. Unticked, any edit to its own dates is dropped; the
+     * ones it saved before stay stored, unused, for the next time it is ticked.
+     */
+    function changeOverriding(next: boolean)
+    {
+        setOverriding(next)
+        setTimelineDraft(next && !card.timeline && inherited
+            ? draftFromTimeline(inherited)
+            : null)
+    }
+
     const handleSubmit = async () =>
     {
-        const patch: { title?: string; description?: string } = {}
+        const patch: CardPatchRequest = {}
 
         // Only patch fields that changed — mirrors Blazor's FormPatchRequestFromOverlay()
         if (title.trim() && title !== card.title)
@@ -160,7 +182,16 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
 
         const tagsChanged = !sameTags(tags, card.tags)
 
-        if (Object.keys(patch).length === 0 && !timelineDraft && !tagsChanged)
+        if (overriding !== overridesTasks(card))
+            patch.overridesTasks = overriding
+
+        // Only a card keeping its own dates writes them; one going by its tasks'
+        // shows theirs and has nothing of its own to save.
+        const ownTimeline = overriding
+            ? timelineDraft
+            : null
+
+        if (Object.keys(patch).length === 0 && !ownTimeline && !tagsChanged)
         {
             onClose()
             return
@@ -175,8 +206,8 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                 if (Object.keys(patch).length > 0)
                     await updateCard(boardId, card.id, patch)
                 // Created, or patched in place — see saveTimeline.
-                if (timelineDraft)
-                    timeline = await saveTimeline(boardId, { id: card.id, kind: TIMELINE_PARENT_CARD }, card.timeline, timelineDraft)
+                if (ownTimeline)
+                    timeline = await saveTimeline(boardId, { id: card.id, kind: TIMELINE_PARENT_CARD }, card.timeline, ownTimeline)
                 if (tagsChanged)
                     savedTags = await saveTags({ id: card.id, kind: 'card' }, card.tags, tags)
             },
@@ -192,6 +223,7 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
             description: patch.description ?? card.description,
             tasks,
             timeline,
+            overridesTasks: patch.overridesTasks ?? card.overridesTasks,
             tags: savedTags,
         })
         onClose()
@@ -332,11 +364,29 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                            minHeight: CARD_PANEL_ROW_MIN_HEIGHT,
                            height: { [STACK_BELOW]: CARD_PANEL_ROW_HEIGHT }
                         }}>
-                    <UpdateTimelinePanel timeline={card.timeline}
+                    {/*
+                        Keyed on whose dates it shows, so ticking the box starts
+                        the panel again from the other set rather than editing
+                        the one on screen — and, while it shows its tasks', on
+                        what those are, so a task saved with new dates shows
+                        here straight away.
+                    */}
+                    <UpdateTimelinePanel key={overriding
+                                             ? 'own'
+                                             : `inherited:${timelineKey(inherited)}`}
+                                         timeline={overriding
+                                             ? card.timeline ?? inherited
+                                             : inherited}
+                                         readOnly={!overriding}
                                          onDraftChange={setTimelineDraft}
                                          boardId={boardId}
                                          subject={{ kind: 'card', id: card.id }}
-                                         subjectTitle={title} />
+                                         subjectTitle={title}
+                                         inheritance={{ overriding,
+                                                        tasksWithDates: tasks.filter(task => inheritedTimeline([task]) !== null).length,
+                                                        tasks: tasks.length,
+                                                        onOverridingChange: changeOverriding
+                                                     }} />
                     <CommandPanel card={card} />
                 </Box>
 

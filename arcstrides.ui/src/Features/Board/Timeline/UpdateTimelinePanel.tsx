@@ -49,13 +49,13 @@
  */
 
 import React, { useMemo, useState } from 'react'
-import { Box, Button, Paper, Typography } from '@mui/material'
+import { Box, Button, Checkbox, FormControlLabel, Paper, Typography } from '@mui/material'
 import { TimelineRail } from './TimelineRail'
 import { TimelineDatePicker } from '../../Calendar/DatePicker/TimelineDatePicker'
 import type { Subject } from '../../Calendar/Calendar.Stops'
 import { MODES, NODES, NODES_FOR, modeOf, seedValues } from './Timeline.Nodes'
 import type { NodeId, NodeValue, NodeValues, TimelineMode } from './Timeline.Nodes'
-import type { TimelineDraft } from './Timeline.Draft'
+import { draftOf, type TimelineDraft } from './Timeline.Draft'
 import { rem } from '../../../Styles/Measures'
 import type { Timeline } from '../../../Entities/Timeline/Timeline.Types'
 
@@ -75,9 +75,40 @@ interface UpdateTimelinePanelProps
 
     /** Its title, as it stands in the editor, for the day's preview. */
     subjectTitle?: string
+
+    /**
+     * Shown, not edited: the points can be opened to see them, and nothing
+     * changes. A card going by its tasks' dates shows them this way.
+     */
+    readOnly?: boolean
+
+    /** A card's: where its dates come from, and the box to keep its own instead. */
+    inheritance?: TimelineInheritance
 }
 
-export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeline, onDraftChange, boardId, subject, subjectTitle }) =>
+/** Where a card's dates come from — see Timeline.Inheritance. */
+export interface TimelineInheritance
+{
+    /** True while the card keeps dates of its own. */
+    overriding: boolean
+
+    /** How many of its tasks have dates, and how many it has. */
+    tasksWithDates: number
+
+    tasks: number
+
+    onOverridingChange: (overriding: boolean) => void
+}
+
+export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({
+    timeline,
+    onDraftChange,
+    boardId,
+    subject,
+    subjectTitle,
+    readOnly = false,
+    inheritance,
+}) =>
 {
     const [mode, setMode] = useState<TimelineMode>(() => modeOf(timeline))
     const [values, setValues] = useState<NodeValues>(() => seedValues(timeline))
@@ -130,6 +161,7 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                                 size="small"
                                 aria-pressed={isOn}
                                 onClick={() => changeMode(option.value)}
+                                disabled={readOnly && !isOn}
                                 /*
                                    Raised when chosen, flat when not. The state is in
                                    the depth rather than in a fill, so all three keep
@@ -270,14 +302,18 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                                         subject={subject}
                                         title={subjectTitle}
                                         others={activeNodes.filter(node => node.id !== openSpec.id)
-                                                           .map(node => ({ label: node.label.join(' '), value: values[node.id] }))} />
+                                                           .map(node => ({ label: node.label.join(' '), value: values[node.id] }))}
+                                        disabled={readOnly} />
 
-                    <Button size="small"
-                            onClick={() => setNode(openSpec.id, { date: null, time: null })}
-                            disabled={!values[openSpec.id].date && !values[openSpec.id].time}
-                            sx={{ fontSize: '0.6rem', minWidth: rem(48), color: 'arc.onPaperMuted' }}>
-                        Clear
-                    </Button>
+                    { !readOnly && (
+                        <Button size="small"
+                                onClick={() => setNode(openSpec.id, { date: null, time: null })}
+                                disabled={!values[openSpec.id].date && !values[openSpec.id].time}
+                                sx={{ fontSize: '0.6rem', minWidth: rem(48), color: 'arc.onPaperMuted' }}>
+                            Clear
+                        </Button>
+                    )
+                    }
                 </Box>
             )
             }
@@ -292,11 +328,16 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
                                   color: 'arc.onPaperMuted',
                                   textAlign: 'center'
                                }}>
-                    Select a point to set its date and time.
+                    { readOnly
+                        ? 'Select a point to see its date and time.'
+                        : 'Select a point to set its date and time.'
+                    }
                 </Typography>
             )
             }
             </Box>
+
+            { inheritance && <InheritanceSegment inheritance={inheritance} /> }
         </Paper>
     )
 
@@ -319,40 +360,10 @@ export const UpdateTimelinePanel: React.FC<UpdateTimelinePanelProps> = ({ timeli
         emit(next, mode)
     }
 
-    /**
-     * Reports the draft as the parent wants it: four date+time pairs, with
-     * anything the current mode does not put in play reported as null rather
-     * than as whatever it was last set to. Switching to Timeless has to clear
-     * the schedule, not hide it.
-     */
+    /** Reports the draft as the parent wants it — see draftOf. */
     function emit(nextValues: NodeValues, nextMode: TimelineMode)
     {
-        const on = NODES_FOR[nextMode]
-        const dateOf = (id: NodeId) => (on.includes(id)
-            ? nextValues[id].date?.toDate() ?? null
-            : null)
-        const timeOf = (id: NodeId) => (on.includes(id)
-            ? nextValues[id].time?.format('HH:mm') ?? null
-            : null)
-        const durationOf = (id: NodeId) => (on.includes(id)
-            ? nextValues[id].duration
-            : null)
-
-        onDraftChange?.({
-            mode: nextMode,
-            preferredStart: dateOf('preferredStart'),
-            preferredStartTime: timeOf('preferredStart'),
-            requiredStart: dateOf('requiredStart'),
-            requiredStartTime: timeOf('requiredStart'),
-            preferredEnd: dateOf('preferredEnd'),
-            preferredEndTime: timeOf('preferredEnd'),
-            requiredEnd: dateOf('requiredEnd'),
-            requiredEndTime: timeOf('requiredEnd'),
-            preferredStartDuration: durationOf('preferredStart'),
-            requiredStartDuration: durationOf('requiredStart'),
-            preferredEndDuration: durationOf('preferredEnd'),
-            requiredEndDuration: durationOf('requiredEnd'),
-        })
+        onDraftChange?.(draftOf(nextValues, nextMode))
     }
 }
 
@@ -368,4 +379,57 @@ function onlyNodeOf(mode: TimelineMode): NodeId | null
     return on.length === 1
         ? on[0]
         : null
+}
+
+/**
+ * The foot of a card's timeline: whether its dates are its tasks' or its own,
+ * and the box that chooses.
+ *
+ * Its tasks' by default — the earliest of their starts and the latest of their
+ * ends (Timeline.Inheritance). Ticked, the card keeps dates of its own, starting
+ * from the ones it had; its tasks keep theirs either way.
+ */
+function InheritanceSegment({ inheritance }: { inheritance: TimelineInheritance })
+{
+    const { overriding, tasksWithDates, tasks, onOverridingChange } = inheritance
+
+    return (
+        <Box role="group"
+             aria-label="Where the card's dates come from"
+             sx={{ flexShrink: 0,
+                   pt: 0.75,
+                   borderTop: '1px solid',
+                   borderTopColor: 'arc.paperDivider',
+                   display: 'flex',
+                   flexDirection: 'column',
+                   gap: 0.25
+                }}>
+            <Typography sx={{ fontSize: '0.64rem', color: 'arc.onPaperStrong', lineHeight: 1.45 }}>
+                { inheritanceNote(overriding, tasksWithDates, tasks) }
+            </Typography>
+            <FormControlLabel sx={{ m: 0, '& .MuiCheckbox-root': { p: 0.4 } }}
+                              control={<Checkbox size="small"
+                                                 checked={overriding}
+                                                 onChange={event => onOverridingChange(event.target.checked)} />}
+                              label={<Typography sx={{ fontSize: '0.66rem',
+                                                       fontWeight: 600,
+                                                       color: 'arc.onPaperStrong'
+                                                    }}>
+                                         Use the card's own dates instead of its tasks'
+                                     </Typography>} />
+        </Box>
+    )
+}
+
+function inheritanceNote(overriding: boolean, tasksWithDates: number, tasks: number): string
+{
+    if (overriding)
+        return "The card's own dates. Its tasks keep theirs, and still show under it on their own days."
+    if (tasks === 0)
+        return 'Taken from its tasks — it has none yet. Add one with dates, or tick the box to give the card its own.'
+    if (tasksWithDates === 0)
+        return 'Taken from its tasks — none of them has dates yet. When one does, the card has them too.'
+    return `Taken from its tasks — ${tasksWithDates} of ${tasks} ${tasks === 1
+        ? 'has'
+        : 'have'} dates: the earliest of their starts and the latest of their ends.`
 }

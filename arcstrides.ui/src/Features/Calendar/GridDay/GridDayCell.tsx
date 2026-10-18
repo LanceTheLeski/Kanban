@@ -2,8 +2,12 @@
  * GridDayCell
  *
  * One day of the month: a pane of frosted glass with its header of tiles along
- * the top, what is due on the day under it (GridDayDueStrip), and the current
- * view's cards under that, each wrapped round its tasks.
+ * the top, and the current view's cards under it, each wrapped round its tasks.
+ *
+ * The cards are every card on the day: the ones put on it, and the ones due on
+ * it — by dates of their own, or by a task's (Calendar.Stops, cardsOnDay). A
+ * task is never listed on its own; it is under its card, with its time. The
+ * day is a fixed height, and its cards scroll inside it.
  *
  * Mirrors: Layouts/Calendar/CalendarDate.razor — a `.glass` tile per day, its
  * charts and buttons along the top (see GridDayHeader), and under them a frosted
@@ -20,7 +24,7 @@
  * day again.
  *
  * On a phone a day is forty pixels wide: the number and its ring, a note with
- * the card count that opens the day, where there is room for the rest, and a
+ * the card count that opens the day — yellow when any of them is due — and a
  * strip of its theme's picture along the foot.
  */
 
@@ -29,15 +33,15 @@ import { Box, ButtonBase, useMediaQuery, useTheme } from '@mui/material'
 import { TaskTypeRingChart } from '../Charts/TaskTypeRingChart'
 import { GridDayHeader } from './GridDayHeader'
 import { DayCardNote } from './DayCardNote'
-import { GridDayDueStrip } from './GridDayDueStrip'
 import { dayStats } from '../Calendar.Stats'
 import { viewsFor } from '../Calendar.Views'
+import { cardsOnDay } from '../Calendar.Stops'
 import { useDayTypes } from '../Hooks/useDayTypes'
 import { DayTypeSceneArt } from '../Assets/DayTypeSceneArt'
 import { DateDiscNumber } from './DateDiscNumber'
 import { useCalendarActions } from '../Calendar.Context'
 import { useCalendarStore } from '../Calendar.Store'
-import { DAY_BODY_MAX_HEIGHT, DAY_MIN_HEIGHT, NOTES_FROM } from '../Calendar.Layout'
+import { DAY_HEIGHT, NOTES_FROM } from '../Calendar.Layout'
 import type { GridDay } from '../Calendar.Grid'
 
 interface GridDayCellProps
@@ -50,13 +54,15 @@ interface GridDayCellProps
 export const GridDayCell: React.FC<GridDayCellProps> = ({ day, mini = false }) =>
 {
     const { colours, boardTitle, openDay, stopsOnDay } = useCalendarActions()
-    // What falls due on the day, from every card the calendar can read — see GridDayDueStrip.
+    // What falls on the day, from every card the calendar can read.
     const due = stopsOnDay(day.key)
     const wide = useMediaQuery(useTheme().breakpoints.up(NOTES_FROM))
 
-    const cards = useMemo(() => day.stored?.cards ?? [], [day.stored])
-    const stats = useMemo(() => dayStats(cards, colours), [cards, colours])
-    const views = useMemo(() => viewsFor(cards, boardTitle), [cards, boardTitle])
+    // The cards put on the day, and the ones due on it, each once.
+    const entries = useMemo(() => cardsOnDay(day.stored?.cards ?? [], due), [day.stored, due])
+    const stats = useMemo(() => dayStats(entries.map(entry => ({ ...entry.card, tasks: entry.tasks })), colours), [entries, colours])
+    const views = useMemo(() => viewsFor(entries, boardTitle), [entries, boardTitle])
+    const dueCards = entries.filter(entry => entry.own.length > 0 || entry.taskPoints.length > 0).length
 
     /*
        The view is remembered by key, not by position, so a card added or a task
@@ -87,11 +93,13 @@ export const GridDayCell: React.FC<GridDayCellProps> = ({ day, mini = false }) =
                  ? undefined
                  : day.key}
              sx={{ width: '100%',
+                   // Fixed, not a floor: the day does not grow with what is on
+                   // it; its body scrolls instead. See DAY_HEIGHT.
                    height: mini
                        ? '100%'
-                       : undefined,
+                       : DAY_HEIGHT,
                    minWidth: 0,
-                   minHeight: DAY_MIN_HEIGHT,
+                   overflow: 'hidden',
                    display: 'flex',
                    flexDirection: 'column',
                    gap: 0.6,
@@ -114,31 +122,31 @@ export const GridDayCell: React.FC<GridDayCellProps> = ({ day, mini = false }) =
             )
             }
 
-            { wide && due.length > 0 && <GridDayDueStrip day={day}
-                                                         stops={due}
-                                                         mini={mini} />
-            }
-
+            {/*
+                The day's body: the current view's cards. It takes whatever
+                height the header leaves and scrolls within it, so the day keeps
+                its size however much is on it.
+            */}
             { wide && view && (
-                /*
-                    The current view's cards, on the day's glass. Scrolls inside
-                    a ceiling, so one busy day does not make its whole week tall.
-                */
-                <Box sx={{ display: 'flex',
+                <Box aria-label={`What is on ${name}`}
+                     role="region"
+                     sx={{ flex: 1,
+                           minHeight: 0,
+                           overflowY: 'auto',
+                           display: 'flex',
                            flexDirection: 'column',
                            gap: 0.5,
                            minWidth: 0,
-                           maxHeight: DAY_BODY_MAX_HEIGHT,
-                           overflowY: 'auto',
                            // Room for the notes' shadows inside the scroller.
                            pb: 0.5,
                            px: 0.1
                         }}>
-                    { view.cards.map(({ card, tasks }) =>
+                    { view.cards.map(({ entry, card, tasks }) =>
                                      (
                                          <DayCardNote key={card.id}
                                                       card={card}
-                                                      tasks={tasks} />
+                                                      tasks={tasks}
+                                                      entry={entry} />
                                      ))
                     }
                 </Box>
@@ -191,31 +199,24 @@ export const GridDayCell: React.FC<GridDayCellProps> = ({ day, mini = false }) =
                         </TaskTypeRingChart>
                     </Box>
 
-                    { cards.length > 0 && (
-                        <ButtonBase className="note"
+                    {/* The counts side by side, so they fit the day's fixed height. */}
+                    <Box sx={{ display: 'flex',
+                               flexWrap: 'wrap',
+                               gap: 0.4,
+                               minHeight: 0,
+                               overflow: 'hidden'
+                            }}>
+                    { entries.length > 0 && (
+                        <ButtonBase className={dueCards > 0
+                                        ? 'card-stock-flat paper-yellow'
+                                        : 'note'}
                                     onClick={() => openDay(day)}
                                     disabled={mini}
-                                    aria-label={`${cards.length} ${cards.length === 1
+                                    aria-label={`${entries.length} ${entries.length === 1
                                         ? 'card'
-                                        : 'cards'} on ${name}`}
-                                    sx={{ alignSelf: 'flex-start',
-                                          minWidth: '1.2rem',
-                                          px: 0.4,
-                                          fontSize: '0.62rem',
-                                          fontWeight: 700,
-                                          lineHeight: 1.6
-                                       }}>
-                            { cards.length }
-                        </ButtonBase>
-                    )
-                    }
-
-                    {/* What is due on it, as a count on a scrap of the Deadline tab's yellow. */}
-                    { due.length > 0 && (
-                        <ButtonBase className="card-stock-flat paper-yellow"
-                                    onClick={() => openDay(day)}
-                                    disabled={mini}
-                                    aria-label={`${due.length} due on ${name}`}
+                                        : 'cards'} on ${name}${dueCards > 0
+                                            ? `, ${dueCards} due`
+                                            : ''}`}
                                     sx={{ alignSelf: 'flex-start',
                                           minWidth: '1.2rem',
                                           px: 0.4,
@@ -224,10 +225,11 @@ export const GridDayCell: React.FC<GridDayCellProps> = ({ day, mini = false }) =
                                           lineHeight: 1.6,
                                           color: 'arc.onPaperStrong'
                                        }}>
-                            { due.length }
+                            { entries.length }
                         </ButtonBase>
                     )
                     }
+                    </Box>
 
                     {/* The theme, as a strip of its picture along the foot. */}
                     { type.scene && (

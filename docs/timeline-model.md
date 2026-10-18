@@ -164,7 +164,7 @@ at five". The model has nowhere to say so. Each point is one `DateTime`.
 midnight, which is what folding a date with no time into a timestamp has
 always produced (`Timeline.Draft`). Midnight is read back as no time
 (`isTimed` in `Timeline.Nodes`): the editor shows the day with "No time", and
-the day overlay lists the point under Due rather than on the timeline. The
+the day overlay lists the point under its card rather than on the timeline. The
 picker keeps midnight off its hour scale, and a typed 00:00 means "no time".
 
 **What that costs.**
@@ -213,6 +213,46 @@ the overlay gave the panel no `onDraftChange`. It now saves through
 `saveTimeline`, as the task popover does: created with the card as its parent
 (`TIMELINE_PARENT_CARD`), patched in place after that. A card's points are
 stops on the calendar like a task's, with no task (`Stop.task` is null).
+
+---
+
+## A card's dates
+
+A card goes by its tasks' dates unless it keeps its own. Its tasks' are put
+together point by point (`Timeline.Inheritance`):
+
+| card point | from its tasks |
+|---|---|
+| preferred start | the earliest preferred start |
+| required start | the earliest required start |
+| preferred end | the latest preferred end |
+| required end | the latest required end — a deadline-only task has just this |
+
+So a card whose tasks are all deadlines is due when the last of them is; one
+task with a timeline gives the card its starts; a mix takes the earliest starts
+and the latest ends of all of them. Each point keeps the length of the task
+point it came from. Nothing inherited is stored: it is worked out wherever the
+card is drawn.
+
+The card editor's timeline ends with a segment saying where the dates come
+from — "Taken from its tasks — 2 of 3 have dates", or "The card's own dates" —
+and a box, **Use the card's own dates instead of its tasks'**. Unticked, the
+timeline shows the tasks' dates, read-only. Ticked, it is the card's own, edited
+as before; ticked on a card with no dates of its own, it starts from its tasks'.
+Unticking keeps the card's own timeline row, unused, so ticking again brings
+it back.
+
+The box is `Card.OverridesTaskTimelines` (`PATCH …/cards/{ID}`
+`/overridesTaskTimelines`). It is null on every card saved before it existed,
+and null is read as "ticked if the card has a timeline of its own"
+(`overridesTasks`), so a date someone set on a card is never quietly replaced
+by its tasks'.
+
+**On the calendar**, a card's own dates are stops only when it keeps them. Its
+tasks' points are stops either way, under the card: a card is on every day one
+of its tasks has a point, and on the days of its own dates when it keeps them,
+even where no task has anything. A task is never on a day without its card
+(`cardsOnDay`, in `Calendar.Stops`).
 
 ---
 

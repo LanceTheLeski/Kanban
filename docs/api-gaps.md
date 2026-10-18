@@ -185,9 +185,9 @@ Still missing:
   written by `POST dates/…/tags` and sent back on `DateResponse.Tags` (#2). No
   second group ID was needed — the parent is the row.
 - **Nothing lists what is due on a day.** A task is due on a day whether or
-  not its card was put on it, so the day overlay's Due column and the date
-  picker under a timeline node read every board the calendar knows, whole, and
-  look through every task's timeline. `GET calendars/months` returning the
+  not its card was put on it, so the day overlay's cards and the date picker
+  under a timeline node read every board the calendar knows, whole, and look
+  through every task's timeline. `GET calendars/months` returning the
   month's timeline points, with their tasks and cards, would replace that with
   one read, and would find deadlines on boards the calendar cannot name.
 

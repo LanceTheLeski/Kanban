@@ -6,10 +6,11 @@
  *   ┌─────────────────────────────────────────────────┬──────────────┐
  *   │ (30) [ picture ]  Tuesday 30 September   [tags] │  the day, as │
  *   ├─────────────────────────────────────────────────┤  on the grid │
- *   │ Timeline — everything with a time               │  Progress    │
- *   ├────────────────────────┬────────────────────────┤  Connections │
- *   │ Due — no time          │ Cards, and + Add card  │              │
- *   └────────────────────────┴────────────────────────┴──────────────┘
+ *   │ Timeline — everything with a time, by card      │  Progress    │
+ *   ├─────────────────────────────────────────────────┤  Connections │
+ *   │ Cards — put on the day or due on it, with their │              │
+ *   │ tasks under them; + Add card                    │              │
+ *   └─────────────────────────────────────────────────┴──────────────┘
  *
  * Mirrors: Layouts/Calendar/UpdateDateOverlay.razor, which was laid out the
  * same way round — flex-row-reverse, the CalendarDate and its card titles in a
@@ -20,8 +21,8 @@
  *                                      picture (click it to change the theme),
  *                                      the date in words, the tags
  *   the timeline by end deadline     → the timeline, every point with a time
- *   the card titles                  → Cards, editable, under it — beside Due,
- *                                      the points on this day with no time
+ *   the card titles                  → Cards, under it: every card put on the
+ *                                      day or due on it, with its tasks
  *   `<CalendarDate>` in the column   → the live copy, top right, on glass, at
  *                                      exactly the size the grid draws it
  *   the second, placeholder timeline → Connections: nearby days, boards,
@@ -29,10 +30,12 @@
  *
  * ── Whose deadlines ──────────────────────────────────────────────────────────
  * A task is due on a day whether or not its card was put on the day, so the
- * timeline and Due are found among every card the calendar can read: the
- * day's own, and those on the boards it knows (useCalendarBoards, Calendar.Stops). The
- * timeline has the day's cards' whole schedules, other days included, and
- * anything with a time today; Due has whatever falls today with no time.
+ * timeline and the cards are found among every card the calendar can read: the
+ * day's own, and those on the boards it knows (useCalendarBoards,
+ * Calendar.Stops). The timeline has the day's cards' whole schedules, other days
+ * included, and anything with a time today. Cards has every card put on the day
+ * or due on it, each once, and a task due today is always under its card —
+ * never on its own (DayCardsPanel).
  *
  * The right-hand column is slim and frosted, the grid's own material, because
  * what is in it is the day as the calendar sees it and the ways out of it.
@@ -46,22 +49,20 @@
  */
 
 import React from 'react'
-import { Box, IconButton, Paper, Typography } from '@mui/material'
-import CloseIcon from '@mui/icons-material/Close'
+import { Box, Paper } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcTitleBar } from '../../../Components/ArcTitleBar'
 import { MONO } from '../../../Styles/Fonts'
 import { rem } from '../../../Styles/Measures'
 import { DayHeaderPanel } from './DayHeaderPanel'
 import { GridDayCell } from '../GridDay/GridDayCell'
-import { DayCardNote } from '../GridDay/DayCardNote'
 import { DayTimelineList } from './DayTimelineList'
 import { DayConnectionsPanel } from './DayConnectionsPanel'
 import { AddCardPicker } from './AddCardPicker'
 import { dayStats, type DayStats } from '../Calendar.Stats'
 import { useDayTypes } from '../Hooks/useDayTypes'
-import { stopsOf, uniqueStops } from '../Calendar.Stops'
-import { DayDueList } from './DayDueList'
+import { cardsOnDay, stopsOf, uniqueStops } from '../Calendar.Stops'
+import { DayCardsPanel } from './DayCardsPanel'
 import { boardLabel } from '../Calendar.Views'
 import { useCalendarActions } from '../Calendar.Context'
 import { useGridDaySize } from '../Hooks/useGridDaySize'
@@ -115,12 +116,12 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
     const onDay = new Set(cards.map(card => card.id))
     const placed = knownCards.filter(card => onDay.has(card.id))
     const today = stopsOnDay(day.key)
-    const due = today.filter(stop => !stop.timed)
     const railStops = uniqueStops([
         ...stopsOf(placed).filter(stop => stop.timed || !stop.at.isSame(day.date, 'day')),
         ...today.filter(stop => stop.timed),
     ])
-    const scheduled = stopsOf(placed).length > 0
+    // Every card on the day — put on it, or due on it — each once, with what of it falls today.
+    const entries = cardsOnDay(placed, today)
 
     return (
         <ArcOverlay open
@@ -164,77 +165,28 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
                     }
 
                     {/*
-                        Due and Cards, side by side on one sheet of blue — the way
-                        the tags panel puts its pieces on blue. On the left, a
-                        piece of yellow, the stock the Deadline tab is cut from:
-                        what falls on this day with no time. On the right, the
-                        cards put on the day, as notes. Stacked on a phone.
+                        The day's cards, on a sheet of blue — the way the tags
+                        panel puts its pieces on blue: the ones put on the day,
+                        and the ones due on it, each once, with their tasks under
+                        them. See DayCardsPanel.
                     */}
                     <Paper className="card-stock paper-blue"
                            elevation={0}
-                           sx={{ minWidth: 0,
-                                 p: 1.5,
-                                 display: 'grid',
-                                 gridTemplateColumns: { xs: 'minmax(0, 1fr)', sm: 'minmax(0, 1fr) minmax(0, 1fr)' },
-                                 gap: 1.5,
-                                 alignItems: 'start'
-                              }}>
-                        <Box className="card-stock-flat card-cut paper-yellow"
-                             sx={{ minWidth: 0,
-                                   alignSelf: 'stretch',
-                                   p: 1,
-                                   display: 'flex',
-                                   flexDirection: 'column',
-                                   gap: 1
-                                }}>
-                            <ArcTitleBar caption="No time of day">Due</ArcTitleBar>
-                            { readingBoards && due.length === 0
-                                ? <Empty>Reading the boards…</Empty>
-                                : <DayDueList stops={due} />
-                            }
-                        </Box>
-
-                        <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                            <ArcTitleBar>Cards</ArcTitleBar>
-
-                            { cards.length === 0 && <Empty>{ type.emptyNote }</Empty> }
-                            { cards.length > 0 && type.busyNote && <Empty>{ type.busyNote }</Empty> }
-                            { cards.length > 0 && !scheduled && <Empty>None of these tasks has a timeline yet.</Empty> }
-
-                            {/*
-                                The × sits beside the card on the panel, not on it: the
-                                card's title is itself a button, and a button inside a
-                                button is two targets that cannot tell which was meant.
-                            */}
-                            { cards.map(card =>
-                                        (
-                                            <Box key={card.id}
-                                                 sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
-                                                <DayCardNote card={card}
-                                                             tasks={card.tasks}
-                                                             size="medium"
-                                                             boardCaption={manyBoards
-                                                                 ? boardTitle(card.boardId) || boardLabel(card.boardId)
-                                                                 : undefined} />
-                                                <IconButton size="small"
-                                                            onClick={() => onRemoveCard(card)}
-                                                            aria-label={`Take ${card.title} off this day`}
-                                                            sx={{ flexShrink: 0,
-                                                                  color: 'arc.onPaperMuted',
-                                                                  '&:hover': { color: 'arc.paperDanger', backgroundColor: 'arc.paperHover' }
-                                                               }}>
-                                                    <CloseIcon sx={{ fontSize: '0.95rem' }} />
-                                                </IconButton>
-                                            </Box>
-                                        ))
-                            }
-
+                           sx={{ minWidth: 0, p: 1.5 }}>
+                        <DayCardsPanel entries={entries}
+                                       emptyNote={type.emptyNote}
+                                       busyNote={type.busyNote}
+                                       reading={readingBoards}
+                                       boardCaptionOf={card => (manyBoards
+                                           ? boardTitle(card.boardId) || boardLabel(card.boardId)
+                                           : undefined)}
+                                       onRemoveCard={onRemoveCard}>
                             <AddCardPicker key={addRequest}
                                            boardIds={boardIds}
                                            onDay={new Set(cards.map(card => card.id))}
                                            onPick={onAddCard}
                                            startOpen={startAdding} />
-                        </Box>
+                        </DayCardsPanel>
                     </Paper>
                 </Box>
 
@@ -386,12 +338,3 @@ const NUMBER_CELL =
     fontVariantNumeric: 'tabular-nums',
     color: 'arc.onPaper',
 } as const
-
-function Empty({ children }: { children: React.ReactNode })
-{
-    return (
-        <Typography sx={{ fontSize: '0.75rem', color: 'arc.onPaperMuted', px: 0.5 }}>
-            { children }
-        </Typography>
-    )
-}

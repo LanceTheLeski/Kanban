@@ -27,6 +27,21 @@ public class Card : ArcBoardsEntity
 
     public DateTime? EndDeadlineUTC { get; set; }
 
+    /// <summary>
+    /// Whether the card keeps dates of its own rather than taking its tasks'.
+    /// </summary>
+    /// <remarks>
+    /// By default a card's schedule is its tasks' put together: the earliest of
+    /// their starts and the latest of their ends, point by point (the UI works it
+    /// out, in Timeline.Inheritance.ts). True means the card's own timeline is used
+    /// instead; its tasks keep theirs and still show on their own days.
+    ///
+    /// Null on a card written before this existed, which the UI reads as true when
+    /// the card has a timeline of its own — so a date someone set on a card is not
+    /// silently replaced by its tasks' — and false otherwise.
+    /// </remarks>
+    public bool? OverridesTaskTimelines { get; set; }
+
     //public IEnumerable<int> TagIDs { get; set; }
     //public virtual IEnumerable<Tag> Tags { get; set; }
 

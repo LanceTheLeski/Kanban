@@ -20,7 +20,7 @@
  * place on it is a time: click a place and the point goes there, to the
  * quarter hour; drag down from it and the point lasts as long as the drag.
  * A time can be typed instead, and a point needs no time at all — "No time"
- * leaves it on the day, where the day overlay lists it under Due.
+ * leaves it on the day, where the day overlay lists it under its card.
  *
  * Everything already timed on the day is on the rail, from every card the
  * calendar can read, each as long as it lasts, so a deadline can be put beside
@@ -45,7 +45,7 @@ import type { Dayjs } from 'dayjs'
 import { MONO, SERIF } from '../../../Styles/Fonts'
 import { durationLabel, spanLabel } from '../../Board/Timeline/Timeline.Nodes'
 import { colourOf } from '../Calendar.Stats'
-import { stopDone, stopKey, stopTitle, stopTypeId, type Stop } from '../Calendar.Stops'
+import { stopDone, stopKey, stopTypeId, type Stop } from '../Calendar.Stops'
 import { NO_DAY_TYPE } from '../Calendar.DayTypes'
 import { useDayTypes } from '../Hooks/useDayTypes'
 import type { CalendarDate } from '../Calendar.Types'
@@ -276,10 +276,10 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
                                             duration={stop.duration}
                                             labelTop={labels.get(stopKey(stop)) ?? 0}
                                             colour={colourOf(stopTypeId(stop), colours)}
-                                            text={`${spanLabel(stop.at, stop.duration)} ${stopTitle(stop)}`}
+                                            text={`${spanLabel(stop.at, stop.duration)} ${stop.card.title}`}
                                             caption={stop.task
-                                                ? stop.card.title
-                                                : 'card'}
+                                                ? stop.task.title
+                                                : "the card's own"}
                                             done={stopDone(stop)} />
                                 ))
                     }
@@ -380,9 +380,11 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
                     </Box>
                     { ' ' }
                     { [
-                        ...untimed.map(stop => `${stopTitle(stop)} · ${stop.card.title}${stop.duration
-                            ? ` (${durationLabel(stop.duration)})`
-                            : ''}`),
+                        ...untimed.map(stop => `${stop.card.title}${stop.task
+                            ? ` · ${stop.task.title}`
+                            : ''}${stop.duration
+                                ? ` (${durationLabel(stop.duration)})`
+                                : ''}`),
                         ...marks.filter(mark => !mark.timed).map(mark => `${mark.label} (this one)`),
                     ].join('; ')
                     }

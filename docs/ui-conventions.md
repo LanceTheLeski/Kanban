@@ -72,7 +72,6 @@ cell of one day on the month grid.
 | List | a list of entries | `DayTimelineList`, `PlacementList` |
 | Row | one line of a grid or a list | `SwimlaneRow`, `ColumnHeaderRow` |
 | Cell | one square of a grid | `GridDayCell`, `DroppableCell` |
-| Strip | a narrow band laid across something | `GridDayDueStrip` |
 | Note | a card, drawn as a paper note | `BoardCardNote`, `DayCardNote` |
 | Node, Rail | a point on a timeline's rail, and the rail | `TimelineNode`, `TimelineRail` |
 | Chart | draws numbers | `TaskTypeRingChart`, `TaskProgressLineChart` |
@@ -84,8 +83,8 @@ cell of one day on the month grid.
 
 A component inside a file, not exported — a `Section`, a `Chip` — is not held
 to this; it is named for what it is in the file that uses it. A role the table
-lacks is added to the table and to `ROLES` in `tools/eslint-arc.js` in the same
-commit, rather than worked around.
+lacks is added to the table and to `ROLES` in `arcstrides.ui/tools/eslint-arc.js`
+in the same commit, rather than worked around.
 
 ### Folders
 
@@ -97,9 +96,10 @@ them.
 Features/Calendar/
   Calendar.APIs.ts  Calendar.Store.ts  Calendar.DayTypes.ts  …
   Month/       MonthView  MonthGrid  CalendarNavBar  CalendarCardOverlay
-  GridDay/     one day on the grid: GridDayCell  GridDayHeader  GridDayDueStrip
-               DayCardNote  DayActionsMenu  DateDiscNumber
-  DayOverlay/  a day opened: DayOverlay and its panels and lists, AddCardPicker,
+  GridDay/     one day on the grid: GridDayCell  GridDayHeader  DayCardNote
+               DayActionsMenu  DateDiscNumber
+  DayOverlay/  a day opened: DayOverlay, DayHeaderPanel, DayCardsPanel,
+               DayTimelineList, DayConnectionsPanel, AddCardPicker,
                DayPreviewOverlay
   DatePicker/  under a timeline node: TimelineDatePicker and its two steps
   Options/     CalendarOptionsOverlay
@@ -545,15 +545,23 @@ glass, which still shows between the header and the cards under it:
 
 How the tiles arrange is decided by the day's own width (a container query),
 not the window's, because the same day is also drawn as a live copy inside its
-overlay. Under the header, what is due on the day (`GridDayDueStrip`): a piece of
-yellow, the Deadline tab's stock, with a line for each point that falls on the
-day, from any card or task the calendar can read. Each line is the time (or a
-dash for none) and what it is the point of, three lines at most and then
-"+ n more", which opens the day. On a phone, it is a count on a scrap of the same
-yellow, beside the card count. Under that, the view's cards, each a note wrapped
-round its tasks as green strips — the same strips, and the same popover behind
-them, as in the card editor. The views are a list in `Calendar.Views.ts`; the
-charts' numbers and colours are in `Calendar.Stats.ts`.
+overlay. Under the header, the view's cards, each a note wrapped round its
+tasks as green strips — the same strips, and the same popover behind them, as in
+the card editor. A card is on a day when it was put there, or when anything of
+it falls there: dates of its own, if it keeps them, or a point of one of its
+tasks (see "What is due on a day" below). A task is never on a day without its
+card. A card due on the day carries a yellow tab beside its title — the Deadline
+tab's stock — with the time of its first point there, or "Due" when it has no
+time; each task with a point on the day carries the point's time at the end of
+its strip. On a phone, the day is a count of its cards on a scrap of paper,
+yellow when one of them is due.
+
+**Every day is the same height** (`DAY_HEIGHT`, in `Calendar.Layout.ts`). A busy
+day does not stretch its week and push the rest of the month down the page:
+what does not fit scrolls inside the day, under a header that stays put.
+
+The views are a list in `Calendar.Views.ts`; the charts' numbers and colours are
+in `Calendar.Stats.ts`.
 
 No day draws a graph of nothing. The middle tile is the lines only where there
 is progress to show and the day's type measures it; otherwise it is the type's
@@ -613,37 +621,42 @@ type by name with its count, and each task row carries its type's mark and name.
 
 Laid out the way the Blazor one was: along the top, the number, the date in
 words, the type's picture and the tags; under them the timeline, and under
-that the day's Due and Cards side by side; down the right, a slim column of
-frosted glass with the day as the calendar shows it — exactly: the grid day's
-own width and height, measured (`useGridDaySize`), so its layout is the grid's
-too — the table of types, and the day's connections: the days either side, its
-cards' boards, and other days with the same cards. Every day in it opens in the
-same overlay, crossing into another month if it has to. A panel with nothing in
-it is not drawn.
+that the day's cards; down the right, a slim column of frosted glass with the
+day as the calendar shows it — exactly: the grid day's own width and height,
+measured (`useGridDaySize`), so its layout is the grid's too — the table of
+types, and the day's connections: the days either side, its cards' boards, and
+other days with the same cards. Every day in it opens in the same overlay,
+crossing into another month if it has to. A panel with nothing in it is not
+drawn.
 
 The timeline's label is sage, the green ladder's mid — the one stock nothing
 else in the day view is cut from. The timeline does not mark the day itself:
 the panel is already the day's, so its own stops are at full strength and
-stops on other days are paler and carry their date.
+stops on other days are paler and carry their date. Each stop leads with its
+card's title, and says under it which task and which point, or that the point
+is the card's own.
 
 **What is due on a day is not only what is on it.** A deadline belongs to a
 card or a task, and the card may never have been put on the day. So the
-timeline and Due are read from every card the calendar can read: the day's own,
-and the boards it knows (the default board and the boards of the month's cards;
-see `useCalendarBoards`). `MonthView` reads them with the month, and again with each
-re-read of it, and hands every day its points through `Calendar.Context`. A
-card's own timeline counts as well as its tasks'. The timeline has the day's
-cards' whole schedules, other days included, and anything with a time on this
-day. Due has whatever falls on this day with no time.
+timeline and the cards are read from every card the calendar can read: the
+day's own, and the boards it knows (the default board and the boards of the
+month's cards; see `useCalendarBoards`). `MonthView` reads them with the month,
+and again with each re-read of it, and hands every day its points through
+`Calendar.Context`. A card's own dates count only when it keeps them; otherwise
+its dates are its tasks' (see "A card's dates" in `docs/timeline-model.md`), and
+those are already counted, task by task. The timeline has the day's cards' whole
+schedules, other days included, and anything with a time on this day.
 
-**Due and Cards** split the sheet under the timeline: one sheet of blue with
-two halves. Due, on the left, is a piece of yellow, the stock the timeline
-panel's Deadline tab is cut from. It lists every point on this day with no time
-of day: the task, which point it is, and its card, opening the card. Cards, on
-the right, is the cards put on the day, as notes, with "+ Add card" under them.
-On a phone the two stack. Due replaces the Due list that was in the
-connections, which listed the day's tasks' ends on other days; those are on the
-timeline, paler and dated.
+**Cards** (`DayCardsPanel`), on one sheet of blue under the timeline, lists every
+card on the day once: each card put on it, and each card with something due on
+it, as notes, with "+ Add card" under them. Under each card's title, why it is
+there — "Put on this day", "due — its own dates", "2 tasks due", or more than
+one — then its own points on the day, then its tasks, each task with a point on
+the day saying which point and when. A task is always under its card. The × to
+take a card off the day is only beside a card that was put on it; a card that
+is only due is there by its dates, which are changed on the card. This replaces
+two halves, Due and Cards, which listed a task's deadline on its own, away from
+its card, and left a card due on the day out of the day's cards.
 
 A point "with no time" is one saved at midnight: see "A point with no time" in
 `docs/timeline-model.md`.
@@ -680,7 +693,7 @@ time and its span (`15:00–17:00`, or "No time · 2 h"), which opens the day
 directly; and **Day**, which opens the preview.
 
 **The preview** (`DayPreviewOverlay`) is the day as the day overlay draws it: the
-number and the date, the timeline, and Due beside Cards, from the same cards. It
+number and the date, the timeline, and the Cards panel, from the same cards. It
 also shows the points being edited, in their places on blue, marked "as in the
 editor, not saved yet", so a time can be tried and seen against the rest of the
 day before anything is saved. It is read-only: it opens over a card or a task

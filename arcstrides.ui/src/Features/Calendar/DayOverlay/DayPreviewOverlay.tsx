@@ -9,12 +9,12 @@
  *   ├──────────────────────────────────────────────────────────┤
  *   │ Timeline   09:30 Draft · Write the report                │
  *   │            16:30–18:30 Deadline · as in the editor       │
- *   ├────────────────────────────┬─────────────────────────────┤
- *   │ Due — no time              │ Cards                       │
- *   └────────────────────────────┴─────────────────────────────┘
+ *   ├──────────────────────────────────────────────────────────┤
+ *   │ Cards — put on the day or due on it, with their tasks    │
+ *   └──────────────────────────────────────────────────────────┘
  *
- * The same timeline and the same Due column as the day overlay (DayTimelineList,
- * DayDueList), from every card the calendar can read, with the points being edited
+ * The same timeline and the same cards as the day overlay (DayTimelineList,
+ * DayCardsPanel), from every card the calendar can read, with the points being edited
  * drawn in their places on blue — as they stand in the editor, not as last
  * saved, so a time can be tried and looked at before the editor is saved.
  *
@@ -32,13 +32,13 @@ import { SERIF } from '../../../Styles/Fonts'
 import { rem } from '../../../Styles/Measures'
 import type { NodeValue } from '../../Board/Timeline/Timeline.Nodes'
 import { DayTimelineList } from './DayTimelineList'
-import { DayDueList } from './DayDueList'
+import { DayCardsPanel } from './DayCardsPanel'
 import { DayTypeSceneArt } from '../Assets/DayTypeSceneArt'
 import { DateDiscNumber } from '../GridDay/DateDiscNumber'
 import { CalendarContext, type CalendarActions } from '../Calendar.Context'
 import { useDayTypes } from '../Hooks/useDayTypes'
 import { dayOf, type GridDay } from '../Calendar.Grid'
-import { isSubjects, stopsOf, stopsOn, uniqueStops, type PendingPoint, type Subject } from '../Calendar.Stops'
+import { cardsOnDay, isSubjects, stopsOf, stopsOn, uniqueStops, type PendingPoint, type Subject } from '../Calendar.Stops'
 import { usePickerMonth } from '../Hooks/usePickerMonth'
 
 interface DayPreviewOverlayProps
@@ -69,7 +69,7 @@ export const DayPreviewOverlay: React.FC<DayPreviewOverlayProps> = ({ date, titl
     const day: GridDay = dayOf(load.weeks, key) ?? { key, date, stored: null, isToday: date.isSame(dayjs(), 'day') }
     const type = useDayTypes().typeOf(day.date, day.stored?.typeId)
 
-    // The day overlay's two lists, from the same cards, without the subject's saved points.
+    // The day overlay's timeline and cards, from the same cards, without the subject's saved points.
     const placedIds = new Set((day.stored?.cards ?? []).map(card => card.id))
     const placed = load.cards.filter(card => placedIds.has(card.id))
     const today = stopsOn(load.cards, date).filter(stop => !isSubjects(stop, subject))
@@ -77,7 +77,7 @@ export const DayPreviewOverlay: React.FC<DayPreviewOverlayProps> = ({ date, titl
         ...stopsOf(placed).filter(stop => !isSubjects(stop, subject) && (stop.timed || !stop.at.isSame(date, 'day'))),
         ...today.filter(stop => stop.timed),
     ])
-    const due = today.filter(stop => !stop.timed)
+    const entries = cardsOnDay(placed, today)
 
     const pending: PendingPoint[] = points.flatMap(({ name, value }) => (value.date?.isSame(date, 'day')
         ? [{
@@ -188,57 +188,12 @@ export const DayPreviewOverlay: React.FC<DayPreviewOverlayProps> = ({ date, titl
 
                     <Paper className="card-stock paper-blue"
                            elevation={0}
-                           sx={{ minWidth: 0,
-                                 p: 1.5,
-                                 display: 'grid',
-                                 gridTemplateColumns: { xs: 'minmax(0, 1fr)', sm: 'minmax(0, 1fr) minmax(0, 1fr)' },
-                                 gap: 1.5,
-                                 alignItems: 'start'
-                              }}>
-                        <Box className="card-stock-flat card-cut paper-yellow"
-                             sx={{ minWidth: 0,
-                                   alignSelf: 'stretch',
-                                   p: 1,
-                                   display: 'flex',
-                                   flexDirection: 'column',
-                                   gap: 1
-                                }}>
-                            <ArcTitleBar caption="No time of day">Due</ArcTitleBar>
-                            <DayDueList stops={due}
-                                        pending={pending.filter(point => !point.timed)}
-                                        readOnly />
-                        </Box>
-                        <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                            <ArcTitleBar>Cards</ArcTitleBar>
-                            { placed.length === 0 && (
-                                <Typography sx={{ fontSize: '0.75rem', color: 'arc.onPaperMuted', px: 0.5 }}>
-                                    { type.emptyNote }
-                                </Typography>
-                            )
-                            }
-                            { placed.map(card =>
-                                         (
-                                             <Box key={card.id}
-                                                  className="note"
-                                                  sx={{ px: 1, py: 0.75 }}>
-                                                 <Typography sx={{ fontSize: '0.8rem',
-                                                                   fontWeight: 700,
-                                                                   color: 'arc.onPaperStrong'
-                                                                }}>
-                                                     { card.title }
-                                                 </Typography>
-                                                 <Typography sx={{ fontSize: '0.66rem',
-                                                                   color: 'arc.onPaperMuted'
-                                                                }}>
-                                                     { card.tasks.length === 0
-                                                         ? 'No tasks'
-                                                         : `${card.tasks.filter(task => task.isCompleted).length} of ${card.tasks.length} tasks done`
-                                                     }
-                                                 </Typography>
-                                             </Box>
-                                         ))
-                            }
-                        </Box>
+                           sx={{ minWidth: 0, p: 1.5 }}>
+                        <DayCardsPanel entries={entries}
+                                       emptyNote={type.emptyNote}
+                                       reading={load.loading}
+                                       pending={pending.filter(point => !point.timed)}
+                                       readOnly />
                     </Paper>
                 </Box>
             </ArcOverlay>

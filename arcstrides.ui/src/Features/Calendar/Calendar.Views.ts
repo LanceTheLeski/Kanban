@@ -14,7 +14,10 @@
  * Written as data, so a view is a line in the list below rather than a new
  * branch somewhere, and the set can be reshaped without touching the day.
  *
- *   All          every card on the day, with every task
+ *   All          every card on the day — put on it, or due on it — with its
+ *                tasks: all of them for a card put on the day, the ones due
+ *                that day for a card that is only due (Calendar.Stops,
+ *                cardsOnDay)
  *   Open         only tasks not yet done — the day's remaining work
  *   one per type every card's tasks of that type — the ring's segments, one at
  *                a time
@@ -28,11 +31,16 @@
 
 import type { Card } from '../../Entities/Card/Card.Types'
 import type { Task } from '../../Entities/Task/Task.Types'
+import type { DayCardEntry } from './Calendar.Stops'
 
-/** A card as a view shows it: the card, and the tasks of it this view keeps. */
+/** A card as a view shows it: the card on the day, and the tasks of it this view keeps. */
 export interface ViewCard
 {
+    /** Why the card is on the day, and what of it falls on the day. */
+    entry: DayCardEntry
+
     card: Card
+
     tasks: Task[]
 }
 
@@ -64,21 +72,21 @@ export function headingOf(text: string): string
 }
 
 /**
- * Every view of these cards that has something in it.
+ * Every view of a day's cards that has something in it.
  *
  * `boardTitle` names a board for its view; the calendar only knows a board's ID
  * until it has read the board, so the name may arrive after the view does.
  */
-export function viewsFor(cards: Card[], boardTitle: (boardId: string) => string | null): DayView[]
+export function viewsFor(entries: DayCardEntry[], boardTitle: (boardId: string) => string | null): DayView[]
 {
-    if (cards.length === 0)
+    if (entries.length === 0)
         return []
 
-    const all: DayView = { key: 'all', label: 'All', short: 'ALL', cards: cards.map(card => ({ card, tasks: card.tasks })) }
+    const all: DayView = { key: 'all', label: 'All', short: 'ALL', cards: entries.map(entry => ({ entry, card: entry.card, tasks: entry.tasks })) }
 
-    const open = byTasks('open', 'Open', 'OPEN', cards, task => !task.isCompleted)
+    const open = byTasks('open', 'Open', 'OPEN', entries, task => !task.isCompleted)
 
-    const types = uniqueBy(cards.flatMap(card => card.tasks), task => task.taskType?.id ?? null)
+    const types = uniqueBy(entries.flatMap(entry => entry.tasks), task => task.taskType?.id ?? null)
         .map(task => task.taskType)
         .sort((a, b) => (a?.id ?? Infinity) - (b?.id ?? Infinity))
         .map(type => byTasks(`type:${type?.id ?? 'none'}`,
@@ -86,9 +94,10 @@ export function viewsFor(cards: Card[], boardTitle: (boardId: string) => string 
                              type
                                  ? headingOf(type.title)
                                  : 'NONE',
-                             cards,
+                             entries,
                              task => (task.taskType?.id ?? null) === (type?.id ?? null)))
 
+    const cards = entries.map(entry => entry.card)
     const boardIds = uniqueBy(cards, card => card.boardId).map(card => card.boardId)
     const boards = boardIds.length < 2
         ? []
@@ -99,11 +108,11 @@ export function viewsFor(cards: Card[], boardTitle: (boardId: string) => string 
               short: boardTitle(boardId)
                   ? headingOf(boardTitle(boardId)!)
                   : boardId.slice(0, HEADING_LENGTH).toUpperCase(),
-              cards: cards.filter(card => card.boardId === boardId).map(card => ({ card, tasks: card.tasks })),
+              cards: entries.filter(entry => entry.card.boardId === boardId).map(entry => ({ entry, card: entry.card, tasks: entry.tasks })),
           }))
 
     // Open is only worth a page when it differs from All: some task is done.
-    const openDiffers = open.cards.length > 0 && cards.some(card => card.tasks.some(task => task.isCompleted))
+    const openDiffers = open.cards.length > 0 && entries.some(entry => entry.tasks.some(task => task.isCompleted))
     // Types are only worth pages when there is more than one of them.
     const typeViews = types.length > 1
         ? types
@@ -128,16 +137,16 @@ export function boardLabel(boardId: string): string
 // ── Private ───────────────────────────────────────────────────────────────────
 // Not exported, which is this language's `private`. Ordered by first use above.
 
-/** Cards that have at least one task passing `keep`, showing only those tasks. */
-function byTasks(key: string, label: string, short: string, cards: Card[], keep: (task: Task) => boolean): DayView
+/** Cards that have at least one shown task passing `keep`, showing only those tasks. */
+function byTasks(key: string, label: string, short: string, entries: DayCardEntry[], keep: (task: Task) => boolean): DayView
 {
     return {
         key,
         label,
         short,
-        cards: cards
-            .map(card => ({ card, tasks: card.tasks.filter(keep) }))
-            .filter(entry => entry.tasks.length > 0),
+        cards: entries
+            .map(entry => ({ entry, card: entry.card, tasks: entry.tasks.filter(keep) }))
+            .filter(viewCard => viewCard.tasks.length > 0),
     }
 }
 

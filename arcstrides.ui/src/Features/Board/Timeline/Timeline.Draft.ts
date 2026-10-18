@@ -12,7 +12,7 @@
 import type { PatchOperation } from '../../../Lib/Client'
 import { createTimeline, updateTimeline } from '../Board.APIs'
 import type { Timeline } from '../../../Entities/Timeline/Timeline.Types'
-import type { TimelineMode } from './Timeline.Nodes'
+import { NODES_FOR, modeOf, seedValues, type NodeId, type NodeValues, type TimelineMode } from './Timeline.Nodes'
 
 /**
  * Structured output the panel sends its parent on every change.
@@ -97,6 +97,52 @@ export function draftToTimelineDates(draft: TimelineDraft): TimelineDates
             ? draft.requiredEndDuration
             : null,
     }
+}
+
+/**
+ * The draft for a set of node values in a mode: four date+time pairs, with
+ * anything the mode does not put in play reported as null rather than as
+ * whatever it was last set to — switching to Timeless has to clear the
+ * schedule, not hide it. What the timeline panel reports as it changes.
+ */
+export function draftOf(values: NodeValues, mode: TimelineMode): TimelineDraft
+{
+    const on = NODES_FOR[mode]
+    const dateOf = (id: NodeId) => (on.includes(id)
+        ? values[id].date?.toDate() ?? null
+        : null)
+    const timeOf = (id: NodeId) => (on.includes(id)
+        ? values[id].time?.format('HH:mm') ?? null
+        : null)
+    const durationOf = (id: NodeId) => (on.includes(id)
+        ? values[id].duration
+        : null)
+
+    return {
+        mode,
+        preferredStart: dateOf('preferredStart'),
+        preferredStartTime: timeOf('preferredStart'),
+        requiredStart: dateOf('requiredStart'),
+        requiredStartTime: timeOf('requiredStart'),
+        preferredEnd: dateOf('preferredEnd'),
+        preferredEndTime: timeOf('preferredEnd'),
+        requiredEnd: dateOf('requiredEnd'),
+        requiredEndTime: timeOf('requiredEnd'),
+        preferredStartDuration: durationOf('preferredStart'),
+        requiredStartDuration: durationOf('requiredStart'),
+        preferredEndDuration: durationOf('preferredEnd'),
+        requiredEndDuration: durationOf('requiredEnd'),
+    }
+}
+
+/**
+ * A saved timeline as a draft, as if every point had been set by hand: for a
+ * card that starts keeping dates of its own from the ones it inherited, so they
+ * are saved as its own even if nothing is changed.
+ */
+export function draftFromTimeline(timeline: Timeline | null): TimelineDraft
+{
+    return draftOf(seedValues(timeline), modeOf(timeline))
 }
 
 /**

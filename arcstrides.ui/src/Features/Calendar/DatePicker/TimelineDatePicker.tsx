@@ -59,9 +59,12 @@ interface TimelineDatePickerProps
 
     /** What is being scheduled, by name — the card's or the task's title — for the day's preview. */
     title?: string
+
+    /** Shown, not chosen: the day and the time are read-only; Day still opens the preview. */
+    disabled?: boolean
 }
 
-export const TimelineDatePicker: React.FC<TimelineDatePickerProps> = ({ name, value, onChange, boardId, subject, others = [], title }) =>
+export const TimelineDatePicker: React.FC<TimelineDatePickerProps> = ({ name, value, onChange, boardId, subject, others = [], title, disabled = false }) =>
 {
     const anchor = useRef<HTMLDivElement>(null)
     const position = useRef<PopoverActions>(null)
@@ -103,18 +106,21 @@ export const TimelineDatePicker: React.FC<TimelineDatePickerProps> = ({ name, va
                  sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, flex: '1 1 14rem', minWidth: 0 }}>
                 <Piece icon={<CalendarMonthIcon sx={{ fontSize: '0.95rem' }} />}
                        onClick={() => open('month')}
+                       disabled={disabled}
                        label={`${name}: ${date
                            ? date.format('dddd D MMMM YYYY')
                            : 'no day yet'}. Choose a day`}
                        grow>
                     { date
                         ? date.format('ddd D MMM YYYY')
-                        : 'Choose a day'
+                        : disabled
+                            ? 'No day'
+                            : 'Choose a day'
                     }
                 </Piece>
                 <Piece icon={<ScheduleIcon sx={{ fontSize: '0.95rem' }} />}
                        onClick={() => open('day')}
-                       disabled={!date}
+                       disabled={disabled || !date}
                        label={`${name} time: ${timeText}. Choose a time`}>
                     { timeText }
                 </Piece>
