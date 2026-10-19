@@ -10,6 +10,12 @@
 /// </remarks>
 public static class TagParentTypes
 {
+    /// <summary>
+    /// On nothing: the row a tag keeps once its last parent is gone — see
+    /// <see cref="Tag.OrphanParentKey"/>.
+    /// </summary>
+    public const int None = -1;
+
     public const int Column = 0;
 
     public const int Swimlane = 1;
@@ -34,6 +40,7 @@ public static class TagParentTypes
             Card => nameof (Card),
             Task => nameof (Task),
             Tag => nameof (Tag),
+            None => nameof (None),
             _ => "Unknown"
         };
 }

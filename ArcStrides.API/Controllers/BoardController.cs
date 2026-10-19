@@ -289,6 +289,14 @@ public class BoardController : Controller
             return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (CardPosition)));
 
         await _cardRepository.DeleteCardPositionAsync (boardCardToDelete);
+
+        // The card's tags, and its tasks', come off it: the card and its tasks
+        // stay as rows (docs/api-gaps.md, #3), but nothing shows them again, and a
+        // tag on nothing else would be on nothing anyone can see. A tag left on
+        // nothing stays in the list of tags (TagRepository.DetachLabelAsync).
+        await _tagRepository.DetachLabelsFromParentAsync (cardID);
+        foreach (var task in await _taskRepository.QueryTasksAsync (task => task.CardID == cardID))
+            await _tagRepository.DetachLabelsFromParentAsync (Guid.Parse (task.RowKey!));
         /*if (boardCardToDeleteResponse.IsError)
             return Problem (ErrorResponseMessages.RemoveFromDatabaseErrorResponse (nameof (BoardCard)));*/
 

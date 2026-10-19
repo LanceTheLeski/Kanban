@@ -29,11 +29,13 @@ public class TaskController : ArcController
 
     private readonly ITaskRepository _taskRepository;
     private readonly ITimelineRepository _timelineRepository;
+    private readonly ITagRepository _tagRepository;
 
     private readonly TaskMapper _taskMapper;
 
     public TaskController (ITaskRepository taskRepository,
                            ITimelineRepository timelineRepository,
+                           ITagRepository tagRepository,
                            TaskMapper taskMapper)
     {
         _taskQueryParametersValidator = new TaskQueryParametersValidator ();
@@ -41,6 +43,7 @@ public class TaskController : ArcController
 
         _taskRepository = taskRepository;
         _timelineRepository = timelineRepository;
+        _tagRepository = tagRepository;
 
         _taskMapper = taskMapper;
     }
@@ -158,6 +161,9 @@ public class TaskController : ArcController
             var taskToDelete = await FetchAndValidateTask (boardID, taskID);
 
             await DeleteTaskAndUpdateEffectedTasks (boardID, taskToDelete);
+
+            // Its tags come off with it; one left on nothing stays in the list of tags.
+            await _tagRepository.DetachLabelsFromParentAsync (taskID);
             return Ok ();
         }
         catch (Exception ex)

@@ -58,6 +58,7 @@ import { UpdateColumnOverlay } from './Column/UpdateColumnOverlay'
 import { CreateSwimlaneOverlay } from './Swimlane/CreateSwimlaneOverlay'
 import { DeleteSwimlaneOverlay } from './Swimlane/DeleteSwimlaneOverlay'
 import { UpdateSwimlaneOverlay } from './Swimlane/UpdateSwimlaneOverlay'
+import { TagColoursOverlay } from '../TagGroup/Tag/TagColoursOverlay'
 
 // ── The overlays this bar can open ────────────────────────────────────────────
 
@@ -81,6 +82,7 @@ type OverlayKey =
     | 'createSwimlane'
     | 'updateSwimlane'
     | 'deleteSwimlane'
+    | 'tagColours'
 
 // ── What the bar contains ─────────────────────────────────────────────────────
 
@@ -231,6 +233,7 @@ const OVERLAYS: Record<OverlayKey, OverlayComponent> =
     createSwimlane: CreateSwimlaneOverlay,
     updateSwimlane: UpdateSwimlaneOverlay,
     deleteSwimlane: DeleteSwimlaneOverlay,
+    tagColours: TagColoursOverlay,
 }
 
 const MENUS: MenuSpec[] =
@@ -254,6 +257,11 @@ const MENUS: MenuSpec[] =
             { label: 'Edit', overlay: 'updateColumn' },
             { label: 'Delete', overlay: 'deleteColumn' },
         ],
+    },
+    {
+        // Every tag there is, not this board's only: a tag is on no board.
+        label: 'Tags',
+        items: [{ label: 'Colours', overlay: 'tagColours' }],
     },
     {
         // AddManageBoardOverlay has not been converted from Blazor yet, so this

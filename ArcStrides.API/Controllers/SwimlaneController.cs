@@ -31,9 +31,11 @@ public class SwimlaneController : ArcController
 
     private readonly ISwimlaneRepository _swimlaneRepository;
     private readonly ICardRepository _cardRepository;
+    private readonly ITagRepository _tagRepository;
 
     public SwimlaneController (ISwimlaneRepository swimlaneRepository,
-                               ICardRepository cardRepository)
+                               ICardRepository cardRepository,
+                               ITagRepository tagRepository)
     {
         _swimlaneCreateRequestValidator = new SwimlaneCreateRequestValidator ();
         _swimlanePatchRequestDocumentValidator = new SwimlanePatchRequestDocumentValidator ();
@@ -42,6 +44,7 @@ public class SwimlaneController : ArcController
 
         _swimlaneRepository = swimlaneRepository;
         _cardRepository = cardRepository;
+        _tagRepository = tagRepository;
     }
 
     [HttpGet ("/arcstrides/boards/{boardID:guid}/swimlanes/{swimlaneID:guid}")]
@@ -151,6 +154,9 @@ public class SwimlaneController : ArcController
             var swimlaneToDelete = await FetchAndValidateSwimlane (boardID, swimlaneID);
 
             await DeleteSwimlaneAndUpdateEffectedSwimlanesAndCardPositions (boardID, swimlaneToDelete);
+
+            // Its tags come off with it; one left on nothing stays in the list of tags.
+            await _tagRepository.DetachLabelsFromParentAsync (swimlaneID);
             return Ok ();
         }
         catch (Exception ex)

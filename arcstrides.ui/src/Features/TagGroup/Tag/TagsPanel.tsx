@@ -43,6 +43,7 @@ import AddIcon from '@mui/icons-material/Add'
 import CloseIcon from '@mui/icons-material/Close'
 import { TAGS_BOX_WIDTH } from '../../../Styles/Measures'
 import { fetchTagLibrary, newTag } from './Tag.APIs'
+import { tagStyle } from './Tag.Colours'
 import type { Tag } from '../../../Entities/Tag/Tag.Types'
 
 interface TagsPanelProps
@@ -158,16 +159,17 @@ export const TagsPanel: React.FC<TagsPanelProps> = ({ tags, onChange, label = 'T
                     glass and the wrong one on a panel that is itself a piece of
                     card — the pills read as holes punched in it.
 
-                    Red on blue for now. The colour will eventually come from
-                    the tag's own group; until then one stock says "these are a
-                    different kind of thing from the board they are pinned to",
-                    which is the part that has to read.
+                    Red on blue, unless the tag has a colour of its own, chosen
+                    from the board's Tags menu (Tag.Colours). One stock says
+                    "these are a different kind of thing from the board they are
+                    pinned to", which is the part that has to read.
                 */}
                 { tags.map(tag =>
                            (
                                <Box key={tag.id}
                                     component="li"
                                     className="card-stock-flat card-tilt paper-red"
+                                    style={tagStyle(tag.colour)}
                                     sx={{ display: 'inline-flex',
                                           alignItems: 'center',
                                           gap: 0.1,

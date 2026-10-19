@@ -747,6 +747,20 @@ other field, and write the difference on Save (`saveTags`). A day writes each
 change as it is made, as everything on a day is. Tags arrive with what they are
 on: a card's and its tasks' with the board, a day's with the month.
 
+**A tag's colour** is chosen from the board's bar: Tags → Colours
+(`TagColoursOverlay`). It lists every tag there is — a tag is on no board — each
+drawn in its colour; pick one, and colour it in the picker columns use. Save
+writes every tag changed, Discard drops them. A tag with no colour is the red
+it has always been. The colour replaces the red stock's ground (`Tag.Colours`),
+so a coloured tag is still a piece of card. Its name is dark text, so the paper
+grounds and mids are the colours that read.
+
+**A tag outlives what it was on.** Deleting a card, a task, a column or a
+swimlane takes its tags off it, and taking a tag off the last thing it was on
+leaves it on nothing — still in the list the tags box offers, and in Tags →
+Colours, with its colour. See #13 in `docs/api-gaps.md`. Tag
+groups, and tags that belong to a column or a swimlane, are for later.
+
 ---
 
 ## Two grounds, two ramps

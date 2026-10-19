@@ -31,9 +31,11 @@ public class ColumnController : ArcController
 
     private readonly IColumnRepository _columnRepository;
     private readonly ICardRepository _cardRepository;
+    private readonly ITagRepository _tagRepository;
 
     public ColumnController (IColumnRepository columnRepository,
                              ICardRepository cardRepository,
+                             ITagRepository tagRepository,
                              ColumnMapper columnMapper)
     {
         _columnCreateRequestValidator = new ColumnCreateRequestValidator ();
@@ -43,6 +45,7 @@ public class ColumnController : ArcController
 
         _columnRepository = columnRepository;
         _cardRepository = cardRepository;
+        _tagRepository = tagRepository;
     }
 
     [HttpGet ("/arcstrides/boards/{boardID:guid}/columns/{columnID:guid}")]
@@ -154,6 +157,9 @@ public class ColumnController : ArcController
             var columnToDelete = await FetchAndValidateColumn (boardID, columnID);
 
             await DeleteColumnAndUpdateEffectedColumnsAndCardPositions (boardID, columnToDelete);
+
+            // Its tags come off with it; one left on nothing stays in the list of tags.
+            await _tagRepository.DetachLabelsFromParentAsync (columnID);
             return Ok ();
         }
         catch (Exception ex)

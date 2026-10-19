@@ -213,7 +213,8 @@ public class CalendarController : Controller
 
     /// <summary>
     /// Takes a tag off a calendar day — <c>DELETE dates/2026/9/24/tags/{tagID}</c>.
-    /// The tag stays on anything else it is on. Answers with the whole month.
+    /// The tag stays on anything else it is on, and in the list of tags if it is on
+    /// nothing now (TagRepository.DetachLabelAsync). Answers with the whole month.
     /// </summary>
     [HttpDelete ("dates/{year:int}/{month:int}/{day:int}/tags/{tagID:guid}")]
     public async Task<ActionResult> RemoveTagFromDate (int year, int month, int day, Guid tagID)
@@ -227,7 +228,7 @@ public class CalendarController : Controller
         foreach (var date in monthDates.Where (date => date.DateOrder == day))
             foreach (var tag in (await _tagRepository.GetLabelsOnParentAsync (Guid.Parse (date.PartitionKey!))).Where (tag => tag.PartitionKey == tagID.ToString ()))
             {
-                await _tagRepository.DeleteTagAsync (tag);
+                await _tagRepository.DetachLabelAsync (tag);
                 removed += 1;
             }
 

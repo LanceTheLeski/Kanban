@@ -41,20 +41,33 @@ export interface TagResponse
     parentTypeName: string | null
 
     title: string | null
+
+    color: string | null
 }
 
 /** The tags a response carries, in the order they read: by title. */
 export function mapTags(responses: TagResponse[] | null | undefined): Tag[]
 {
     return (responses ?? []).filter(response => response.id)
-                            .map(response => ({ id: response.id!, title: response.title ?? '' }))
+                            .map(response => ({ id: response.id!, title: response.title ?? '', colour: response.color ?? null }))
                             .sort((a, b) => a.title.localeCompare(b.title))
 }
 
-/** GET arcstrides/tags — every tag there is, each once. */
+/**
+ * GET arcstrides/tags — every tag there is, each once: the ones on something,
+ * and the ones on nothing now, whose last card or task was deleted or which
+ * were taken off the last thing they were on. The server keeps those, so a tag
+ * and its colour outlive what they were on (TagRepository.DetachLabelAsync).
+ */
 export async function fetchTagLibrary(): Promise<Tag[]>
 {
     return mapTags(await apiClient.get<TagResponse[]>(`${ARC}/tags`))
+}
+
+/** PATCH arcstrides/tags/:id — a tag's colour, everywhere it is; null for the default. */
+export async function updateTagColour(id: string, colour: string | null): Promise<void>
+{
+    await apiClient.patch(`${ARC}/tags/${id}`, [{ op: 'replace', path: '/color', value: colour }])
 }
 
 /**
@@ -69,7 +82,7 @@ export function isNewTag(tag: Tag): boolean
 /** A tag typed into a draft, with an ID of its own until the server gives it one. */
 export function newTag(title: string): Tag
 {
-    return { id: `${NEW_TAG}${title.toLowerCase()}`, title }
+    return { id: `${NEW_TAG}${title.toLowerCase()}`, title, colour: null }
 }
 
 /**

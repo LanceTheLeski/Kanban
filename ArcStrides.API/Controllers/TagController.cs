@@ -55,6 +55,7 @@ public class TagController : ArcController
                                                              {
                                                                  ID = Guid.Parse (tag.PartitionKey!),
                                                                  Title = tag.Title,
+                                                                 Color = tag.Color,
                                                              });
         return Ok (tags);
     }
@@ -71,6 +72,7 @@ public class TagController : ArcController
         {
             ID = ID,
             Title = tagRows.First ().Title,
+            Color = tagRows.First ().Color,
         };
         return Ok (tagResponse);
     }
@@ -110,11 +112,12 @@ public class TagController : ArcController
     }
 
     /// <summary>
-    /// Renames a tag everywhere it is — <c>PATCH arcstrides/tags/{ID}</c>.
+    /// Renames or recolours a tag everywhere it is — <c>PATCH arcstrides/tags/{ID}</c>.
     /// </summary>
     /// <remarks>
-    /// The title is on every row of the tag, one per thing it is on, so every row
-    /// is written. This used to require exactly one row, and then wrote a Tag built
+    /// The title and the colour are on every row of the tag, one per thing it is
+    /// on, so every row is written. A colour is <c>#rrggbb</c>, or null for the
+    /// default. This used to require exactly one row, and then wrote a Tag built
     /// from the patch alone, with no keys, which the table refused; a tag on two
     /// things could not be renamed at all, and one on one thing failed anyway.
     /// </remarks>
@@ -140,6 +143,10 @@ public class TagController : ArcController
             if (string.IsNullOrEmpty (newTitle))
                 return BadRequest (ValidatorMessages.EmptyFieldValidatorMessage (nameof (TagPatchRequest.Title)));
 
+            var newColor = convertedTagToUpdate.Color;
+            if (newColor is not null && TagValidators.IsColor (newColor) is false)
+                return BadRequest (ValidatorMessages.InvalidFieldValueFormatValidatorMessage (nameof (TagPatchRequest.Color)));
+
             var titleTaken = (await _tagRepository.GetLabelsAsync ()).Any (tag => tag.PartitionKey != ID.ToString ()
                                                                                    && string.Equals (tag.Title?.Trim (), newTitle, StringComparison.OrdinalIgnoreCase));
             if (titleTaken)
@@ -148,10 +155,11 @@ public class TagController : ArcController
             foreach (var tagRow in tagRows)
             {
                 tagRow.Title = newTitle;
+                tagRow.Color = newColor;
                 await _tagRepository.UpdateTagAsync (tagRow);
             }
 
-            return Ok (new TagResponse { ID = ID, Title = newTitle });
+            return Ok (new TagResponse { ID = ID, Title = newTitle, Color = newColor });
         }
         catch (Exception ex)
             { return ArcErrorResponse (ex); }
@@ -180,7 +188,8 @@ public class TagController : ArcController
 
     /// <summary>
     /// Takes a tag off one thing — <c>DELETE arcstrides/tags/{ID}/parents/{parentID}</c>.
-    /// The tag stays on everything else.
+    /// The tag stays on everything else, and in the list of tags if it is on nothing
+    /// now (TagRepository.DetachLabelAsync).
     /// </summary>
     [HttpDelete ("{ID:guid}/parents/{parentID:guid}")]
     public async Task<ActionResult> DeleteTagFromParent (Guid ID, Guid parentID)
@@ -191,7 +200,7 @@ public class TagController : ArcController
             if (tagRow is null)
                 return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Tag)));
 
-            await _tagRepository.DeleteTagAsync (tagRow);
+            await _tagRepository.DetachLabelAsync (tagRow);
             return Ok ();
         }
         catch (Exception ex)

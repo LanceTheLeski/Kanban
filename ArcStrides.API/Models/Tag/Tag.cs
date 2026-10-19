@@ -22,6 +22,12 @@ public class Tag : ArcTagsEntity
     public string? Title { get; set; }
 
     /// <summary>
+    /// The tag's colour, as <c>#rrggbb</c>; null for the default. On every row of
+    /// the tag, as the title is, because a row is all a reader of one parent has.
+    /// </summary>
+    public string? Color { get; set; }
+
+    /// <summary>
     /// What kind of thing the parent is — see <see cref="TagParentTypes"/>.
     /// </summary>
     public int TagTypeID { get; set; }
@@ -41,6 +47,17 @@ public class Tag : ArcTagsEntity
     /// as false, which is what they are.
     /// </remarks>
     public bool IsLabel { get; set; }
+
+    /// <summary>
+    /// The parent a tag's row has once the tag is on nothing: <see cref="Guid.Empty"/>.
+    /// </summary>
+    /// <remarks>
+    /// A tag is its rows, so a tag whose last parent was deleted would be gone,
+    /// colour and all. Instead it keeps one row with this parent and type
+    /// <see cref="TagParentTypes.None"/>, which no parent's lookup finds and the
+    /// list of every tag still does. See TagRepository.DetachLabelAsync.
+    /// </remarks>
+    public static readonly string OrphanParentKey = Guid.Empty.ToString ();
 
     //public IEnumerable<int> TriggerIDs { get; set; }
     //public virtual IEnumerable<Trigger> Triggers { get; set; }

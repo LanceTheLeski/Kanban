@@ -282,6 +282,37 @@ answered 500 until the row was deleted by hand. The type is now checked before
 anything is written, and the board reads a task whose type is gone as untyped,
 as the calendar already did.
 
+### 13. Tags on nothing, and tag colours
+
+`ArcStrides.API/Repositories/TagRepository.cs`, `TagController.cs`
+
+A tag is its rows, one per thing it is on, so a tag taken off the last thing it
+was on — or whose last card was deleted — used to be gone, with nothing to say
+it had existed. Now:
+
+- Deleting a card, a task, a column or a swimlane takes its tags off it
+  (`DetachLabelsFromParentAsync`). A card's delete takes its tasks' tags off
+  too: their rows stay (#3), but nothing shows them.
+- Taking a tag off the last thing it is on, by delete or by hand
+  (`DELETE tags/{ID}/parents/{parentID}`, or a day's), leaves one row with the
+  parent `Guid.Empty` and the type `TagParentTypes.None` (`DetachLabelAsync`).
+  No parent's lookup finds it; `GET tags` still lists the tag. Putting the tag
+  on something again removes that row.
+- A tag has a colour, `#rrggbb` or null, on every row as its title is:
+  `PATCH tags/{ID}` with `/color`, sent back on every `TagResponse`. Tag rows are
+  written whole (`ReplaceEntityAsync`), so a colour put back to null sticks
+  (see #9).
+
+**The cost.** Each delete reads the parent's tags, and each of those tags' rows
+again, before it answers — one more read per tag, on every delete. That is
+fine at this size. If deletes grow heavy, the other way is to keep no orphan
+rows and read a tag as on nothing when none of its parents exists, which moves
+the cost to every read of the tag list instead.
+
+**Not yet:** tag groups (a colour for a set of tags), and tags tied to a column
+or a swimlane. `Tag.TagTypeID` names the parent's kind, and `TagGroup` exists
+for the calendar's days, but neither is a group of tags someone chose.
+
 ## Not a gap, but worth knowing
 
 - `CardController` has no `GET` for a board's cards; they arrive nested on

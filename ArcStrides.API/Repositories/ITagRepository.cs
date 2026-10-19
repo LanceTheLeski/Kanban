@@ -33,6 +33,10 @@ public interface ITagRepository
 
     Task<(Tag Tag, bool Created)?> AttachLabelAsync (Guid? tagID, string? title, Guid parentID, int parentTypeID);
 
+    Task DetachLabelAsync (Tag labelRow);
+
+    Task DetachLabelsFromParentAsync (Guid parentID);
+
     #endregion Tag
 
     #region Tag Type

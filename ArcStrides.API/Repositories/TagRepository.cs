@@ -61,8 +61,13 @@ public class TagRepository : ITagRepository
     public async Task AddTagAsync (Tag tagToCreate)
         => await _tagTable.AddEntityAsync (tagToCreate);
 
+    /// <summary>
+    /// Writes the whole row. A merge would leave out a null — a colour put back to
+    /// the default would stay as it was (docs/api-gaps.md, #9) — and every caller
+    /// has the row as it was read.
+    /// </summary>
     public async Task UpdateTagAsync (Tag tagToUpdate)
-        => await _tagTable.UpdateEntityAsync (tagToUpdate);
+        => await _tagTable.ReplaceEntityAsync (tagToUpdate);
 
     public async Task DeleteTagAsync (Tag tagToDelete)
         => await _tagTable.DeleteEntityAsync (tagToDelete);
@@ -177,12 +182,59 @@ public class TagRepository : ITagRepository
             RowKey = parentKey,
             ParentObjectTypeName = TagParentTypes.NameOf (parentTypeID),
             Title = existing?.Title ?? title?.Trim (),
+            Color = existing?.Color,
             TagTypeID = parentTypeID,
             IsLabel = true,
         };
         await AddTagAsync (label);
 
+        // On something again, so the row that kept it while it was on nothing goes.
+        var orphanRow = existing?.RowKey == Tag.OrphanParentKey
+            ? existing
+            : null;
+        if (orphanRow is not null)
+            await DeleteTagAsync (orphanRow);
+
         return (label, true);
+    }
+
+    /// <summary>
+    /// Takes a tag off one parent. A tag left on nothing keeps one row on no parent
+    /// (<see cref="Tag.OrphanParentKey"/>), so it stays in the list of tags with its
+    /// title and colour, to be put on something again.
+    /// </summary>
+    public async Task DetachLabelAsync (Tag labelRow)
+    {
+        await DeleteTagAsync (labelRow);
+
+        var remaining = await GetLabelRowsAsync (Guid.Parse (labelRow.PartitionKey!));
+        if (remaining.Count is not 0)
+            return;
+
+        await AddTagAsync (new Tag
+        {
+            PartitionKey = labelRow.PartitionKey,
+            RowKey = Tag.OrphanParentKey,
+            ParentObjectTypeName = TagParentTypes.NameOf (TagParentTypes.None),
+            Title = labelRow.Title,
+            Color = labelRow.Color,
+            TagTypeID = TagParentTypes.None,
+            IsLabel = true,
+        });
+    }
+
+    /// <summary>
+    /// Takes every tag off a parent that is being deleted — see DetachLabelAsync.
+    /// </summary>
+    /// <remarks>
+    /// One read for the parent's tags and one more for each of them, on every
+    /// delete. Worth revisiting if deletes grow heavy: a tag could instead be read
+    /// as on nothing when none of its parents exists, at the cost of every read.
+    /// </remarks>
+    public async Task DetachLabelsFromParentAsync (Guid parentID)
+    {
+        foreach (var labelRow in await GetLabelsOnParentAsync (parentID))
+            await DetachLabelAsync (labelRow);
     }
 
     #endregion Tag
