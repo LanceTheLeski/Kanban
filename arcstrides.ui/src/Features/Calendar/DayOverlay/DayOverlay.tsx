@@ -40,6 +40,14 @@
  * The right-hand column is slim and frosted, the grid's own material, because
  * what is in it is the day as the calendar sees it and the ways out of it.
  *
+ * ── Everything waits for Save ────────────────────────────────────────────────
+ * The day's type, its tags, the cards put on it or taken off, and the tasks
+ * edited from its notes are a draft until Save (useDayDraft); Discard drops it.
+ * The overlay — the live copy on the right included — draws the day as it will
+ * be, through a calendar context of its own that changes the draft where the
+ * month's would write. Moving to another day with changes waiting asks for
+ * Save or Discard first. A card opened from here has its own Save.
+ *
  * ── What the day's type changes ──────────────────────────────────────────────
  * A day that measures progress (see Calendar.DayTypes) gets the table of types
  * with done and total; Leisure gets what is on, by type, without the done; a
@@ -49,7 +57,7 @@
  */
 
 import React from 'react'
-import { Box, Paper } from '@mui/material'
+import { Box, Paper, Typography } from '@mui/material'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcTitleBar } from '../../../Components/ArcTitleBar'
 import { MONO } from '../../../Styles/Fonts'
@@ -61,12 +69,13 @@ import { DayConnectionsPanel } from './DayConnectionsPanel'
 import { AddCardPicker } from './AddCardPicker'
 import { dayStats, type DayStats } from '../Calendar.Stats'
 import { useDayTypes } from '../Hooks/useDayTypes'
-import { cardsOnDay, stopsOf, uniqueStops } from '../Calendar.Stops'
+import { cardsOnDay, stopsOf, stopsOn, uniqueStops } from '../Calendar.Stops'
 import { DayCardsPanel } from './DayCardsPanel'
 import { boardLabel } from '../Calendar.Views'
-import { useCalendarActions } from '../Calendar.Context'
+import { CalendarContext, useCalendarActions, type CalendarActions } from '../Calendar.Context'
 import { useGridDaySize } from '../Hooks/useGridDaySize'
-import type { Card } from '../../../Entities/Card/Card.Types'
+import { useDayDraft } from '../Hooks/useDayDraft'
+import { useArcError } from '../../../Components/useArcError'
 import type { GridDay } from '../Calendar.Grid'
 
 interface DayOverlayProps
@@ -74,10 +83,6 @@ interface DayOverlayProps
     day: GridDay
 
     onClose: () => void
-
-    onAddCard: (card: Card) => void
-
-    onRemoveCard: (card: Card) => void
 
     /** Boards whose cards "+ Add card" offers — see useAddableCards. */
     boardIds: string[]
@@ -93,17 +98,40 @@ interface DayOverlayProps
 }
 
 export const DayOverlay: React.FC<DayOverlayProps> = ({
-    day,
+    day: storedDay,
     onClose,
-    onAddCard,
-    onRemoveCard,
     boardIds,
     startAdding = false,
     addRequest = 0,
 }) =>
 {
-    const actions = useCalendarActions()
-    const { colours, boardTitle } = actions
+    const month = useCalendarActions()
+    const { addError } = useArcError()
+
+    // The day as it will be after Save, and the calendar's cards likewise — see the header.
+    const draft = useDayDraft(storedDay, month.knownCards, addError)
+    const { day, knownCards } = draft
+    const today = stopsOn(knownCards, day.date)
+    const actions: CalendarActions =
+    {
+        ...month,
+        setDayType: (target, typeId) => (target.key === day.key
+            ? draft.setType(typeId)
+            : month.setDayType(target, typeId)),
+        setDayTags: (target, tags) => (target.key === day.key
+            ? draft.setTags(tags)
+            : month.setDayTags(target, tags)),
+        stageTask: draft.stageTask,
+        knownCards,
+        stopsOnDay: key => (key === day.key
+            ? today
+            : month.stopsOnDay(key)),
+        goToDay: date => (draft.dirty
+            ? addError(`${day.date.format('D MMMM')} has changes waiting: save or discard them before moving to another day.`)
+            : month.goToDay(date)),
+    }
+
+    const { colours, boardTitle, readingBoards } = actions
     const cards = day.stored?.cards ?? []
     const stats = dayStats(cards, colours)
     const type = useDayTypes().typeOf(day.date, day.stored?.typeId)
@@ -111,11 +139,9 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
     const manyBoards = new Set(cards.map(card => card.boardId)).size > 1
 
     // Every card the calendar can read, and every point on this day — read with
-    // the month, by MonthView (see Calendar.Context).
-    const { knownCards, stopsOnDay, readingBoards } = actions
+    // the month, by MonthView (see Calendar.Context), with the draft folded in.
     const onDay = new Set(cards.map(card => card.id))
     const placed = knownCards.filter(card => onDay.has(card.id))
-    const today = stopsOnDay(day.key)
     const railStops = uniqueStops([
         ...stopsOf(placed).filter(stop => stop.timed || !stop.at.isSame(day.date, 'day')),
         ...today.filter(stop => stop.timed),
@@ -123,10 +149,22 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
     // Every card on the day — put on it, or due on it — each once, with what of it falls today.
     const entries = cardsOnDay(placed, today)
 
+    const handleSave = async () =>
+    {
+        if (await draft.save())
+            onClose()
+    }
+
     return (
+        <CalendarContext.Provider value={actions}>
         <ArcOverlay open
                     onClose={onClose}
-                    discardLabel="Close"
+                    onSubmit={draft.dirty
+                        ? handleSave
+                        : undefined}
+                    discardLabel={draft.dirty
+                        ? 'Discard'
+                        : 'Close'}
                     width={DAY_OVERLAY_WIDTH}>
             <Box sx={{ display: 'grid',
                        gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1fr) auto' },
@@ -180,14 +218,25 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
                                        boardCaptionOf={card => (manyBoards
                                            ? boardTitle(card.boardId) || boardLabel(card.boardId)
                                            : undefined)}
-                                       onRemoveCard={onRemoveCard}>
+                                       onRemoveCard={draft.removeCard}>
                             <AddCardPicker key={addRequest}
                                            boardIds={boardIds}
-                                           onDay={new Set(cards.map(card => card.id))}
-                                           onPick={onAddCard}
+                                           onDay={onDay}
+                                           onPick={draft.addCard}
                                            startOpen={startAdding} />
                         </DayCardsPanel>
                     </Paper>
+
+                    { draft.dirty && (
+                        <Typography role="status"
+                                    sx={{ fontSize: '0.74rem', color: 'arc.onGlass', textAlign: 'right' }}>
+                            { draft.pending === 1
+                                ? 'One change waits for Save.'
+                                : `${draft.pending} changes wait for Save.`
+                            }
+                        </Typography>
+                    )
+                    }
                 </Box>
 
                 {/*
@@ -230,6 +279,7 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
                 </Box>
             </Box>
         </ArcOverlay>
+        </CalendarContext.Provider>
     )
 }
 

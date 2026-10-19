@@ -364,8 +364,13 @@ public class TaskController : ArcController
     {
         var deleteTaskTransaction = new ArcTransaction ();
 
+        // The card's tasks after it, not the board's: a task's order is its place
+        // on its card. Matching on the PartitionKey alone — the board — moved up
+        // every later task on every other card too, and left gaps and repeats in
+        // their orders that the next reorder of those cards then failed on.
         var tasksToUpdateOrder = await _taskRepository.QueryTasksAsync (task => task.TaskOrder > taskToDelete.TaskOrder
-                                                                                && task.PartitionKey == taskToDelete.PartitionKey);
+                                                                                && task.PartitionKey == taskToDelete.PartitionKey
+                                                                                && task.CardID == taskToDelete.CardID);
         deleteTaskTransaction = _taskRepository.DecrementExistingTasksOrder (tasksToUpdateOrder, deleteTaskTransaction);
 
         var transaction = new TableTransactionAction (TableTransactionActionType.Delete, taskToDelete);

@@ -36,6 +36,15 @@
  * The Blazor overlay was 1100px wide. We pass this to ArcOverlay via the
  * width prop.
  *
+ * ── Everything waits for Save ────────────────────────────────────────────────
+ * Its tasks included. A task added, edited, moved or deleted here is staged —
+ * held in this overlay, drawn as it will be, marked "new", "edited" or "moved"
+ * — and the task popovers say Done rather than writing (Task.Staging). Save
+ * writes the card, then its tasks, then reads the board again; Discard drops
+ * the lot. It used to be that a task was written the moment its popover was
+ * saved, so a card's tasks could change for good in an editor that was then
+ * discarded.
+ *
  * ── Reading this file ────────────────────────────────────────────────────────
  * UpdateCardOverlay comes first and its return is just the arrangement: two
  * columns on top, panels beneath, the delete action last. Each piece is a small
@@ -47,7 +56,7 @@
  * the imports to find them again.
  */
 
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import {
     Box,
     IconButton,
@@ -67,7 +76,19 @@ import { UpdateTaskPopover } from '../Task/UpdateTaskPopover'
 import { CreateTaskPopover } from '../Task/CreateTaskPopover'
 import { CommandPanel } from '../Commands/CommandPanel'
 import { useBoardActions } from '../Hooks/useBoardActions'
-import { deleteCard, deleteTask, updateCard, type CardPatchRequest } from '../Board.APIs'
+import { deleteCard, updateCard, type CardPatchRequest } from '../Board.APIs'
+import {
+    applyEdit,
+    changeOf,
+    isEdited,
+    newTaskSaveProgress,
+    renumbered,
+    saveCardTasks,
+    stagedFrom,
+    taskKey,
+    type StagedTask,
+    type TaskEdit,
+} from '../Task/Task.Staging'
 import { useBoardStore } from '../Board.Store'
 import { TagsPanel } from '../../TagGroup/Tag/TagsPanel'
 import { saveTags, sameTags } from '../../TagGroup/Tag/Tag.APIs'
@@ -83,7 +104,6 @@ import {
     TITLE_ROW_MIN_HEIGHT,
 } from '../../../Styles/Measures'
 import type { Card } from '../../../Entities/Card/Card.Types'
-import type { Task } from '../../../Entities/Task/Task.Types'
 
 interface UpdateCardOverlayProps
 {
@@ -136,22 +156,28 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
     const [split, setSplit] = useState(CARD_SPLIT_DEFAULT)
 
     /*
-       Tasks come straight from the store, not from a copy held here.
+       The tasks as they will be after Save — see "Everything waits for Save".
 
-       They used to be mirrored into local state, seeded once when the overlay
-       mounted. That was fine while every task edit was local — and wrong the
-       moment one of them refreshed the board, because a reorder is renumbered by
-       the server and the copy had no way to learn the new numbers. Mirroring it
-       back with an effect would have worked and is the pattern the lint rule
-       names: state derived from state, kept in step by hand.
-
-       There was never a second source to reconcile. Every handler below already
-       writes through replaceCard, so the store was always the real list; reading
-       it directly removes the copy and the staleness with it.
+       Seeded once, from the store, when the overlay opens. It used to read the
+       store on every render instead, because every task edit was written at
+       once and refreshed the board, and a copy could not learn the server's new
+       numbers. Nothing is written until Save now, and Save reads the board again
+       after, so the copy is the draft and the store is what it is a draft of.
     */
-    const tasks = useBoardStore(
+    const storeTasks = useBoardStore(
         state => state.cards.find(candidate => candidate.id === card.id)?.tasks ?? card.tasks,
     )
+    const [savedTasks] = useState(() => storeTasks)
+    // Numbered by place, which is what a task's order means. A card whose stored
+    // orders have gaps or repeats (see saveCardTasks) would otherwise show every
+    // task as moved the first time any is.
+    const [staged, setStaged] = useState<StagedTask[]>(() => [...storeTasks].sort((a, b) => a.order - b.order)
+                                                                            .map((task, index) => stagedFrom({ ...task, order: index })))
+    const tasks = staged.map(entry => entry.task)
+
+    // What a Save has written so far, so a second press after a failure does the rest.
+    const progress = useRef(newTaskSaveProgress())
+    const savedOwn = useRef({ timeline: card.timeline, tags: card.tags })
 
     // The card's tasks' dates put together, from the tasks as they are now.
     const inherited = inheritedTimeline(tasks)
@@ -180,7 +206,8 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
         if (description !== card.description)
             patch.description = description
 
-        const tagsChanged = !sameTags(tags, card.tags)
+        const tagsChanged = !sameTags(tags, savedOwn.current.tags)
+        const tasksChanged = staged.length !== savedTasks.length || staged.some(isEdited)
 
         if (overriding !== overridesTasks(card))
             patch.overridesTasks = overriding
@@ -191,14 +218,14 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
             ? timelineDraft
             : null
 
-        if (Object.keys(patch).length === 0 && !ownTimeline && !tagsChanged)
+        if (Object.keys(patch).length === 0 && !ownTimeline && !tagsChanged && !tasksChanged)
         {
             onClose()
             return
         }
 
-        let timeline = card.timeline
-        let savedTags = card.tags
+        // Each part, once written, is recorded as written (savedOwn, progress), so
+        // a Save pressed again after a failure part way does not write it twice.
         const updated = await run(
             'Saving card',
             async () =>
@@ -207,25 +234,33 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                     await updateCard(boardId, card.id, patch)
                 // Created, or patched in place — see saveTimeline.
                 if (ownTimeline)
-                    timeline = await saveTimeline(boardId, { id: card.id, kind: TIMELINE_PARENT_CARD }, card.timeline, ownTimeline)
+                {
+                    savedOwn.current.timeline = await saveTimeline(boardId, { id: card.id, kind: TIMELINE_PARENT_CARD }, savedOwn.current.timeline, ownTimeline)
+                    setTimelineDraft(null)
+                }
                 if (tagsChanged)
-                    savedTags = await saveTags({ id: card.id, kind: 'card' }, card.tags, tags)
+                    savedOwn.current.tags = await saveTags({ id: card.id, kind: 'card' }, savedOwn.current.tags, tags)
+                if (tasksChanged)
+                    await saveCardTasks(boardId, card.id, savedTasks, staged, progress.current)
             },
-            // The card is patched in local state below; nothing else on the board moved.
-            { refresh: false }
+            // The card alone is patched in local state below. Tasks are renumbered
+            // and given IDs by the server, so with any of them changed the board is
+            // read again instead.
+            { refresh: tasksChanged }
         )
         if (!updated)
             return
 
-        replaceCard({
-            ...card,
-            title: patch.title ?? card.title,
-            description: patch.description ?? card.description,
-            tasks,
-            timeline,
-            overridesTasks: patch.overridesTasks ?? card.overridesTasks,
-            tags: savedTags,
-        })
+        if (!tasksChanged)
+            replaceCard({
+                ...card,
+                title: patch.title ?? card.title,
+                description: patch.description ?? card.description,
+                tasks: savedTasks,
+                timeline: savedOwn.current.timeline,
+                overridesTasks: patch.overridesTasks ?? card.overridesTasks,
+                tags: savedOwn.current.tags,
+            })
         onClose()
     }
 
@@ -243,39 +278,30 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
         onClose()
     }
 
-    // Mirrors Blazor's DeleteTaskAsync — removes the task server-side, then locally
-    const handleDeleteTask = async (taskId: string) =>
-    {
-        // Refreshes, because removing a task closes the gap in the ordering of
-        // every task after it and the new numbers come from the server.
-        const deleted = await run('Deleting task', () => deleteTask(boardId, card.id, taskId))
-        if (!deleted)
-            return
+    // Staged, like every task change here: the task goes on Save — see the header.
+    const handleDeleteTask = (taskId: string) =>
+        setStaged(current => renumbered(current.filter(entry => entry.task.id !== taskId)))
 
-        replaceCard({ ...card, tasks: tasks.filter(task => task.id !== taskId) })
-    }
-
-    // Called by UpdateTaskPopover when a task's fields are changed
-    const handleTaskUpdated = (updatedTask: Task) =>
-    {
-        replaceCard({
-            ...card,
-            tasks: tasks
-                .map(task => task.id === updatedTask.id
-                    ? updatedTask
-                    : task)
-                .sort((a, b) => a.order - b.order),
+    // A task edited in its popover, which may have moved it.
+    const handleTaskStaged = (edit: TaskEdit) =>
+        setStaged(current =>
+        {
+            const entry = current.find(candidate => candidate.task.id === edit.task.id)
+            if (!entry)
+                return current
+            const rest = current.filter(candidate => candidate !== entry)
+            rest.splice(Math.min(edit.task.order, rest.length), 0, applyEdit(entry, edit))
+            return renumbered(rest)
         })
-    }
 
-    // Called by CreateTaskPopover with the task the server assigned an ID to
-    const handleTaskCreated = (createdTask: Task) =>
-    {
-        replaceCard({
-            ...card,
-            tasks: [...tasks, createdTask].sort((a, b) => a.order - b.order),
+    // A new task, at the place chosen for it.
+    const handleTaskAdded = (added: StagedTask) =>
+        setStaged(current =>
+        {
+            const next = [...current]
+            next.splice(Math.min(added.task.order, next.length), 0, added)
+            return renumbered(next)
         })
-    }
 
     return (
         <ArcOverlay open={open}
@@ -326,11 +352,11 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                                                           onTitleChange={setTitle}
                                                           tags={tags}
                                                           onTagsChange={setTags} />
-                                            <TaskList tasks={tasks}
+                                            <TaskList staged={staged}
                                                       boardId={boardId}
                                                       cardId={card.id}
-                                                      onTaskUpdated={handleTaskUpdated}
-                                                      onTaskCreated={handleTaskCreated}
+                                                      onTaskStaged={handleTaskStaged}
+                                                      onTaskAdded={handleTaskAdded}
                                                       onTaskDeleted={handleDeleteTask} />
                                         </Box>
                                     }
@@ -501,16 +527,19 @@ function TitleAndTags({ title, onTitleChange, tags, onTagsChange }: {
 }
 
 /**
- * The card's tasks, each a popover row with a delete button, and a create row at
- * the end. Replaces Blazor's _taskListRenderFragment() factory — a workaround for
- * Blazor not being able to rebuild a list without one.
+ * The card's tasks as staged, each a popover row with a delete button, and a
+ * create row at the end. Replaces Blazor's _taskListRenderFragment() factory — a
+ * workaround for Blazor not being able to rebuild a list without one.
+ *
+ * A row staged and not saved says so at its end — "new", "edited" or "moved"
+ * (changeOf) — so what Save will write can be seen before it is.
  */
-function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTaskDeleted }: {
-    tasks: Task[]
+function TaskList({ staged, boardId, cardId, onTaskStaged, onTaskAdded, onTaskDeleted }: {
+    staged: StagedTask[]
     boardId: string
     cardId: string
-    onTaskUpdated: (task: Task) => void
-    onTaskCreated: (task: Task) => void
+    onTaskStaged: (edit: TaskEdit) => void
+    onTaskAdded: (added: StagedTask) => void
     onTaskDeleted: (taskId: string) => void
 })
 {
@@ -545,7 +574,7 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
             <List dense
                   disablePadding
                   sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-                { tasks.length === 0 && (
+                { staged.length === 0 && (
                     <ListItem disablePadding
                               sx={{ px: 1, py: 1.5 }}>
                         <Typography sx={{ fontSize: '0.72rem', color: 'arc.onGlassMuted' }}>
@@ -566,60 +595,72 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
                     panel's shadow is what makes layered paper look like clip
                     art.
                 */}
-                { tasks.map(task =>
-                            (
-                                <ListItem key={task.id || task.title}
-                                          className="card-stock-flat card-tilt paper-green"
-                                          disablePadding
-                                          sx={{ pr: 0.25 }}>
-                                    {/* The popover trigger takes the row; the bin sits at the end */}
-                                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                                        {/*
-                                            Keyed on the values the popover seeds its draft
-                                            from. A reorder renumbers every task on the card,
-                                            and each popover captured its order once when it
-                                            mounted — so after a move, the rows that did not
-                                            move still offered the positions they used to
-                                            have. Changing the key remounts them, which is
-                                            what re-runs those initialisers.
-                                        */}
-                                        <UpdateTaskPopover key={`${task.id}:${task.order}:${task.isCompleted}:${task.title}`}
-                                                           task={task}
-                                                           onUpdated={onTaskUpdated}
-                                                           boardId={boardId}
-                                                           cardId={cardId}
-                                                           tasksCount={tasks.length}
-                                                           triggerSize="small"
-                                                           triggerSx={{
-                                                               width: '100%',
-                                                               justifyContent: 'flex-start',
-                                                               backgroundColor: 'transparent',
-                                                               color: 'arc.onPaper',
-                                                               // The strike for a completed task is applied by
-                                                               // the popover, which is the only thing that
-                                                               // knows whether the box has been ticked but not
-                                                               // yet saved.
-                                                                     }} />
-                                    </Box>
+                { staged.map(({ task, ...entry }) =>
+                             (
+                                 <ListItem key={task.id}
+                                           className="card-stock-flat card-tilt paper-green"
+                                           disablePadding
+                                           sx={{ pr: 0.25 }}>
+                                     {/* The popover trigger takes the row; the bin sits at the end */}
+                                     <Box sx={{ flex: 1, minWidth: 0 }}>
+                                         {/*
+                                             Keyed on the values the popover seeds its draft
+                                             from. A reorder renumbers every task on the card,
+                                             and each popover captured its order once when it
+                                             mounted — so after a move, the rows that did not
+                                             move still offered the positions they used to
+                                             have. Changing the key remounts them, which is
+                                             what re-runs those initialisers.
+                                         */}
+                                         <UpdateTaskPopover key={taskKey(task)}
+                                                            task={task}
+                                                            onStage={onTaskStaged}
+                                                            boardId={boardId}
+                                                            cardId={cardId}
+                                                            tasksCount={staged.length}
+                                                            triggerSize="small"
+                                                            triggerSx={{
+                                                                width: '100%',
+                                                                justifyContent: 'flex-start',
+                                                                backgroundColor: 'transparent',
+                                                                color: 'arc.onPaper',
+                                                                // The strike for a completed task is applied by
+                                                                // the popover, which is the only thing that
+                                                                // knows whether the box has been ticked but not
+                                                                // yet saved.
+                                                                      }} />
+                                     </Box>
 
-                                    {/* Mirrors Blazor's trash icon @onclick */}
-                                    {/*
-                                        Quiet until reached for. In MUI's default colour these
-                                        bins were the darkest thing in the list — four of them
-                                        pulling more attention than the task titles they
-                                        belong to, for an action nobody comes here to take.
-                                    */}
-                                    <IconButton size="small"
-                                                onClick={() => task.id && onTaskDeleted(task.id)}
-                                                aria-label={`Delete task ${task.title}`}
-                                                sx={{ flexShrink: 0,
-                                                      color: 'arc.onPaperMuted',
-                                                      '&:hover': { color: 'arc.paperDanger', backgroundColor: 'arc.paperHover' }
-                                                   }}>
-                                        <DeleteIcon sx={{ fontSize: '0.95rem' }} />
-                                    </IconButton>
-                                </ListItem>
-                            ))
+                                     { changeOf({ task, ...entry }) && (
+                                         <Typography component="span"
+                                                     sx={{ flexShrink: 0,
+                                                           fontSize: '0.6rem',
+                                                           fontStyle: 'italic',
+                                                           color: 'arc.onPaperMuted'
+                                                        }}>
+                                             { changeOf({ task, ...entry }) }
+                                         </Typography>
+                                     )
+                                     }
+
+                                     {/* Mirrors Blazor's trash icon @onclick */}
+                                     {/*
+                                         Quiet until reached for. In MUI's default colour these
+                                         bins were the darkest thing in the list — four of them
+                                         pulling more attention than the task titles they
+                                         belong to, for an action nobody comes here to take.
+                                     */}
+                                     <IconButton size="small"
+                                                 onClick={() => onTaskDeleted(task.id)}
+                                                 aria-label={`Delete task ${task.title}`}
+                                                 sx={{ flexShrink: 0,
+                                                       color: 'arc.onPaperMuted',
+                                                       '&:hover': { color: 'arc.paperDanger', backgroundColor: 'arc.paperHover' }
+                                                    }}>
+                                         <DeleteIcon sx={{ fontSize: '0.95rem' }} />
+                                     </IconButton>
+                                 </ListItem>
+                             ))
                 }
 
                 {/*
@@ -630,8 +671,8 @@ function TaskList({ tasks, boardId, cardId, onTaskUpdated, onTaskCreated, onTask
                 <ListItem disablePadding>
                     <CreateTaskPopover boardId={boardId}
                                        cardId={cardId}
-                                       tasksCount={tasks.length}
-                                       onCreated={onTaskCreated} />
+                                       tasksCount={staged.length}
+                                       onStage={onTaskAdded} />
                 </ListItem>
             </List>
         </Paper>

@@ -81,36 +81,44 @@ public class TaskRepository : ITaskRepository
     public async Task<bool> SubmitArcTransactionAsync (ArcTransaction arcTransaction)
         => await _taskTable.SubmitArcTransactionAsync (arcTransaction);
 
+    /// <summary>
+    /// Renumbers a card's tasks round one moved to <paramref name="newTaskOrder"/>:
+    /// the others in their order, the moved one put in at its new place, and every
+    /// task whose number that changes written with its new one.
+    /// </summary>
+    /// <remarks>
+    /// It used to walk the places between the old and the new one, looking each up
+    /// with <c>Single (task => task.TaskOrder == index)</c>, so it needed the card's
+    /// orders to be exactly 0 to n−1. A gap or a repeat threw, and the card could
+    /// never be reordered again — and deleting a task made them, on every other card
+    /// of the board, until DeleteTask was fixed. Reading the order the tasks are in,
+    /// ties broken by ID, and numbering all of them from it works from any numbering
+    /// and leaves a broken one mended.
+    ///
+    /// The moved task's own number is written by the caller, with the rest of its patch.
+    /// </remarks>
     public ArcTransaction ApplyNewOrderForExistingTasks (Models.Board.Task taskToUpdate, int newTaskOrder, IEnumerable<Models.Board.Task> taskEnumerable, ArcTransaction arcTransaction)
     {
-        if (taskToUpdate.TaskOrder == newTaskOrder)
-            return arcTransaction;
+        var ordered = taskEnumerable.Where (task => task.RowKey != taskToUpdate.RowKey)
+                                    .OrderBy (task => task.TaskOrder ?? int.MaxValue)
+                                    .ThenBy (task => task.RowKey, StringComparer.Ordinal)
+                                    .ToList ();
+        ordered.Insert (Math.Clamp (newTaskOrder, 0, ordered.Count), taskToUpdate);
 
-        if (taskToUpdate.TaskOrder < newTaskOrder)
-            for (int index = taskToUpdate.TaskOrder.Value + 1; index <= newTaskOrder; index ++)
-            {
-                var currentTaskToUpdate = taskEnumerable.Single (task => task.TaskOrder == index);
-                var newTaskToUpdate = DeepCopier.Copy (currentTaskToUpdate);
-                newTaskToUpdate.TaskOrder = index - 1;
+        for (var index = 0; index < ordered.Count; index ++)
+        {
+            var currentTaskToUpdate = ordered[index];
+            if (currentTaskToUpdate.RowKey == taskToUpdate.RowKey || currentTaskToUpdate.TaskOrder == index)
+                continue;
 
-                var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, newTaskToUpdate);
-                arcTransaction.Add (transaction, currentTaskToUpdate);
-            }
-        if (taskToUpdate.TaskOrder > newTaskOrder)
-            for (int index = newTaskOrder; index < taskToUpdate.TaskOrder; index ++)
-            {
-                var currentTaskToUpdate = taskEnumerable.Single (task => task.TaskOrder == index);
-                var newTaskToUpdate = DeepCopier.Copy (currentTaskToUpdate);
-                newTaskToUpdate.TaskOrder = index + 1;
+            var newTaskToUpdate = DeepCopier.Copy (currentTaskToUpdate);
+            newTaskToUpdate.TaskOrder = index;
 
-                var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, newTaskToUpdate);
-                // currentTaskToUpdate, matching the loop above: the rollback has to
-                // hold the row as it stands, not the copy carrying the new order.
-                // ColumnRepository was corrected for this; this loop was missed, so
-                // a failed reorder restored tasks to the orders it was trying to
-                // write rather than the ones they had.
-                arcTransaction.Add (transaction, currentTaskToUpdate);
-            }
+            // currentTaskToUpdate: the rollback has to hold the row as it stands,
+            // not the copy carrying the new order.
+            var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, newTaskToUpdate);
+            arcTransaction.Add (transaction, currentTaskToUpdate);
+        }
 
         return arcTransaction;
     }

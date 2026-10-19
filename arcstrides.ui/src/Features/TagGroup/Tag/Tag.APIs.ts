@@ -11,9 +11,9 @@
  * not a second tag.
  *
  * ── Saved with the thing ─────────────────────────────────────────────────────
- * The card editor and the task popover hold their tags as a draft, like every
- * other field in them, and saveTags writes the difference when they are saved.
- * A day's tags are written as they change, as everything on a day is.
+ * The card editor, the task popover and the day overlay hold their tags as a
+ * draft, like every other field in them, and the difference is written when
+ * they are saved — by saveTags here, and by the calendar store for a day.
  */
 
 import { apiClient, ARC } from '../../../Lib/Client'

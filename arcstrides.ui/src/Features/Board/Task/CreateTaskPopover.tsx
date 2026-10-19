@@ -18,9 +18,13 @@
  * "run once after first render."
  *
  * ── The TasksCount prop ───────────────────────────────────────────────────────
- * Used to build the order range dropdown (1..N). In Blazor this was an int
- * parameter. Here we receive it as a prop from UpdateCardOverlay which knows
- * the current task count.
+ * Used to build the order range dropdown (1..N+1: a new task can go anywhere,
+ * the end included). In Blazor this was an int parameter. Here we receive it as
+ * a prop from UpdateCardOverlay which knows the current task count.
+ *
+ * ── Staging ──────────────────────────────────────────────────────────────────
+ * Given `onStage`, it creates nothing: its button says Add, and it hands the new
+ * task to the card editor, which creates it on its own Save (Task.Staging).
  */
 
 import React, { useContext, useEffect, useState } from 'react'
@@ -44,6 +48,7 @@ import {
     type TimelineDraft,
 } from '../Timeline/Timeline.Draft'
 import { createTask, createTimeline, fetchTaskTypes } from '../Board.APIs'
+import { newStagedTask, timelineOfDraft, type StagedTask } from './Task.Staging'
 import type { Task, TaskType } from '../../../Entities/Task/Task.Types'
 import { DefaultTaskTypeContext } from './Task.Defaults'
 
@@ -58,6 +63,9 @@ interface CreateTaskPopoverProps
 
     /** Receives the task the server created, so the parent can insert it into its list */
     onCreated?: (task: Task) => void
+
+    /** Stages the new task instead of creating it: the holder creates it on its own Save. See the header. */
+    onStage?: (staged: StagedTask) => void
 }
 
 export const CreateTaskPopover: React.FC<CreateTaskPopoverProps> = ({
@@ -65,11 +73,13 @@ export const CreateTaskPopover: React.FC<CreateTaskPopoverProps> = ({
     cardId,
     tasksCount,
     onCreated,
+    onStage,
 }) =>
 {
     const [title, setTitle] = useState('')
     const [isCompleted, setIsCompleted] = useState(false)
-    const [selectedOrder, setSelectedOrder] = useState(tasksCount)
+    // The place chosen, from 0; null for the end, wherever that is when it is added.
+    const [selectedOrder, setSelectedOrder] = useState<number | null>(null)
     const [taskTypes, setTaskTypes] = useState<TaskType[]>([])
     // The day's default, when the card was opened from a calendar day — see Task.Defaults.
     const defaultTaskTypeId = useContext(DefaultTaskTypeContext)
@@ -90,8 +100,10 @@ export const CreateTaskPopover: React.FC<CreateTaskPopoverProps> = ({
             .catch(error => console.error('Could not load task types', error))
     }, [])
 
-    // Order range 1..N — mirrors Blazor's _taskOrderRange initialization
-    const orderOptions = Array.from({ length: tasksCount }, (_, i) => String(i + 1))
+    // Places 1..N+1: before any task there is, or after the last. It was 1..N,
+    // read as the order itself, so the first place could not be chosen and
+    // choosing "1" put the task second.
+    const orderOptions = Array.from({ length: tasksCount + 1 }, (_, i) => String(i + 1))
 
     const handleSetTaskType = (typeName: string) =>
     {
@@ -118,6 +130,34 @@ export const CreateTaskPopover: React.FC<CreateTaskPopoverProps> = ({
             return false
         }
 
+        const reset = () =>
+        {
+            setTitle('')
+            setIsCompleted(false)
+            setSelectedOrder(null)
+            setTimelineDraft(null)
+            setTags([])
+        }
+
+        // Staging: the new task goes to the card editor, which creates it on its Save.
+        if (onStage)
+        {
+            onStage(newStagedTask({
+                title: title.trim() || 'New task',
+                order: placeOf(selectedOrder, tasksCount),
+                taskType: taskTypes.find(taskType => taskType.id === selectedTaskTypeId) ?? null,
+                isCompleted,
+                tags,
+                timeline: timelineDraft
+                    ? timelineOfDraft(null, timelineDraft)
+                    : null,
+            }, hasTimeline(timelineDraft)
+                ? timelineDraft
+                : null))
+            reset()
+            return true
+        }
+
         let created: Task | null = null
 
         const succeeded = await run(
@@ -127,7 +167,7 @@ export const CreateTaskPopover: React.FC<CreateTaskPopoverProps> = ({
                 created = await createTask(boardId, cardId, {
                     title: title.trim() || 'New Task',
                     taskTypeId: selectedTaskTypeId,
-                    order: selectedOrder,
+                    order: placeOf(selectedOrder, tasksCount),
                     isComplete: isCompleted,
                 })
 
@@ -163,19 +203,16 @@ export const CreateTaskPopover: React.FC<CreateTaskPopoverProps> = ({
             return false
 
         onCreated?.(created)
-
-        setTitle('')
-        setIsCompleted(false)
-        setSelectedOrder(tasksCount)
-        setTimelineDraft(null)
-        setTags([])
+        reset()
         return true
     }
 
     return (
         <>
             <ArcPopover triggerLabel="+ New task"
-                        submitLabel="Create"
+                        submitLabel={onStage
+                            ? 'Add'
+                            : 'Create'}
                         /*
                            Distinct from the task rows it sits under, in colour rather
                            than weight: those rows are the card's content and this is the
@@ -261,8 +298,8 @@ export const CreateTaskPopover: React.FC<CreateTaskPopoverProps> = ({
                         {/* Order selector */}
                         <Box sx={{ flex: '1 1 8rem', minWidth: 0 }}>
                             <ArcExpandingPicker options={orderOptions}
-                                                onSelect={v => setSelectedOrder(parseInt(v, 10))}
-                                                placeholder="Select order" />
+                                                onSelect={v => setSelectedOrder(parseInt(v, 10) - 1)}
+                                                placeholder={`Order: ${placeOf(selectedOrder, tasksCount) + 1}`} />
                         </Box>
 
                         {/* Task type selector */}
@@ -317,3 +354,14 @@ export const CreateTaskPopover: React.FC<CreateTaskPopoverProps> = ({
 }
 
 export default CreateTaskPopover
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+/** The place a new task goes, from 0: the one chosen, or the end. */
+function placeOf(chosen: number | null, tasksCount: number): number
+{
+    return chosen === null
+        ? tasksCount
+        : Math.min(chosen, tasksCount)
+}

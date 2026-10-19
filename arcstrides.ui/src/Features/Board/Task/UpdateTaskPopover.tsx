@@ -19,6 +19,12 @@
  * The Blazor code used Microsoft.AspNetCore.JsonPatch.JsonPatchDocument.
  * We represent the same concept as a plain object — the API stub accepts `object`.
  * When real HTTP is wired in, serialize this as a JSON Patch array.
+ *
+ * ── Staging ──────────────────────────────────────────────────────────────────
+ * Given `onStage`, it writes nothing: its button says Done, and it hands the
+ * task back as edited, for the card editor or the day overlay to write on their
+ * own Save (Task.Staging). Without it — a task opened from a grid day, where
+ * there is no Save to wait for — it writes on its own Save, as it always has.
  */
 
 import React, { useRef, useState } from 'react'
@@ -34,6 +40,7 @@ import { saveTimeline, TIMELINE_PARENT_TASK, type TimelineDraft } from '../Timel
 import { TASK_PANEL_ROW_MIN_HEIGHT, TASK_POPOVER_WIDTH, TASK_TITLE_ROW_MIN_HEIGHT } from '../../../Styles/Measures'
 import { TagsPanel } from '../../TagGroup/Tag/TagsPanel'
 import { saveTags, sameTags } from '../../TagGroup/Tag/Tag.APIs'
+import { timelineOfDraft, type TaskEdit } from './Task.Staging'
 import type { Tag } from '../../../Entities/Tag/Tag.Types'
 import type { Task, TaskType } from '../../../Entities/Task/Task.Types'
 import type { Timeline } from '../../../Entities/Timeline/Timeline.Types'
@@ -44,6 +51,9 @@ interface UpdateTaskPopoverProps
 
     /** Called after task is updated so UpdateCardOverlay can reflect changes */
     onUpdated?: (updated: Task) => void
+
+    /** Stages the edit instead of writing it: the holder writes it on its own Save. See the header. */
+    onStage?: (edit: TaskEdit) => void
 
     boardId: string
 
@@ -60,6 +70,7 @@ interface UpdateTaskPopoverProps
 export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
     task,
     onUpdated,
+    onStage,
     boardId,
     cardId,
     tasksCount,
@@ -146,6 +157,26 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
 
         if (Object.keys(patch).length === 0 && !timelineChanged && !tagsChanged)
             return true
+
+        // Staging: the task as edited goes back to the holder, which writes it on its Save.
+        if (onStage)
+        {
+            onStage({
+                task: {
+                    ...task,
+                    title,
+                    order,
+                    isCompleted,
+                    tags,
+                    taskType: taskTypes.find(taskType => taskType.id === selectedTaskTypeId) ?? task.taskType,
+                    timeline: timelineDraft
+                        ? timelineOfDraft(existingTimeline, timelineDraft)
+                        : existingTimeline,
+                },
+                timelineDraft,
+            })
+            return true
+        }
 
         let savedTimeline: Timeline | null = existingTimeline
         let savedTags = initialTags.current
@@ -238,6 +269,9 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
             <ArcPopover triggerLabel={task.title}
                         onOpen={loadTaskTypes}
                         onSubmit={handleSubmit}
+                        submitLabel={onStage
+                            ? 'Done'
+                            : undefined}
                         triggerSize={triggerSize}
                         onClose={revertDraft}
                         triggerSx={{

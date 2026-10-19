@@ -32,7 +32,7 @@ import { CalendarCardOverlay } from './CalendarCardOverlay'
 import { DefaultTaskTypeContext } from '../../Board/Task/Task.Defaults'
 import { useDayTypes } from '../Hooks/useDayTypes'
 import { useCalendarStore } from '../Calendar.Store'
-import { dayOf, monthPath, weeksOf, type GridDay } from '../Calendar.Grid'
+import { dayOf, monthPath, weeksOf } from '../Calendar.Grid'
 import { typeColours } from '../Calendar.Stats'
 import { dayTypeOf } from '../Calendar.DayTypes'
 import { CalendarContext, type CalendarActions } from '../Calendar.Context'
@@ -53,8 +53,6 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) =>
     const stored = useCalendarStore(state => state.stored)
     const taskTypes = useCalendarStore(state => state.taskTypes)
     const refresh = useCalendarStore(state => state.refresh)
-    const addCard = useCalendarStore(state => state.addCard)
-    const removeCard = useCalendarStore(state => state.removeCard)
     const setDayType = useCalendarStore(state => state.setDayType)
     const setDayTags = useCalendarStore(state => state.setDayTags)
     const { typeOf } = useDayTypes()
@@ -164,30 +162,6 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) =>
         refresh()
     }
 
-    const handleAddCard = async (day: GridDay, card: Card) =>
-    {
-        try
-        {
-            await addCard(day.date.date(), card)
-        }
-        catch (error)
-        {
-            addError(`Could not put "${card.title}" on ${day.date.format('D MMMM')}: ${messageOf(error)}`)
-        }
-    }
-
-    const handleRemoveCard = async (day: GridDay, card: Card) =>
-    {
-        try
-        {
-            await removeCard(day.date.date(), card.id)
-        }
-        catch (error)
-        {
-            addError(`Could not take "${card.title}" off ${day.date.format('D MMMM')}: ${messageOf(error)}`)
-        }
-    }
-
     return (
         <CalendarContext.Provider value={actions}>
             <MonthGrid weeks={weeks} />
@@ -197,9 +171,7 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) =>
                                         boardIds={boardIds}
                                         startAdding={opened?.adding ?? false}
                                         addRequest={opened?.request ?? 0}
-                                        onClose={() => setOpened(null)}
-                                        onAddCard={card => handleAddCard(openDay, card)}
-                                        onRemoveCard={card => handleRemoveCard(openDay, card)} />)
+                                        onClose={() => setOpened(null)} />)
             }
 
             {/* After the day, so a card opened from a day stacks above it. */}

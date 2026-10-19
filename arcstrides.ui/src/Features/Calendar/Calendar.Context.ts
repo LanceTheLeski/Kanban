@@ -17,6 +17,7 @@ import type { Card } from '../../Entities/Card/Card.Types'
 import type { Tag } from '../../Entities/Tag/Tag.Types'
 import type { GridDay } from './Calendar.Grid'
 import type { Stop } from './Calendar.Stops'
+import type { TaskEdit } from '../Board/Task/Task.Staging'
 
 export interface CalendarActions
 {
@@ -33,6 +34,13 @@ export interface CalendarActions
 
     /** A task was saved from its popover; the month should be re-read. */
     taskUpdated: () => void
+
+    /**
+     * Inside the day overlay: holds a task edited from one of the day's notes
+     * until the day's Save, rather than writing it (useDayDraft). Absent on the
+     * grid, where a task's popover writes on its own Save.
+     */
+    stageTask?: (card: Card, edit: TaskEdit) => void
 
     /** Sets what kind of day it is — see Calendar.DayTypes. A failure is reported, not thrown. */
     setDayType: (day: GridDay, typeId: number) => void

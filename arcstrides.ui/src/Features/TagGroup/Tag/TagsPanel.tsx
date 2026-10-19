@@ -30,9 +30,9 @@
  * the server matches titles the same way (TagRepository.AttachLabelAsync).
  *
  * ── Saved by whoever holds it ────────────────────────────────────────────────
- * This only edits a list. The card editor and the task popover keep it as a
- * draft and write it when they are saved (Tag.APIs, saveTags); the day writes
- * each change as it is made, as everything on a day is. It used to be held for
+ * This only edits a list. The card editor, the task popover and the day
+ * overlay keep it as a draft and write it when they are saved (Tag.APIs,
+ * saveTags; useDayDraft). It used to be held for
  * the session only, with a warning dot, because nothing could read a tag back;
  * tags now arrive with the things they are on.
  */

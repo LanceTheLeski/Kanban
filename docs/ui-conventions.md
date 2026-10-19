@@ -734,6 +734,38 @@ it about 300px: a node's day, time and Day pieces wrapped onto lines of their
 own. It now has a little more room than it has on a card. The new-task popover
 is laid out the same way.
 
+### Nothing is written until Save
+
+The card editor and the day overlay each have a Save, and everything changed in
+them waits for it; Discard, Escape or a click outside drops it. Before, a task
+was written the moment its popover was saved, and a day the moment anything on
+it changed, so a card's tasks or a day's cards could change for good under an
+editor that was then discarded.
+
+**In the card editor**, a task added, edited, moved or deleted is staged
+(`Task.Staging`): the task popovers say **Done** (and **Add** for a new task)
+rather than Save, the list shows the tasks as they will be, and each row says
+what was done to it — *new*, *edited* or *moved*. The card's dates, inherited
+from its tasks, are worked out from the staged tasks. Save writes the card, then
+the tasks — deletes, then creates at the end, then edits, then each task moved
+to its place — and reads the board again.
+
+**In the day overlay**, the day's type, its tags, the cards put on it or taken
+off, and the tasks edited from its notes wait for its Save (`useDayDraft`). The
+whole overlay, the live copy of the day on the right included, draws the day as
+it will be, and a line under the cards says how many changes wait. With changes
+waiting, its buttons are Discard and Save; with none, Close. Moving to another
+day from inside it asks for Save or Discard first. A card opened from the day
+is the card editor, with a Save of its own.
+
+On the grid there is no Save to wait for, so a task opened from a day's note
+there still writes on its popover's own Save, and the ⋮ menu's actions are
+written at once.
+
+Neither Save is one transaction — there is no endpoint for a card's tasks or a
+day at once. A Save that fails part way says so; what it wrote is out of the
+draft, and pressing Save again writes the rest.
+
 ### Tags
 
 A card, a task and a calendar day each have a tags box (`TagsPanel`, in
@@ -742,10 +774,10 @@ add one. Typing offers the tags that exist already, from anywhere, and choosing
 one puts that tag on — "Blocked" on a card and on its task is one tag. A typed
 title that matches an existing tag but for case is that tag too.
 
-The card editor and the task popover hold their tags as a draft like every
-other field, and write the difference on Save (`saveTags`). A day writes each
-change as it is made, as everything on a day is. Tags arrive with what they are
-on: a card's and its tasks' with the board, a day's with the month.
+The card editor, the task popover and the day overlay hold their tags as a
+draft like every other field, and write the difference on Save (`saveTags`;
+`useDayDraft` for a day). Tags arrive with what they are on: a card's and its
+tasks' with the board, a day's with the month.
 
 **A tag's colour** is chosen from the board's bar: Tags → Colours
 (`TagColoursOverlay`). It lists every tag there is — a tag is on no board — each

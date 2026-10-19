@@ -12,8 +12,8 @@
  * the date-type selector, the palette swatch, and "Tag Canvas Placeholder :)".
  * The selector and the swatch are one thing here: the picture is the type, and
  * clicking it is how the type is changed. The tags are the card editor's tags
- * panel, set beside the picture the way it sits beside a card's title, and
- * written as they change, as the type is.
+ * panel, set beside the picture the way it sits beside a card's title. Both
+ * change the day's draft, written on the overlay's Save (useDayDraft).
  */
 
 import React, { useState } from 'react'

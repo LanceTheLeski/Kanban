@@ -22,6 +22,10 @@
  * overlay's larger note, what point it is. In the overlay the note also says why
  * the card is there: put on the day, due on it, or both.
  *
+ * ── Saved now, or with the day ───────────────────────────────────────────────
+ * On the grid a task's popover writes on its own Save. In the day overlay it
+ * says Done, and the edit waits for the day's Save (stageTask, useDayDraft).
+ *
  * ── Two targets, never nested ────────────────────────────────────────────────
  * The title opens the card; a task opens its popover. The note itself is not a
  * button, because a button holding buttons is two targets that cannot tell
@@ -36,6 +40,7 @@ import { colourOf } from '../Calendar.Stats'
 import { useCalendarActions } from '../Calendar.Context'
 import { pointName, pointsOf, type DayCardEntry, type Stop } from '../Calendar.Stops'
 import { spanLabel } from '../../Board/Timeline/Timeline.Nodes'
+import { taskKey } from '../../Board/Task/Task.Staging'
 import type { Card } from '../../../Entities/Card/Card.Types'
 import type { Task } from '../../../Entities/Task/Task.Types'
 
@@ -64,7 +69,7 @@ interface DayCardNoteProps
 
 export const DayCardNote: React.FC<DayCardNoteProps> = ({ card, tasks, size = 'small', boardCaption, entry, readOnly = false }) =>
 {
-    const { colours, openCard, taskUpdated } = useCalendarActions()
+    const { colours, openCard, taskUpdated, stageTask } = useCalendarActions()
     const medium = size === 'medium'
     const done = card.tasks.filter(task => task.isCompleted).length
     const total = card.tasks.length
@@ -226,8 +231,8 @@ export const DayCardNote: React.FC<DayCardNoteProps> = ({ card, tasks, size = 's
                                 <Box sx={{ flex: 1, minWidth: 0 }}>
                                     {/*
                                         Keyed on the values the popover seeds its draft from,
-                                        as the card editor keys its rows, so a saved change
-                                        remounts it with the new values.
+                                        as the card editor keys its rows, so a saved or staged
+                                        change remounts it with the new values.
                                     */}
                                     { readOnly
                                         ? (
@@ -248,8 +253,11 @@ export const DayCardNote: React.FC<DayCardNoteProps> = ({ card, tasks, size = 's
                                               </Typography>
                                           )
                                         : (
-                                                <UpdateTaskPopover key={`${task.id}:${task.order}:${task.isCompleted}:${task.title}`}
+                                                <UpdateTaskPopover key={taskKey(task)}
                                                                    task={task}
+                                                                   onStage={stageTask
+                                                                       ? edit => stageTask(card, edit)
+                                                                       : undefined}
                                                                    boardId={card.boardId}
                                                                    cardId={card.id}
                                                                    tasksCount={card.tasks.length}

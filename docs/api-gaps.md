@@ -313,6 +313,27 @@ the cost to every read of the tag list instead.
 or a swimlane. `Tag.TagTypeID` names the parent's kind, and `TagGroup` exists
 for the calendar's days, but neither is a group of tags someone chose.
 
+### 14. Task order across a card — fixed, and one gap left
+
+`ArcStrides.API/Controllers/TaskController.cs`, `Repositories/TaskRepository.cs`
+
+- **Deleting a task renumbered every card on the board.** `DeleteTask` moved up
+  the tasks after it matched on the PartitionKey — the board — not the card, so
+  every later task on every other card lost one from its order, leaving gaps and
+  repeats. It matches on the card as well now.
+- **A card with gaps or repeats could never be reordered again.**
+  `ApplyNewOrderForExistingTasks` looked each place up with `Single (task =>
+  task.TaskOrder == index)`, which throws on either. It now reads the card's
+  tasks in their order, ties broken by ID, puts the moved one in at its place,
+  and numbers all of them from that, so a move works from any numbering and
+  mends a broken one. The card editor sends every move for a card whose orders
+  were not 0 to n−1 (`saveCardTasks`), so saving it mends it.
+- **Still open: creating a task at a place moves nothing.** `CreateTask` writes
+  the task with the order it is given and leaves the others where they are, so
+  a task created anywhere but the end shares a number with another. The card
+  editor creates every task at the end and then moves it, which avoids it; the
+  endpoint still allows it.
+
 ## Not a gap, but worth knowing
 
 - `CardController` has no `GET` for a board's cards; they arrive nested on

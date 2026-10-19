@@ -8,11 +8,10 @@
  *
  * ── Why the board is loaded behind it ────────────────────────────────────────
  * UpdateCardOverlay is the board's editor, and it edits through the board's
- * store: it reads the live task list from there, writes each change back with
- * replaceCard, and re-reads the board after anything that renumbers. Handed a
- * card with no board loaded, it would still open — and then every task edit
- * would land in a store that does not hold the card, and the list on screen
- * would stop matching the server after the first reorder.
+ * store: it seeds its tasks from there, writes the card back with replaceCard,
+ * and re-reads the board after a Save that changed any task. Handed a card with
+ * no board loaded, it would still open — and then its Save would land in a
+ * store that does not hold the card.
  *
  * So the card's board is read in the background, silently, the moment the card
  * is opened. Until it arrives the overlay shows the calendar's copy, which is
