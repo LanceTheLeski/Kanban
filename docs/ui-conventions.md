@@ -758,6 +758,11 @@ waiting, its buttons are Discard and Save; with none, Close. Moving to another
 day from inside it asks for Save or Discard first. A card opened from the day
 is the card editor, with a Save of its own.
 
+The date pickers and day previews inside either one see what it holds, not
+only what is stored (`Calendar.StagedCards`): a second task added before Save
+chooses its deadline beside the first one's, and a day's preview shows the
+card's tasks as staged.
+
 On the grid there is no Save to wait for, so a task opened from a day's note
 there still writes on its popover's own Save, and the ⋮ menu's actions are
 written at once.

@@ -75,6 +75,7 @@ import { boardLabel } from '../Calendar.Views'
 import { CalendarContext, useCalendarActions, type CalendarActions } from '../Calendar.Context'
 import { useGridDaySize } from '../Hooks/useGridDaySize'
 import { useDayDraft } from '../Hooks/useDayDraft'
+import { StagedCardsContext } from '../Calendar.StagedCards'
 import { useArcError } from '../../../Components/useArcError'
 import type { GridDay } from '../Calendar.Grid'
 
@@ -157,6 +158,8 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
 
     return (
         <CalendarContext.Provider value={actions}>
+        {/* The day's cards as the draft holds them, for the date pickers of the tasks edited here. */}
+        <StagedCardsContext.Provider value={knownCards}>
         <ArcOverlay open
                     onClose={onClose}
                     onSubmit={draft.dirty
@@ -279,6 +282,7 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
                 </Box>
             </Box>
         </ArcOverlay>
+        </StagedCardsContext.Provider>
         </CalendarContext.Provider>
     )
 }

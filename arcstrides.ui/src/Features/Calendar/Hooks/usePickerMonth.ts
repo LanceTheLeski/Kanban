@@ -10,9 +10,12 @@
  * on the board page as often as on the calendar, and steps through months the
  * calendar page is not showing. It reads only while `enabled`: while the
  * picker is open.
+ *
+ * Opened inside an editor, its cards are what the editor holds over what was
+ * read — a task added and not saved yet included (Calendar.StagedCards).
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useContext, useEffect, useMemo, useState } from 'react'
 import dayjs, { type Dayjs } from 'dayjs'
 import { DEFAULT_BOARD_ID } from '../../Board/Board.Defaults'
 import { fetchTaskTypes } from '../../Board/Board.APIs'
@@ -21,6 +24,7 @@ import { weeksOf, type Week } from '../Calendar.Grid'
 import { typeColours } from '../Calendar.Stats'
 import { uniqueCards } from '../Calendar.Stops'
 import { useCalendarBoards } from './useCalendarBoards'
+import { StagedCardsContext } from '../Calendar.StagedCards'
 import type { Card } from '../../../Entities/Card/Card.Types'
 import type { Month } from '../Calendar.Types'
 
@@ -85,7 +89,8 @@ export function usePickerMonth(month: Dayjs, boardIds: string[], enabled: boolea
         [DEFAULT_BOARD_ID, ...boardIds, ...placed.map(card => card.boardId)], enabled)
 
     const weeks = useMemo(() => weeksOf(dayjs(new Date(year, index, 1)), stored?.dates ?? []), [year, index, stored])
-    const cards = useMemo(() => uniqueCards(placed, boards.flatMap(board => board.cards)), [placed, boards])
+    const staged = useContext(StagedCardsContext)
+    const cards = useMemo(() => uniqueCards(placed, boards.flatMap(board => board.cards), staged), [placed, boards, staged])
 
     return {
         weeks,

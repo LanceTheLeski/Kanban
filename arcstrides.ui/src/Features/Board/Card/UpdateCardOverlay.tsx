@@ -56,7 +56,7 @@
  * the imports to find them again.
  */
 
-import React, { useRef, useState } from 'react'
+import React, { useContext, useRef, useState } from 'react'
 import {
     Box,
     IconButton,
@@ -86,9 +86,11 @@ import {
     saveCardTasks,
     stagedFrom,
     taskKey,
+    timelineOfDraft,
     type StagedTask,
     type TaskEdit,
 } from '../Task/Task.Staging'
+import { StagedCardsContext } from '../../Calendar/Calendar.StagedCards'
 import { useBoardStore } from '../Board.Store'
 import { TagsPanel } from '../../TagGroup/Tag/TagsPanel'
 import { saveTags, sameTags } from '../../TagGroup/Tag/Tag.APIs'
@@ -181,6 +183,21 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
 
     // The card's tasks' dates put together, from the tasks as they are now.
     const inherited = inheritedTimeline(tasks)
+
+    // The card as it will be after Save, for the date pickers in it: a task's
+    // deadline is chosen beside the other tasks' as staged, not as stored
+    // (Calendar.StagedCards).
+    const outerStaged = useContext(StagedCardsContext)
+    const stagedCards =
+    [...outerStaged, {
+        ...card,
+        title,
+        tasks,
+        overridesTasks: overriding,
+        timeline: timelineDraft
+            ? timelineOfDraft(card.timeline, timelineDraft)
+            : card.timeline,
+    }]
 
     /**
      * Ticked, the card keeps dates of its own. With none saved yet, it starts
@@ -304,6 +321,7 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
         })
 
     return (
+        <StagedCardsContext.Provider value={stagedCards}>
         <ArcOverlay open={open}
                     onClose={onClose}
                     onSubmit={handleSubmit}
@@ -429,6 +447,7 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
 
             </Box>
         </ArcOverlay>
+        </StagedCardsContext.Provider>
     )
 }
 
