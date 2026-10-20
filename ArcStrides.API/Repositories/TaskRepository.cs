@@ -73,8 +73,12 @@ public class TaskRepository : ITaskRepository
     public async Task AddTaskTypeAsync (TaskType taskTypeToCreate)
         => await _taskTypeTable.AddEntityAsync (taskTypeToCreate);
 
+    /// <summary>
+    /// Writes the whole row, so a colour put back to the default (null) sticks; a
+    /// merge leaves a null out (docs/api-gaps.md, #9). Callers have the row as read.
+    /// </summary>
     public async Task UpdateTaskTypeAsync (TaskType taskTypeToUpdate)
-        => await _taskTypeTable.UpdateEntityAsync (taskTypeToUpdate);
+        => await _taskTypeTable.ReplaceEntityAsync (taskTypeToUpdate);
 
     #endregion Task Type
 

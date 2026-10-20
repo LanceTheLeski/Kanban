@@ -25,10 +25,9 @@
 
 import { create } from 'zustand'
 import { addCardToDate, addTagToDate, fetchMonthOf, removeCardFromDate, removeTagFromDate, setDateType } from './Calendar.APIs'
-import { fetchTaskTypes } from '../Board/Board.APIs'
 import type { Card } from '../../Entities/Card/Card.Types'
 import type { Tag } from '../../Entities/Tag/Tag.Types'
-import type { TaskType } from '../../Entities/Task/Task.Types'
+import { useTaskTypeStore } from '../TagGroup/TaskType/TaskType.Store'
 import type { CalendarDate, Month } from './Calendar.Types'
 
 export type CalendarStatus = 'idle' | 'loading' | 'ready' | 'error'
@@ -54,13 +53,6 @@ interface CalendarState
      * a day's deadlines are found on, see useCalendarBoards — reads again when it moves.
      */
     revision: number
-
-    /**
-     * Every task type in the app, which is where a type's colour comes from —
-     * see Calendar.Stats. Read once, with the first month; a failure leaves it
-     * empty and every typed task in the Other grey rather than blocking the page.
-     */
-    taskTypes: TaskType[]
 
     /**
      * Which view each day is on, by day key ('2026-09-30' → 'type:123'). Held
@@ -105,14 +97,16 @@ export const useCalendarStore = create<CalendarState>((set, get) =>
     status: 'idle',
     error: null,
     revision: 0,
-    taskTypes: [],
     dayViews: {},
 
     setDayView: (dayKey, viewKey) => set(state => ({ dayViews: { ...state.dayViews, [dayKey]: viewKey } })),
 
     loadMonth: async (year, month, options) =>
     {
-        loadTaskTypesOnce(types => set({ taskTypes: types }))
+        // The task types, for their colours, with every month read: a type made or
+        // coloured on another page shows here as soon as the calendar opens (see
+        // TaskType.Store). A failure leaves typed tasks in the Other grey.
+        void useTaskTypeStore.getState().load()
 
         const silent = options?.silent === true
         const sameMonth = get().year === year && get().month === month
@@ -153,9 +147,6 @@ export const useCalendarStore = create<CalendarState>((set, get) =>
         const { year, month, loadMonth } = get()
         if (year === null || month === null)
             return
-        // A refresh follows an edit, and the edit may have been a new task type
-        // made from a task's popover; read the types again with the month.
-        taskTypesRequested = false
         await loadMonth(year, month, { silent: true })
     },
 
@@ -270,26 +261,6 @@ export const useCalendarStore = create<CalendarState>((set, get) =>
 
 // ── Private ───────────────────────────────────────────────────────────────────
 // Not exported, which is this language's `private`. Ordered by first use above.
-
-let taskTypesRequested = false
-
-/**
- * Task types change rarely and colour every day, so they are read with the first
- * month and again only on a refresh — which is what follows an edit.
- */
-function loadTaskTypesOnce(apply: (types: TaskType[]) => void)
-{
-    if (taskTypesRequested)
-        return
-    taskTypesRequested = true
-    fetchTaskTypes([0])
-        .then(apply)
-        .catch(error =>
-        {
-            taskTypesRequested = false
-            console.error('Could not load task types', error)
-        })
-}
 
 function isShowing(state: CalendarState, year: number, month: number): boolean
 {

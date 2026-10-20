@@ -334,6 +334,21 @@ for the calendar's days, but neither is a group of tags someone chose.
   editor creates every task at the end and then moves it, which avoids it; the
   endpoint still allows it.
 
+### 15. Task types: a colour, and a PATCH that never worked — fixed
+
+`ArcStrides.API/Controllers/TaskController.cs`
+
+`PATCH tasks/types/{ID}` copied a type built from the patch onto the stored row
+with `MapFieldsFromSourceToTarget`, and the patch has no keys; `TaskType.RowKey`
+is declared non-nullable, so the mapper copied its null across and every PATCH
+failed with "Value cannot be null. (Parameter 'RowKey')". Nothing called it
+until the UI could colour a type. It now sets the title and the colour by hand.
+
+A type has a colour, `TaskType.Color`, `#rrggbb` or null, on `TaskTypeResponse`
+and patched as `/color`; the row is written whole (`ReplaceEntityAsync`), so a
+colour put back to null sticks (see #9). Types still cannot be deleted (#5), so
+a test type stays.
+
 ## Not a gap, but worth knowing
 
 - `CardController` has no `GET` for a board's cards; they arrive nested on

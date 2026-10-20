@@ -21,6 +21,9 @@ export interface TaskType
     groupTagId: string | null
 
     title: string
+
+    /** `#rrggbb`, chosen from the board's Task types menu; null for its palette slot. See typeColours. */
+    colour: string | null
 }
 
 export interface Task

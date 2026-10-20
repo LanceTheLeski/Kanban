@@ -4,6 +4,7 @@ using ArcStrides.API.Messages;
 using ArcStrides.API.Models;
 using ArcStrides.API.Models.TagGroup;
 using ArcStrides.API.Repositories;
+using ArcStrides.API.Validators;
 using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Request.Patch;
 using ArcStrides.Contracts.Request.Query;
@@ -242,8 +243,18 @@ public class TaskController : ArcController
             catch (JsonPatchException)
                 { return BadRequest (ErrorResponseMessages.PatchRequestIsInvalidErrorResponse (nameof (Models.Board.Task))); }
 
-            var convertedTaskType = _taskMapper.MapTaskTypePatchRequestToTaskType (convertedTaskTypeToUpdate);
-            _taskMapper.MapFieldsFromSourceToTarget (convertedTaskType, taskTypeFromDatabase);
+            var newColor = convertedTaskTypeToUpdate.Color;
+            if (newColor is not null && ColorValidators.IsColor (newColor) is false)
+                return BadRequest (ValidatorMessages.InvalidFieldValueFormatValidatorMessage (nameof (TaskTypePatchRequest.Color)));
+
+            // Each field set by hand rather than mapped across. The mapper copied a
+            // type built from the patch onto the stored row, keys included, and the
+            // patch has none, so every PATCH failed with "Value cannot be null.
+            // (Parameter 'RowKey')"; and a colour put back to the default is a null
+            // it would have skipped.
+            if (string.IsNullOrWhiteSpace (convertedTaskTypeToUpdate.Title) is false)
+                taskTypeFromDatabase.Title = convertedTaskTypeToUpdate.Title.Trim ();
+            taskTypeFromDatabase.Color = newColor;
 
             await _taskRepository.UpdateTaskTypeAsync (taskTypeFromDatabase);
 

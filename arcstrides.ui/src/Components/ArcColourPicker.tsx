@@ -60,17 +60,34 @@ interface ArcColourPickerProps
 
     /** A line under the chips about where the colour came from: "One shade deeper than Backlog". */
     hint?: string
+
+    /**
+     * The chips offered first, and what their row is called; the palette's paper
+     * colours by default. A task type offers the charts' palette instead, the
+     * colours its marks were validated in (Calendar.Stats).
+     */
+    swatches?: { colour: string; name: string }[]
+
+    swatchesLabel?: string
 }
 
-export const ArcColourPicker: React.FC<ArcColourPickerProps> = ({ value, onChange, fallback, label, hint }) =>
+export const ArcColourPicker: React.FC<ArcColourPickerProps> = ({
+    value,
+    onChange,
+    fallback,
+    label,
+    hint,
+    swatches = PAPER,
+    swatchesLabel = 'Paper',
+}) =>
 {
     const shown = toHex(value ?? fallback)
     const isDefault = value === null
     const [saved, setSaved] = useState<string[]>(readSaved)
     const [mixing, setMixing] = useState<HTMLElement | null>(null)
 
-    const onPaper = PAPER.some(swatch => swatch.colour === shown)
-    const mixed = !isDefault && !onPaper && !saved.includes(shown)
+    const offered = swatches.some(swatch => toHex(swatch.colour) === shown)
+    const mixed = !isDefault && !offered && !saved.includes(shown)
 
     const keep = (next: string[]) =>
     {
@@ -102,16 +119,16 @@ export const ArcColourPicker: React.FC<ArcColourPickerProps> = ({ value, onChang
                 </Box>
             </Box>
 
-            <ChipRow label="Paper">
-                { PAPER.map((swatch, index) =>
-                            (
-                                <Chip key={swatch.colour}
-                                      colour={swatch.colour}
-                                      name={swatch.name}
-                                      tilt={index}
-                                      chosen={!isDefault && shown === swatch.colour}
-                                      onPick={() => onChange(swatch.colour)} />
-                            ))
+            <ChipRow label={swatchesLabel}>
+                { swatches.map((swatch, index) =>
+                               (
+                                   <Chip key={swatch.colour}
+                                         colour={swatch.colour}
+                                         name={swatch.name}
+                                         tilt={index}
+                                         chosen={!isDefault && shown === toHex(swatch.colour)}
+                                         onPick={() => onChange(swatch.colour)} />
+                               ))
                 }
             </ChipRow>
 
@@ -249,7 +266,7 @@ export const ArcColourPicker: React.FC<ArcColourPickerProps> = ({ value, onChang
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Button size="small"
                             onClick={() => keep([...saved, shown].slice(-MAX_SAVED))}
-                            disabled={onPaper || saved.includes(shown)}
+                            disabled={offered || saved.includes(shown)}
                             sx={{ fontSize: '0.62rem', color: 'arc.paperAccent', textTransform: 'none' }}>
                         Save to yours
                     </Button>

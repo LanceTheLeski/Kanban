@@ -33,7 +33,7 @@ import { DefaultTaskTypeContext } from '../../Board/Task/Task.Defaults'
 import { useDayTypes } from '../Hooks/useDayTypes'
 import { useCalendarStore } from '../Calendar.Store'
 import { dayOf, monthPath, weeksOf } from '../Calendar.Grid'
-import { typeColours } from '../Calendar.Stats'
+import { useTaskTypeStore } from '../../TagGroup/TaskType/TaskType.Store'
 import { dayTypeOf } from '../Calendar.DayTypes'
 import { CalendarContext, type CalendarActions } from '../Calendar.Context'
 import { useBoardTitles } from '../Hooks/useBoardTitles'
@@ -51,7 +51,7 @@ interface MonthViewProps
 export const MonthView: React.FC<MonthViewProps> = ({ year, month }) =>
 {
     const stored = useCalendarStore(state => state.stored)
-    const taskTypes = useCalendarStore(state => state.taskTypes)
+    const colours = useTaskTypeStore(state => state.colours)
     const refresh = useCalendarStore(state => state.refresh)
     const setDayType = useCalendarStore(state => state.setDayType)
     const setDayTags = useCalendarStore(state => state.setDayTags)
@@ -79,7 +79,6 @@ export const MonthView: React.FC<MonthViewProps> = ({ year, month }) =>
         ...(stored?.dates ?? []).flatMap(date => date.cards.map(card => card.boardId)),
     ], [stored])
 
-    const colours = useMemo(() => typeColours(taskTypes), [taskTypes])
     const boardTitle = useBoardTitles(boardIds)
 
     // Every card the calendar can read, and every point on each day: a task or a

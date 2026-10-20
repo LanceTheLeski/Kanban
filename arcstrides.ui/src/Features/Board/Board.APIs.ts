@@ -108,6 +108,8 @@ export interface TaskTypeResponse
     groupTagID: string | null
 
     title: string | null
+
+    color: string | null
 }
 
 /** Mirrors ArcStrides.Contracts.Response.TaskResponse */
@@ -237,6 +239,7 @@ export function mapTaskType(response: TaskTypeResponse | null | undefined): Task
         id: response.id,
         groupTagId: response.groupTagID ?? null,
         title: response.title ?? '',
+        colour: response.color ?? null,
     }
 }
 
@@ -639,6 +642,12 @@ export const DEFAULT_TASK_TYPE_TAG_GROUP_ID = '7b3f1c94-4d2e-4a61-9f0c-2e5a8d1b6
  * Returns the created type so the caller can select it immediately rather than
  * refetching and hunting for it by title.
  */
+/** PATCH arcstrides/tasks/types/:id — a type's colour; null for its palette slot. */
+export async function updateTaskTypeColour(id: number, colour: string | null): Promise<void>
+{
+    await apiClient.patch(`${ARC}/tasks/types/${id}`, [{ op: 'replace', path: '/color', value: colour }])
+}
+
 export async function createTaskType(
     title: string,
     tagGroupId: string = DEFAULT_TASK_TYPE_TAG_GROUP_ID,

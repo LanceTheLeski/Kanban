@@ -59,6 +59,7 @@ import { CreateSwimlaneOverlay } from './Swimlane/CreateSwimlaneOverlay'
 import { DeleteSwimlaneOverlay } from './Swimlane/DeleteSwimlaneOverlay'
 import { UpdateSwimlaneOverlay } from './Swimlane/UpdateSwimlaneOverlay'
 import { TagColoursOverlay } from '../TagGroup/Tag/TagColoursOverlay'
+import { TaskTypeColoursOverlay } from '../TagGroup/TaskType/TaskTypeColoursOverlay'
 
 // ── The overlays this bar can open ────────────────────────────────────────────
 
@@ -83,6 +84,7 @@ type OverlayKey =
     | 'updateSwimlane'
     | 'deleteSwimlane'
     | 'tagColours'
+    | 'taskTypeColours'
 
 // ── What the bar contains ─────────────────────────────────────────────────────
 
@@ -234,6 +236,7 @@ const OVERLAYS: Record<OverlayKey, OverlayComponent> =
     updateSwimlane: UpdateSwimlaneOverlay,
     deleteSwimlane: DeleteSwimlaneOverlay,
     tagColours: TagColoursOverlay,
+    taskTypeColours: TaskTypeColoursOverlay,
 }
 
 const MENUS: MenuSpec[] =
@@ -262,6 +265,11 @@ const MENUS: MenuSpec[] =
         // Every tag there is, not this board's only: a tag is on no board.
         label: 'Tags',
         items: [{ label: 'Colours', overlay: 'tagColours' }],
+    },
+    {
+        // Every task type there is: their colours mark them on the calendar.
+        label: 'Task types',
+        items: [{ label: 'Colours', overlay: 'taskTypeColours' }],
     },
     {
         // AddManageBoardOverlay has not been converted from Blazor yet, so this

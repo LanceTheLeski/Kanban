@@ -29,8 +29,10 @@ import React, { useState } from 'react'
 import { Stack, TextField } from '@mui/material'
 import { paperField } from '../../../Styles/Paper'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
-import { createTaskType } from '../../Board/Board.APIs'
+import { createTaskType, updateTaskTypeColour } from '../../Board/Board.APIs'
+import { freeTypeColour } from '../../Calendar/Calendar.Stats'
 import { useBoardActions } from '../../Board/Hooks/useBoardActions'
+import { useTaskTypeStore } from './TaskType.Store'
 import type { TaskType } from '../../../Entities/Task/Task.Types'
 
 interface CreateTaskTypeOverlayProps
@@ -50,6 +52,8 @@ export const CreateTaskTypeOverlay: React.FC<CreateTaskTypeOverlayProps> = ({
 }) =>
 {
     const { run } = useBoardActions()
+    const added = useTaskTypeStore(state => state.added)
+    const types = useTaskTypeStore(state => state.types)
     const [title, setTitle] = useState('')
 
     const handleSubmit = async () =>
@@ -65,12 +69,25 @@ export const CreateTaskTypeOverlay: React.FC<CreateTaskTypeOverlayProps> = ({
 
         const succeeded = await run(
             'Adding task type',
-            async () => { created.value = await createTaskType(trimmed) },
+            async () =>
+            {
+                created.value = await createTaskType(trimmed)
+                // A colour of its own from the start, so it moves no other type's —
+                // see typeColours.
+                const colour = freeTypeColour(types)
+                if (colour)
+                {
+                    await updateTaskTypeColour(created.value.id, colour)
+                    created.value = { ...created.value, colour }
+                }
+            },
             { refresh: false },
         )
         if (!succeeded || !created.value)
             return
 
+        // Every page's list of types has it at once — see TaskType.Store.
+        added(created.value)
         onCreated?.(created.value)
         setTitle('')
         onClose()

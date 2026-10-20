@@ -144,7 +144,7 @@ public class TagController : ArcController
                 return BadRequest (ValidatorMessages.EmptyFieldValidatorMessage (nameof (TagPatchRequest.Title)));
 
             var newColor = convertedTagToUpdate.Color;
-            if (newColor is not null && TagValidators.IsColor (newColor) is false)
+            if (newColor is not null && ColorValidators.IsColor (newColor) is false)
                 return BadRequest (ValidatorMessages.InvalidFieldValueFormatValidatorMessage (nameof (TagPatchRequest.Color)));
 
             var titleTaken = (await _tagRepository.GetLabelsAsync ()).Any (tag => tag.PartitionKey != ID.ToString ()

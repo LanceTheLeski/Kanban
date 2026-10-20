@@ -620,12 +620,21 @@ oxblood, the month and "Honu Boards" on the navy bars.
 The one set of colours not on the ladders. Four soft hues cannot tell eight
 types apart at a glance, so the charts keep a categorical palette of their own.
 
-A task type's colour is its slot in the eight-hue categorical palette, taken
-from the app's whole type list in ID order — never from what is on one day, so
-a type is the same colour everywhere. Untyped tasks are grey. The palette was
+A task type's colour is stored on the type, chosen from the board's bar: Task
+types → Colours (`TaskTypeColoursOverlay`), which offers this palette first. A
+type made in the app is given the first colour of the palette no type is
+wearing, so a new type never moves another's. A type with no colour of its own
+takes the palette's colours in ID order, skipping any a type has chosen; past
+eight, it is Other's grey until it is given one. Never from what is on one day,
+so a type is the same colour everywhere. Untyped tasks are grey. The palette was
 validated against the frosted sand a day sits on; five hues are under 3:1 there,
 so colour is never the only way to tell a type: the day overlay lists every
 type by name with its count, and each task row carries its type's mark and name.
+
+**One list of types for the whole app** (`TaskType.Store`), read again whenever
+the calendar or a date picker opens. The calendar and the picker each kept a
+copy read once a session, so a type made or coloured on the board page was grey
+on the calendar until something refreshed it.
 
 ### The day overlay
 

@@ -11,4 +11,10 @@ public class TaskType : ArcTagGroupsEntity
     public override string RowKey { get; set; }
 
     public string? Title { get; set; }
+
+    /// <summary>
+    /// The type's colour on the calendar's charts and marks, as <c>#rrggbb</c>; null
+    /// for the one its place in the type list gives it.
+    /// </summary>
+    public string? Color { get; set; }
 }

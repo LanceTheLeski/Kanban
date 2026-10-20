@@ -18,10 +18,9 @@
 import { useContext, useEffect, useMemo, useState } from 'react'
 import dayjs, { type Dayjs } from 'dayjs'
 import { DEFAULT_BOARD_ID } from '../../Board/Board.Defaults'
-import { fetchTaskTypes } from '../../Board/Board.APIs'
 import { fetchMonthOf } from '../Calendar.APIs'
 import { weeksOf, type Week } from '../Calendar.Grid'
-import { typeColours } from '../Calendar.Stats'
+import { useTaskTypeStore } from '../../TagGroup/TaskType/TaskType.Store'
 import { uniqueCards } from '../Calendar.Stops'
 import { useCalendarBoards } from './useCalendarBoards'
 import { StagedCardsContext } from '../Calendar.StagedCards'
@@ -56,7 +55,14 @@ export function usePickerMonth(month: Dayjs, boardIds: string[], enabled: boolea
 
     const [read, setRead] = useState<{ key: string; month: Month | null; error: string | null }>(
         { key: '', month: null, error: null })
-    const colours = useTaskColours(enabled)
+    // The task types' colours, read again each time a picker opens (TaskType.Store).
+    const colours = useTaskTypeStore(state => state.colours)
+    const loadTypes = useTaskTypeStore(state => state.load)
+    useEffect(() =>
+    {
+        if (enabled)
+            void loadTypes()
+    }, [enabled, loadTypes])
 
     useEffect(() =>
     {
@@ -104,45 +110,3 @@ export function usePickerMonth(month: Dayjs, boardIds: string[], enabled: boolea
 }
 
 export default usePickerMonth
-
-// ── Private ───────────────────────────────────────────────────────────────────
-// Not exported, which is this language's `private`. Ordered by first use above.
-
-/**
- * Every task type's colour. The types change rarely, so they are read once for
- * every picker opened in the session; a failure leaves typed tasks in the
- * Other grey, as on the calendar page, rather than blocking the picker.
- */
-function useTaskColours(enabled: boolean): Map<number, string>
-{
-    const [colours, setColours] = useState<Map<number, string>>(() => coloursRead ?? new Map())
-
-    useEffect(() =>
-    {
-        if (!enabled || coloursRead)
-            return
-        let current = true
-        typesRequest ??= fetchTaskTypes([0]).then(types =>
-        {
-            coloursRead = typeColours(types)
-            return coloursRead
-        })
-        typesRequest
-            .then(read =>
-            {
-                if (current)
-                    setColours(read)
-            })
-            .catch(() =>
-            {
-                typesRequest = null
-            })
-        return () => { current = false }
-    }, [enabled])
-
-    return colours
-}
-
-let coloursRead: Map<number, string> | null = null
-
-let typesRequest: Promise<Map<number, string>> | null = null
