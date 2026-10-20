@@ -236,17 +236,17 @@ card is drawn.
 
 The card editor's timeline ends with a segment saying where the dates come
 from — "Taken from its tasks — 2 of 3 have dates", or "The card's own dates" —
-and a box, **Use the card's own dates instead of its tasks'**. Unticked, the
-timeline shows the tasks' dates, read-only. Ticked, it is the card's own, edited
-as before; ticked on a card with no dates of its own, it starts from its tasks'.
-Unticking keeps the card's own timeline row, unused, so ticking again brings
-it back.
+and a box, **Inherit timeline info from tasks**. Ticked, the default, the
+timeline shows the tasks' dates, read-only. Unticked, it is the card's own,
+edited as before; unticked on a card with no dates of its own, it starts from
+its tasks'. Ticking it again keeps the card's own timeline row, unused, so
+unticking brings it back.
 
-The box is `Card.OverridesTaskTimelines` (`PATCH …/cards/{ID}`
-`/overridesTaskTimelines`). It is null on every card saved before it existed,
-and null is read as "ticked if the card has a timeline of its own"
-(`overridesTasks`), so a date someone set on a card is never quietly replaced
-by its tasks'.
+The box is the opposite of `Card.OverridesTaskTimelines` (`PATCH …/cards/{ID}`
+`/overridesTaskTimelines`), which says the card keeps its own. That is null on
+every card saved before it existed, and null is read as "keeps its own if it has
+a timeline of its own" (`overridesTasks`) — the box unticked — so a date someone
+set on a card is never quietly replaced by its tasks'.
 
 **On the calendar**, a card's own dates are stops only when it keeps them. Its
 tasks' points are stops either way, under the card: a card is on every day one

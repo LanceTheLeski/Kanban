@@ -380,15 +380,21 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                     a wrapping flex row where each panel sized itself, which left a
                     ragged edge and a hole under the timeline's mode buttons.
                 */}
+                {/*
+                    Side by side, the row is as tall as the timeline needs, and
+                    never shorter than CARD_PANEL_ROW_HEIGHT. It was exactly that
+                    height, so opening a point — its day, time and Day pieces —
+                    pushed the timeline's content out under its own inheritance
+                    segment. The log is held out of the sizing (contain: size), so
+                    its entries scroll inside the row rather than growing it.
+                    Stacked, each takes the full width and what it needs.
+                */}
                 <Box sx={{ display: 'grid',
                            gridTemplateColumns: { xs: '1fr', [STACK_BELOW]: 'minmax(0, 1fr) minmax(0, 1fr)' },
+                           gridTemplateRows: { [STACK_BELOW]: `minmax(${CARD_PANEL_ROW_HEIGHT}, auto)` },
                            gap: 2,
                            alignItems: 'stretch',
-                           // Definite once the panels are side by side, so the log
-                           // scrolls rather than growing the dialog. Stacked, they
-                           // each get the full width and can take what they need.
-                           minHeight: CARD_PANEL_ROW_MIN_HEIGHT,
-                           height: { [STACK_BELOW]: CARD_PANEL_ROW_HEIGHT }
+                           minHeight: CARD_PANEL_ROW_MIN_HEIGHT
                         }}>
                     {/*
                         Keyed on whose dates it shows, so ticking the box starts
@@ -413,7 +419,12 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                                                         tasks: tasks.length,
                                                         onOverridingChange: changeOverriding
                                                      }} />
-                    <CommandPanel card={card} />
+                    <Box sx={{ minWidth: 0,
+                               display: 'flex',
+                               contain: { [STACK_BELOW]: 'size' }
+                            }}>
+                        <CommandPanel card={card} />
+                    </Box>
                 </Box>
 
             </Box>

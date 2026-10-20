@@ -82,7 +82,7 @@ interface UpdateTimelinePanelProps
      */
     readOnly?: boolean
 
-    /** A card's: where its dates come from, and the box to keep its own instead. */
+    /** A card's: where its dates come from, and the box that chooses. */
     inheritance?: TimelineInheritance
 }
 
@@ -383,11 +383,13 @@ function onlyNodeOf(mode: TimelineMode): NodeId | null
 
 /**
  * The foot of a card's timeline: whether its dates are its tasks' or its own,
- * and the box that chooses.
+ * and the box that chooses — "Inherit timeline info from tasks".
  *
- * Its tasks' by default — the earliest of their starts and the latest of their
- * ends (Timeline.Inheritance). Ticked, the card keeps dates of its own, starting
- * from the ones it had; its tasks keep theirs either way.
+ * Ticked, the default, the card takes its tasks' dates: the earliest of their
+ * starts and the latest of their ends (Timeline.Inheritance). Unticked, it keeps
+ * dates of its own, starting from the ones it had; its tasks keep theirs either
+ * way. The box says what is taken rather than what is kept, so the usual case is
+ * the ticked one.
  */
 function InheritanceSegment({ inheritance }: { inheritance: TimelineInheritance })
 {
@@ -409,13 +411,13 @@ function InheritanceSegment({ inheritance }: { inheritance: TimelineInheritance 
             </Typography>
             <FormControlLabel sx={{ m: 0, '& .MuiCheckbox-root': { p: 0.4 } }}
                               control={<Checkbox size="small"
-                                                 checked={overriding}
-                                                 onChange={event => onOverridingChange(event.target.checked)} />}
+                                                 checked={!overriding}
+                                                 onChange={event => onOverridingChange(!event.target.checked)} />}
                               label={<Typography sx={{ fontSize: '0.66rem',
                                                        fontWeight: 600,
                                                        color: 'arc.onPaperStrong'
                                                     }}>
-                                         Use the card's own dates instead of its tasks'
+                                         Inherit timeline info from tasks
                                      </Typography>} />
         </Box>
     )
@@ -426,7 +428,7 @@ function inheritanceNote(overriding: boolean, tasksWithDates: number, tasks: num
     if (overriding)
         return "The card's own dates. Its tasks keep theirs, and still show under it on their own days."
     if (tasks === 0)
-        return 'Taken from its tasks — it has none yet. Add one with dates, or tick the box to give the card its own.'
+        return 'Taken from its tasks — it has none yet. Add one with dates, or untick the box to give the card dates of its own.'
     if (tasksWithDates === 0)
         return 'Taken from its tasks — none of them has dates yet. When one does, the card has them too.'
     return `Taken from its tasks — ${tasksWithDates} of ${tasks} ${tasks === 1

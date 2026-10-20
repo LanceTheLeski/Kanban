@@ -138,7 +138,9 @@ export const CARD_DETAIL_ROW_MIN_HEIGHT = rem(300)
 export const CARD_PANEL_ROW_MIN_HEIGHT = rem(170)
 
 /**
- * The height of that row, once there is room for it.
+ * The least height of that row once there is room for it: it grows past this
+ * for the timeline, never for the log, which UpdateCardOverlay holds out of the
+ * row's sizing.
  *
  * This was a `max-height`, and a max-height does not do what it looks like it
  * does here. It clamps the *container's* box, but the grid track inside is still
@@ -149,7 +151,10 @@ export const CARD_PANEL_ROW_MIN_HEIGHT = rem(170)
  *
  * A definite height is what makes the track definite, which is what lets
  * `height: 100%` and `flex: 1` inside it resolve — so the log fills the space it
- * is given and scrolls past it, instead of pushing the dialog taller.
+ * is given and scrolls past it, instead of pushing the dialog taller. That height
+ * is now the track's, sized from the timeline alone; it was this constant, which
+ * the timeline outgrew as soon as a point was opened under its inheritance
+ * segment.
  */
 export const CARD_PANEL_ROW_HEIGHT = rem(210)
 
