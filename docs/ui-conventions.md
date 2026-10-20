@@ -694,13 +694,14 @@ A point on a card's or a task's timeline is chosen from the calendar
    That is **Exact time**, the first of two modes along the top of the day.
    **Relative** puts the point among the day's things instead, with no clock
    in sight (`DatePickerOrderList`): everything timed on the day in order, as
-   names and lengths, with "+ here" between each two and at either end. Things
-   that overlap are one block, with no place between them. A point put in a
-   place is given the time the thing before it ends (before the first, it ends
-   where the first begins), and is saved as placed rather than chosen — see
+   names and lengths, with "+ here" between every two — those at the same
+   moment or overlapping included — and at either end. A point put in a place
+   is given the time the thing before it ends (before the first, it ends where
+   the first begins), and is saved as placed rather than chosen — see
    "Relative placement" in `docs/timeline-model.md`. One too long for its place
    goes there anyway, on red, with an (i) that says why: "4 h does not fit
-   between Breakfast and Lunch: there is 2 h between them…". Switching to
+   between Breakfast and Lunch: there is 2 h between them…" — as does one put
+   between two things with no time between them. Switching to
    Relative puts a point that has a time in the place its time falls in; on a
    day with nothing timed there is nothing to put it among, and it is left on
    the day with no time. Switching to Exact keeps the time it was given, as a

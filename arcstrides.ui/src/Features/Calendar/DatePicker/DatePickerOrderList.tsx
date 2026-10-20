@@ -1,8 +1,9 @@
 /**
  * DatePickerOrderList
  *
- * The day's timed things in order, with no times on them, and a place between
- * each two to put the point: the day step's Relative mode (DatePickerTimeStep).
+ * The day's timed things in order, with no times on them, and a place before,
+ * between and after them to put the point: the day step's Relative mode
+ * (DatePickerTimeStep).
  *
  *     + here                                   before the first
  *     ● Breakfast · Morning routine      1 h
@@ -12,19 +13,21 @@
  *
  * A point put in a place is given the time the thing before it ends — see
  * Calendar.RelativePlacement, which works out the places and whether the point
- * fits. One too long for its place is put there all the same, drawn red, with
- * a note behind (i) saying why. Nothing here shows a clock: the order is the
+ * fits. One that overlaps anything is put there all the same, drawn red, with a
+ * note behind (i) saying why. Nothing here shows a clock: the order is the
  * point.
  *
- * Things that overlap are one block, with no place between them: nothing can
- * go between two things happening at once.
+ * There is a place between every two things, those at the same moment or
+ * overlapping included. They used to be one block with no place between them,
+ * and a point placed after another takes its end as its time, so the two
+ * merged and nothing could be put between them again.
  */
 
 import React, { useState } from 'react'
 import { Box, ButtonBase, IconButton, Popover, Typography } from '@mui/material'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { durationLabel } from '../../Board/Timeline/Timeline.Nodes'
-import { fitsAt, gapOf, misfitReason, type ItemGroup } from '../Calendar.RelativePlacement'
+import { misfitReason, type PlacedItem } from '../Calendar.RelativePlacement'
 
 /** One thing on the day, as the list draws it. */
 export interface OrderItem
@@ -55,13 +58,17 @@ export interface OrderItem
 
 interface DatePickerOrderListProps
 {
-    groups: ItemGroup<OrderItem>[]
+    /** In order — see inOrder. */
+    items: PlacedItem<OrderItem>[]
 
     /** What is being set: "Deadline". */
     name: string
 
-    /** The point's time, in minutes from midnight; null for none. */
-    minutes: number | null
+    /** The gap the point is in, or null for no time — see gapOf. */
+    at: number | null
+
+    /** Whether the point overlaps nothing where it is — see fitsAt. */
+    fits: boolean
 
     duration: number | null
 
@@ -69,9 +76,9 @@ interface DatePickerOrderListProps
     onPlace: (index: number) => void
 }
 
-export const DatePickerOrderList: React.FC<DatePickerOrderListProps> = ({ groups, name, minutes, duration, onPlace }) =>
+export const DatePickerOrderList: React.FC<DatePickerOrderListProps> = ({ items, name, at, fits, duration, onPlace }) =>
 {
-    if (groups.length === 0)
+    if (items.length === 0)
         return (
             <Typography className="card-stock-flat"
                         sx={{ px: 1, py: 1, fontSize: '0.68rem', color: 'arc.onPaper', lineHeight: 1.5 }}>
@@ -80,10 +87,27 @@ export const DatePickerOrderList: React.FC<DatePickerOrderListProps> = ({ groups
             </Typography>
         )
 
-    const at = minutes === null
-        ? null
-        : gapOf(groups, minutes)
-    const fits = minutes === null || fitsAt(groups, minutes, duration)
+    const rows: React.ReactNode[] = []
+    for (let index = 0; index <= items.length; index++)
+    {
+        rows.push(at === index
+            ? (
+                <PointRow key={`gap:${index}`}
+                          name={name}
+                          duration={duration}
+                          reason={fits
+                              ? null
+                              : misfitReason(items, index, duration, item => item.name)} />
+            )
+            : (
+                <Place key={`gap:${index}`}
+                       label={`Put the ${name.toLowerCase()} ${placeLabel(items, index)}`}
+                       onClick={() => onPlace(index)} />
+            ))
+        if (index < items.length)
+            rows.push(<ItemRow key={items[index].item.key}
+                               item={items[index].item} />)
+    }
 
     return (
         <Box component="ol"
@@ -98,42 +122,7 @@ export const DatePickerOrderList: React.FC<DatePickerOrderListProps> = ({ groups
                    maxHeight: LIST_HEIGHT,
                    overflowY: 'auto'
                 }}>
-            { Array.from({ length: groups.length + 1 }, (_, index) =>
-                                                        (
-                                                            <React.Fragment key={index}>
-                                                                { at === index
-                                                                    ? (
-                                                                          <PointRow name={name}
-                                                                                    duration={duration}
-                                                                                    reason={fits
-                                                                                        ? null
-                                                                                        : misfitReason(groups, index, duration, nameOf)} />
-                                                                      )
-                                                                    : (
-                                                                          <Box component="li">
-                                                                              <ButtonBase onClick={() => onPlace(index)}
-                                                                                          aria-label={`Put the ${name.toLowerCase()} ${placeLabel(groups, index)}`}
-                                                                                          sx={{ width: '100%',
-                                                                                                justifyContent: 'flex-start',
-                                                                                                px: 1,
-                                                                                                py: 0.2,
-                                                                                                border: '1px dashed',
-                                                                                                borderColor: 'arc.paperDivider',
-                                                                                                borderRadius: '2px',
-                                                                                                fontSize: '0.62rem',
-                                                                                                color: 'arc.onPaperMuted',
-                                                                                                '&:hover': { backgroundColor: 'arc.paperHover', color: 'arc.onPaperStrong' },
-                                                                                                '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 }
-                                                                                             }}>
-                                                                                  + here
-                                                                              </ButtonBase>
-                                                                          </Box>
-                                                                      )
-                                                                }
-                                                                { index < groups.length && <GroupRow group={groups[index]} /> }
-                                                            </React.Fragment>
-                                                        ))
-            }
+            { rows }
         </Box>
     )
 }
@@ -146,23 +135,14 @@ export default DatePickerOrderList
 /** As tall as the hour scale it stands in for, so the step does not jump when the mode changes. */
 const LIST_HEIGHT = 270
 
-/** A group by name: its first thing's, and how many more. */
-function nameOf(group: ItemGroup<OrderItem>): string
-{
-    const first = group.items[0].item.name
-    return group.items.length === 1
-        ? first
-        : `${first} and ${group.items.length - 1} more`
-}
-
 /** "before Breakfast", "between Breakfast and Lunch", "after Lunch". */
-function placeLabel(groups: ItemGroup<OrderItem>[], index: number): string
+function placeLabel(items: PlacedItem<OrderItem>[], index: number): string
 {
     if (index === 0)
-        return `before ${nameOf(groups[0])}`
-    if (index === groups.length)
-        return `after ${nameOf(groups[index - 1])}`
-    return `between ${nameOf(groups[index - 1])} and ${nameOf(groups[index])}`
+        return `before ${items[0].item.name}`
+    if (index === items.length)
+        return `after ${items[index - 1].item.name}`
+    return `between ${items[index - 1].item.name} and ${items[index].item.name}`
 }
 
 /** The point, in its place: blue, or red with the reason behind (i) when it does not fit. */
@@ -227,70 +207,74 @@ function PointRow({ name, duration, reason }: { name: string; duration: number |
     )
 }
 
-/** One thing on the day, or several that overlap, as one block. */
-function GroupRow({ group }: { group: ItemGroup<OrderItem> })
+/** A place the point can go: a dashed line saying so. */
+function Place({ label, onClick }: { label: string; onClick: () => void })
+{
+    return (
+        <Box component="li">
+            <ButtonBase onClick={onClick}
+                        aria-label={label}
+                        sx={{ width: '100%',
+                              justifyContent: 'flex-start',
+                              px: 1,
+                              py: 0.2,
+                              border: '1px dashed',
+                              borderColor: 'arc.paperDivider',
+                              borderRadius: '2px',
+                              fontSize: '0.62rem',
+                              color: 'arc.onPaperMuted',
+                              '&:hover': { backgroundColor: 'arc.paperHover', color: 'arc.onPaperStrong' },
+                              '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'arc.paperAccent', outlineOffset: 1 }
+                           }}>
+                + here
+            </ButtonBase>
+        </Box>
+    )
+}
+
+/** One thing on the day: its type's mark, its card and what of it, and how long it lasts. */
+function ItemRow({ item }: { item: OrderItem })
 {
     return (
         <Box component="li"
-             aria-label={group.items.length > 1
-                 ? `${group.items.length} things at the same time`
-                 : undefined}
-             sx={{ display: 'flex',
-                   flexDirection: 'column',
-                   gap: 0.2,
-                   pl: 0.5,
-                   borderLeft: group.items.length > 1
-                       ? '2px solid'
-                       : 'none',
-                   borderLeftColor: 'arc.paperDivider'
-                }}>
-            { group.items.map(({ item }) =>
-                              (
-                                  <Box key={item.key}
-                                       sx={{ display: 'flex', alignItems: 'center', gap: 0.6, minWidth: 0 }}>
-                                      <Box aria-hidden
-                                           sx={{ width: 8,
-                                                 height: 8,
-                                                 flexShrink: 0,
-                                                 borderRadius: '50%',
-                                                 backgroundColor: item.colour ?? 'var(--arc-paper)',
-                                                 border: item.colour
-                                                     ? 'none'
-                                                     : '2px solid var(--arc-blue-deep)'
-                                              }} />
-                                      <Typography component="span"
-                                                  sx={{ flex: 1,
-                                                        minWidth: 0,
-                                                        fontSize: '0.66rem',
-                                                        color: 'arc.onPaper',
-                                                        whiteSpace: 'nowrap',
-                                                        overflow: 'hidden',
-                                                        textOverflow: 'ellipsis',
-                                                        textDecoration: item.done
-                                                            ? 'line-through'
-                                                            : 'none'
-                                                     }}>
-                                          <Box component="span"
-                                               sx={{ fontWeight: 600 }}>
-                                              { item.title }
-                                          </Box>
-                                          <Box component="span"
-                                               sx={{ color: 'arc.onPaperMuted' }}>
-                                              { ` · ${item.caption}` }
-                                          </Box>
-                                      </Typography>
-                                      { item.length && (
-                                          <Typography component="span"
-                                                      sx={{ flexShrink: 0,
-                                                            fontSize: '0.6rem',
-                                                            color: 'arc.onPaperMuted'
-                                                         }}>
-                                              { durationLabel(item.length) }
-                                          </Typography>
-                                      )
-                                      }
-                                  </Box>
-                              ))
+             sx={{ display: 'flex', alignItems: 'center', gap: 0.6, minWidth: 0, pl: 0.5 }}>
+            <Box aria-hidden
+                 sx={{ width: 8,
+                       height: 8,
+                       flexShrink: 0,
+                       borderRadius: '50%',
+                       backgroundColor: item.colour ?? 'var(--arc-paper)',
+                       border: item.colour
+                           ? 'none'
+                           : '2px solid var(--arc-blue-deep)'
+                    }} />
+            <Typography component="span"
+                        sx={{ flex: 1,
+                              minWidth: 0,
+                              fontSize: '0.66rem',
+                              color: 'arc.onPaper',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              textDecoration: item.done
+                                  ? 'line-through'
+                                  : 'none'
+                           }}>
+                <Box component="span"
+                     sx={{ fontWeight: 600 }}>
+                    { item.title }
+                </Box>
+                <Box component="span"
+                     sx={{ color: 'arc.onPaperMuted' }}>
+                    { ` · ${item.caption}` }
+                </Box>
+            </Typography>
+            { item.length && (
+                <Typography component="span"
+                            sx={{ flexShrink: 0, fontSize: '0.6rem', color: 'arc.onPaperMuted' }}>
+                    { durationLabel(item.length) }
+                </Typography>
+            )
             }
         </Box>
     )

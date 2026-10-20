@@ -64,7 +64,7 @@ import { MONO, SERIF } from '../../../Styles/Fonts'
 import { durationLabel, spanLabel } from '../../Board/Timeline/Timeline.Nodes'
 import { colourOf } from '../Calendar.Stats'
 import { stopDone, stopKey, stopTypeId, type Stop } from '../Calendar.Stops'
-import { FIRST_MINUTE, LAST_MINUTE, gapAt, gapOf, groupItems, type PlacedItem } from '../Calendar.RelativePlacement'
+import { FIRST_MINUTE, LAST_MINUTE, fitsAt, gapAt, gapOf, inOrder, type PlacedItem } from '../Calendar.RelativePlacement'
 import { DatePickerOrderList, type OrderItem } from './DatePickerOrderList'
 import { CustomDurationPopover } from './CustomDurationPopover'
 import { NO_DAY_TYPE } from '../Calendar.DayTypes'
@@ -165,7 +165,7 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
         : null
 
     // What Relative puts the point among: everything timed on the day, in order.
-    const groups = groupItems<OrderItem>([
+    const items = inOrder<OrderItem>([
         ...timed.map(stop => placed(minutesOf(stop.at), stop.duration, {
             key: stopKey(stop),
             title: stop.card.title,
@@ -188,6 +188,16 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
                     done: false,
                 })),
     ])
+
+    // The gap a point was put in here, by its time then: two things at one
+    // moment are a tie its time alone cannot break (see gapOf), so a point put
+    // between them is shown where it was put, for as long as it is still there.
+    const [placedGap, setPlacedGap] = useState<{ index: number; minutes: number } | null>(null)
+    const gap = minutes === null
+        ? null
+        : placedGap?.minutes === minutes
+            ? placedGap.index
+            : gapOf(items, minutes)
 
     // Opened to show the point and the first thing already on the day, when both
     // fit; else the point; else the first thing; else the working day.
@@ -269,11 +279,12 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
             </Box>
 
             { mode === 'relative' && (
-                <DatePickerOrderList groups={groups}
+                <DatePickerOrderList items={items}
                                      name={name}
-                                     minutes={minutes}
+                                     at={gap}
+                                     fits={minutes === null || fitsAt(items, minutes, duration)}
                                      duration={duration}
-                                     onPlace={index => onChange({ time: at(gapAt(groups, index, duration).start), relative: true })} />
+                                     onPlace={index => place(index, duration)} />
             )
             }
 
@@ -582,9 +593,18 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
         }
         if (minutes === null)
             return
-        onChange(groups.length === 0
-            ? { time: null, relative: false }
-            : { time: at(gapAt(groups, gapOf(groups, minutes), duration).start), relative: true })
+        if (items.length === 0)
+            onChange({ time: null, relative: false })
+        else
+            place(gapOf(items, minutes), duration)
+    }
+
+    /** Puts the point in the gap at `index`, for a point that long — see Calendar.RelativePlacement. */
+    function place(index: number, length: number | null, change: PointChange = {})
+    {
+        const start = gapAt(items, index, length).start
+        setPlacedGap({ index, minutes: start })
+        onChange({ ...change, time: at(start), relative: true })
     }
 
     /**
@@ -594,8 +614,8 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
      */
     function changeDuration(next: number | null)
     {
-        if (mode === 'relative' && minutes !== null && groups.length > 0)
-            onChange({ duration: next, time: at(gapAt(groups, gapOf(groups, minutes), next).start), relative: true })
+        if (mode === 'relative' && gap !== null && items.length > 0)
+            place(gap, next, { duration: next })
         else
             onChange({ duration: next })
     }
