@@ -14,13 +14,13 @@
  * still the whole card's: a view narrows what is listed, not what is true.
  *
  * ── What falls on the day ────────────────────────────────────────────────────
- * Given the card's entry for the day (Calendar.Stops, DayCardEntry), the note
- * says what of it falls there. A yellow tab on the title — the Deadline tab's
- * stock — carries the time of its first point, or "Due" when it has no time. A
- * card keeping dates of its own lists them under its title. A task with a point
- * on the day carries the point's time at the end of its row, and, on the day
- * overlay's larger note, what point it is. In the overlay the note also says why
- * the card is there: put on the day, due on it, or both.
+ * On the grid, nothing about times: a day there says which cards and tasks are
+ * connected to it, and the room times took goes to the tasks' names. The times
+ * are in the day overlay, where the larger note (`medium`) says what of the
+ * card falls on the day, from its entry (Calendar.Stops, DayCardEntry): why it
+ * is there — put on the day, due on it, or both — a yellow tab on its title,
+ * the Deadline tab's stock, with the time of its first point ("Due" with none),
+ * the card's own dates if it keeps them, and on each task its point and when.
  *
  * ── Saved now, or with the day ───────────────────────────────────────────────
  * On the grid a task's popover writes on its own Save. In the day overlay it
@@ -125,15 +125,13 @@ export const DayCardNote: React.FC<DayCardNoteProps> = ({ card, tasks, size = 's
                                    }}>
                         { card.title || 'Untitled' }
                     </Typography>
-                    { first && (
+                    { medium && first && (
                         <Box component="span"
                              className="card-stock-flat paper-yellow"
                              sx={{ flexShrink: 0,
                                    px: 0.4,
                                    fontFamily: MONO,
-                                   fontSize: medium
-                                       ? '0.66rem'
-                                       : '0.54rem',
+                                   fontSize: '0.66rem',
                                    fontWeight: 700,
                                    color: 'arc.onPaperStrong'
                                 }}>
@@ -168,20 +166,18 @@ export const DayCardNote: React.FC<DayCardNoteProps> = ({ card, tasks, size = 's
             )
             }
 
-            {/* A card keeping dates of its own: those that fall on the day. */}
-            { entry?.own.map(stop =>
-                             (
-                                 <Typography key={stop.node.id}
-                                             sx={{ px: 0.25,
-                                                   fontFamily: MONO,
-                                                   fontSize: medium
-                                                       ? '0.66rem'
-                                                       : '0.54rem',
-                                                   color: 'arc.onPaper'
-                                                }}>
-                                     The card's { pointName(stop).toLowerCase() } · { whenOf(stop) }
-                                 </Typography>
-                             ))
+            {/* A card keeping dates of its own: those that fall on the day, in the overlay. */}
+            { medium && entry?.own.map(stop =>
+                                       (
+                                           <Typography key={stop.node.id}
+                                                       sx={{ px: 0.25,
+                                                             fontFamily: MONO,
+                                                             fontSize: '0.66rem',
+                                                             color: 'arc.onPaper'
+                                                          }}>
+                                               The card's { pointName(stop).toLowerCase() } · { whenOf(stop) }
+                                           </Typography>
+                                       ))
             }
 
             { boardCaption && (
@@ -284,28 +280,21 @@ export const DayCardNote: React.FC<DayCardNoteProps> = ({ card, tasks, size = 's
                                     }
                                 </Box>
 
-                                {/* The task's point on this day, if it has one: its time, and in the overlay what point it is. */}
-                                { pointOfTask(task.id).map(stop =>
-                                                           (
-                                                               <Box key={stop.node.id}
-                                                                    component="span"
-                                                                    title={`${pointName(stop)} · ${whenOf(stop)}`}
-                                                                    sx={{ flexShrink: 0,
-                                                                          pr: 0.5,
-                                                                          fontFamily: MONO,
-                                                                          fontSize: medium
-                                                                              ? '0.64rem'
-                                                                              : '0.52rem',
-                                                                          color: 'arc.onPaperStrong'
-                                                                       }}>
-                                                                   { medium
-                                                                       ? `${pointName(stop)} · ${whenOf(stop)}`
-                                                                       : stop.timed
-                                                                           ? spanLabel(stop.at, null, stop.relative)
-                                                                           : 'due'
-                                                                   }
-                                                               </Box>
-                                                           ))
+                                {/* In the overlay, the task's point on this day, if it has one: which point, and when. */}
+                                { medium && pointOfTask(task.id).map(stop =>
+                                                                     (
+                                                                         <Box key={stop.node.id}
+                                                                              component="span"
+                                                                              title={`${pointName(stop)} · ${whenOf(stop)}`}
+                                                                              sx={{ flexShrink: 0,
+                                                                                    pr: 0.5,
+                                                                                    fontFamily: MONO,
+                                                                                    fontSize: '0.64rem',
+                                                                                    color: 'arc.onPaperStrong'
+                                                                                 }}>
+                                                                             { pointName(stop) } · { whenOf(stop) }
+                                                                         </Box>
+                                                                     ))
                                 }
                             </Box>
                         ))

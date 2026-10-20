@@ -551,11 +551,13 @@ tasks as green strips — the same strips, and the same popover behind them, as 
 the card editor. A card is on a day when it was put there, or when anything of
 it falls there: dates of its own, if it keeps them, or a point of one of its
 tasks (see "What is due on a day" below). A task is never on a day without its
-card. A card due on the day carries a yellow tab beside its title — the Deadline
-tab's stock — with the time of its first point there, or "Due" when it has no
-time; each task with a point on the day carries the point's time at the end of
-its strip. On a phone, the day is a count of its cards on a scrap of paper,
-yellow when one of them is due.
+card. **No times on the grid:** a day there says which cards and tasks are
+connected to it, and the room goes to the tasks' names. The times are in the
+day overlay — on its timeline, and on its Cards list, where a card due on the
+day carries a yellow tab beside its title (the Deadline tab's stock) with the
+time of its first point, or "Due" with none, and each task says which of its
+points falls on the day and when. On a phone, the day is a count of its cards
+on a scrap of paper, yellow when one of them is due.
 
 **Every day is the same height** (`DAY_HEIGHT`, in `Calendar.Layout.ts`). A busy
 day does not stretch its week and push the rest of the month down the page:
