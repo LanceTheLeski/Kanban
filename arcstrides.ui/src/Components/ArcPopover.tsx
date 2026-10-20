@@ -40,22 +40,36 @@ import { POPOVER_MIN_WIDTH } from '../Styles/Measures'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export interface ArcPopoverProps
+/**
+ * Save only while there is something to save, as in ArcOverlay (see its header):
+ * Close until something in the popover changes, then Discard and Save. `dirty`
+ * is required wherever there is an `onSubmit`.
+ */
+export type ArcPopoverProps = PopoverProps & PopoverSubmitProps
+
+export type PopoverSubmitProps =
+    | { onSubmit?: undefined; dirty?: undefined }
+    | {
+        /**
+         * Async submit handler — mirrors OnSubmitAsync: Func<Task>
+         *
+         * Return `false` to keep the popover open, for a save that did not happen.
+         * Anything else (including nothing) closes it, which is what every existing
+         * caller relied on.
+         */
+        onSubmit: () => Promise<boolean | void> | boolean | void
+
+        /** Something in the popover has changed, and its Save would keep it. */
+        dirty: boolean
+    }
+
+interface PopoverProps
 {
     /** Text shown on the trigger button — mirrors PopoverBaseText */
     triggerLabel: string
 
     /** Content inside the popover — mirrors RenderFragment ChildContent */
     children?: React.ReactNode
-
-    /**
-     * Async submit handler — mirrors OnSubmitAsync: Func<Task>
-     *
-     * Return `false` to keep the popover open, for a save that did not happen.
-     * Anything else (including nothing) closes it, which is what every existing
-     * caller relied on.
-     */
-    onSubmit?: () => Promise<boolean | void> | boolean | void
 
     /**
      * External open control (optional) — for the "parent knows when to close"
@@ -148,6 +162,7 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
     triggerLabel,
     children,
     onSubmit,
+    dirty = false,
     open: controlledOpen,
     onOpen,
     onClose: controlledOnClose,
@@ -200,7 +215,7 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
        closed the popover *and* silently thrown away what the user typed, leaving
        only a snackbar to explain it.
     */
-    const handleSubmit = onSubmit
+    const handleSubmit = onSubmit && dirty
         ? async () =>
         {
             const succeeded = await onSubmit()
@@ -289,6 +304,9 @@ export const ArcPopover: React.FC<ArcPopoverProps> = ({
                     <Box sx={{ px: 2, pb: 1.5, pt: 0.5 }}>
                         <ArcActionBar onSave={handleSubmit}
                                       onDiscard={handleClose}
+                                      discardLabel={handleSubmit
+                                          ? 'Discard'
+                                          : 'Close'}
                                       saveLabel={submitLabel}
                                       saveDestructive={submitDestructive}
                                       onDelete={onDelete}

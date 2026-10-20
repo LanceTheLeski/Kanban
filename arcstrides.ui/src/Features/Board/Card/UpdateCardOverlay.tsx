@@ -70,7 +70,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import { ArcOverlay } from '../../../Components/ArcOverlay'
 import { ArcSplitLayout } from '../../../Components/ArcSplitLayout'
 import { UpdateTimelinePanel } from '../Timeline/UpdateTimelinePanel'
-import { draftFromTimeline, saveTimeline, TIMELINE_PARENT_CARD, type TimelineDraft } from '../Timeline/Timeline.Draft'
+import { draftFromTimeline, draftMatches, saveTimeline, TIMELINE_PARENT_CARD, type TimelineDraft } from '../Timeline/Timeline.Draft'
 import { inheritedTimeline, overridesTasks, timelineKey } from '../Timeline/Timeline.Inheritance'
 import { UpdateTaskPopover } from '../Task/UpdateTaskPopover'
 import { CreateTaskPopover } from '../Task/CreateTaskPopover'
@@ -179,7 +179,9 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
 
     // What a Save has written so far, so a second press after a failure does the rest.
     const progress = useRef(newTaskSaveProgress())
-    const savedOwn = useRef({ timeline: card.timeline, tags: card.tags })
+    // The card's own timeline and tags as last written: a Save that fails part
+    // way has written some of them, and a second press reads against these.
+    const [savedOwn, setSavedOwn] = useState({ timeline: card.timeline, tags: card.tags })
 
     // The card's tasks' dates put together, from the tasks as they are now.
     const inherited = inheritedTimeline(tasks)
@@ -213,29 +215,35 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
             : null)
     }
 
+    /*
+       What Save would write, worked out on every render: it is what makes Save
+       appear at all (`dirty` — see ArcOverlay), and what handleSubmit writes.
+    */
+    const patch: CardPatchRequest = {}
+
+    // Only patch fields that changed — mirrors Blazor's FormPatchRequestFromOverlay()
+    if (title.trim() && title !== card.title)
+        patch.title = title.trim()
+    if (description !== card.description)
+        patch.description = description
+    if (overriding !== overridesTasks(card))
+        patch.overridesTasks = overriding
+
+    const tagsChanged = !sameTags(tags, savedOwn.tags)
+    const tasksChanged = staged.length !== savedTasks.length || staged.some(isEdited)
+
+    // Only a card keeping its own dates writes them; one going by its tasks'
+    // shows theirs and has nothing of its own to save. A draft that came back to
+    // what is saved is nothing to write either.
+    const ownTimeline = overriding && timelineDraft && !draftMatches(timelineDraft, savedOwn.timeline)
+        ? timelineDraft
+        : null
+
+    const dirty = Object.keys(patch).length > 0 || ownTimeline !== null || tagsChanged || tasksChanged
+
     const handleSubmit = async () =>
     {
-        const patch: CardPatchRequest = {}
-
-        // Only patch fields that changed — mirrors Blazor's FormPatchRequestFromOverlay()
-        if (title.trim() && title !== card.title)
-            patch.title = title.trim()
-        if (description !== card.description)
-            patch.description = description
-
-        const tagsChanged = !sameTags(tags, savedOwn.current.tags)
-        const tasksChanged = staged.length !== savedTasks.length || staged.some(isEdited)
-
-        if (overriding !== overridesTasks(card))
-            patch.overridesTasks = overriding
-
-        // Only a card keeping its own dates writes them; one going by its tasks'
-        // shows theirs and has nothing of its own to save.
-        const ownTimeline = overriding
-            ? timelineDraft
-            : null
-
-        if (Object.keys(patch).length === 0 && !ownTimeline && !tagsChanged && !tasksChanged)
+        if (!dirty)
         {
             onClose()
             return
@@ -243,6 +251,7 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
 
         // Each part, once written, is recorded as written (savedOwn, progress), so
         // a Save pressed again after a failure part way does not write it twice.
+        let own = savedOwn
         const updated = await run(
             'Saving card',
             async () =>
@@ -252,11 +261,15 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                 // Created, or patched in place — see saveTimeline.
                 if (ownTimeline)
                 {
-                    savedOwn.current.timeline = await saveTimeline(boardId, { id: card.id, kind: TIMELINE_PARENT_CARD }, savedOwn.current.timeline, ownTimeline)
+                    own = { ...own, timeline: await saveTimeline(boardId, { id: card.id, kind: TIMELINE_PARENT_CARD }, own.timeline, ownTimeline) }
+                    setSavedOwn(own)
                     setTimelineDraft(null)
                 }
                 if (tagsChanged)
-                    savedOwn.current.tags = await saveTags({ id: card.id, kind: 'card' }, savedOwn.current.tags, tags)
+                {
+                    own = { ...own, tags: await saveTags({ id: card.id, kind: 'card' }, own.tags, tags) }
+                    setSavedOwn(own)
+                }
                 if (tasksChanged)
                     await saveCardTasks(boardId, card.id, savedTasks, staged, progress.current)
             },
@@ -274,9 +287,9 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
                 title: patch.title ?? card.title,
                 description: patch.description ?? card.description,
                 tasks: savedTasks,
-                timeline: savedOwn.current.timeline,
+                timeline: own.timeline,
                 overridesTasks: patch.overridesTasks ?? card.overridesTasks,
-                tags: savedOwn.current.tags,
+                tags: own.tags,
             })
         onClose()
     }
@@ -325,6 +338,7 @@ export const UpdateCardOverlay: React.FC<UpdateCardOverlayProps> = ({
         <ArcOverlay open={open}
                     onClose={onClose}
                     onSubmit={handleSubmit}
+                    dirty={dirty}
                     width={OVERLAY_MAX_WIDTH}
                     // Delete used to be a button inside the overlay's content, above the
                     // action group — the one destructive action on the board, in a place

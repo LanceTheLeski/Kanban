@@ -103,6 +103,7 @@ export const CalendarOptionsOverlay: React.FC<CalendarOptionsOverlayProps> = ({ 
         <ArcOverlay open={open}
                     onClose={onClose}
                     onSubmit={handleSubmit}
+                    dirty={!sameOptions(draft, saved)}
                     width={rem(640)}
                     title="Calendar options"
                     titleStock="blue"
@@ -224,6 +225,25 @@ export default CalendarOptionsOverlay
 
 // ── Private ───────────────────────────────────────────────────────────────────
 // Not exported, which is this language's `private`. Ordered by first use above.
+
+/**
+ * Whether two sets of options come to the same calendar: the same weekend, the
+ * same types for a day with none, and each type configured the same — so a
+ * switch turned on and off again is no change, though it wrote an entry.
+ */
+function sameOptions(a: DayTypeOptions, b: DayTypeOptions): boolean
+{
+    const sameDays = a.weekendDays.length === b.weekendDays.length && a.weekendDays.every(day => b.weekendDays.includes(day))
+    return sameDays
+        && a.weekendTypeId === b.weekendTypeId
+        && a.weekdayTypeId === b.weekdayTypeId
+        && DAY_TYPES.every(base =>
+        {
+            const left = configuredDayType(base.id, a)
+            const right = configuredDayType(base.id, b)
+            return left.scene === right.scene && left.progress === right.progress && left.defaultTaskTypeId === right.defaultTaskTypeId
+        })
+}
 
 function Section({ title, caption, children }: { title: string; caption: string; children: React.ReactNode })
 {

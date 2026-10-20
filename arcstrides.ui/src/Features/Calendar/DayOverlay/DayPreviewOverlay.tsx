@@ -113,7 +113,6 @@ export const DayPreviewOverlay: React.FC<DayPreviewOverlayProps> = ({ date, titl
         <CalendarContext.Provider value={actions}>
             <ArcOverlay open
                         onClose={onClose}
-                        discardLabel="Close"
                         width={PREVIEW_WIDTH}
                         title="The whole day"
                         titleCaption={`${title} as it stands in the editor — nothing here is saved or changed`}>

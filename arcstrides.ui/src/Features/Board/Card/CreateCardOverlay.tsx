@@ -112,7 +112,6 @@ export const CreateCardOverlay: React.FC<CreateCardOverlayProps> = ({ open, onCl
         return (
             <ArcOverlay open={open}
                         onClose={onClose}
-                        discardLabel="Close"
                         title="Add a card">
                 <Typography sx={{ fontSize: '0.8rem', color: 'arc.onGlass' }}>
                     This board has no columns yet, and a card always sits in one. Add a column first.
@@ -125,6 +124,7 @@ export const CreateCardOverlay: React.FC<CreateCardOverlayProps> = ({ open, onCl
         <ArcOverlay open={open}
                     onClose={onClose}
                     onSubmit={handleSubmit}
+                    dirty={cardTitle.trim() !== '' || cardDescription.trim() !== ''}
                     title="Add a card"
                     titleCaption={laned
                         ? undefined

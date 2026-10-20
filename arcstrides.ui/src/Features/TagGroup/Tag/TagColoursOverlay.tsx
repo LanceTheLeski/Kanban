@@ -92,6 +92,7 @@ export const TagColoursOverlay: React.FC<TagColoursOverlayProps> = ({ open, onCl
         <ArcOverlay open={open}
                     onClose={onClose}
                     onSubmit={handleSubmit}
+                    dirty={changed.length > 0}
                     title="Tag colours"
                     titleStock="red">
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, minWidth: 0 }}>

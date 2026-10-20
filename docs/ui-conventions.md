@@ -744,6 +744,20 @@ it about 300px: a node's day, time and Day pieces wrapped onto lines of their
 own. It now has a little more room than it has on a card. The new-task popover
 is laid out the same way.
 
+### Save only when there is something to save
+
+Every overlay and popover with a Save shows it only while something in it has
+changed — an edit made, a field filled, a thing chosen to delete. Until then its
+one button is **Close**; after, **Discard** and **Save** (or the popover's Done,
+Add or Create). An edit undone — a box ticked and unticked, a timeline changed
+and changed back — puts it back to Close. Save never offers to write nothing, and
+Discard never asks about a draft there is not.
+
+It is built into `ArcOverlay` and `ArcPopover`: each takes `dirty`, and the
+types require it wherever there is an `onSubmit`, so an overlay cannot leave it
+out. Each says for itself what counts as a change — for the card editor, the
+same patch its Save would send.
+
 ### Nothing is written until Save
 
 The card editor and the day overlay each have a Save, and everything changed in
@@ -763,10 +777,9 @@ to its place — and reads the board again.
 **In the day overlay**, the day's type, its tags, the cards put on it or taken
 off, and the tasks edited from its notes wait for its Save (`useDayDraft`). The
 whole overlay, the live copy of the day on the right included, draws the day as
-it will be, and a line under the cards says how many changes wait. With changes
-waiting, its buttons are Discard and Save; with none, Close. Moving to another
-day from inside it asks for Save or Discard first. A card opened from the day
-is the card editor, with a Save of its own.
+it will be, and a line under the cards says how many changes wait. Moving to
+another day from inside it asks for Save or Discard first. A card opened from
+the day is the card editor, with a Save of its own.
 
 The date pickers and day previews inside either one see what it holds, not
 only what is stored (`Calendar.StagedCards`): a second task added before Save

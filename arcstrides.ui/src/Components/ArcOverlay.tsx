@@ -14,6 +14,16 @@
  * The IArcOverlay interface becomes the ArcOverlayProps TypeScript type exported below.
  * Any component that used to implement IArcOverlay simply renders <ArcOverlay> and
  * manages its own `open` state with useState().
+ *
+ * ── Save only when there is something to save ────────────────────────────────
+ * An overlay with a Save shows it only while something in it has changed: an
+ * edit made, a field filled, a thing chosen to delete. Until then its one
+ * button is Close; after, Discard and Save. So Save never offers to write
+ * nothing, and Discard never asks about a draft that does not exist. Each
+ * overlay says what counts as a change, through `dirty` — which the types
+ * require wherever there is an `onSubmit`, so no overlay can leave it out. The
+ * day overlay worked this way first; the card editor always showed Save.
+ * ArcPopover does the same.
  */
 
 import React from 'react'
@@ -24,7 +34,26 @@ import { OVERLAY_WIDTH } from '../Styles/Measures'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export interface ArcOverlayProps
+export type ArcOverlayProps = OverlayProps & SubmitProps
+
+/**
+ * A Save, and whether there is anything for it to write — see the header. Both
+ * or neither: an overlay with a Save has to say when it has a change.
+ */
+export type SubmitProps =
+    | { onSubmit?: undefined; dirty?: undefined }
+    | {
+        /**
+         * Async submit handler — mirrors OnSubmitAsync: Func<Task>. Rendered as
+         * Save only while `dirty`.
+         */
+        onSubmit: () => Promise<void> | void
+
+        /** Something in the overlay has changed, and Save would write it. */
+        dirty: boolean
+    }
+
+interface OverlayProps
 {
     /**
      * The dialog's heading, as a strip of card across the top.
@@ -51,12 +80,6 @@ export interface ArcOverlayProps
     /** Content rendered inside the overlay — mirrors RenderFragment ChildContent */
     children?: React.ReactNode
 
-    /**
-     * Async submit handler — mirrors OnSubmitAsync: Func<Task>
-     * If omitted, no Submit button is rendered (mirrors the null check in the razor).
-     */
-    onSubmit?: () => Promise<void> | void
-
     /** Optional width override for the inner Paper */
     width?: string | number
 
@@ -77,13 +100,6 @@ export interface ArcOverlayProps
     /** "Save" by default. */
     submitLabel?: string
 
-    /**
-     * "Discard" by default. An overlay with nothing to save says "Close": there
-     * is no draft to throw away, and "Discard" on a read-only view makes the
-     * reader wonder what they are about to lose.
-     */
-    discardLabel?: string
-
     /** Colours the primary action as destructive. */
     submitDestructive?: boolean
 }
@@ -98,16 +114,19 @@ export const ArcOverlay: React.FC<ArcOverlayProps> = ({
     titleStock,
     titleCaption,
     onSubmit,
+    dirty = false,
     width = OVERLAY_WIDTH,
     onDelete,
     deleteLabel,
     deleteConfirm,
     actions,
     submitLabel,
-    discardLabel,
     submitDestructive,
 }) =>
 {
+    // Save while there is a change to save; Discard then, Close otherwise.
+    const saving = onSubmit !== undefined && dirty
+
     return (
         <Modal open={open}
                onClose={onClose}
@@ -143,12 +162,15 @@ export const ArcOverlay: React.FC<ArcOverlayProps> = ({
 
                     {/*
                         Mirrors MudButtonGroup Class="glass-inner-engraved". Save is
-                        only rendered when onSubmit is given — the null check the
-                        razor did.
+                        only rendered while there is a change — see the header.
                     */}
-                    <ArcActionBar onSave={onSubmit}
+                    <ArcActionBar onSave={saving
+                                      ? onSubmit
+                                      : undefined}
                                   onDiscard={onClose}
-                                  discardLabel={discardLabel}
+                                  discardLabel={saving
+                                      ? 'Discard'
+                                      : 'Close'}
                                   saveLabel={submitLabel}
                                   saveDestructive={submitDestructive}
                                   onDelete={onDelete}

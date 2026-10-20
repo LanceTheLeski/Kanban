@@ -207,6 +207,31 @@ export function hasTimeline(draft: TimelineDraft | null): draft is TimelineDraft
     return draft !== null && draft.mode !== 'timeless'
 }
 
+/**
+ * Whether a draft would write what a timeline already holds — every point, its
+ * length and whether it was placed. A draft changed and changed back is no
+ * change, so it does not offer a Save.
+ */
+export function draftMatches(draft: TimelineDraft, timeline: Timeline | null): boolean
+{
+    const dates = draftToTimelineDates(draft)
+    const time = (date: Date | null) => date?.getTime() ?? null
+    if (!timeline)
+        return [dates.startPreferenceUTC, dates.startDeadlineUTC, dates.endPreferenceUTC, dates.endDeadlineUTC].every(date => date === null)
+    return time(dates.startPreferenceUTC) === time(timeline.startPreferenceUTC)
+        && time(dates.startDeadlineUTC) === time(timeline.startDeadlineUTC)
+        && time(dates.endPreferenceUTC) === time(timeline.endPreferenceUTC)
+        && time(dates.endDeadlineUTC) === time(timeline.endDeadlineUTC)
+        && dates.startPreferenceDurationMinutes === timeline.startPreferenceDurationMinutes
+        && dates.startDeadlineDurationMinutes === timeline.startDeadlineDurationMinutes
+        && dates.endPreferenceDurationMinutes === timeline.endPreferenceDurationMinutes
+        && dates.endDeadlineDurationMinutes === timeline.endDeadlineDurationMinutes
+        && dates.startPreferenceTimeIsRelative === timeline.startPreferenceTimeIsRelative
+        && dates.startDeadlineTimeIsRelative === timeline.startDeadlineTimeIsRelative
+        && dates.endPreferenceTimeIsRelative === timeline.endPreferenceTimeIsRelative
+        && dates.endDeadlineTimeIsRelative === timeline.endDeadlineTimeIsRelative
+}
+
 export function timelineOperations(dates: TimelineDates): PatchOperation[]
 {
     return [

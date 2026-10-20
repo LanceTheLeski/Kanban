@@ -99,6 +99,15 @@ export function sameColour(a: string | null | undefined, b: string | null | unde
     return !!a && !!b && toHex(a, '') === toHex(b, '')
 }
 
+/**
+ * Whether a colour was changed: one set, cleared or replaced. Unlike
+ * !sameColour, two absent colours are no change.
+ */
+export function colourChanged(next: string | null | undefined, previous: string | null | undefined): boolean
+{
+    return (!!next || !!previous) && !sameColour(next, previous)
+}
+
 // ── Private ───────────────────────────────────────────────────────────────────
 // Not exported, which is this language's `private`. Ordered by first use above.
 

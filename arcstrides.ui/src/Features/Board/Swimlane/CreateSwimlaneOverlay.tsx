@@ -73,6 +73,7 @@ export const CreateSwimlaneOverlay: React.FC<CreateSwimlaneOverlayProps> = ({ op
         <ArcOverlay open={open}
                     onClose={onClose}
                     onSubmit={handleSubmit}
+                    dirty={title.trim() !== ''}
                     title="Add a swimlane"
                     titleStock="red">
             <Stack spacing={1.5}>

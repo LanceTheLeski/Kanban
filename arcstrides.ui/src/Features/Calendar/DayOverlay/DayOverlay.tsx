@@ -43,6 +43,7 @@
  * ── Everything waits for Save ────────────────────────────────────────────────
  * The day's type, its tags, the cards put on it or taken off, and the tasks
  * edited from its notes are a draft until Save (useDayDraft); Discard drops it.
+ * Save shows only while the draft holds something, as in every overlay.
  * The overlay — the live copy on the right included — draws the day as it will
  * be, through a calendar context of its own that changes the draft where the
  * month's would write. Moving to another day with changes waiting asks for
@@ -162,12 +163,8 @@ export const DayOverlay: React.FC<DayOverlayProps> = ({
         <StagedCardsContext.Provider value={knownCards}>
         <ArcOverlay open
                     onClose={onClose}
-                    onSubmit={draft.dirty
-                        ? handleSave
-                        : undefined}
-                    discardLabel={draft.dirty
-                        ? 'Discard'
-                        : 'Close'}
+                    onSubmit={handleSave}
+                    dirty={draft.dirty}
                     width={DAY_OVERLAY_WIDTH}>
             <Box sx={{ display: 'grid',
                        gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1fr) auto' },

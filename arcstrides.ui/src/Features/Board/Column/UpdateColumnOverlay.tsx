@@ -32,7 +32,7 @@ import { updateColumn, type OrderedItemPatchRequest } from '../Board.APIs'
 import { useBoardActions } from '../Hooks/useBoardActions'
 import { useShallow } from 'zustand/react/shallow'
 import { ArcColourPicker } from '../../../Components/ArcColourPicker'
-import { columnColour, sameColour } from '../Board.Colours'
+import { colourChanged, columnColour } from '../Board.Colours'
 import { paperField } from '../../../Styles/Paper'
 import { useBoardStore } from '../Board.Store'
 import { PlacementList } from '../ColumnAndSwimlane/PlacementList'
@@ -99,10 +99,10 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
         if (index !== selected.order)
             patch.order = index
 
-        if (!sameColour(choice.colour, selected.colour) && (choice.colour || selected.colour))
+        if (colourChanged(choice.colour, selected.colour))
             patch.colour = choice.colour ?? ''
 
-        if (!sameColour(choice.globalColour, selected.globalColour) && (choice.globalColour || selected.globalColour))
+        if (colourChanged(choice.globalColour, selected.globalColour))
             patch.globalColour = choice.globalColour ?? ''
 
         if (Object.keys(patch).length === 0)
@@ -122,6 +122,11 @@ export const UpdateColumnOverlay: React.FC<UpdateColumnOverlayProps> = ({ open, 
         <ArcOverlay open={open}
                     onClose={onClose}
                     onSubmit={handleSubmit}
+                    dirty={selected !== null
+                        && ((replacementTitle.trim() !== '' && replacementTitle.trim() !== selected.title)
+                            || index !== selected.order
+                            || colourChanged(choice.colour, selected.colour)
+                            || colourChanged(choice.globalColour, selected.globalColour))}
                     title="Edit column"
                     titleStock="blue">
             <Stack spacing={1.5}>

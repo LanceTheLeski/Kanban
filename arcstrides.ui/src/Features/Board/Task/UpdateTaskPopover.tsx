@@ -36,7 +36,7 @@ import { UpdateTimelinePanel } from '../Timeline/UpdateTimelinePanel'
 import { CreateTaskTypeOverlay } from '../../TagGroup/TaskType/CreateTaskTypeOverlay'
 import { useBoardActions } from '../Hooks/useBoardActions'
 import { fetchTaskTypes, updateTask, type TaskPatch } from '../Board.APIs'
-import { saveTimeline, TIMELINE_PARENT_TASK, type TimelineDraft } from '../Timeline/Timeline.Draft'
+import { draftMatches, saveTimeline, TIMELINE_PARENT_TASK, type TimelineDraft } from '../Timeline/Timeline.Draft'
 import { TASK_PANEL_ROW_MIN_HEIGHT, TASK_POPOVER_WIDTH, TASK_TITLE_ROW_MIN_HEIGHT } from '../../../Styles/Measures'
 import { TagsPanel } from '../../TagGroup/Tag/TagsPanel'
 import { saveTags, sameTags } from '../../TagGroup/Tag/Tag.APIs'
@@ -134,6 +134,18 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
         setSelectedTaskTypeId(matches[0].id)
     }
 
+    // Whether anything differs from the task it opened on: what makes its Save
+    // appear (see ArcPopover). Read from the task rather than the refs above,
+    // which render may not read; the two agree, because a saved change remounts
+    // the popover with the task as saved (its key — see taskKey). A timeline
+    // changed and changed back is no change.
+    const dirty = title !== task.title
+        || selectedTaskTypeId !== (task.taskType?.id ?? -1)
+        || order !== task.order
+        || isCompleted !== (task.isCompleted ?? false)
+        || (timelineDraft !== null && !draftMatches(timelineDraft, task.timeline))
+        || !sameTags(tags, task.tags)
+
     const handleSubmit = async () =>
     {
         // Build patch — only include fields that actually changed
@@ -150,8 +162,9 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
             patch.isComplete = isCompleted
 
         const existingTimeline = initialTimeline.current
-        // Any draft at all is a change: one taken back to Timeless clears the schedule.
-        const timelineChanged = timelineDraft !== null
+        // A draft taken back to Timeless is a change — it clears the schedule —
+        // but one that came back to what is saved is not.
+        const timelineChanged = timelineDraft !== null && !draftMatches(timelineDraft, existingTimeline)
         const orderChanged = patch.order !== undefined
         const tagsChanged = !sameTags(tags, initialTags.current)
 
@@ -269,6 +282,7 @@ export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
             <ArcPopover triggerLabel={task.title}
                         onOpen={loadTaskTypes}
                         onSubmit={handleSubmit}
+                        dirty={dirty}
                         submitLabel={onStage
                             ? 'Done'
                             : undefined}

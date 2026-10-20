@@ -80,6 +80,7 @@ export const CreateTaskTypeOverlay: React.FC<CreateTaskTypeOverlayProps> = ({
         <ArcOverlay open={open}
                     onClose={onClose}
                     onSubmit={handleSubmit}
+                    dirty={title.trim() !== ''}
                     title="New task type"
                     titleStock="yellow">
             <Stack spacing={1.5}>

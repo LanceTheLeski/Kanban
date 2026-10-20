@@ -89,6 +89,7 @@ export const CreateColumnOverlay: React.FC<CreateColumnOverlayProps> = ({ open, 
         <ArcOverlay open={open}
                     onClose={onClose}
                     onSubmit={handleSubmit}
+                    dirty={title.trim() !== ''}
                     title="Add a column"
                     titleStock="blue">
             <Stack spacing={1.5}>

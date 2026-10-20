@@ -71,6 +71,8 @@ export const DeleteSwimlaneOverlay: React.FC<DeleteSwimlaneOverlayProps> = ({ op
         <ArcOverlay open={open}
                     onClose={onClose}
                     onSubmit={handleSubmit}
+                    // A swimlane chosen is the change: what Delete would do.
+                    dirty={selectedTitle !== null}
                     // This overlay exists to delete, so the primary action is the
                     // delete — but it must not read as "Save".
                     submitLabel="Delete Swimlane"

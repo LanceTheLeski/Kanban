@@ -207,12 +207,17 @@ export const CreateTaskPopover: React.FC<CreateTaskPopoverProps> = ({
         return true
     }
 
+    // Anything put into the new task so far: what makes Add appear (see ArcPopover).
+    // The type a day's options start it with is not something put in.
+    const dirty = title.trim() !== '' || isCompleted || tags.length > 0 || hasTimeline(timelineDraft) || selectedOrder !== null
+
     return (
         <>
             <ArcPopover triggerLabel="+ New task"
                         submitLabel={onStage
                             ? 'Add'
                             : 'Create'}
+                        dirty={dirty}
                         /*
                            Distinct from the task rows it sits under, in colour rather
                            than weight: those rows are the card's content and this is the
