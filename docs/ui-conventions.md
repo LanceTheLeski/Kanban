@@ -778,6 +778,16 @@ types require it wherever there is an `onSubmit`, so an overlay cannot leave it
 out. Each says for itself what counts as a change — for the card editor, the
 same patch its Save would send.
 
+### No browser suggestions in a field
+
+No text field offers the browser's list of what was typed before. A card's
+title, a task's, a tag, a time: what went into the last one is not what goes in
+the next, and the browser's list dropped down over the pickers and lists the
+app puts under a field. The theme sets `autoComplete="off"` on `MuiInputBase`
+(`Styles/Theme.tsx`), which every field is underneath, so a new field has it
+without asking. A field that should remember — a sign-in, if there is ever one
+— says so with its own `autoComplete`.
+
 ### Nothing is written until Save
 
 The card editor and the day overlay each have a Save, and everything changed in

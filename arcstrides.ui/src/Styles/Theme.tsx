@@ -1,4 +1,4 @@
-import { createTheme } from '@mui/material/styles'
+import { createTheme, type Components, type Theme } from '@mui/material/styles'
 import { GOLD, LADDERS, NAVY, NEUTRALS, ON_GLASS, OXBLOOD } from './Palette'
 
 /**
@@ -296,6 +296,7 @@ declare module '@mui/material/styles'
 // ── _ArcBoardDefaultTheme ─────────────────────────────────────────────────────
 
 export const arcBoardDefaultTheme = createTheme({
+    components: arcComponents(),
     palette: {
         primary: {
             main: NAVY,
@@ -329,6 +330,7 @@ export const arcBoardDefaultTheme = createTheme({
 // while they were literals inside the components.
 
 export const arcBoardTransparentTheme = createTheme({
+    components: arcComponents(),
     palette: {
         arc: arcSurfaces,
     },
@@ -339,3 +341,23 @@ export const arcBoardTransparentTheme = createTheme({
 // MyMudThemeProvider._ArcBoardDefaultTheme.
 
 export const arcTheme = arcBoardDefaultTheme
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+/**
+ * What every component of a kind does, in both themes.
+ *
+ * No text field offers the browser's own suggestions. Each field here is a
+ * card's title, a task's, a tag's, a time: what was typed into the last one is
+ * not what goes in the next, and the browser's list of it dropped down over the
+ * pickers and lists the app puts under a field. Every field is an InputBase
+ * underneath — TextField and the others pass it what they are not given — so
+ * this is all of them.
+ */
+function arcComponents(): Components<Theme>
+{
+    return {
+        MuiInputBase: { defaultProps: { autoComplete: 'off' } },
+    }
+}
