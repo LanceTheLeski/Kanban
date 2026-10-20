@@ -44,7 +44,7 @@
  * is nothing to page through — and ⋮ moves up beside the tile.
  */
 
-import React from 'react'
+import React, { useState } from 'react'
 import { Box, ButtonBase, IconButton } from '@mui/material'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
@@ -93,6 +93,10 @@ export const GridDayHeader: React.FC<GridDayHeaderProps> = ({ day, stats, views,
 
     const number = <DateDiscNumber value={day.date.date()}
                                    disc={DISC} />
+
+    // The type pointed at in the ring, a line or a count block, by its slice's
+    // key: the count blocks show that type alone (TaskProgressLineChart).
+    const [hovered, setHovered] = useState<string | null>(null)
 
     return (
         /*
@@ -143,7 +147,8 @@ export const GridDayHeader: React.FC<GridDayHeaderProps> = ({ day, stats, views,
                                        ? stats.slices
                                        : []}
                                    size={RING.size}
-                                   thickness={RING.thickness}>
+                                   thickness={RING.thickness}
+                                   onHover={setHovered}>
                     { mini
                         ? (
                               <Box className={`card-disc card-stock-flat card-cut${day.isToday
@@ -188,7 +193,10 @@ export const GridDayHeader: React.FC<GridDayHeaderProps> = ({ day, stats, views,
                            px: 0.75,
                            py: 0.4
                         }}>
-                    <TaskProgressLineChart slices={stats.slices} />
+                    <TaskProgressLineChart slices={stats.slices}
+                                           types={stats.types}
+                                           hovered={hovered}
+                                           onHover={setHovered} />
                 </Box>
             )
             }

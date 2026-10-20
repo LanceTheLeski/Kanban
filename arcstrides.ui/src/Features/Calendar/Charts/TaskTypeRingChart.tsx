@@ -11,9 +11,12 @@
  * Part-to-whole at a glance, which is what a small ring is for; the exact counts
  * are in the day overlay's legend, and in each segment's tooltip. Segments are
  * in palette order, not size order, so a type sits in the same place on every
- * day. A two-pixel gap separates them — left empty, so the ground shows through
- * — rather than a drawn line, and each casts the short shadow of a strip of
- * paper laid on the sheet under it.
+ * day. They meet with no gap: the ring is one strip of paper in its colours,
+ * and casts the short shadow of a strip laid on the sheet under it. (A two-pixel
+ * gap between them read as a ring broken into pieces.)
+ *
+ * Pointing at a segment says which type it is to the day's other charts, which
+ * show that type's count (`onHover`; see GridDayHeader).
  */
 
 import React from 'react'
@@ -31,23 +34,23 @@ interface TaskTypeRingChartProps
     thickness: number
 
     children: React.ReactNode
+
+    /** A segment pointed at, by its slice's key; null when the pointer leaves it. */
+    onHover?: (key: string | null) => void
 }
 
-export const TaskTypeRingChart: React.FC<TaskTypeRingChartProps> = ({ slices, size, thickness, children }) =>
+export const TaskTypeRingChart: React.FC<TaskTypeRingChartProps> = ({ slices, size, thickness, children, onHover }) =>
 {
     const total = slices.reduce((sum, slice) => sum + slice.count, 0)
     const radius = (size - thickness) / 2
     const circumference = 2 * Math.PI * radius
-    const gap = slices.length > 1
-        ? GAP
-        : 0
 
     // Each segment starts where the one before it ended.
     const arcs = slices.reduce<{ slice: TypeSlice; dash: number; offset: number; end: number }[]>((list, slice) =>
     {
         const offset = list.at(-1)?.end ?? 0
         const length = (slice.count / total) * circumference
-        return [...list, { slice, dash: Math.max(length - gap, 0.5), offset, end: offset + length }]
+        return [...list, { slice, dash: Math.max(length, 0.5), offset, end: offset + length }]
     }, [])
 
     const summary = slices.map(slice => `${slice.title} ${slice.count}`).join(', ')
@@ -86,7 +89,9 @@ export const TaskTypeRingChart: React.FC<TaskTypeRingChartProps> = ({ slices, si
                                            stroke={slice.colour}
                                            strokeWidth={thickness}
                                            strokeDasharray={`${dash} ${circumference - dash}`}
-                                           strokeDashoffset={-start}>
+                                           strokeDashoffset={-start}
+                                           onMouseEnter={() => onHover?.(slice.key)}
+                                           onMouseLeave={() => onHover?.(null)}>
                                        <title>{ `${slice.title}: ${slice.count} ${slice.count === 1
                                            ? 'task'
                                            : 'tasks'}`
@@ -105,9 +110,3 @@ export const TaskTypeRingChart: React.FC<TaskTypeRingChartProps> = ({ slices, si
 }
 
 export default TaskTypeRingChart
-
-// ── Private ───────────────────────────────────────────────────────────────────
-// Not exported, which is this language's `private`. Ordered by first use above.
-
-/** The surface gap between segments, in px of arc. */
-const GAP = 2

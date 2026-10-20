@@ -24,21 +24,28 @@
  * day overlay's table of types with done / total.
  *
  * ── The counts, at the end of the lines ──────────────────────────────────────
- * After the lines, a block of each type's colour with how many tasks of that
- * type the day has — the total only, not the done:
+ * After the lines, a square of blocks: one for each type, in its colour, with
+ * how many tasks of that type the day has — the total, not the done:
  *
- *     ╱‾‾‾‾‾‾‾‾‾‾  ┌──┬─┬─┐
- *    ╱  ‾‾‾‾‾‾‾‾  │ 5│2│1│      five types: two rows of three places, the
- *   ╱__________   │  │3│1│      largest count taking two, so the blocks fill
- *                 └──┴─┴─┘
+ *     ╱‾‾‾‾‾‾‾‾‾‾  ┌─────┐
+ *    ╱  ‾‾‾‾‾‾‾‾  │  5  │      five types: the largest across the top,
+ *   ╱__________   ├──┬──┤      the rest two by two
+ *                 │2 │3 │
+ *                 ├──┼──┤
+ *                 │1 │1 │
+ *                 └──┴──┘
  *
- * Two rows, and as many columns as half the types, rounded up; with an odd
- * number of types the one with the most tasks takes a whole column, so there is
- * no hole — one type is a single tall block, three are a tall one and two
- * squares, eleven are six columns. The largest comes first; the rest keep the
- * palette's order, column by column. Each number is written in whichever ink
- * reads on its colour (isLight). The blocks are squares while the tile is wide
- * enough, and narrow, rather than squeezing the lines out, when it is not.
+ * The square is the same size whatever is in it, so it fits every day's header:
+ * two columns, and as many rows as half the types, rounded up, which grow
+ * smaller as types are added. With an odd number of types the one with the most
+ * tasks takes a whole row, so there is no hole. At most the ten types with the
+ * most tasks are there; the rest are still lines and in the ring. The numbers
+ * are written in whichever ink reads on each colour (isLight) while a block is
+ * big enough to hold one — up to three rows.
+ *
+ * Pointing at a type — its segment of the ring, its line, or its block — fills
+ * the whole square with that type and its count (`hovered`, held by
+ * GridDayHeader), which is how a count too small to print is read.
  *
  * It replaces a "4/8" that was once in the tile's corner — a second, smaller
  * chart competing with the first. The blocks are the first chart's legend as
@@ -53,10 +60,20 @@ import type { TypeSlice } from '../Calendar.Stats'
 
 interface TaskProgressLineChartProps
 {
+    /** A line each — the ring's segments, Other included. */
     slices: TypeSlice[]
+
+    /** Every type on the day, for the count blocks — see DayStats. */
+    types: TypeSlice[]
+
+    /** The type pointed at in the day's charts, by key: its block fills the square. */
+    hovered?: string | null
+
+    /** A type pointed at here — its line or its block; null when the pointer leaves. */
+    onHover?: (key: string | null) => void
 }
 
-export const TaskProgressLineChart: React.FC<TaskProgressLineChartProps> = ({ slices }) =>
+export const TaskProgressLineChart: React.FC<TaskProgressLineChartProps> = ({ slices, types, hovered = null, onHover }) =>
 {
     const summary = slices.map(slice => `${slice.title} ${slice.done} of ${slice.count}`).join(', ')
 
@@ -91,7 +108,9 @@ export const TaskProgressLineChart: React.FC<TaskProgressLineChartProps> = ({ sl
                             <path d={d} fill="none" stroke={slice.colour} strokeWidth={2}
                                   strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
                             {/* A wide invisible stroke to hover, bigger than the line. */}
-                            <path d={d} fill="none" stroke="transparent" strokeWidth={10} vectorEffect="non-scaling-stroke">
+                            <path d={d} fill="none" stroke="transparent" strokeWidth={10} vectorEffect="non-scaling-stroke"
+                                  onMouseEnter={() => onHover?.(slice.key)}
+                                  onMouseLeave={() => onHover?.(null)}>
                                 <title>{ `${slice.title}: ${slice.done} of ${slice.count} done` }</title>
                             </path>
                         </g>
@@ -124,7 +143,10 @@ export const TaskProgressLineChart: React.FC<TaskProgressLineChartProps> = ({ sl
             }
             </Box>
 
-            <CountBlocks slices={slices} />
+            <CountBlocks types={types}
+                         slices={slices}
+                         hovered={hovered}
+                         onHover={onHover} />
         </Box>
     )
 }
@@ -161,63 +183,127 @@ function pathOf(ratio: number): string
     return `M 0 ${base} C ${handle} ${base}, ${handle} ${level}, ${middle} ${level} L ${W} ${level}`
 }
 
-/** Each type's count for the day, as blocks of its colour — see the header. */
-function CountBlocks({ slices }: { slices: TypeSlice[] })
+/** As many types as the blocks show: the ones with the most tasks. */
+const MOST_BLOCKS = 10
+
+interface CountBlocksProps
 {
-    const shown = slices.filter(slice => slice.count > 0)
+    types: TypeSlice[]
+
+    /** Where a hovered key not among `types` — Other, from the ring — is found. */
+    slices: TypeSlice[]
+
+    hovered: string | null
+
+    onHover?: (key: string | null) => void
+}
+
+/** Each type's count for the day, as blocks of its colour in a square — see the header. */
+function CountBlocks({ types, slices, hovered, onHover }: CountBlocksProps)
+{
+    const shown = mostTasks(types.filter(slice => slice.count > 0))
     if (shown.length === 0)
         return null
 
-    // With an odd number of types, the largest takes a whole column, so the two rows fill.
-    const tall = shown.length % 2 === 1
+    const focus = hovered === null
+        ? null
+        : types.find(slice => slice.key === hovered) ?? slices.find(slice => slice.key === hovered) ?? null
+
+    // With an odd number of types, the largest takes a whole row, so the two columns fill.
+    const wide = shown.length % 2 === 1
         ? shown.reduce((largest, slice) => (slice.count > largest.count
             ? slice
             : largest))
         : null
-    const ordered = tall
-        ? [tall, ...shown.filter(slice => slice !== tall)]
+    const ordered = wide
+        ? [wide, ...shown.filter(slice => slice !== wide)]
         : shown
-    const columns = Math.ceil(shown.length / 2)
+    const rows = Math.ceil(shown.length / 2)
 
     return (
         <Box aria-hidden
-             sx={{ flexShrink: 1,
+             onMouseLeave={() => onHover?.(null)}
+             sx={{ flexShrink: 0,
                    height: '100%',
-                   aspectRatio: `${columns} / 2`,
-                   maxWidth: '55%',
+                   aspectRatio: '1 / 1',
                    display: 'grid',
-                   gridTemplateRows: 'repeat(2, minmax(0, 1fr))',
-                   gridAutoFlow: 'column',
-                   gridAutoColumns: 'minmax(0, 1fr)',
-                   gap: '2px'
+                   gridTemplateColumns: focus
+                       ? '1fr'
+                       : 'repeat(2, minmax(0, 1fr))',
+                   gridTemplateRows: focus
+                       ? '1fr'
+                       : `repeat(${rows}, minmax(0, 1fr))`,
+                   gap: '1.5px'
                 }}>
-            { ordered.map(slice =>
-                          (
-                              <Box key={slice.key}
-                                   title={`${slice.title}: ${slice.count} ${slice.count === 1
-                                       ? 'task'
-                                       : 'tasks'}`}
-                                   sx={{ gridRow: slice === tall
-                                             ? 'span 2'
-                                             : undefined,
-                                         minWidth: 0,
-                                         overflow: 'hidden',
-                                         display: 'grid',
-                                         placeItems: 'center',
-                                         borderRadius: '2px',
-                                         backgroundColor: slice.colour,
-                                         fontFamily: MONO,
-                                         fontSize: '0.55rem',
-                                         fontWeight: 700,
-                                         lineHeight: 1,
-                                         color: isLight(slice.colour)
-                                             ? 'arc.onPaperStrong'
-                                             : 'var(--arc-cream)'
-                                      }}>
-                                  { slice.count }
-                              </Box>
-                          ))
+            { focus
+                ? <Block slice={focus}
+                         fontSize="0.8rem" />
+                : ordered.map(slice =>
+                              (
+                                  <Block key={slice.key}
+                                         slice={slice}
+                                         wide={slice === wide}
+                                         fontSize={NUMBER_SIZES[rows]}
+                                         onHover={onHover} />
+                              ))
             }
+        </Box>
+    )
+}
+
+/** The types with the most tasks, MOST_BLOCKS at most, in the order they came. */
+function mostTasks(types: TypeSlice[]): TypeSlice[]
+{
+    if (types.length <= MOST_BLOCKS)
+        return types
+    const kept = new Set([...types].sort((a, b) => b.count - a.count)
+                                   .slice(0, MOST_BLOCKS)
+                                   .map(slice => slice.key))
+    return types.filter(slice => kept.has(slice.key))
+}
+
+/** The number's size by how many rows there are; none where a block is too small to hold one. */
+const NUMBER_SIZES: Record<number, string | null> = { 1: '0.62rem', 2: '0.55rem', 3: '0.45rem', 4: null, 5: null }
+
+interface BlockProps
+{
+    slice: TypeSlice
+
+    /** Spans both columns: the largest, with an odd number of types. */
+    wide?: boolean
+
+    fontSize: string | null
+
+    onHover?: (key: string | null) => void
+}
+
+/** One type's block: its colour, and its count in an ink that reads on it. */
+function Block({ slice, wide = false, fontSize, onHover }: BlockProps)
+{
+    return (
+        <Box title={`${slice.title}: ${slice.count} ${slice.count === 1
+                 ? 'task'
+                 : 'tasks'}`}
+             onMouseEnter={() => onHover?.(slice.key)}
+             sx={{ gridColumn: wide
+                       ? 'span 2'
+                       : undefined,
+                   minWidth: 0,
+                   minHeight: 0,
+                   overflow: 'hidden',
+                   display: 'grid',
+                   placeItems: 'center',
+                   borderRadius: '2px',
+                   backgroundColor: slice.colour,
+                   fontFamily: MONO,
+                   fontSize: fontSize ?? 0,
+                   fontWeight: 700,
+                   lineHeight: 1,
+                   color: isLight(slice.colour)
+                       ? 'arc.onPaperStrong'
+                       : 'var(--arc-cream)'
+                }}>
+            { fontSize && slice.count }
         </Box>
     )
 }

@@ -84,6 +84,12 @@ export interface DayStats
 
     /** In palette order, then "No type", then "Other" — never by size. */
     slices: TypeSlice[]
+
+    /**
+     * Every type on the day, with no Other: what the count blocks are drawn from,
+     * which have room for more types than a ring has segments (TaskProgressLineChart).
+     */
+    types: TypeSlice[]
 }
 
 /** Each task type's colour, from the full list of types. */
@@ -140,10 +146,12 @@ export function dayStats(cards: Card[], colours: Map<number, string>): DayStats
         counts.set(key, slice)
     }
 
+    const types = [...counts.values()].sort(bySlot)
     return {
         total: tasks.length,
         done: tasks.filter(task => task.isCompleted).length,
-        slices: capped([...counts.values()].sort(bySlot)),
+        slices: capped(types),
+        types,
     }
 }
 
