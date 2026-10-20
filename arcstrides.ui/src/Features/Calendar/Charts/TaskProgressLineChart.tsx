@@ -21,13 +21,34 @@
  * on it; the scale is 0 at the baseline and all done at the faint top rule.
  *
  * Every value is also readable without the lines: the tooltip on each, and the
- * day overlay's table of types with done / total. The tile carries no count of
- * its own — a "4/8" in its corner was a second, smaller chart competing with
- * the first for the same few pixels.
+ * day overlay's table of types with done / total.
+ *
+ * ── The counts, at the end of the lines ──────────────────────────────────────
+ * After the lines, a block of each type's colour with how many tasks of that
+ * type the day has — the total only, not the done:
+ *
+ *     ╱‾‾‾‾‾‾‾‾‾‾  ┌──┬─┬─┐
+ *    ╱  ‾‾‾‾‾‾‾‾  │ 5│2│1│      five types: two rows of three places, the
+ *   ╱__________   │  │3│1│      largest count taking two, so the blocks fill
+ *                 └──┴─┴─┘
+ *
+ * Two rows, and as many columns as half the types, rounded up; with an odd
+ * number of types the one with the most tasks takes a whole column, so there is
+ * no hole — one type is a single tall block, three are a tall one and two
+ * squares, eleven are six columns. The largest comes first; the rest keep the
+ * palette's order, column by column. Each number is written in whichever ink
+ * reads on its colour (isLight). The blocks are squares while the tile is wide
+ * enough, and narrow, rather than squeezing the lines out, when it is not.
+ *
+ * It replaces a "4/8" that was once in the tile's corner — a second, smaller
+ * chart competing with the first. The blocks are the first chart's legend as
+ * well: the colours are the lines'.
  */
 
 import React from 'react'
 import { Box } from '@mui/material'
+import { MONO } from '../../../Styles/Fonts'
+import { isLight } from '../../../Styles/Stock'
 import type { TypeSlice } from '../Calendar.Stats'
 
 interface TaskProgressLineChartProps
@@ -44,7 +65,8 @@ export const TaskProgressLineChart: React.FC<TaskProgressLineChartProps> = ({ sl
              aria-label={slices.length === 0
                  ? 'No tasks'
                  : `Progress by type: ${summary}`}
-             sx={{ position: 'relative', width: '100%', height: '100%', minHeight: 28 }}>
+             sx={{ display: 'flex', gap: '5px', width: '100%', height: '100%', minHeight: 28 }}>
+            <Box sx={{ position: 'relative', flex: 1, minWidth: 0 }}>
             <Box component="svg"
                  viewBox={`0 0 ${W} ${H}`}
                  preserveAspectRatio="none"
@@ -100,6 +122,9 @@ export const TaskProgressLineChart: React.FC<TaskProgressLineChartProps> = ({ sl
                                      }} />
                          ))
             }
+            </Box>
+
+            <CountBlocks slices={slices} />
         </Box>
     )
 }
@@ -134,4 +159,65 @@ function pathOf(ratio: number): string
     const middle = W * 0.5
     const handle = W * 0.25
     return `M 0 ${base} C ${handle} ${base}, ${handle} ${level}, ${middle} ${level} L ${W} ${level}`
+}
+
+/** Each type's count for the day, as blocks of its colour — see the header. */
+function CountBlocks({ slices }: { slices: TypeSlice[] })
+{
+    const shown = slices.filter(slice => slice.count > 0)
+    if (shown.length === 0)
+        return null
+
+    // With an odd number of types, the largest takes a whole column, so the two rows fill.
+    const tall = shown.length % 2 === 1
+        ? shown.reduce((largest, slice) => (slice.count > largest.count
+            ? slice
+            : largest))
+        : null
+    const ordered = tall
+        ? [tall, ...shown.filter(slice => slice !== tall)]
+        : shown
+    const columns = Math.ceil(shown.length / 2)
+
+    return (
+        <Box aria-hidden
+             sx={{ flexShrink: 1,
+                   height: '100%',
+                   aspectRatio: `${columns} / 2`,
+                   maxWidth: '55%',
+                   display: 'grid',
+                   gridTemplateRows: 'repeat(2, minmax(0, 1fr))',
+                   gridAutoFlow: 'column',
+                   gridAutoColumns: 'minmax(0, 1fr)',
+                   gap: '2px'
+                }}>
+            { ordered.map(slice =>
+                          (
+                              <Box key={slice.key}
+                                   title={`${slice.title}: ${slice.count} ${slice.count === 1
+                                       ? 'task'
+                                       : 'tasks'}`}
+                                   sx={{ gridRow: slice === tall
+                                             ? 'span 2'
+                                             : undefined,
+                                         minWidth: 0,
+                                         overflow: 'hidden',
+                                         display: 'grid',
+                                         placeItems: 'center',
+                                         borderRadius: '2px',
+                                         backgroundColor: slice.colour,
+                                         fontFamily: MONO,
+                                         fontSize: '0.55rem',
+                                         fontWeight: 700,
+                                         lineHeight: 1,
+                                         color: isLight(slice.colour)
+                                             ? 'arc.onPaperStrong'
+                                             : 'var(--arc-cream)'
+                                      }}>
+                                  { slice.count }
+                              </Box>
+                          ))
+            }
+        </Box>
+    )
 }

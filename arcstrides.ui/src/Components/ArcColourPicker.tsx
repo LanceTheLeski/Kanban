@@ -42,7 +42,7 @@ import CheckIcon from '@mui/icons-material/Check'
 import CloseIcon from '@mui/icons-material/Close'
 import PaletteOutlinedIcon from '@mui/icons-material/PaletteOutlined'
 import { HexColorInput, HexColorPicker } from 'react-colorful'
-import { labelStyle, rgbOf, toHex } from '../Styles/Stock'
+import { isLight, labelStyle, toHex } from '../Styles/Stock'
 import { LADDERS } from '../Styles/Palette'
 import { MONO } from '../Styles/Fonts'
 
@@ -428,9 +428,3 @@ function Chip({ colour, name, tilt, chosen, onPick, onRemove }: {
     )
 }
 
-/** Whether dark text reads on a colour — its relative luminance, roughly. */
-function isLight(colour: string): boolean
-{
-    const [r, g, b] = rgbOf(colour)
-    return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.55
-}

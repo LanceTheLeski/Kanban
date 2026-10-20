@@ -539,7 +539,7 @@ glass, which still shows between the header and the cards under it:
 | tile | stock | what it is |
 |---|---|---|
 | the date | a card disc, ringed | the number in gold foil, as large as the disc takes — every day at the size at which the widest date's figures all but touch its edge (`DateDiscNumber`); ringed with its tasks by type; the disc fills the ring to its inner edge; today is oxblood |
-| middle | cream | the progress lines (no count in the corner), the day type's picture, or "+ Add card" — see below |
+| middle | cream | the progress lines, ending in a block of each type's colour with the day's count of that type on it, the day type's picture, or "+ Add card" — see below |
 | ⋮ | yellow | quick actions |
 | ‹ › | blue | step through the day's views; not drawn on a day with no cards |
 | heading | oxblood | the view's name in gold foil, four capitals at most — ALL, OPEN, FEAT |
@@ -565,6 +565,13 @@ what does not fit scrolls inside the day, under a header that stays put.
 
 The views are a list in `Calendar.Views.ts`; the charts' numbers and colours are
 in `Calendar.Stats.ts`.
+
+**The count blocks** at the end of the lines are each type's total for the day,
+not its done (`TaskProgressLineChart`): two rows, as many columns as half the
+types rounded up, and with an odd number of types the largest count takes a
+whole column so the rows fill. The number on each is in whichever ink reads on
+its colour. They show where the lines do; a day whose middle tile is its picture
+counts its tasks on the picture instead.
 
 No day draws a graph of nothing. The middle tile is the lines only where there
 is progress to show and the day's type measures it; otherwise it is the type's

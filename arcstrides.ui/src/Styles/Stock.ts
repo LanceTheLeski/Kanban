@@ -73,6 +73,17 @@ export function rgbOf(colour: string): Rgb
     return parse(colour) ?? [216, 210, 198]
 }
 
+/**
+ * Whether dark text reads on a colour — its relative luminance, roughly. What
+ * picks the ink for anything written on a colour chosen at run time: a chosen
+ * swatch's tick, a task type's count block.
+ */
+export function isLight(colour: string): boolean
+{
+    const [r, g, b] = rgbOf(colour)
+    return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.55
+}
+
 export function rgb([r, g, b]: Rgb): string
 {
     return `rgb(${r}, ${g}, ${b})`
