@@ -70,6 +70,9 @@ export const TimelineDatePicker: React.FC<TimelineDatePickerProps> = ({ name, va
     const position = useRef<PopoverActions>(null)
     const [step, setStep] = useState<'month' | 'day' | null>(null)
     const [previewing, setPreviewing] = useState(false)
+
+    // The day step was reached by picking another day, not opened on this one.
+    const [moved, setMoved] = useState(false)
     const [shown, setShown] = useState<Dayjs>(() => (value.date ?? dayjs()).startOf('month'))
     const load = usePickerMonth(shown, boardId
         ? [boardId]
@@ -176,6 +179,7 @@ export const TimelineDatePicker: React.FC<TimelineDatePickerProps> = ({ name, va
                                         colours={load.colours}
                                         duration={value.duration}
                                         relative={value.relative}
+                                        moved={moved}
                                         onChange={change => onChange({ ...value, date, ...change })}
                                         onBack={() => go('month')}
                                         onDone={() => setStep(null)}
@@ -202,12 +206,17 @@ export const TimelineDatePicker: React.FC<TimelineDatePickerProps> = ({ name, va
     function open(next: 'month' | 'day')
     {
         setShown((date ?? dayjs()).startOf('month'))
+        setMoved(false)
         setStep(next)
     }
 
-    /** A day picked: the point moves to it, keeping its time of day, and the day opens. */
+    /**
+     * A day picked: the point moves to it, keeping its time of day, and the day
+     * opens — which places a placed point again among that day's things.
+     */
     function pick(day: Dayjs)
     {
+        setMoved(!date?.isSame(day, 'day'))
         onChange({ ...value,
                    date: day,
                    time: value.time

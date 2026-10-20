@@ -284,7 +284,7 @@ the arithmetic is `Calendar.RelativePlacement`).
 
 The API still stores one instant per point, so a placed point is given one:
 where the thing before it ends, or, before the first thing, early enough to end
-as the first begins. Beside it, each point has a flag saying the time was
+as the first begins; on a day with nothing timed, noon. Beside it, each point has a flag saying the time was
 placed, not chosen:
 
 | point | placed |

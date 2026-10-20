@@ -5,7 +5,7 @@
  * for how long.
  *
  *     ‹ October         Tuesday 14 October
- *     [ Exact time ] [ Relative ]
+ *     [ Relative ] [ Exact time ]
  *     ┌───────────────────────────────────┐
  *     │ 08:00 ┃                           │   the day's hours, on the gold rail
  *     │       ● 09:30–11:00 Draft · …     │   what already has a time today
@@ -39,16 +39,21 @@
  * ── Two modes ────────────────────────────────────────────────────────────────
  * Exact time is the hours above. Relative puts the point among the day's timed
  * things instead, with no clock in sight: the scale gives way to the things in
- * order with a place between each two (DatePickerOrderList), and the point goes
- * where it is put. It is given the time the thing before it ends — that is what
- * Calendar.RelativePlacement works out — and saved as placed, not chosen, so it
- * opens in Relative again and shows as "≈" wherever a time is shown. One too
- * long for its place goes there anyway, red, saying why.
+ * order on the same rail, with a place between each two (DatePickerOrderList),
+ * and the point goes where it is put. It is given the time the thing before it
+ * ends — that is what Calendar.RelativePlacement works out — and saved as
+ * placed, not chosen, so it shows as "≈" wherever a time is shown. One too long
+ * for its place goes there anyway, red, saying why. On a day with nothing timed
+ * there is one place, and a point put there is at noon.
+ *
+ * Relative is the mode the step opens in: where a point goes among the day's
+ * things is what most points are about, and an hour is a commitment few of
+ * them have. Only a point already at a time chosen on the hours opens in Exact.
  *
  * Switching to Relative puts a point that has a time in the place its time is
- * in; on a day with nothing timed, there is nothing to put it among, and it is
- * on the day with no time. Switching to Exact keeps the time it was given, as
- * a time now chosen.
+ * in — at noon, on a day with nothing timed — and so does moving a placed point
+ * here from another day. Switching to Exact keeps the time it was given, as a
+ * time now chosen.
  *
  * "Custom…", beside the lengths in either mode, opens CustomDurationPopover for
  * any length from a minute to a week.
@@ -116,6 +121,13 @@ interface DatePickerTimeStepProps
     /** The time was placed in the day's order: the step opens in Relative. */
     relative: boolean
 
+    /**
+     * The point was just moved to this day from another. A placed point is
+     * placed again among this day's things — its place on the other day means
+     * nothing here.
+     */
+    moved?: boolean
+
     /** Everything on the day, from every card the calendar can read, without the one being scheduled. */
     stops: Stop[]
 
@@ -140,6 +152,7 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
     time,
     duration,
     relative,
+    moved = false,
     stops,
     marks,
     colours,
@@ -152,9 +165,9 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
     const scale = useRef<HTMLDivElement>(null)
     const [hover, setHover] = useState<number | null>(null)
     const [drag, setDrag] = useState<{ from: number; to: number } | null>(null)
-    const [mode, setMode] = useState<'exact' | 'relative'>(relative
-        ? 'relative'
-        : 'exact')
+    const [mode, setMode] = useState<'exact' | 'relative'>(time && !relative
+        ? 'exact'
+        : 'relative')
     const custom = useRef<HTMLSpanElement>(null)
     const [customOpen, setCustomOpen] = useState(false)
     const type = useDayTypes().typeOf(date, stored?.typeId)
@@ -198,6 +211,16 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
         : placedGap?.minutes === minutes
             ? placedGap.index
             : gapOf(items, minutes)
+
+    // A placed point just moved here is placed again, as Relative would on
+    // switching to it: the time it kept from the other day was only where it sat
+    // among that day's things.
+    useEffect(() =>
+    {
+        if (moved && relative && minutes !== null)
+            place(gapOf(items, minutes), duration)
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- on arriving only
+    }, [])
 
     // Opened to show the point and the first thing already on the day, when both
     // fit; else the point; else the first thing; else the working day.
@@ -264,17 +287,17 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
                 </Box>
             </Box>
 
-            {/* Exact time, on the hours; or Relative, among the day's things. */}
+            {/* Relative, among the day's things; or Exact time, on the hours. */}
             <Box role="group"
                  aria-label={`How the ${name.toLowerCase()} is placed in the day`}
                  sx={{ display: 'flex', gap: 0.5 }}>
-                <Piece chosen={mode === 'exact'}
-                       onClick={() => changeMode('exact')}>
-                    Exact time
-                </Piece>
                 <Piece chosen={mode === 'relative'}
                        onClick={() => changeMode('relative')}>
                     Relative
+                </Piece>
+                <Piece chosen={mode === 'exact'}
+                       onClick={() => changeMode('exact')}>
+                    Exact time
                 </Piece>
             </Box>
 
@@ -579,8 +602,8 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
     }
 
     /**
-     * Relative puts a point with a time in the place its time is in — or, on a
-     * day with nothing timed, takes the time off. Exact keeps the time as chosen.
+     * Relative puts a point with a time in the place its time is in — at noon,
+     * on a day with nothing timed (see gapAt). Exact keeps the time as chosen.
      */
     function changeMode(next: 'exact' | 'relative')
     {
@@ -591,11 +614,7 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
                 onChange({ relative: false })
             return
         }
-        if (minutes === null)
-            return
-        if (items.length === 0)
-            onChange({ time: null, relative: false })
-        else
+        if (minutes !== null)
             place(gapOf(items, minutes), duration)
     }
 
@@ -609,12 +628,12 @@ export const DatePickerTimeStep: React.FC<DatePickerTimeStepProps> = ({
 
     /**
      * A new length. A point placed before the first thing ends where that begins,
-     * so in Relative its start moves with its length; elsewhere it starts where it
-     * did.
+     * and one at noon on an empty day ends by midnight, so in Relative its start
+     * moves with its length; elsewhere it starts where it did.
      */
     function changeDuration(next: number | null)
     {
-        if (mode === 'relative' && gap !== null && items.length > 0)
+        if (mode === 'relative' && gap !== null)
             place(gap, next, { duration: next })
         else
             onChange({ duration: next })

@@ -24,6 +24,10 @@
  * point is saved as placed (`…TimeIsRelative`) and shown as "≈" wherever a time
  * is shown. Refining it is the day's job, and not built yet.
  *
+ * A day with nothing timed has one place, and a point put there is at noon —
+ * the middle of the day, as good a guess as any — or early enough to end by
+ * midnight, for one lasting longer than the afternoon.
+ *
  * A point that overlaps anything is still put there, drawn red with the reason
  * (`fitsAt`, `misfitReason`): too long for its gap, or put between two things
  * with no time between them.
@@ -41,6 +45,9 @@ export const FIRST_MINUTE = 15
 
 /** The last quarter hour a point can start at, keeping off midnight at the other end. */
 export const LAST_MINUTE = 24 * 60 - 15
+
+/** Where a point goes on a day with nothing timed to put it among. */
+export const NOON = 12 * 60
 
 /** Something already on the day, in minutes from its midnight. */
 export interface PlacedItem<T>
@@ -82,6 +89,11 @@ export function inOrder<T>(items: PlacedItem<T>[]): PlacedItem<T>[]
 export function gapAt<T>(items: PlacedItem<T>[], index: number, length: number | null): Gap
 {
     const minutes = length ?? 0
+    if (items.length === 0)
+    {
+        const start = Math.max(FIRST_MINUTE, Math.min(NOON, 24 * 60 - minutes))
+        return { index, start, room: 24 * 60 - FIRST_MINUTE, fits: fitsAt(items, start, length) }
+    }
     if (index === 0)
     {
         const end = items[0]?.start ?? LAST_MINUTE
@@ -129,6 +141,8 @@ export function misfitReason<T>(items: PlacedItem<T>[], index: number, length: n
     const end = gap.start + (length ?? 0)
     const into = items.find(placed => overlaps(gap.start, end, placed.start, placed.end))
 
+    if (items.length === 0)
+        return `${long} is longer than the day, so it runs past its end.`
     if (index === 0)
         return `${long} does not fit before ${nameOf(items[0].item)}: ${room} before it in the day. It is put as early as the day allows, and runs into ${nameOf((into ?? items[0]).item)}.`
 

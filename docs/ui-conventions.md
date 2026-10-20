@@ -714,21 +714,27 @@ A point on a card's or a task's timeline is chosen from the calendar
 
    "See the whole day" opens the preview below; Done closes the popup.
 
-   That is **Exact time**, the first of two modes along the top of the day.
-   **Relative** puts the point among the day's things instead, with no clock
-   in sight (`DatePickerOrderList`): everything timed on the day in order, as
-   names and lengths, with "+ here" between every two — those at the same
-   moment or overlapping included — and at either end. A point put in a place
-   is given the time the thing before it ends (before the first, it ends where
-   the first begins), and is saved as placed rather than chosen — see
-   "Relative placement" in `docs/timeline-model.md`. One too long for its place
-   goes there anyway, on red, with an (i) that says why: "4 h does not fit
-   between Breakfast and Lunch: there is 2 h between them…" — as does one put
-   between two things with no time between them. Switching to
-   Relative puts a point that has a time in the place its time falls in; on a
-   day with nothing timed there is nothing to put it among, and it is left on
-   the day with no time. Switching to Exact keeps the time it was given, as a
-   chosen one. The lengths and Custom… are the same in both.
+   That is **Exact time**, the second of two modes along the top of the day.
+   The first, and the one the day opens in, is **Relative**: it puts the point
+   among the day's things, with no clock in sight (`DatePickerOrderList`). The
+   day's timed things are in order on the same gold rail, each a node in its
+   type's colour, with a place between every two — those at the same moment or
+   overlapping included — and at either end. A place is a small grey node and
+   "+ here"; the one the point is put in keeps its small node, filled blue, so
+   the things on the day stay the larger marks. A point put in a place is given
+   the time the thing before it ends (before the first, it ends where the first
+   begins), and is saved as placed rather than chosen — see "Relative
+   placement" in `docs/timeline-model.md`. On a day with nothing timed there is
+   one place, and a point put there is at noon. One too long for its place goes
+   there anyway, its node red and its name on red, with an (i) that says why:
+   "4 h does not fit between Breakfast and Lunch: there is 2 h between them…" —
+   as does one put between two things with no time between them.
+
+   Only a point already at a chosen time opens in Exact. Switching to Relative
+   puts a point that has a time in the place its time falls in (at noon on an
+   empty day), and so does moving a placed point to another day. Switching to
+   Exact keeps the time it was given, as a chosen one. The lengths and Custom…
+   are the same in both.
 
 Under the node are three pieces of card: the day, which opens the month; the
 time and its span (`15:00–17:00`, "Relative · 2 h" for a placed point, or
