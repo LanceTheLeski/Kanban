@@ -29,7 +29,7 @@ import {
     type StagedTask,
     type TaskSaveProgress,
 } from '@ui/Features/Board/Task/Task.Staging'
-import type { TimelineDraft } from '@ui/Features/Board/Timeline/Timeline.Draft'
+import { draftFromTimeline, type TimelineDraft } from '@ui/Features/Board/Timeline/Timeline.Draft'
 import { saveTags } from '@ui/Features/TagGroup/Tag/Tag.APIs'
 import type { Tag } from '@ui/Entities/Tag/Tag.Types'
 import type { Task, TaskType } from '@ui/Entities/Task/Task.Types'
@@ -188,6 +188,21 @@ describe('isEdited', () =>
         expect(isEdited(changed)).toBe(true)
         expect(isEdited(undone)).toBe(false)
     })
+
+    it('is false for a timeline changed and changed back, and true while it differs', () =>
+    {
+        const { stored, changed, changedBack } = timelineChangedBack()
+
+        expect(isEdited(changed)).toBe(true)
+        expect(isEdited(changedBack)).toBe(false)
+        expect(changeOf(changedBack)).toBeNull()
+        expect(isEdited(stagedFrom(stored))).toBe(false)
+    })
+
+    it('is false for a Timeless draft on a task with no timeline: there is nothing to clear', () =>
+    {
+        expect(isEdited({ ...stagedFrom(task('a', 0)), timelineDraft: draft('timeless') })).toBe(false)
+    })
 })
 
 describe('changeOf', () =>
@@ -295,6 +310,16 @@ describe('saveTaskEdits', () =>
         expect(server.calls).toEqual([])
     })
 
+    it('does not patch a timeline drafted back to what is stored', async () =>
+    {
+        const { stored, changedBack } = timelineChangedBack()
+        const server = fakeServer([stored])
+
+        await saveTaskEdits('board-1', 'card-1', { ...changedBack, task: { ...stored, title: 'Renamed' }, saved: stored })
+
+        expect(server.calls).toEqual(['edit a {"title":"Renamed"}'])
+    })
+
     it('patches the timeline a stored task has in place, writing the tags it differs in after it', async () =>
     {
         const stored = task('a', 0, { timeline: timeline('t-1'), tags: [tag('t1', 'Urgent')] })
@@ -348,6 +373,16 @@ describe('saveCardTasks', () =>
         await save(saved, renumbered([stagedFrom(a), edited(b, { title: 'Renamed' }), stagedFrom(c)]))
 
         expect(server.calls).toEqual(['edit b {"title":"Renamed"}'])
+    })
+
+    it('sends nothing for a task whose timeline was changed and changed back', async () =>
+    {
+        const { stored, changedBack } = timelineChangedBack()
+        const server = fakeServer([stored])
+
+        await save([stored], [changedBack])
+
+        expect(server.calls).toEqual([])
     })
 
     it('does not move the tasks after a deleted one, which the server moved up', async () =>
@@ -572,6 +607,20 @@ function timeline(id: string | null, changes: Partial<Timeline> = {}): Timeline
         endDeadlineTimeIsRelative: false,
         ...changes,
     }
+}
+
+/**
+ * A task with a deadline, staged with the deadline made longer and then staged
+ * again as it was stored: the draft is read from the stored timeline, as the
+ * popover's is.
+ */
+function timelineChangedBack(): { stored: Task; changed: StagedTask; changedBack: StagedTask }
+{
+    const stored = task('a', 0, { timeline: timeline('t-1', { endDeadlineUTC: new Date('2026-11-03T15:30:00Z'), endDeadlineDurationMinutes: 30 }) })
+    const read = draftFromTimeline(stored.timeline)
+    const changed = applyEdit(stagedFrom(stored), { task: stored, timelineDraft: { ...read, requiredEndDuration: 90 } })
+    const changedBack = applyEdit(changed, { task: stored, timelineDraft: read })
+    return { stored, changed, changedBack }
 }
 
 /** A draft in a mode with no points set, or the ones given. */

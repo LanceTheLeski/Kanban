@@ -39,7 +39,7 @@
  */
 
 import { createTask, createTimeline, deleteTask, updateTask, type TaskPatch } from '../Board.APIs'
-import { draftToTimelineDates, hasTimeline, saveTimeline, TIMELINE_PARENT_TASK, type TimelineDraft } from '../Timeline/Timeline.Draft'
+import { draftMatches, draftToTimelineDates, hasTimeline, saveTimeline, TIMELINE_PARENT_TASK, type TimelineDraft } from '../Timeline/Timeline.Draft'
 import { saveTags, sameTags } from '../../TagGroup/Tag/Tag.APIs'
 import type { Task } from '../../../Entities/Task/Task.Types'
 import type { Timeline } from '../../../Entities/Timeline/Timeline.Types'
@@ -133,7 +133,12 @@ export function timelineOfDraft(existing: Timeline | null, draft: TimelineDraft)
     }
 }
 
-/** Whether a staged task differs from the stored one in anything Save writes, its place included. */
+/**
+ * Whether a staged task differs from the stored one in anything Save writes, its
+ * place included. A timeline drafted back to what is stored is no change: the
+ * popover hands back a draft whenever its timeline differs from the one staged,
+ * which, after a change undone, is the stored one again.
+ */
 export function isEdited(staged: StagedTask): boolean
 {
     const { task, saved } = staged
@@ -143,7 +148,7 @@ export function isEdited(staged: StagedTask): boolean
         || !!task.isCompleted !== !!saved.isCompleted
         || task.taskType?.id !== saved.taskType?.id
         || task.order !== saved.order
-        || staged.timelineDraft !== null
+        || timelineChanged(staged.timelineDraft, saved.timeline)
         || !sameTags(task.tags, saved.tags)
 }
 
@@ -209,7 +214,7 @@ export async function saveTaskEdits(boardId: string, cardId: string, staged: Sta
     if (Object.keys(patch).length > 0)
         await updateTask(boardId, cardId, saved.id, patch)
     // Created, or patched in place — see saveTimeline.
-    if (staged.timelineDraft)
+    if (staged.timelineDraft && timelineChanged(staged.timelineDraft, saved.timeline))
         await saveTimeline(boardId, { id: saved.id, kind: TIMELINE_PARENT_TASK }, saved.timeline, staged.timelineDraft)
     if (!sameTags(task.tags, saved.tags))
         await saveTags({ id: saved.id, kind: 'task' }, saved.tags, task.tags)
@@ -292,6 +297,12 @@ export async function saveCardTasks(boardId: string,
 
 // ── Private ───────────────────────────────────────────────────────────────────
 // Not exported, which is this language's `private`. Ordered by first use above.
+
+/** Whether a timeline drafted for a stored task would write anything new. */
+function timelineChanged(draft: TimelineDraft | null, stored: Timeline | null): boolean
+{
+    return draft !== null && !draftMatches(draft, stored)
+}
 
 const NEW_TASK = 'new-task:'
 
