@@ -5,8 +5,8 @@ popover, and "complex" timelines failing to save — to a single root: the
 timeline model stores one fact where it needs two, and the code that reads it
 disagrees with the code that writes it.
 
-This records what is wrong and what to do about it. The frontend has been
-changed to work with the model as it stands; nothing here has been.
+This records what is still wrong and what to do about it, and what has been
+fixed where the fix changed how the model is used.
 
 ---
 
@@ -30,101 +30,32 @@ needs, and the API can create and patch them:
 
 ---
 
-## Problem 1 — `TimelineTypeID` carries two unrelated facts
+## Problem 1 — `TimelineTypeID` is the parent's kind, by another name
 
-Its own doc comment says so:
+The server reads `TimelineTypeID` for one thing: `ParentExistsAsync` takes 1 as
+a card and 2 as a task, and anything else as no parent. The UI sends exactly
+that (`TIMELINE_PARENT_CARD`, `TIMELINE_PARENT_TASK` in `Timeline.Draft`).
 
-> Indicates deadline or (proper) timeline.
-> **Also** indicates Card or Task parent.
+It was once also meant to say whether a timeline was a deadline or a proper
+one, and the client sent that instead — so a proper timeline was refused as
+having no parent, and a deadline on a task was filed under a card. Nothing
+stores the mode now. It is worked out from the dates: preference dates make a
+timeline, a deadline alone makes a deadline, nothing at all is timeless, which
+is how `UpdateTimelinePanel` decides what to show when it loads one back.
 
-One integer, two orthogonal questions. `ParentExistsAsync` answers only the
-second:
-
-```csharp
-switch (timelineTypeID)
-{
-    case 1:// Card
-    case 2:// Task
-    default:
-        return false;
-}
-```
-
-There is no value that means *"a proper timeline, parented to a task"*. The
-client had been sending `mode === 'deadline' ? 1 : 0`, so:
-
-- **Deadline** sent `1` → accepted, and the server recorded a task's timeline
-  as belonging to a card.
-- **Timeline** sent `0` → `default` → `false` → `CreateTimeline` answers
-  `BadRequest("Parent not found")`, before writing anything.
-
-That is the whole of "complex timelines don't work": they were rejected at the
-door.
-
-**Suggested fix.** Split the field.
-
-- `ParentObjectTypeID` — `1 = Card`, `2 = Task`. This is what
-  `ParentExistsAsync` actually wants, and `Tag` already models its parent this
-  way with `ParentObjectTypeName`, so there is a precedent to match.
-- Drop the deadline-vs-timeline half entirely. It is **derivable**: dates in
-  the preference fields make it a timeline, a deadline field alone makes it a
-  deadline, nothing at all makes it timeless. `UpdateTimelinePanel` already
-  decides what to show that way when it loads one back, so storing it only
-  creates a second version of the truth that can disagree with the dates.
-
-Keeping `TimelineTypeID` as the parent kind and leaving the name alone is a
-smaller change and would work; the rename is worth it because the current name
-is what invited a mode to be stored in it.
+**Still to do.** Rename it `ParentObjectTypeID`, to match how `Tag` models its
+parent. The name is what invited a mode to be stored in it, and still says a
+timeline has a type.
 
 ---
 
-## Problem 2 — `ParentExistsAsync` cannot return a correct answer
-
-```csharp
-var cardCollection = await _cardRepository.GetCardsAsync (parentID);
-return cardCollection?.Count () is 0;
-```
-
-Two faults in two lines:
-
-1. **Wrong argument.** `GetCardsAsync` and `GetTasksAsync` both take a
-   **`boardID`** — they query by partition key. They are being handed a
-   *parent* ID, so they query a partition that does not exist and return
-   nothing.
-2. **Inverted result.** `Count () is 0` is `true` when the parent was *not*
-   found. The method returns "the parent exists" precisely when it does not.
-
-The two cancel out, which is why creating a deadline appears to work: the
-lookup finds nothing, the inversion calls that success. A correct lookup with
-the inversion still in place would reject every valid parent.
-
-**Suggested fix.** The board ID is already in scope in `CreateTimeline`, so
-pass it:
-
-```csharp
-public async Task<bool> ParentExistsAsync (Guid boardID, Guid parentID, int parentObjectTypeID)
-    => parentObjectTypeID switch
-    {
-        1 => (await _cardRepository.GetCardsAsync (boardID))
-                 .Any (card => card.RowKey == parentID.ToString ()),
-        2 => (await _taskRepository.GetTasksAsync (boardID))
-                 .Any (task => task.RowKey == parentID.ToString ()),
-        _ => false,
-    };
-```
-
-Worth a test before it ships: a real parent must return `true`, and a random
-GUID must return `false`. Both currently return `true`.
-
----
-
-## Problem 3 — the parent link was written one way and read the other
+## Problem 2 — the parent link was written one way and read the other
 
 `Timeline.ParentObjectID` points at the card or task. `Task.TimelineID` and
 `Card.TimelineID` point back. Only the first is ever written:
-`CreateTimeline` sets `ParentObjectID`, and **nothing in the solution assigns
-`Task.TimelineID` or `Card.TimelineID`** — searching for them finds the two
-model declarations and one reader.
+`CreateTimeline` sets `ParentObjectID`, and **nothing sets `Task.TimelineID`
+or `Card.TimelineID`**. A task PATCH could carry one (`TaskPatchRequest`
+maps it), but no client sends it.
 
 That reader was `BoardController`, matching `timeline.RowKey ==
 cardTask.TimelineID`. It never matched, so no task's timeline ever reached the
@@ -143,9 +74,10 @@ keep in step, for a board that already loads every timeline in one query.
 
 ---
 
-## Problem 4 — nothing deletes a timeline
+## Problem 3 — deleting a card or a task leaves its timeline
 
-Deleting a task or a card leaves its timeline row behind, parented to an ID
+`DELETE …/timelines/{timelineID}` deletes one, but nothing calls it when its
+parent goes. Deleting a task or a card leaves its timeline row behind, parented to an ID
 that no longer resolves. Nothing reads it, so nothing breaks today; the table
 grows forever.
 
@@ -322,13 +254,9 @@ Worth leaving where it is until the four dates are trustworthy.
 
 ## Order to do it in
 
-1. **Fix `ParentExistsAsync`** — problem 2. Nothing else can be trusted while
-   it answers backwards, and it is contained.
-2. **Split `TimelineTypeID` into a parent kind** — problem 1. The frontend
-   already sends the parent kind (`TIMELINE_PARENT_TASK = 2`), so this is the
-   server catching up.
-3. **Delete the unmaintained back-pointers** — problem 3's remainder.
-4. **Delete timelines with their parents** — problem 4.
+None of these blocks anything today; each stops the next person hitting the
+same thing.
 
-1 and 2 together are what make a full timeline savable. 3 and 4 are tidying
-that stops the next person hitting the same thing.
+1. **Rename `TimelineTypeID` to `ParentObjectTypeID`** — problem 1.
+2. **Delete the unmaintained back-pointers** — problem 2's remainder.
+3. **Delete timelines with their parents** — problem 3.

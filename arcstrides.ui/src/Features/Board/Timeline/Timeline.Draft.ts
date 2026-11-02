@@ -193,10 +193,8 @@ export function draftFromTimeline(timeline: Timeline | null): TimelineDraft
  * which is exactly how UpdateTimelinePanel decides what to show when it loads
  * one back.
  *
- * The enum's own doc comment says it carries both facts at once ("Indicates
- * deadline or (proper) timeline. Also indicates Card or Task parent."). It
- * cannot: there is no value meaning "a proper timeline, parented to a task".
- * See docs/timeline-model.md for what to do about that.
+ * The server's name for the field, `TimelineTypeID`, is from when it was meant
+ * to carry the mode as well; see docs/timeline-model.md, problem 1.
  */
 export const TIMELINE_PARENT_CARD = 1
 export const TIMELINE_PARENT_TASK = 2

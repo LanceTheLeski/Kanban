@@ -84,7 +84,7 @@ Not done yet:
 
 ### 3. Deleting a card leaves the card row behind
 
-`BoardController.cs:252`, and the comment on the route says so:
+`BoardController.cs`, the card's `DELETE` route, and its comment says so:
 
 > Need to delete from board AND card tables. There might also be extensions to
 > remove. For now though, I'm just going to do board.
@@ -136,12 +136,12 @@ A colour is cleared by setting it to the empty string. A null is left out of the
 merge and would change nothing (#9); the UI reads an empty colour as none, and
 the uniqueness check ignores it.
 
-### 7. `TimelineTypeID` carries two facts at once
+### 7. `TimelineTypeID` is the parent's kind, by another name
 
-Documented in `docs/timeline-model.md`, unchanged. The enum means both "deadline
-or timeline" and "parented to a card or a task", and there is no value meaning
-"a proper timeline, parented to a task". The UI works around it by sending the
-parent kind and recovering the mode from the dates.
+The server reads it only as whether a timeline's parent is a card (1) or a task
+(2), and the UI sends that; whether a timeline is a deadline is worked out from
+its dates. It was once meant to say both. What is left is the name — see
+problem 1 in `docs/timeline-model.md`.
 
 ### 8. The calendar: what is there, and what is still missing
 
