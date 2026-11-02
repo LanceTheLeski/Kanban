@@ -7,6 +7,7 @@ Honu Boards: a kanban board and calendar.
 | `ArcStrides.API` | ASP.NET Core (.NET 10) over Azure Table Storage |
 | `ArcStrides.Contracts` | the API's request and response shapes |
 | `arcstrides.ui` | React 19, MUI and Vite: the conversion of the Blazor app |
+| `arcstrides.ui.tests` | Vitest tests of the UI's logic, a project of its own |
 | `ArcStrides.UI.Legacy` | the Blazor app, kept as the reference for what each screen did |
 | `tools` | local development scripts, and the C# style check |
 | `docs` | conventions, local setup, and what the API is still missing |
@@ -30,11 +31,12 @@ fix what they report before committing.
 
 | changed | run |
 |---|---|
-| anything in `arcstrides.ui/` | `cd arcstrides.ui && npm run check` |
+| anything in `arcstrides.ui/` or `arcstrides.ui.tests/` | `npm run check --prefix arcstrides.ui`, then `npm run check --prefix arcstrides.ui.tests` |
 | any `.cs` in the API or the contracts | `cd tools && npm run check:csharp`, then `dotnet build ArcStrides.API` |
 
 Some things can be fixed automatically. In the UI, `npm run format` fixes all
-of its layout: braces, ternaries, JSX spacing and attributes. In the API,
+of its layout: braces, ternaries, JSX spacing and attributes; the tests' own
+`npm run format` does the same for them. In the API,
 `node tools/check-csharp.mjs --fix` fixes the spacing, tabs and byte order mark.
 Everything else is a person's call. After hand-editing a UI file, run
 `npm run format` before the check rather than lining things up by eye.

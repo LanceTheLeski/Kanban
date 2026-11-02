@@ -32,6 +32,7 @@ thing that is.
 | Hook | `camelCase.ts`, named for the hook, in a `Hooks/` folder | `Hooks/useBoardActions.ts` |
 | Module of related helpers | `Feature.Thing.ts` | `Board.Store.ts`, `CardGrid.Cells.ts` |
 | Module that belongs to no feature | `PascalCase.ts` in `Styles/` or `Lib/`, named for what it holds | `Palette.ts`, `Fonts.ts`, `Client.ts` |
+| Tests of a module | the module's name with `.test.ts`, at the same path in `arcstrides.ui.tests/src` (see "Tests") | `Calendar.Stats.test.ts` |
 
 A module has no single primary export to be named after, so it takes the
 feature it belongs to plus what it holds, dotted: `Board.APIs.ts`,
@@ -909,6 +910,55 @@ The boundary is the language, not the repository. Checked, and fixable, by
 
 ---
 
+## Tests
+
+The UI's tests are a project of their own, `arcstrides.ui.tests` beside
+`arcstrides.ui` — `ArcStrides.UI.Tests` in the solution — run by Vitest. Its
+`src/` mirrors the UI's: the tests of
+`src/Features/Calendar/Calendar.RelativePlacement.ts` are
+`src/Features/Calendar/Calendar.RelativePlacement.test.ts`. They import the UI's
+code as `@ui/…` — `@ui/Features/Calendar/Calendar.Stats` — rather than by a path
+climbing out of the project.
+
+**What is tested** is the modules that take data and return data — the
+`Feature.Thing.ts` files — because the rules behind the screens live there, and
+that is where the subtle mistakes have been: where a point placed in the day
+goes, which colour a type gets, what a card's Save sends. Components, hooks and
+stores are not, for now. An API module is never called: where a test needs one,
+it is replaced with `vi.mock`, and the test says what would have been sent.
+
+**How a test reads.** A `describe` for each export, and each `it` a rule in a
+sentence, so that a failure names the rule it broke: `gapAt` › "puts a point on
+a day with nothing timed at noon".
+
+- **Expectations are written out**: `minutes('12:00')`, not the module's `NOON`.
+  A test that compares the code with itself moves along when the rule changes,
+  and checks nothing.
+- **Data is built by small functions** below the Private banner (`thing`,
+  `task`, `card`), so the tests come first and read as a list of rules
+  (`arc/private-last`). Functions hoist, so the tests can call them.
+- **Colours come from the palette's constants**, as they do in the UI
+  (`arc/colours-from-palette`); a test about a type's colour uses
+  `TYPE_PALETTE[0]`, never a hex literal.
+- **The UI's rules hold**: its layout, and no space before a parenthesis. The
+  project's ESLint config imports them from `arcstrides.ui/tools`, and its
+  `npm run format` is the UI's formatter, pointed at the tests.
+
+**Time.** Every test runs in Chicago's time, whatever the machine's zone
+(`vitest.config.ts`): a local midnight is how the UI says "no time", so it has to
+be the same instant on every machine. `Setup.test.ts` fails if that stops
+holding.
+
+**Libraries.** The UI's code finds its libraries in the UI's `node_modules`. A
+library a test imports itself is pointed at the same copy, in `vitest.config.ts`
+and `tsconfig.json` — today only dayjs — so there is one copy of it, not two.
+
+**A test that fails because the code is wrong** is not changed to pass. Either the
+code is fixed, in its own commit, or the rule turns out to be what was wanted
+and the test is corrected to say so — and either way the reason is written down.
+
+---
+
 ## What checks it
 
 From `arcstrides.ui/`:
@@ -920,7 +970,9 @@ npm run format    # fix everything the layout rules and reflow.py can
 ```
 
 `npm run check` is the type checker (`tsc -b`), the tests for this project's
-own ESLint rules, ESLint, and `reflow.py --check`. The rules are in
+own ESLint rules, ESLint, and `reflow.py --check`. The tests of the UI's code
+have a check of their own, `npm run check` in `arcstrides.ui.tests`: the type
+checker, ESLint with the same rules, and the tests (see "Tests"). The rules are in
 `tools/eslint-arc.js` and `tools/eslint-arc-layout.js`, and each message names
 the section of this page it enforces:
 

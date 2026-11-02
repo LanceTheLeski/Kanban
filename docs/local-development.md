@@ -175,6 +175,25 @@ separator, the layout rules allow the `\r\n` line endings Git for Windows
 checks out, and `reflow.py` reads and writes UTF-8 whatever the system's code
 page. `npm run format` keeps each file's own line endings.
 
+## 5. Tests
+
+The UI's tests are a project of their own, `arcstrides.ui.tests`, beside it —
+`ArcStrides.UI.Tests` in the solution. They borrow the UI's libraries and its
+lint rules, so install the UI first:
+
+```
+npm install --prefix arcstrides.ui
+npm install --prefix arcstrides.ui.tests
+npm test --prefix arcstrides.ui.tests
+```
+
+`npm run check --prefix arcstrides.ui.tests` is the type checker, ESLint with the
+UI's rules, and the tests; `npm run watch` in that folder reruns them as files
+change. In Visual Studio they are in **Test Explorer** (Test → Test Explorer).
+
+The tests run on Vitest 5, which needs Node 22.12 or newer and does not run on
+Node 25. What is tested and how: "Tests" in `docs/ui-conventions.md`.
+
 ## When the board will not load
 
 `GET /arcstrides/boards/{id}` validates the whole board before returning it, so

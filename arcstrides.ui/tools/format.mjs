@@ -9,6 +9,10 @@
  * attributes after it a column.
  *
  *   npm run format
+ *
+ * Given a folder, it formats that project instead, by its own ESLint config:
+ * the tests project's `npm run format` is `node ../arcstrides.ui/tools/format.mjs .`.
+ * Only the UI has JSX, so only the UI goes through reflow.py.
  */
 
 import { execFileSync } from 'node:child_process'
@@ -17,15 +21,22 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { ESLint } from 'eslint'
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const FILES = ['src/**/*.{ts,tsx}', 'vite.config.ts']
+const ui = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+const root = process.argv[2]
+    ? path.resolve(process.argv[2])
+    : ui
+const FILES = root === ui
+    ? ['src/**/*.{ts,tsx}', 'vite.config.ts']
+    : ['**/*.ts']
 const ROUNDS = 20
 
 const eslint = new ESLint({ cwd: root, fix: true })
 let changed = 0
 for (let round = 0; round < ROUNDS; round += 1) {
     const fixed = await eslintToStandstill()
-    const reflowed = execFileSync('python3', [path.join(root, 'tools', 'reflow.py')], { cwd: root, encoding: 'utf8' })
+    const reflowed = root === ui
+        ? execFileSync('python3', [path.join(ui, 'tools', 'reflow.py')], { cwd: ui, encoding: 'utf8' })
+        : ''
     changed += fixed
     if (!/reflowed:/.test(reflowed)) {
         console.log(changed ? `Formatted, in ${round + 1} round${round ? 's' : ''}.` : 'Every file already follows the conventions.')

@@ -1,0 +1,21 @@
+{
+  "name": "arcstrides.ui.tests",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "watch": "vitest",
+    "lint": "eslint .",
+    "format": "node ../arcstrides.ui/tools/format.mjs .",
+    "check": "tsc -p tsconfig.json && eslint . && vitest run"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^24.10.1",
+    "eslint": "^9.39.1",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.48.0",
+    "vitest": "^5.0.5"
+  }
+}
