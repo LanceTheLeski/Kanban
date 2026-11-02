@@ -75,12 +75,14 @@ public partial class TaskMapper
     /// <see cref="TaskType"/> --> <see cref="TaskTypePatchRequest"/>
     /// </summary>
     [MapProperty (nameof (TaskType.Title), nameof (TaskTypePatchRequest.Title))]
+    [MapProperty (nameof (TaskType.Color), nameof (TaskTypePatchRequest.Color))]
     public partial TaskTypePatchRequest MapTaskTypeToTaskTypePatchRequest (TaskType taskType);
 
     /// <summary>
     /// <see cref="TaskTypePatchRequest"/> --> <see cref="TaskType"/>
     /// </summary>
     [MapProperty (nameof (TaskTypePatchRequest.Title), nameof (TaskType.Title))]
+    [MapProperty (nameof (TaskTypePatchRequest.Color), nameof (TaskType.Color))]
     public partial TaskType MapTaskTypePatchRequestToTaskType (TaskTypePatchRequest taskTypePatchRequest);
 
     /// <summary>
@@ -89,6 +91,7 @@ public partial class TaskMapper
     [MapProperty (nameof (TaskType.PartitionKey), nameof (TaskTypeResponse.GroupTagID))]
     [MapProperty (nameof (TaskType.RowKey), nameof (TaskTypeResponse.ID))]
     [MapProperty (nameof (TaskType.Title), nameof (TaskTypeResponse.Title))]
+    [MapProperty (nameof (TaskType.Color), nameof (TaskTypeResponse.Color))]
     public partial TaskTypeResponse MapTaskTypeToTaskTypeResponse (TaskType taskType);
 
     #endregion Task Type

@@ -10,8 +10,8 @@ using Azure;
 using Azure.Data.Tables;
 using DeepCopy;
 using FluentValidation;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Exceptions;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 using static ArcStrides.API.Validators.ColumnValidators;
@@ -31,9 +31,11 @@ public class ColumnController : ArcController
 
     private readonly IColumnRepository _columnRepository;
     private readonly ICardRepository _cardRepository;
+    private readonly ITagRepository _tagRepository;
 
     public ColumnController (IColumnRepository columnRepository,
                              ICardRepository cardRepository,
+                             ITagRepository tagRepository,
                              ColumnMapper columnMapper)
     {
         _columnCreateRequestValidator = new ColumnCreateRequestValidator ();
@@ -43,6 +45,7 @@ public class ColumnController : ArcController
 
         _columnRepository = columnRepository;
         _cardRepository = cardRepository;
+        _tagRepository = tagRepository;
     }
 
     [HttpGet ("/arcstrides/boards/{boardID:guid}/columns/{columnID:guid}")]
@@ -55,6 +58,28 @@ public class ColumnController : ArcController
 
             var columnResponse = _columnMapper.MapColumnToColumnResponse (columnFromDatabase);
             return Ok (columnResponse);
+        }
+        catch (Exception ex)
+            { return ArcErrorResponse (ex); }
+    }
+
+    /// <summary>
+    /// Every column, on every board, that has a global colour — <c>GET arcstrides/columns/globalcolors</c>.
+    /// </summary>
+    /// <remarks>
+    /// A global colour identifies a column across boards, so no two columns may
+    /// share one. The create and edit overlays read this to say, before saving,
+    /// that a colour is taken and by whom.
+    /// </remarks>
+    [HttpGet ("globalcolors")]
+    public async Task<ActionResult> FetchGlobalColumnColors ()
+    {
+        try
+        {
+            var columnsWithGlobalColour = (await FetchAllColumnsAsync ()).Where (column => string.IsNullOrWhiteSpace (column.GlobalColumnColor) is false);
+
+            var columnResponses = columnsWithGlobalColour.Select (_columnMapper.MapColumnToColumnResponse);
+            return Ok (columnResponses);
         }
         catch (Exception ex)
             { return ArcErrorResponse (ex); }
@@ -73,6 +98,8 @@ public class ColumnController : ArcController
             var newColumn = _columnMapper.MapColumnCreateRequestToColumn (columnCreateRequest);
             newColumn.PartitionKey = boardID.ToString ();
             newColumn.RowKey = Guid.NewGuid ().ToString ();
+
+            await ValidateGlobalColourIsFreeAsync (newColumn.GlobalColumnColor, newColumn.RowKey);
             
             await AddColumnAndUpdateEffectedColumnsAndCardPositions (boardID, newColumn);
 
@@ -107,6 +134,11 @@ public class ColumnController : ArcController
                 { return BadRequest (ErrorResponseMessages.PatchRequestIsInvalidErrorResponse (nameof (Column))); }
             ValidateConvertedColumnAgainstExistingColumns (columnToUpdate, convertedColumnToUpdate, columnsFromDatabase);
 
+            // Only when it changes: a column that already shares its global colour,
+            // from before this was checked, can still be renamed or moved.
+            if (string.Equals (convertedColumnToUpdate.GlobalColor?.Trim (), columnToUpdate.GlobalColumnColor?.Trim (), StringComparison.OrdinalIgnoreCase) is false)
+                await ValidateGlobalColourIsFreeAsync (convertedColumnToUpdate.GlobalColor, columnToUpdate.RowKey);
+
             var updatedColumn = await UpdateColumnAndUpdateEffectedColumnsAndCardPositions (boardID, columnToUpdate, convertedColumnToUpdate, columnsFromDatabase, cardPositionsFromDatabase, columnPatchRequest.Operations);
 
             var columnResponse = _columnMapper.MapColumnToColumnResponse (updatedColumn);
@@ -125,6 +157,9 @@ public class ColumnController : ArcController
             var columnToDelete = await FetchAndValidateColumn (boardID, columnID);
 
             await DeleteColumnAndUpdateEffectedColumnsAndCardPositions (boardID, columnToDelete);
+
+            // Its tags come off with it; one left on nothing stays in the list of tags.
+            await _tagRepository.DetachLabelsFromParentAsync (columnID);
             return Ok ();
         }
         catch (Exception ex)
@@ -154,9 +189,38 @@ public class ColumnController : ArcController
     /// </summary>
     private async Task<IEnumerable<Column>> FetchAndValidateAllExistingColumnsAsync (Guid boardID)
     {
-        try { return await _columnRepository.GetAllBoardColumns (boardID); }
+        try { return await _columnRepository.GetAllBoardColumnsAsync (boardID); }
         catch (RequestFailedException reqFailedEx)
             { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (Column), reqFailedEx.Status)); }
+    }
+
+    /// <summary>
+    /// Every column on every board.
+    /// </summary>
+    private async Task<IEnumerable<Column>> FetchAllColumnsAsync ()
+    {
+        try { return await _columnRepository.QueryColumnsAsync (column => true); }
+        catch (RequestFailedException reqFailedEx)
+            { throw new RequestFailureWrapperException (nameof (Problem), ErrorResponseMessages.FetchFromDatabaseErrorResponse (nameof (Column), reqFailedEx.Status)); }
+    }
+
+    /// <summary>
+    /// Refuses a global colour that another column, on any board, already has.
+    /// </summary>
+    /// <remarks>
+    /// Compared without case or surrounding space, so "#AABBCC" and "#aabbcc" are
+    /// the same colour. No colour is never taken. Swimlanes are not looked at: a
+    /// column and a swimlane may share a global colour.
+    /// </remarks>
+    private async Task ValidateGlobalColourIsFreeAsync (string? globalColour, string? columnID)
+    {
+        if (string.IsNullOrWhiteSpace (globalColour))
+            return;
+
+        var takenBy = (await FetchAllColumnsAsync ()).FirstOrDefault (column => column.RowKey != columnID
+                                                                                && string.Equals (column.GlobalColumnColor?.Trim (), globalColour.Trim (), StringComparison.OrdinalIgnoreCase));
+        if (takenBy is not null)
+            throw new RequestFailureWrapperException (nameof (BadRequest), ErrorResponseMessages.GlobalColourTakenErrorResponse ("column", globalColour.Trim (), $"\"{takenBy.Title}\""));
     }
 
     /// <summary>
@@ -236,7 +300,7 @@ public class ColumnController : ArcController
                                                                                      ColumnPatchRequest convertedColumnPatchRequest,
                                                                                      IEnumerable<Column> columnsFromBoard,
                                                                                      IEnumerable<CardPosition> cardPositionsFromBoard,
-                                                                                     IEnumerable<Microsoft.AspNetCore.JsonPatch.Operations.Operation<ColumnPatchRequest>> columnPatchRequest)
+                                                                                     IEnumerable<Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations.Operation<ColumnPatchRequest>> columnPatchRequest)
     {
         var updateColumnTransaction = new ArcTransaction ();
 
@@ -268,27 +332,38 @@ public class ColumnController : ArcController
     /// <list type="bullet">
     ///     <item>Decrement any effected column order due to the removed column.</item>    
     ///     <item>Update any effected card positions order due to a column being moved.</item>
-    ///     <item>Update title and order for card poditions on deleted column.</item>
+    ///     <item>Move the deleted column's cards into the column that takes its place.</item>
     /// </list>
+    /// The last column cannot be deleted while it holds cards: a card is always in
+    /// a column. The UI offers to make an "Orphaned" column for them first.
     /// </summary>
     private async Task DeleteColumnAndUpdateEffectedColumnsAndCardPositions (Guid boardID,
                                                                              Column columnToDelete)
     {
         var deleteColumnTransaction = new ArcTransaction ();
 
-        var columnsToUpdateOrder = await _columnRepository.QueryColumnsAsync (column => column.ColumnOrder > columnToDelete.ColumnOrder
-                                                                                        && column.PartitionKey == columnToDelete.PartitionKey);
+        // Every column on the board, read once, so the ones renumbered below are the
+        // same instances the cards are moved between -- see the swimlane delete.
+        var boardColumns = await FetchAndValidateAllExistingColumnsAsync (boardID);
+        var remainingColumns = boardColumns.Where (column => column.RowKey != columnToDelete.RowKey)
+                                           .ToList ();
+
+        var boardCardEnumerable = await _cardRepository.GetCardPositionsAsync (boardID);
+        var cardsInColumn = boardCardEnumerable.Any (cardPosition => string.Equals (cardPosition.ColumnID.ToString (), columnToDelete.RowKey, StringComparison.OrdinalIgnoreCase));
+        if (remainingColumns.Count is 0 && cardsInColumn)
+            throw new RequestFailureWrapperException (nameof (BadRequest), ErrorResponseMessages.LastColumnHoldsCardsErrorResponse ());
+
+        var columnsToUpdateOrder = remainingColumns.Where (column => column.ColumnOrder > columnToDelete.ColumnOrder)
+                                                   .ToList ();
         deleteColumnTransaction = _columnRepository.DecrementExistingColumnsOrder (columnsToUpdateOrder, deleteColumnTransaction);
         var allUpdatedColumns = deleteColumnTransaction.GetTransactionEntities<Column> ().ToList ();
 
-        var boardCardEnumerable = await _cardRepository.GetCardPositionsAsync (boardID);
         deleteColumnTransaction = _columnRepository.ApplyNewOrderForExistingCardPositions (allUpdatedColumns, boardCardEnumerable, deleteColumnTransaction);
 
         var transaction = new TableTransactionAction (TableTransactionActionType.Delete, columnToDelete);
         deleteColumnTransaction.Add (transaction, columnToDelete);
 
-        allUpdatedColumns.Add (columnToDelete);
-        deleteColumnTransaction = _columnRepository.ApplyNewTitleAndOrderForExistingCardPositions (columnToDelete, allUpdatedColumns, boardCardEnumerable, deleteColumnTransaction);
+        deleteColumnTransaction = _columnRepository.ApplyNewTitleAndOrderForExistingCardPositions (columnToDelete, remainingColumns, boardCardEnumerable, deleteColumnTransaction);
 
         try { await _columnRepository.SubmitArcTransactionAsync (deleteColumnTransaction); }
         catch (RequestFailedException reqFailedEx)

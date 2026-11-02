@@ -14,5 +14,15 @@ public class DateResponse
 
     public int? YearOrder { get; init; } = null;
 
+    /// <summary>
+    /// What kind of day this is; 0 for none chosen.
+    /// </summary>
+    public int? DateTypeID { get; init; } = null;
+
     public IEnumerable<CardResponse>? Cards { get; set; } = null;
+
+    /// <summary>
+    /// The tags on the day itself, as distinct from its cards'.
+    /// </summary>
+    public IEnumerable<TagResponse>? Tags { get; set; } = null;
 }

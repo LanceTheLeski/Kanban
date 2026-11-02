@@ -4,6 +4,7 @@ using ArcStrides.API.Messages;
 using ArcStrides.API.Models;
 using ArcStrides.API.Models.TagGroup;
 using ArcStrides.API.Repositories;
+using ArcStrides.API.Validators;
 using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Request.Patch;
 using ArcStrides.Contracts.Request.Query;
@@ -12,8 +13,8 @@ using Azure;
 using Azure.Data.Tables;
 using DeepCopy;
 using FluentValidation;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Exceptions;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 using static ArcStrides.API.Validators.TaskValidators;
@@ -29,11 +30,13 @@ public class TaskController : ArcController
 
     private readonly ITaskRepository _taskRepository;
     private readonly ITimelineRepository _timelineRepository;
+    private readonly ITagRepository _tagRepository;
 
     private readonly TaskMapper _taskMapper;
 
     public TaskController (ITaskRepository taskRepository,
                            ITimelineRepository timelineRepository,
+                           ITagRepository tagRepository,
                            TaskMapper taskMapper)
     {
         _taskQueryParametersValidator = new TaskQueryParametersValidator ();
@@ -41,13 +44,14 @@ public class TaskController : ArcController
 
         _taskRepository = taskRepository;
         _timelineRepository = timelineRepository;
+        _tagRepository = tagRepository;
 
         _taskMapper = taskMapper;
     }
 
     [HttpGet]
-    public async Task<ActionResult> FetchTask ([FromRoute] Guid boardGuid, 
-                                               [FromRoute] Guid cardGuid, 
+    public async Task<ActionResult> FetchTask ([FromRoute] Guid boardID,
+                                               [FromRoute] Guid cardID,
                                                [FromQuery] TaskQueryParameters taskQueryParameters)
     {
         var validationResult = _taskQueryParametersValidator.Validate (taskQueryParameters);
@@ -101,13 +105,16 @@ public class TaskController : ArcController
 
             // We need to add a new timeline and then assign the ID to the task.
 
-            await _taskRepository.AddTaskAsync (newTask);
-
+            // The type is checked before the task is written. It was checked after,
+            // so a task with a type that does not exist was answered 400 and kept,
+            // and the board it was on could no longer be read.
             var taskTypeCollection = await _taskRepository.QueryTaskTypesAsync (taskType => taskType.RowKey == taskCreateRequest.TaskTypeID.ToString ());
             if (taskTypeCollection.Count is 0)
                 return BadRequest (ErrorResponseMessages.FieldDoesNotExistInDatabaseErrorResponse (nameof (Models.Board.Task.TaskTypeID)));
             if (taskTypeCollection.Count is not 1)
                 return Problem (ErrorResponseMessages.TooManyEntitiesErrorResponse (nameof (TaskType)));
+
+            await _taskRepository.AddTaskAsync (newTask);
 
             var taskResponse = _taskMapper.MapTaskToTaskResponse (newTask);
             return Created (default (Uri), taskResponse);
@@ -155,6 +162,9 @@ public class TaskController : ArcController
             var taskToDelete = await FetchAndValidateTask (boardID, taskID);
 
             await DeleteTaskAndUpdateEffectedTasks (boardID, taskToDelete);
+
+            // Its tags come off with it; one left on nothing stays in the list of tags.
+            await _tagRepository.DetachLabelsFromParentAsync (taskID);
             return Ok ();
         }
         catch (Exception ex)
@@ -178,8 +188,7 @@ public class TaskController : ArcController
     }
 
     [HttpGet ("/arcstrides/tasks/types")]
-    public async Task<ActionResult> FetchTaskTypes ([FromRoute] Guid tagGroupID,
-                                                    [AsParameters] TaskTypeQueryParameters? taskTypeQueryParameters)//todo: Implement these parameters at some point
+    public async Task<ActionResult> FetchTaskTypes ([FromQuery] TaskTypeQueryParameters? taskTypeQueryParameters)//todo: Implement these parameters at some point
     {
         try
         {
@@ -234,8 +243,18 @@ public class TaskController : ArcController
             catch (JsonPatchException)
                 { return BadRequest (ErrorResponseMessages.PatchRequestIsInvalidErrorResponse (nameof (Models.Board.Task))); }
 
-            var convertedTaskType = _taskMapper.MapTaskTypePatchRequestToTaskType (convertedTaskTypeToUpdate);
-            _taskMapper.MapFieldsFromSourceToTarget (convertedTaskType, taskTypeFromDatabase);
+            var newColor = convertedTaskTypeToUpdate.Color;
+            if (newColor is not null && ColorValidators.IsColor (newColor) is false)
+                return BadRequest (ValidatorMessages.InvalidFieldValueFormatValidatorMessage (nameof (TaskTypePatchRequest.Color)));
+
+            // Each field set by hand rather than mapped across. The mapper copied a
+            // type built from the patch onto the stored row, keys included, and the
+            // patch has none, so every PATCH failed with "Value cannot be null.
+            // (Parameter 'RowKey')"; and a colour put back to the default is a null
+            // it would have skipped.
+            if (string.IsNullOrWhiteSpace (convertedTaskTypeToUpdate.Title) is false)
+                taskTypeFromDatabase.Title = convertedTaskTypeToUpdate.Title.Trim ();
+            taskTypeFromDatabase.Color = newColor;
 
             await _taskRepository.UpdateTaskTypeAsync (taskTypeFromDatabase);
 
@@ -303,7 +322,7 @@ public class TaskController : ArcController
                                                                             Models.Board.Task taskToUpdate,
                                                                             TaskPatchRequest convertedTaskPatchRequest,
                                                                             IEnumerable<Models.Board.Task> tasksFromBoard,
-                                                                            IEnumerable<Microsoft.AspNetCore.JsonPatch.Operations.Operation<TaskPatchRequest>> taskPatchRequest) 
+                                                                            IEnumerable<Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations.Operation<TaskPatchRequest>> taskPatchRequest) 
     {
         var updateTaskTransaction = new ArcTransaction ();
 
@@ -356,8 +375,13 @@ public class TaskController : ArcController
     {
         var deleteTaskTransaction = new ArcTransaction ();
 
+        // The card's tasks after it, not the board's: a task's order is its place
+        // on its card. Matching on the PartitionKey alone — the board — moved up
+        // every later task on every other card too, and left gaps and repeats in
+        // their orders that the next reorder of those cards then failed on.
         var tasksToUpdateOrder = await _taskRepository.QueryTasksAsync (task => task.TaskOrder > taskToDelete.TaskOrder
-                                                                                && task.PartitionKey == taskToDelete.PartitionKey);
+                                                                                && task.PartitionKey == taskToDelete.PartitionKey
+                                                                                && task.CardID == taskToDelete.CardID);
         deleteTaskTransaction = _taskRepository.DecrementExistingTasksOrder (tasksToUpdateOrder, deleteTaskTransaction);
 
         var transaction = new TableTransactionAction (TableTransactionActionType.Delete, taskToDelete);

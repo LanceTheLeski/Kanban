@@ -1,0 +1,51 @@
+/*
+   index.css — global page shell.
+
+   Replaces: ArcStrides.UI.Legacy/wwwroot/app.css + the .page/main rules from
+   MainLayout.razor.css.
+
+   This file previously still held the stock create-vite template styles, which
+   actively fought the app: a dark :root background, `body { display: flex;
+   place-items: center }` that vertically centred the whole board, and a global
+   `button { background-color: #1a1a1a }` rule that leaked into every MUI button.
+   None of it came from the Blazor project.
+*/
+
+:root {
+    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body,
+#root {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    min-width: 320px;
+}
+
+/*
+   .page background.
+
+   The layout half of .page (position/display/flex-direction) and `main { flex: 1 }`
+   come from MainLayout.razor.css, copied verbatim into ArcStyles.css. Only the
+   background belongs here: AppLayout sets --arc-page-background per route, the way
+   MainLayout's UpdateBackground() switched the image on LocationChanged.
+*/
+.page {
+    min-height: 100%;
+    background-image: var(--arc-page-background);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    transition: background-image 0.5s ease-in-out;
+}

@@ -1,0 +1,122 @@
+/**
+ * DeleteSwimlaneOverlay
+ *
+ * Mirrors: DeleteSwimlaneOverlay.razor + DeleteSwimlaneOverlay.cs
+ *
+ * Structurally identical to DeleteColumnOverlay — see that file for the pattern
+ * notes on selection-by-title and why the board is re-read after a delete.
+ */
+
+import React, { useState } from 'react'
+import { Stack, Typography } from '@mui/material'
+import { ArcOverlay } from '../../../Components/ArcOverlay'
+import { ArcExpandingPicker } from '../../../Components/ArcExpandingPicker'
+import { deleteSwimlane } from '../Board.APIs'
+import { useBoardActions } from '../Hooks/useBoardActions'
+import { useShallow } from 'zustand/react/shallow'
+import { useBoardStore } from '../Board.Store'
+
+interface DeleteSwimlaneOverlayProps
+{
+    open: boolean
+    onClose: () => void
+}
+
+export const DeleteSwimlaneOverlay: React.FC<DeleteSwimlaneOverlayProps> = ({ open, onClose }) =>
+{
+    const { boardId, swimlanes, cards } = useBoardStore(useShallow(state =>
+    ({
+        boardId: state.boardId,
+        swimlanes: state.swimlanes,
+        cards: state.cards,
+    })))
+    const { run } = useBoardActions()
+
+    const [selectedTitle, setSelectedTitle] = useState<string | null>(null)
+
+    const handleSelect = (title: string) =>
+    {
+        // Preserve Blazor's uniqueness guard
+        const matches = swimlanes.filter(swimlane => swimlane.title === title)
+        if (matches.length !== 1)
+        {
+            console.error(`Expected exactly 1 swimlane with title "${title}", found ${matches.length}`)
+            return
+        }
+        setSelectedTitle(title)
+    }
+
+    const selected = swimlanes.find(candidate => candidate.title === selectedTitle) ?? null
+
+    const handleSubmit = async () =>
+    {
+        if (!boardId || !selectedTitle)
+            return
+
+        const swimlane = swimlanes.find(candidate => candidate.title === selectedTitle)
+        if (!swimlane)
+            return
+
+        // Deleting a swimlane shifts the remaining orders and moves the cards that
+        // were in it — the refresh inside run() picks all of that up.
+        const deleted = await run('Deleting swimlane', () => deleteSwimlane(boardId, swimlane.id))
+        if (!deleted)
+            return
+
+        setSelectedTitle(null)
+        onClose()
+    }
+
+    return (
+        <ArcOverlay open={open}
+                    onClose={onClose}
+                    onSubmit={handleSubmit}
+                    // A swimlane chosen is the change: what Delete would do.
+                    dirty={selectedTitle !== null}
+                    // This overlay exists to delete, so the primary action is the
+                    // delete — but it must not read as "Save".
+                    submitLabel="Delete Swimlane"
+                    submitDestructive
+                    title="Delete swimlane"
+                    titleStock="red">
+            <Stack spacing={1.5}>
+                <ArcExpandingPicker options={swimlanes.map(swimlane => swimlane.title)}
+                                    onSelect={handleSelect}
+                                    placeholder="Select swimlane to delete" />
+
+                { selected && (
+                    <Typography sx={{ fontSize: '0.78rem', color: 'arc.onGlass' }}>
+                        { whereTheCardsGo(selected.order, swimlanes.length, cards.filter(card => card.swimlaneId === selected.id).length) }
+                    </Typography>
+                )
+                }
+            </Stack>
+        </ArcOverlay>
+    )
+}
+
+export default DeleteSwimlaneOverlay
+
+// ── Private ───────────────────────────────────────────────────────────────────
+// Not exported, which is this language's `private`. Ordered by first use above.
+
+/**
+ * What happens to a swimlane's cards when it goes, in a sentence.
+ *
+ * The last one can go, unlike the last column: its cards stay in their columns,
+ * in no swimlane, and the next swimlane added takes them all.
+ */
+function whereTheCardsGo(order: number, count: number, held: number): string
+{
+    const cards = held === 1
+        ? 'Its card'
+        : `Its ${held} cards`
+
+    if (held === 0)
+        return 'It holds no cards.'
+    if (count === 1)
+        return `This is the board's last swimlane. ${cards} will stay in their columns, in no swimlane, and go into the next swimlane added.`
+    return order === count - 1
+        ? `${cards} will move to the swimlane above it.`
+        : `${cards} will move to the swimlane below it.`
+}

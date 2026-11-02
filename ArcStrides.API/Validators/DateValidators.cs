@@ -12,4 +12,23 @@ public class DateValidators
 
         }
     }
+
+    public class DateTypeUpdateRequestValidator : AbstractValidator<DateTypeUpdateRequest>
+    {
+        public DateTypeUpdateRequestValidator ()
+        {
+            RuleFor (dateTypeUpdateRequest => dateTypeUpdateRequest.DateTypeID)
+                .NotNull ()
+                .GreaterThanOrEqualTo (0);
+        }
+    }
+
+    public class DateCardCreateRequestValidator : AbstractValidator<DateCardCreateRequest>
+    {
+        public DateCardCreateRequestValidator ()
+        {
+            RuleFor (dateCardCreateRequest => dateCardCreateRequest.CardID)
+                .NotEmpty ();
+        }
+    }
 }

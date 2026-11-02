@@ -1,0 +1,1166 @@
+/* =============================================================================
+   arc.css
+   Merged from two source files in the original Blazor project:
+
+     1. ArcStyles.css          — shared glass utility classes (verbatim)
+     2. MainLayout.razor.css   — layout scaffold (verbatim, scoping removed)
+
+   A third section at the bottom contains classes added only for the React
+   demo page that have no equivalent in the original project. They are clearly
+   marked so they can be removed or replaced when real pages are built.
+   =============================================================================
+
+
+/* ── Section 1: ArcStyles.css (verbatim) ─────────────────────────────────────
+   Source: ArcStrides.UI/ArcStyles.css
+   No changes made. The commented-out first variant of .glass is preserved
+   below as a comment, exactly as it appears in the original file.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/*
+.glass
+{
+    padding: 35px;
+    background-color: rgba(98, 147, 185, .45);
+    border-radius: 2px;
+    border: 1px solid rgba(202, 217, 229, .75);
+    backdrop-filter: blur(18px) saturate(200%) opacity(75%);
+    box-shadow: inset 4px 4px 5px 0 rgba(98, 147, 185, .25),
+                inset -2px -2px 5px 0 rgba(202, 217, 229, 0.125),
+                0 0 10px 5px rgba(0, 0, 0, 0.25);
+}
+*/
+
+.glass {
+    /* display: inline-block  — moved to Section 3; see "glass must not dictate
+       display". Left here so this rule still reads as the original did. */
+    border-radius: 2px;
+    padding: 10px;
+    background: linear-gradient( 140deg, rgba(202, 217, 229, .40), rgba(98, 147, 185, .40) 50%, rgba(98, 147, 185, .50) 100%) padding-box, linear-gradient( 140deg, rgba(255, 255, 255, .20), rgba(58, 76, 111, .20) 50%) border-box;
+    box-shadow: inset .3px .3px .2px 0 rgba(255, 255, 255, .30), inset .4px .4px .4px 0 rgba(0, 0, 0, .15), inset -.3px -.3px .2px 0 rgba(255, 255, 255, .30), inset -.4px -.4px .4px 0 rgba(0, 0, 0, .15), 0px 0px 1.5px 1px rgba(0, 0, 0, .50), 0px 0px 0px .2px rgba(58, 76, 111, .60);
+}
+
+.glass-inner-engraved {
+    /* display: inline-block  — moved to Section 3, as above. */
+    border-radius: 4px;
+    background: rgba(58, 76, 111, .25);
+    box-shadow: rgba(0, 0, 0, .50) 0px 2px 5px 0px inset;
+    backdrop-filter: saturate(250%) blur(1px);
+}
+
+.glass-frosted {
+    padding: 10px;
+    background-color: rgba(98, 147, 185, .45);
+    background: linear-gradient( 140deg, rgba(202, 217, 229, .55), rgba(98, 147, 185, .55) 50%, rgba(98, 147, 185, .35) 100%);
+    border-radius: 3px;
+    box-shadow: inset 2px 2px 2px 0 rgba(255, 255, 255, .25), inset -2px -2px 2px 0 rgba(0, 0, 0, .125), 0 0 1px 1px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(4px) saturate(200%);
+}
+
+.gold-text {
+    font-weight: bold;
+    font-family: Georgia, serif;
+    position: relative;
+    background: linear-gradient( -45deg, #fff8dc, #ffd700 20%, #b8860b 40%, #ffd700 60%, #fff8dc 80%, #ffec8b );
+    background-size: 50% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+}
+
+
+/* ── Section 2: MainLayout.razor.css (verbatim, scoping adapted) ─────────────
+   Source: ArcStrides.UI/Layouts/MainLayout.razor.css
+   Blazor scoped CSS uses ::deep to pierce child component boundaries.
+   In React that concept doesn't exist — ::deep is removed and selectors are
+   left as standard CSS, which is equivalent behaviour in a global stylesheet.
+   All other values are unchanged.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.page {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+
+    /*
+       Not in the Blazor original, and the one deviation in this section.
+
+       .page becomes `flex-direction: row` above 641px (below), which makes <main>
+       a row flex item. A flex item's `min-width: auto` resolves to its *min-content*
+       width on the main axis, so <main> refused to be narrower than the widest thing
+       inside it — measured at 1216px — and the whole page scrolled sideways on any
+       viewport between roughly 640px and 1380px.
+
+       Blazor never hit this because the row was there to sit <main> beside a 250px
+       sidebar, and MudBlazor's board did its own clipping. min-width: 0 opts out of
+       the automatic minimum so <main> takes the width it is given; anything wider
+       than that now overflows into the board's own horizontal scroller, which is
+       where the sideways scrolling belongs.
+    */
+    min-width: 0;
+}
+
+.navbar-brand {
+    font-size: 1.1rem;
+    color: white;
+}
+
+.top-row {
+    border-bottom: 1px solid #d6d5d5;
+    justify-content: flex-end;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+    background: var(--mud-palette-appbar-background);
+}
+
+    /* ::deep removed — standard descendant selector used instead */
+    .top-row a,
+    .top-row .btn-link {
+        white-space: nowrap;
+        margin-left: 1.5rem;
+        text-decoration: none;
+    }
+
+        .top-row a:hover,
+        .top-row .btn-link:hover {
+            text-decoration: underline;
+        }
+
+        .top-row a:first-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+@media (max-width: 640.98px) {
+    .top-row {
+        justify-content: space-between;
+    }
+
+        .top-row a,
+        .top-row .btn-link {
+            margin-left: 0;
+        }
+}
+
+@media (min-width: 641px) {
+    .page {
+        flex-direction: row;
+    }
+
+    .sidebar {
+        width: 250px;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+    }
+
+    .top-row {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+        .top-row.auth a:first-child {
+            flex: 1;
+            text-align: right;
+            width: 0;
+        }
+}
+
+.navbar-toggler {
+    appearance: none;
+    cursor: pointer;
+    width: 3.5rem;
+    height: 2.5rem;
+    color: white;
+    position: absolute;
+    top: 0.5rem;
+    right: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.55%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") no-repeat center/1.75rem rgba(255, 255, 255, 0.1);
+}
+
+    .navbar-toggler:checked {
+        background-color: rgba(255, 255, 255, 0.5);
+    }
+
+.nav-scrollable {
+    display: none;
+}
+
+.navbar-toggler:checked ~ .nav-scrollable {
+    display: block;
+}
+
+@media (min-width: 641px) {
+    .navbar-toggler {
+        display: none;
+    }
+
+    .nav-scrollable {
+        display: block;
+        height: calc(100vh - 3.5rem);
+        overflow-y: auto;
+    }
+}
+
+
+/* ── Section 3: React adaptations (not from the original project) ────────────
+   Everything above is the Blazor CSS as it was. This section is what the port
+   needs on top, kept separate so the two never get confused.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/*
+   Every colour this file uses by name — `--arc-blue-ground`, `--arc-gold`,
+   `--arc-cream`, `--arc-accent-on-glass` — is set on :root by App.tsx, from
+   Styles/Palette.ts. That is the one place a colour is written down; nothing
+   below states one of its own except the shadows and the text, which are
+   neutral.
+*/
+
+html,
+body,
+#root {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+/*
+      .glass paints a border it never had room for.
+
+   Its background is two layers — a gradient clipped to padding-box, and a second
+   clipped to border-box:
+
+       linear-gradient(...) padding-box, linear-gradient(...) border-box
+
+   The border-box layer only ever shows in the border area, and .glass declares
+   no border at all, so that layer has zero pixels to paint into and the edge
+   highlight it was written to draw has never once been visible. The commented-out
+   first draft at the top of this file had `border: 1px solid rgba(202,217,229,.75)`;
+   the version that shipped kept the two-layer background and dropped the border,
+   which is what makes a glass panel look like it is missing its sides.
+
+   A transparent border gives the second layer somewhere to go, so the gradient
+   itself becomes the edge. box-sizing is border-box globally, so this costs no
+   layout.
+*/
+.glass,
+.glass-frosted {
+    border: 1px solid transparent;
+}
+
+/*
+      The blur that makes .glass actually read as glass.
+
+   The ported .glass is a pair of translucent gradients and an inset highlight
+   stack, with no backdrop-filter — the commented-out first draft at the top of
+   this file had one, and the version that shipped dropped it. On the board that
+   was survivable, because the panel's interior is covered by opaque children.
+   On an overlay it is not: ArcOverlay floats above a full board, and at 40-50%
+   alpha with nothing diffusing what is behind it, card titles and cell colours
+   read straight through the dialog and the text on top became unreadable.
+
+   Blur is what separates frosted glass from a see-through pane. It is applied
+   here rather than edited into the rule above so Section 1 stays a faithful
+   record of the Blazor original.
+
+   saturate() keeps the colours behind from going flat and grey once blurred —
+   it is the same pairing the original draft used, at 180% rather than 200%
+   because the gradients already carry their own colour.
+
+   ── Why the blur went from 5px to 14px ──────────────────────────────────────
+   5px was chosen when every panel inside the overlay was a translucent recess:
+   the sharpen filter on .glass-inner-engraved needed a lightly-blurred backdrop
+   to pull detail back out of, and a heavy blur would have left it nothing to
+   recover.
+
+   The panels are card stock now, and opaque, so transparency only shows in the
+   few pixels *between* them. At 5px that slot was a window onto whatever board
+   cell happened to be under it — a hard-edged olive band a few pixels tall,
+   ending in a straight line where the task tray's own backdrop-filter took
+   over. It looked like a rendering fault, and it was reported as a bad shadow.
+
+   It is not the shadow. Rendered six ways to be sure: the band survives with
+   every shadow removed, and survives with the tray's filter removed, and
+   disappears the moment the pane stops showing distinct board shapes. Blur is
+   what removes the shapes — at 14px the board reads as a diffuse tint, so the
+   slot between two pieces of card reads as the pane's own material, which is
+   what it is.
+*/
+.glass {
+    -webkit-backdrop-filter: blur(14px) saturate(180%);
+    backdrop-filter: blur(14px) saturate(180%);
+}
+
+/*
+   The glass classes must not dictate `display`.
+
+   ── The bug this fixes, twice ───────────────────────────────────────────────
+   Section 1's .glass and .glass-inner-engraved both set `display: inline-block`.
+   That was harmless while MUI's styles won the cascade. Once StyledEngineProvider
+   injectFirst put this file last — the change that made glass render at all —
+   inline-block started overriding every MUI component that lays out its own
+   children, at equal specificity, on source order alone.
+
+   It surfaced first on MuiButtonGroup, which is nothing but a flex row: in the
+   task popover, where the group is fullWidth, two 100%-wide buttons had no row
+   to share and Submit and Discard stacked vertically. That was patched by
+   restoring inline-flex for `.MuiButtonGroup-root.glass*` — a fix for the
+   symptom, on one component.
+
+   It was still happening everywhere else, silently. Measured on the card
+   overlay: the timeline panel's Paper carried `sx={{ display: 'flex',
+   flexDirection: 'column' }}` and computed to `display: block`. So every
+   `flex: 1` inside it did nothing, the panel sized itself to its content instead
+   of to its grid cell, and a spacer added to push the pickers to the foot of the
+   panel had no free space to absorb. The same was true of the card log and the
+   tags panel; both happened to *look* right, because a block container stacks
+   its children much as a column flex container does — right up until something
+   needs to flex.
+
+   ── The fix ─────────────────────────────────────────────────────────────────
+   A later rule cannot hand control back to `sx`: it can only set a different
+   value, and `revert` would give `block`, not the flex the component asked for.
+   The declaration has to stop matching those elements at all, so it moves here
+   and is scoped away from anything MUI renders.
+
+   A bare <div class="glass"> still shrink-wraps the way it did in Blazor, which
+   is what the original declaration was for. Anything with a Mui* class decides
+   its own display, which is what it was always supposed to do.
+*/
+.glass:not([class*="Mui"]),
+.glass-inner-engraved:not([class*="Mui"]) {
+    display: inline-block;
+}
+
+/*
+   Thinning both glass layers so there is something to see through to.
+
+   ── Why the film alone could not fix this ───────────────────────────────────
+   An engraved panel is never the only thing between the reader and the board:
+   it sits on a .glass pane, which sits on the page. Two stacked translucent
+   layers, and the pane's own tint was rgba(98,147,185,.40..50) — blue, at up to
+   half opacity, over everything.
+
+   So thinning only the inner film made the panel lighter and *more* blue,
+   because what it revealed more of was the pane. Measured by rendering the two
+   independently: at the pane's original alpha the panel reads blue whatever the
+   film does; drop the pane and the board's olive cells come through the panel
+   immediately.
+
+   The pane therefore comes down to .22, and the film down to a whisper — a 10%
+   white top edge fading to 3%. What is behind is what you see; the film is the
+   sheen on top of it, not a coat of paint.
+
+   ── And why .22 became .35 ─────────────────────────────────────────────────
+   Same reason as the blur above. .22 was the alpha at which the board's own
+   colours came through an overlay whose panels were themselves see-through.
+   With card on top, what .22 bought was a thin bright slot between the pieces
+   rather than a ground for them to lie on. .35 with the heavier blur is the
+   lightest pair that reads as one continuous material — measured against .48
+   and .60, both of which also work and both of which give up more than they
+   need to.
+
+   ── The rim is what is left of the material ────────────────────────────────
+   With the fill this thin, the box-shadow does nearly all the work: a bright
+   specular line along the top edge where a curved film catches the light, a
+   faint one along the bottom, and a hairline all round. The original's dark
+   inset is gone — at .28 black it was the single biggest contributor to the
+   "dark blue" the panel was being read as.
+
+   Saturation stays high. That is what makes the colours coming through vivid
+   rather than merely visible, and it is the half of the original rule that was
+   always right.
+
+   Section 1 above stays the verbatim Blazor rules; these are adaptations.
+*/
+.glass {
+    background:
+        linear-gradient(
+            140deg,
+            rgba(202, 217, 229, .35),
+            rgba(98, 147, 185, .35) 50%,
+            rgba(98, 147, 185, .40) 100%
+        ) padding-box,
+        linear-gradient(140deg, rgba(255, 255, 255, .20), rgba(58, 76, 111, .20) 50%) border-box;
+}
+
+.glass-inner-engraved {
+    background: linear-gradient(
+        160deg,
+        rgba(255, 255, 255, .10),
+        rgba(226, 232, 240, .05) 55%,
+        rgba(255, 255, 255, .03)
+    );
+    /*
+       No blur of its own, and a sharpen on top.
+
+       The panel used to add blur(2px) to the pane's, so it was always the
+       blurriest thing on screen — the opposite of the thin bright film it is
+       meant to be. Dropping that is half the fix; the other half is the
+       convolution, which pulls apparent detail back out of what the pane
+       softened. It cannot recover what a heavy blur destroyed, which is why the
+       pane came down to 5px first, but against a light blur it is enough to read
+       as crisper than its surroundings.
+
+       Declared twice on purpose: `url()` in a backdrop-filter is invalid if the
+       referenced filter is missing, and an invalid filter chain drops the
+       saturation with it. The first declaration is the floor every browser gets;
+       the second upgrades it where the filter resolves.
+
+       260% became 140% when the pane went to .35. The multiplier was chosen
+       against a pane thin enough that most of what it saturated was the board
+       behind; against a pane carrying its own blue it saturated the blue, and a
+       tray holding four green cards turned into a vivid blue block louder than
+       anything in it. Rendered at 100, 110, 140, 180 and 260: 140 is where the
+       recess reads as slate and the cards in it still carry their colour.
+    */
+    -webkit-backdrop-filter: saturate(140%);
+    backdrop-filter: saturate(140%);
+    -webkit-backdrop-filter: saturate(140%) url("#arc-sharpen");
+    backdrop-filter: saturate(140%) url("#arc-sharpen");
+    /*
+       ── Why this read as an overlay rather than a recess ────────────────────
+       The rim above was a bright 1px line along the TOP edge with a faint one
+       below. That is the lighting signature of a RAISED surface: a face tilted
+       up toward the light catches it on its top edge. Every material cue was
+       saying "this sits on top of the pane", which is exactly how it looked, and
+       no amount of transparency was going to argue with it.
+
+       An engraved recess is the same lighting inverted. The lip of the hole is
+       above the floor of it, so it casts DOWN into the recess — a dark line and
+       a short shadow along the top edge. The far wall, at the bottom, faces the
+       light and catches it — a bright line there. And the pane's own surface
+       just below the recess picks up a highlight, which is the last shadow here
+       and the only one that is not inset.
+
+       That is the whole trick: three shadows, no geometry, no extra elements.
+    */
+    box-shadow:
+        inset 0 1px 0 0 rgba(10, 18, 32, .45),
+        inset 0 3px 5px -2px rgba(10, 18, 32, .45),
+        inset 0 -1px 0 0 rgba(255, 255, 255, .38),
+        0 1px 0 0 rgba(255, 255, 255, .22);
+}
+
+/*
+   Text on an engraved panel needs its own contrast now.
+
+   The panel is thin enough to show what is behind it, and what is behind it
+   varies: over the board's dark blue cells white text is fine, over its light
+   olive ones it is not. The panel cannot be darkened without undoing the
+   transparency that was the point, so the text carries its own backing instead —
+   a shadow tight enough to read as weight rather than as a glow.
+
+   Buttons opt out: a selected mode button is black on aquamarine, and a dark
+   shadow under dark text only muddies it.
+*/
+.glass-inner-engraved {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .38);
+}
+
+.glass-inner-engraved .MuiButton-root,
+.glass-inner-engraved .MuiButtonBase-root {
+    text-shadow: none;
+}
+
+/*
+   Where backdrop-filter is unsupported, translucency alone would leave overlay
+   text sitting on whatever happens to be behind it. Trade the effect for
+   legibility: a near-opaque panel is a worse-looking dialog but still a
+   readable one.
+*/
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass {
+        background-color: rgba(98, 147, 185, .92);
+    }
+}
+
+/* ── Card stock ───────────────────────────────────────────────────────────────
+   The panels inside an overlay, as pieces of card laid on the glass.
+
+   ── What this replaces ──────────────────────────────────────────────────────
+   Every interior panel was `.glass-inner-engraved`: a recess cut into the pane.
+   That reads correctly for *one* panel, and stops reading at four. Six recesses
+   in one dialog is not a stack of things, it is a perforated sheet — nothing is
+   in front of anything, and the eye gets no order to read them in.
+
+   Card stock inverts it. A piece of card sits ON the glass and casts a shadow
+   onto it, so the panels have a near edge and a far one. The task list keeps its
+   recess deliberately: it is the one panel that is a *container* for other
+   pieces rather than a piece itself, and a tray reads as a tray because the
+   things in it are above its floor.
+
+   ── The three parts ─────────────────────────────────────────────────────────
+   1. A warm off-white, which is the colour unbleached board actually is. Pure
+      white would read as printer paper.
+   2. Grain. Two layers of fractal noise, desaturated: a coarse one at
+      baseFrequency .045 for the mottle of pressed fibre, a fine one at .8 for
+      the tooth. Flat colour at this size looks like plastic — the grain is what
+      makes it a material rather than a rectangle. It is one repeating 220px
+      tile, so it costs one decode however many panels use it.
+   3. Lighting. A bright line along the top edge where the cut face catches the
+      light, a dark one along the bottom where the far face falls away, a
+      hairline all round so the edge reads against a light backdrop, and the
+      drop shadow that puts it above the glass.
+
+   ── Two depths ──────────────────────────────────────────────────────────────
+   `.card-stock` is a panel resting on the pane. `.card-stock-flat` is a strip
+   resting on a panel — a task row, a tag pill — and casts a shorter shadow,
+   because a thing one ply up cannot throw the shadow of a thing four plies up.
+   Getting that wrong is what makes layered paper look like clip art.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+:root {
+    /*
+       Declared once because it is a data URI of a two-filter SVG, and a second
+       copy would be ~600 bytes of unreadable percent-encoding that has to be
+       kept in step by hand.
+    */
+    --arc-paper-grain: url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22220%22%20height=%22220%22%3E%3Cfilter%20id=%22a%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.8%22%20numOctaves=%225%22%20stitchTiles=%22stitch%22/%3E%3CfeColorMatrix%20type=%22saturate%22%20values=%220%22/%3E%3C/filter%3E%3Cfilter%20id=%22b%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.045%22%20numOctaves=%223%22%20stitchTiles=%22stitch%22/%3E%3CfeColorMatrix%20type=%22saturate%22%20values=%220%22/%3E%3C/filter%3E%3Crect%20width=%22220%22%20height=%22220%22%20filter=%22url(%23b)%22%20opacity=%220.09%22/%3E%3Crect%20width=%22220%22%20height=%22220%22%20filter=%22url(%23a)%22%20opacity=%220.13%22/%3E%3C/svg%3E");
+    --arc-paper: var(--arc-cream);
+}
+
+/* ── Coloured stock ───────────────────────────────────────────────────────────
+   The same board, dyed. Each of these sets nothing but --arc-paper, one step of
+   one ladder from Palette.ts, so a coloured piece keeps the grain, the lighting
+   and both depths without restating any of it — and a panel and the chips on
+   it can be different colours while still reading as the same material.
+
+   The grounds are pale on purpose. A saturated chip on a saturated panel is two
+   competing signals; a pale panel with a stronger chip on it is a panel with
+   something *on* it, which is the whole point of layering them.
+
+     ground   .paper-blue  .paper-green  .paper-red  .paper-yellow
+     mid      .paper-ink   .paper-sage   .paper-rose .paper-gold
+     deep     .paper-navy  .paper-forest .paper-oxblood
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.paper-blue { --arc-paper: var(--arc-blue-ground); }
+.paper-green { --arc-paper: var(--arc-green-ground); }
+.paper-red { --arc-paper: var(--arc-red-ground); }
+.paper-yellow { --arc-paper: var(--arc-yellow-ground); }
+
+/*
+   The mids. .paper-blue and the rest are *grounds*, and read as almost nothing
+   at four pixels wide on another pale ground: the timeline's rail, a node that
+   has a date, a column's deepest header. A mid holds its own at that size.
+
+   Gold is the yellow mid — the weight of the blue ink, not a colour of its own
+   standing beside the palette.
+*/
+.paper-ink { --arc-paper: var(--arc-blue-mid); }
+.paper-sage { --arc-paper: var(--arc-green-mid); }
+.paper-rose { --arc-paper: var(--arc-red-mid); }
+.paper-gold { --arc-paper: var(--arc-yellow-mid); }
+
+/*
+   The deeps: the only dark stocks, cut for the few things that should anchor a
+   page — the app's bar, today's date, a view's name — and the ground gold reads
+   best on. Oxblood is the red deep, which is what ties it to the red paper.
+   Text on them is cream.
+*/
+.paper-navy { --arc-paper: var(--arc-blue-deep); }
+.paper-forest { --arc-paper: var(--arc-green-deep); }
+.paper-oxblood { --arc-paper: var(--arc-red-deep); }
+
+/* Greyboard — the unprinted stock. An empty timeline node is cut from it. */
+.paper-grey { --arc-paper: var(--arc-grey); }
+
+/* Sand — the swimlanes' card, as a stock: the sheet a day's tiles are laid on. */
+.paper-sand { --arc-paper: var(--arc-sand); }
+
+/*
+   A piece glued flat to another piece.
+
+   .card-stock-flat still stands one ply proud and casts a shadow for it, which
+   is right for a task row on a tray and wrong for a disc punched out and stuck
+   onto a strip: the shadow fell across the strip just under each disc, and the
+   discs read as hovering below the line they are meant to be sitting on. Same
+   face, same cut edge, no lift.
+*/
+.card-stock-glued {
+    box-shadow: inset 0 -1px 0 0 color-mix(in srgb, var(--arc-paper) 68%, #5a4630);
+}
+
+/*
+   The face. Every depth below shares it, so a piece is described by what it is
+   made of in one place and by how far it stands off its ground in another.
+   Leaving .card-stock-glued out of this list was worth an hour: the rail and
+   its nodes had a cut edge and a shadow and no colour at all, and read as thin
+   grey outlines of themselves.
+*/
+.card-stock,
+.card-stock-flat,
+.card-stock-glued,
+.MuiPickersPopper-paper,
+.MuiPickersPopper-root .MuiPaper-root,
+.MuiPickersDay-root {
+    /*
+       The top-lit face, worked out from the stock rather than written out per
+       stock: a shade lighter at the top, a shade darker at the foot, by the
+       same lightness whatever the colour — which is what lets a pale ground and
+       a deep take the same light. Off-square by two degrees, so the light does
+       not fall down the panel in a perfectly straight line; with the tilt
+       below, it is what makes a stack read as hand-laid rather than rendered.
+
+       Declared here, on the piece, and not on :root: a custom property holding
+       var(--arc-paper) is worked out where it is declared, so on :root every
+       piece would inherit the face of plain cream.
+    */
+    --arc-paper-face: linear-gradient(178deg,
+                                      oklch(from var(--arc-paper) calc(l + 0.03) c h),
+                                      oklch(from var(--arc-paper) calc(l - 0.035) c h));
+}
+
+/* Without relative colours, the flat stock and its grain, rather than no face at all. */
+@supports not (color: oklch(from red l c h)) {
+    .card-stock,
+    .card-stock-flat,
+    .card-stock-glued,
+    .MuiPickersPopper-paper,
+    .MuiPickersPopper-root .MuiPaper-root,
+    .MuiPickersDay-root {
+        --arc-paper-face: linear-gradient(transparent, transparent);
+    }
+}
+
+.card-stock,
+.card-stock-flat,
+.card-stock-glued {
+    /*
+       2px, not the 4px the recess used. A cut edge is square; the radius is
+       there to take the aliasing off the corner, not to round it.
+    */
+    border-radius: 2px;
+    /*
+       Three layers, front to back: the grain, then the top-lit face, then the
+       flat colour underneath as the fallback if either fails to load.
+    */
+    background-color: var(--arc-paper);
+    background-image: var(--arc-paper-grain), var(--arc-paper-face);
+    color: #22262c;
+    /*
+       Text on card is dark on light and needs no backing. Stated rather than
+       left alone because a task row sits inside .glass-inner-engraved, which
+       shadows its text for the opposite ground and would otherwise smear this.
+    */
+    text-shadow: none;
+}
+
+/* Cream on the deeps, which are the one ground dark text does not read on. */
+.card-stock.paper-navy,
+.card-stock-flat.paper-navy,
+.card-stock.paper-forest,
+.card-stock-flat.paper-forest,
+.card-stock.paper-oxblood,
+.card-stock-flat.paper-oxblood {
+    color: var(--arc-cream);
+}
+
+/*
+   ── How a piece of card is lit ──────────────────────────────────────────────
+   Two things, and only two.
+
+   1. A soft shadow straight down — the recipe the app bar already uses, which
+      is the one surface in the app that was reported as looking most like card.
+      Nothing to the side: every other shadow on the page falls straight down,
+      and a directional one here was rendered and read as a different light.
+
+   2. The board's thickness. Card is a sheet with a side to it, and from slightly
+      above you see that side as a band along the bottom edge in the board's own
+      hue, darker. That band — not an outline — is what makes a stack of flat
+      things read as sheets of something.
+
+   What was here before and is not any more, both reported as making the pieces
+   look fake:
+
+     · a 1px ring all round in a dark edge colour. A drawn outline is what a
+       diagram does to a shape; real card has no line around it, only where one
+       sheet ends and whatever is under it begins.
+     · a white line along the top. Even softened it read as a specular
+       highlight, which is what glass and plastic do and card does not.
+
+   The side band is mixed from the piece's own stock, so a blue tag and a cream
+   panel each get a side of their own colour rather than one brown for all.
+*/
+.card-stock {
+    box-shadow:
+        inset 0 -2px 0 0 color-mix(in srgb, var(--arc-paper) 72%, #5a4630),
+        0 2px 4px -1px rgba(30, 24, 16, .22),
+        0 4px 5px 0 rgba(30, 24, 16, .12),
+        0 1px 10px 0 rgba(30, 24, 16, .1);
+}
+
+.card-stock-flat {
+    box-shadow:
+        inset 0 -1.5px 0 0 color-mix(in srgb, var(--arc-paper) 72%, #5a4630),
+        0 1px 2px 0 rgba(30, 24, 16, .2),
+        0 2px 4px -1px rgba(30, 24, 16, .12);
+}
+
+/*
+   A round piece.
+
+   .card-stock-flat squares its corners off, which is right for a strip and
+   wrong for the rail's nodes — a punched disc has no corners. Declared after
+   it, at equal specificity, so source order decides and neither needs an
+   !important.
+*/
+.card-disc {
+    border-radius: 50%;
+}
+
+/*
+   A piece cut out and laid flat on another piece of paper — the way the day
+   types' pictures are built, layer on layer.
+
+   .card-stock-flat is a strip lifted one ply off a panel, and its shadow is soft
+   and spread for it. A cut piece lies on the sheet under it: its shadow is the
+   one the pictures cast, short, crisp and straight down, a hairline darker
+   where the sheet's edge stands off the one beneath. Worn with .card-stock-flat,
+   for the face and the grain, and declared after it so its shadow is the one
+   that holds.
+*/
+.card-cut {
+    box-shadow:
+        inset 0 -1px 0 0 color-mix(in srgb, var(--arc-paper) 70%, #5a4630),
+        0 1px 0.6px rgba(38, 28, 10, .4),
+        0 2px 3px -1px rgba(38, 28, 10, .26);
+}
+
+/*
+   The tilt.
+
+   Pieces of card set down by hand do not land square, and a stack where every
+   piece is perfectly aligned reads as a diagram of a stack. A fraction of a
+   degree is enough — it is not visible as rotation, only as the absence of
+   machine alignment.
+
+   Only the small repeated pieces get it. A panel holding a text input must not
+   be rotated: the caret, the selection rectangle and the browser's own hit
+   testing are all axis-aligned, and a rotated input makes text render off the
+   pixel grid for a cue nobody asked for.
+
+   nth-of-type rather than a random value, so a row keeps its angle across a
+   re-render instead of twitching on every keystroke.
+*/
+.card-tilt:nth-of-type(4n + 1) { transform: rotate(-0.28deg); }
+.card-tilt:nth-of-type(4n + 2) { transform: rotate(0.19deg); }
+.card-tilt:nth-of-type(4n + 3) { transform: rotate(-0.13deg); }
+.card-tilt:nth-of-type(4n + 4) { transform: rotate(0.31deg); }
+
+@media (prefers-reduced-motion: reduce) {
+    .card-tilt { transform: none; }
+}
+
+/* ── Pickers ──────────────────────────────────────────────────────────────────
+   The date and time popups, as card.
+
+   They portal to <body>, outside the overlay entirely, so they cannot inherit
+   anything and they cannot be given a className from the call site without
+   threading slotProps through every picker in the app. Styling them here by
+   their own classes reaches all of them at once, which is the point: there is
+   one date picker design, not one per caller.
+
+   What they looked like before: MUI's default popup on this theme's
+   `background.paper`, which is #69B4EC — a mid blue, against near-black day
+   numbers. Legible, and belonging to nothing else on screen.
+
+   The day chips are the part worth having. A calendar is a grid of targets, and
+   a target you can see the edge of is easier to hit than a number with a hover
+   state. Each day is a small disc of board; the chosen one is cut from the blue
+   stock the rail's set nodes use, so "chosen" means the same thing in both
+   places.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.MuiPickersPopper-paper,
+.MuiPickersPopper-root .MuiPaper-root {
+    background-color: var(--arc-paper);
+    background-image: var(--arc-paper-grain), var(--arc-paper-face);
+    color: #22262c;
+    border-radius: 3px;
+    box-shadow:
+        inset 0 -2px 0 0 color-mix(in srgb, var(--arc-paper) 72%, #5a4630),
+        0 5px 5px -3px rgba(30, 24, 16, .2),
+        0 8px 10px 1px rgba(30, 24, 16, .14),
+        0 3px 14px 2px rgba(30, 24, 16, .12);
+}
+
+/* The month name, the arrows, and the weekday initials. */
+.MuiPickersCalendarHeader-label,
+.MuiPickersCalendarHeader-switchViewButton,
+.MuiPickersArrowSwitcher-button {
+    color: #2c3641;
+}
+
+.MuiDayCalendar-weekDayLabel {
+    color: #5a6572;
+    font-weight: 600;
+}
+
+/*
+   One disc of board per day. Flat, because they sit on the popup's own sheet —
+   the same one-ply-up rule the task rows follow.
+*/
+.MuiPickersDay-root:not(.MuiPickersDay-hiddenDaySpacingFiller) {
+    background-color: var(--arc-paper);
+    background-image: var(--arc-paper-grain), var(--arc-paper-face);
+    color: #22262c;
+    font-weight: 600;
+    box-shadow:
+        inset 0 -1.5px 0 0 color-mix(in srgb, var(--arc-paper) 72%, #5a4630),
+        0 1px 2px 0 rgba(30, 24, 16, .2);
+}
+
+.MuiPickersDay-root:not(.MuiPickersDay-hiddenDaySpacingFiller):hover {
+    /* Lifted rather than tinted: it is a piece of board, so reaching for it
+       picks it up. */
+    box-shadow:
+        inset 0 -1.5px 0 0 color-mix(in srgb, var(--arc-paper) 72%, #5a4630),
+        0 2px 4px -1px rgba(30, 24, 16, .24),
+        0 4px 6px 0 rgba(30, 24, 16, .14);
+}
+
+/* Today is outlined; chosen is cut from the blue stock. */
+.MuiPickersDay-root.MuiPickersDay-today:not(.Mui-selected) {
+    outline: 2px solid color-mix(in srgb, var(--arc-navy) 55%, transparent);
+    outline-offset: -2px;
+}
+
+.MuiPickersDay-root.Mui-selected,
+.MuiPickersDay-root.Mui-selected:hover,
+.MuiPickersDay-root.Mui-selected:focus {
+    --arc-paper: color-mix(in oklab, var(--arc-blue-ground), var(--arc-blue-mid));
+    color: var(--arc-blue-deep);
+}
+
+/* A day outside the shown month, and a disabled one, are unprinted board. */
+.MuiPickersDay-root.Mui-disabled:not(.MuiPickersDay-hiddenDaySpacingFiller) {
+    color: #9aa2ab;
+    box-shadow: 0 0 0 1px rgba(40, 26, 14, .16);
+}
+
+/* The time list, which is the same idea in a column. */
+.MuiMultiSectionDigitalClockSection-item,
+.MuiDigitalClock-item {
+    color: #2c3641;
+    font-weight: 600;
+    border-radius: 3px;
+}
+
+.MuiMultiSectionDigitalClockSection-item.Mui-selected,
+.MuiDigitalClock-item.Mui-selected {
+    background-color: color-mix(in oklab, var(--arc-blue-ground), var(--arc-blue-mid));
+    color: var(--arc-blue-deep);
+}
+
+/* ── Board furniture ──────────────────────────────────────────────────────────
+   Column headers and swimlane labels.
+
+   These were a near-white aero strip, taken from the reference UI, which put a
+   blurred translucent film over the board. Against the linen wall that arrived
+   with it, the two read as grey glass on beige — no material, no colour, and
+   nothing tying them to the notes below.
+
+   Swimlane labels are card, and carry the colour of the lane they name — see
+   Board.Colours. Column headers are not card any more: see .column-glass
+   below, and the principle it follows.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.board-label {
+    border-radius: 2px;
+    background-color: var(--arc-label);
+    background-image: var(--arc-paper-grain), linear-gradient(174deg, var(--arc-label-top), var(--arc-label-bottom));
+    color: #22262c;
+    text-shadow: none;
+    box-shadow:
+        inset 0 -2px 0 0 color-mix(in srgb, var(--arc-label) 72%, #5a4630),
+        0 2px 4px -1px rgba(30, 24, 16, .22),
+        0 4px 5px 0 rgba(30, 24, 16, .12),
+        0 1px 10px 0 rgba(30, 24, 16, .1);
+}
+
+/* ── The board ────────────────────────────────────────────────────────────────
+   Glass, card, glass, paper — in that order, back to front.
+
+     1. The board is a window: the glass pane everything else sits in.
+     2. Each swimlane is a strip of light sand card laid across it, with a gap
+        above and below so the window shows between one lane and the next.
+     3. Each column is a strip of frosted glass laid over all of that, top to
+        bottom — over the sand where it crosses a lane, over the window where it
+        crosses a gap. A cell is simply where a column's glass lies on a lane's
+        card.
+     4. Notes sit on top of everything.
+
+   So the two axes of the board are two materials, and you can tell a column
+   from a lane by what it is made of rather than by which way it runs.
+
+   ── What it replaced ────────────────────────────────────────────────────────
+   A linen wall with the cells marked on it as hairline seams. The texture was
+   right and the colour read as brown, and with every lane butted against the
+   next the board was one undifferentiated sheet — nothing said where a lane
+   ended except a darker line.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* 2. A lane: card, lit like every other piece of card in the app. */
+.board-surface {
+    --arc-sand-face: linear-gradient(176deg,
+                                     oklch(from var(--arc-sand) calc(l + 0.025) c h),
+                                     oklch(from var(--arc-sand) calc(l - 0.03) c h));
+    border-radius: 3px;
+    background-color: var(--arc-sand);
+    background-image: var(--arc-paper-grain), var(--arc-sand-face);
+    box-shadow:
+        inset 0 -2px 0 0 color-mix(in srgb, var(--arc-sand) 72%, #5a4630),
+        0 2px 4px -1px rgba(30, 24, 16, .22),
+        0 4px 5px 0 rgba(30, 24, 16, .12),
+        0 1px 10px 0 rgba(30, 24, 16, .1);
+}
+
+/*
+   3. A column: frosted glass.
+
+   Glass is the one material in this app that *should* catch a highlight, so it
+   keeps the bright inner rim the card lost.
+
+   The film is cool on purpose. A white film over warm sand only made the column
+   a lighter patch of the same stuff — rendered, the columns were carried almost
+   entirely by their rims. Cool glass over warm card is two materials, and the
+   blur finishes the job: under the glass the sand's grain is smoothed away, so a
+   column differs from a lane in texture as well as tone. Not so much blur that
+   the lane disappears under it; the lane has to stay legible through the column
+   crossing it, or the grid stops reading as a grid.
+*/
+.column-glass {
+    border-radius: 5px;
+    background: linear-gradient(180deg, rgba(244, 249, 255, .5), rgba(214, 230, 246, .36));
+    -webkit-backdrop-filter: blur(6px) saturate(1.05);
+    backdrop-filter: blur(6px) saturate(1.05);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, .4),
+        inset 1px 0 0 0 rgba(255, 255, 255, .35),
+        0 1px 8px rgba(20, 30, 45, .12);
+}
+
+/*
+   The top of a column, where its name is: the same glass, tinted with the
+   column's colour — its own if it has one, its place on the blue ramp if not.
+   --arc-glass-tint is set per column from Board.Colours.
+*/
+.column-cap {
+    border-radius: 5px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, .28), rgba(255, 255, 255, 0) 70%),
+        var(--arc-glass-tint);
+    -webkit-backdrop-filter: blur(6px) saturate(1.2);
+    backdrop-filter: blur(6px) saturate(1.2);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, .45),
+        0 2px 6px -1px rgba(20, 30, 45, .2);
+}
+
+/*
+   A cell is nothing of its own — the column's glass over the lane's card is
+   already the rectangle, and the sand showing between two columns is its edge.
+   It only exists visibly while something is held over it, and then it has to be
+   unmissable.
+*/
+.board-cell {
+    transition: box-shadow .15s, background-color .15s;
+}
+
+.board-cell.is-over {
+    background-color: rgba(255, 255, 255, .34);
+    box-shadow:
+        inset 0 0 0 2px var(--arc-cell-ring),
+        inset 0 0 14px rgba(255, 255, 255, .5);
+}
+
+/* ── Notes ────────────────────────────────────────────────────────────────────
+   Every card is the same pale yellow — the colour the board had before, moved
+   onto the yellow ladder's hue so it is the palest step of the same paper as
+   the yellow stock and the gold, rather than a lemon beside them. Colouring notes by swimlane was tried and taken out: a colour
+   that changes when you drag a note is a colour that means something, and the
+   lane was already said by where the note is.
+
+   What stayed from that pass is the shape: near-square corners, a face lit from
+   above, and a shadow tight at the top and longer at the bottom, because that is
+   the edge a note lifts from.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.note {
+    border-radius: 1px;
+    background-color: var(--arc-note);
+    background-image:
+        url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22240%22%20height=%22240%22%3E%3Cfilter%20id=%22a%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.9%22%20numOctaves=%225%22%20stitchTiles=%22stitch%22/%3E%3CfeColorMatrix%20type=%22saturate%22%20values=%220%22/%3E%3C/filter%3E%3Cfilter%20id=%22b%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.05%22%20numOctaves=%223%22%20stitchTiles=%22stitch%22/%3E%3CfeColorMatrix%20type=%22saturate%22%20values=%220%22/%3E%3C/filter%3E%3Crect%20width=%22240%22%20height=%22240%22%20filter=%22url(%23b)%22%20opacity=%220.05%22/%3E%3Crect%20width=%22240%22%20height=%22240%22%20filter=%22url(%23a)%22%20opacity=%220.1%22/%3E%3C/svg%3E"),
+        linear-gradient(168deg,
+                        oklch(from var(--arc-note) calc(l + 0.02) calc(c * 0.4) h) 0%,
+                        var(--arc-note) 42%,
+                        oklch(from var(--arc-note) calc(l - 0.035) calc(c * 1.4) h) 100%);
+    color: #2b2a20;
+    box-shadow:
+        0 1px 1px rgba(28, 20, 6, .26),
+        0 4px 7px -3px rgba(28, 20, 6, .28),
+        0 12px 18px -10px rgba(20, 14, 4, .34);
+}
+
+.note .MuiButtonGroup-root {
+    border-top-color: color-mix(in srgb, var(--arc-yellow-deep) 22%, transparent);
+}
+
+/* And the rule between the two buttons, which MUI draws in primary blue — the
+   one cold line on a warm note. */
+.note .MuiButtonGroup-grouped:not(:last-of-type) {
+    border-right-color: rgba(96, 84, 20, .2);
+}
+
+/* ── The calendar ─────────────────────────────────────────────────────────────
+   Glass, then paper — the Blazor calendar's own arrangement. Each day was a
+   `.glass` tile of its own, sitting straight on the page, with its pieces laid
+   on it; there were no week strips and no weekday columns behind the days.
+   The React calendar tried the board's grammar instead — sand strips for weeks,
+   frosted glass down each weekday — and a day read as the crossing of two
+   things rather than as a thing of its own.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/*
+   One day: a pane of frosted glass with a bright rim, which is the outline —
+   glass is the one material that should catch a highlight. The film is the
+   Blazor tile's blue gradient, lightened, so the paper laid on it keeps its
+   colour rather than going grey under a dark film.
+*/
+.day-glass {
+    border-radius: 4px;
+    background: linear-gradient(140deg, rgba(226, 236, 245, .52), rgba(148, 186, 214, .38) 55%, rgba(118, 162, 196, .42) 100%);
+    -webkit-backdrop-filter: blur(8px) saturate(1.3);
+    backdrop-filter: blur(8px) saturate(1.3);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, .55),
+        inset 1px 1px 0 0 rgba(255, 255, 255, .35),
+        inset -1px -1px 0 0 rgba(40, 62, 92, .18),
+        0 1px 3px rgba(20, 30, 45, .28),
+        0 4px 12px -4px rgba(20, 30, 45, .25);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .day-glass { background: rgba(214, 228, 240, .82); }
+}
+
+/*
+   A tile: a piece of card cut square, for the tablet-style header across the
+   top of a day. Square because tiles are — the 2px radius of .card-stock is
+   for a sheet's cut corner, and a grid of tiles with rounded corners reads as
+   buttons, not as a mosaic.
+*/
+.tile {
+    border-radius: 1px;
+}
+
+/*
+   Gold foil. The Blazor .gold-text — a metallic gradient clipped to the
+   letters — with two changes. A crisp dark drop-shadow under it: the original
+   was set on a dark tile, and on cream card its pale stops disappear, so the
+   shadow is what gives the letters an edge on either ground. A drop-shadow
+   filter, not text-shadow: text-shadow paints over a clipped background and
+   would hide the gold it is meant to frame.
+
+   And the metal is the yellow ladder's, polished — its ground brightened for
+   the highlights, the gold itself, and the gold darkened toward the yellow deep
+   for the shadow in the fold — rather than the Blazor gradient's pure
+   #f4c430, which was the most saturated colour in the app.
+*/
+.gold-foil {
+    background: linear-gradient(-45deg,
+                                color-mix(in oklab, var(--arc-yellow-ground), white 55%),
+                                color-mix(in oklab, var(--arc-gold), var(--arc-yellow-ground) 50%) 22%,
+                                color-mix(in oklab, var(--arc-gold), var(--arc-yellow-deep) 38%) 45%,
+                                color-mix(in oklab, var(--arc-gold), var(--arc-yellow-ground) 42%) 65%,
+                                color-mix(in oklab, var(--arc-yellow-ground), white 40%) 82%,
+                                var(--arc-gold));
+    background-size: 120% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 1px 0 color-mix(in srgb, var(--arc-yellow-deep) 85%, transparent));
+}
+
+.paper-oxblood .gold-foil {
+    filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .55));
+}
+
+/*
+   Snackbars — notistack's, which bring their own Material colours: #d32f2f,
+   #43a047, #ff9800, as saturated as anything the palette took out. Each variant
+   is a deep of the ladder that means the same thing, as a strip of card with
+   cream text. Two classes, because notistack's own rule is one generated class
+   injected after this file.
+*/
+.notistack-MuiContent.notistack-MuiContent-default,
+.notistack-MuiContent.notistack-MuiContent-info {
+    background-color: var(--arc-blue-deep);
+}
+
+.notistack-MuiContent.notistack-MuiContent-success {
+    background-color: var(--arc-green-deep);
+}
+
+.notistack-MuiContent.notistack-MuiContent-error {
+    background-color: var(--arc-red-deep);
+}
+
+.notistack-MuiContent.notistack-MuiContent-warning {
+    background-color: var(--arc-yellow-deep);
+}
+
+.notistack-SnackbarContainer .notistack-MuiContent {
+    color: var(--arc-cream);
+    background-image: var(--arc-paper-grain);
+    border-radius: 2px;
+}
+
+/*
+   The app's bars — the board's and the calendar's.
+
+   Navy, the blue ladder's deep, and flat: no grain and no lit face. On a strip
+   that dark the paper grain read as speckle rather than as paper, so the bar is
+   plain colour, the ground things are laid on — and what is laid on it is
+   paper: its controls are pieces of cream card (.bar-piece), and the Honu
+   button is a disc of it.
+*/
+.app-bar {
+    background: var(--arc-navy);
+    color: var(--arc-cream);
+    border-radius: 2px;
+    box-shadow:
+        0 2px 4px -1px rgba(10, 18, 30, .3),
+        0 4px 10px 0 rgba(10, 18, 30, .18);
+}
+
+/* A control on the bar: a piece of card, lifted a little under the pointer. */
+.bar-piece {
+    transition: transform .12s, filter .12s;
+}
+
+.bar-piece:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.03);
+}
+
+.bar-piece.Mui-disabled {
+    filter: saturate(.4) opacity(.6);
+}

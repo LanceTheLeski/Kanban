@@ -1,0 +1,87 @@
+/**
+ * Card entity.
+ *
+ * Mirrors: ArcStrides.UI.Legacy/Models/Board/Card.cs
+ *
+ * Shared rather than board-owned: cards appear on the board and on the calendar's
+ * month grid.
+ *
+ * `id` is the card's own ID; `positionId` is the ID of its CardPosition row — a
+ * separate entity on the server. Moving a card PATCHes the *position*, so both IDs
+ * have to be carried. (The Blazor Card model had the same pair: Id + PositionID.)
+ *
+ * The column/swimlane fields are a denormalised copy of where the card currently
+ * sits, exactly as CardPositionResponse sends them. They belong to the card's
+ * position rather than to the card itself, which is why the board matches cells on
+ * columnId/swimlaneId rather than on the order numbers — see Pages/BoardPage.tsx.
+ *
+ * There is deliberately no `dropArea` field. The Blazor DropCard encoded the grid
+ * cell as "{swimlaneOrder}_{columnOrder}" and stored it alongside the card, which
+ * meant every column or swimlane reorder silently invalidated it.
+ */
+
+import type { Tag } from '../Tag/Tag.Types'
+import type { Task } from '../Task/Task.Types'
+import type { Timeline } from '../Timeline/Timeline.Types'
+
+export interface Card
+{
+    id: string
+
+    positionId: string
+
+    /**
+     * The board the card is on. The board page already knows this from its
+     * route and never reads it; the calendar does not, because one day can
+     * hold cards from several boards, and it needs the ID to open a card for
+     * editing against the right one.
+     */
+    boardId: string
+
+    title: string
+
+    description: string
+
+    columnNumber: number
+
+    columnId: string
+
+    columnName: string
+
+    swimlaneNumber: number
+
+    /**
+     * The card's swimlane, or NO_SWIMLANE_ID (Board.Types) on a board that has
+     * none — its cards then sit straight in their columns.
+     */
+    swimlaneId: string
+
+    swimlaneName: string
+
+    /**
+     * Where the card sits within its cell. Lower is nearer the top.
+     *
+     * Belongs to the CardPosition row like the column and swimlane fields
+     * above it — a card does not have a rank, a card *in a cell* does.
+     */
+    positionRank: number
+
+    tasks: Task[]
+
+    /**
+     * The card's own timeline. Whether it is the one the card goes by is
+     * `overridesTasks`'s to say — see Timeline.Inheritance.
+     */
+    timeline: Timeline | null
+
+    /**
+     * Whether the card keeps dates of its own rather than taking its tasks'.
+     * Null when it was never set: then a card with a timeline of its own keeps
+     * it, and one without takes its tasks'. Read through `overridesTasks()` in
+     * Timeline.Inheritance rather than directly.
+     */
+    overridesTasks: boolean | null
+
+    /** The card's tags, by title. */
+    tags: Tag[]
+}

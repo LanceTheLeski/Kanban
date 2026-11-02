@@ -6,14 +6,22 @@ using Riok.Mapperly.Abstractions;
 
 namespace ArcStrides.API.Mappers;
 
+// No entity-to-entity merge here, deliberately. The one added in the previous
+// commit could not preserve identity: Swimlane.RowKey is non-nullable, so
+// AllowNullPropertyAssignment has nothing to suppress and the generated merge
+// assigned null straight over the key. SwimlaneController patches its two fields
+// by hand instead.
 [Mapper]
 public partial class SwimlaneMapper
 {
+
     /// <summary>
     /// <see cref="SwimlaneCreateRequest"/> --> <see cref="Swimlane"/>
     /// </summary>
     [MapProperty (nameof (SwimlaneCreateRequest.Title), nameof (Swimlane.Title))]
     [MapProperty (nameof (SwimlaneCreateRequest.Order), nameof (Swimlane.SwimlaneOrder))]
+    [MapProperty (nameof (SwimlaneCreateRequest.Color), nameof (Swimlane.SwimlaneColor))]
+    [MapProperty (nameof (SwimlaneCreateRequest.GlobalColor), nameof (Swimlane.GlobalSwimlaneColor))]
     public partial Swimlane MapSwimlaneCreateRequestToSwimlane (SwimlaneCreateRequest swimlaneCreateRequest);
 
     /// <summary>
@@ -21,6 +29,8 @@ public partial class SwimlaneMapper
     /// </summary>
     [MapProperty (nameof (SwimlanePatchRequest.Title), nameof (Swimlane.Title))]
     [MapProperty (nameof (SwimlanePatchRequest.Order), nameof (Swimlane.SwimlaneOrder))]
+    [MapProperty (nameof (SwimlanePatchRequest.Color), nameof (Swimlane.SwimlaneColor))]
+    [MapProperty (nameof (SwimlanePatchRequest.GlobalColor), nameof (Swimlane.GlobalSwimlaneColor))]
     public partial Swimlane MapSwimlanePatchRequestToSwimlane (SwimlanePatchRequest swimlanePatchRequest);
 
     /// <summary>
@@ -28,6 +38,8 @@ public partial class SwimlaneMapper
     /// </summary>
     [MapProperty (nameof (Swimlane.Title), nameof (SwimlanePatchRequest.Title))]
     [MapProperty (nameof (Swimlane.SwimlaneOrder), nameof (SwimlanePatchRequest.Order))]
+    [MapProperty (nameof (Swimlane.SwimlaneColor), nameof (SwimlanePatchRequest.Color))]
+    [MapProperty (nameof (Swimlane.GlobalSwimlaneColor), nameof (SwimlanePatchRequest.GlobalColor))]
     public partial SwimlanePatchRequest MapSwimlaneToSwimlanePatchRequest (Swimlane swimlane);
 
     /// <summary>
@@ -37,5 +49,7 @@ public partial class SwimlaneMapper
     [MapProperty (nameof (Swimlane.RowKey), nameof (SwimlaneResponse.ID))]
     [MapProperty (nameof (Swimlane.Title), nameof (SwimlaneResponse.Title))]
     [MapProperty (nameof (Swimlane.SwimlaneOrder), nameof (SwimlaneResponse.Order))]
+    [MapProperty (nameof (Swimlane.SwimlaneColor), nameof (SwimlaneResponse.Color))]
+    [MapProperty (nameof (Swimlane.GlobalSwimlaneColor), nameof (SwimlaneResponse.GlobalColor))]
     public partial SwimlaneResponse MapSwimlaneToSwimlaneResponse (Swimlane swimlane);
 }

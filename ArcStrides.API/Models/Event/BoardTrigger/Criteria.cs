@@ -1,7 +1,6 @@
-﻿namespace ArcStrides.API.Models.Event.BoardTrigger
-{
-    public class Criteria
-    {
+﻿namespace ArcStrides.API.Models.Event.BoardTrigger;
 
-    }
+public class Criteria
+{
+
 }

@@ -9,4 +9,9 @@ public class TagResponse
     public string? ParentTypeName { get; init; } = null;
 
     public string? Title { get; init; } = null;
+
+    /// <summary>
+    /// The tag's colour, as #rrggbb; null for the default.
+    /// </summary>
+    public string? Color { get; init; } = null;
 }

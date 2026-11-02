@@ -40,5 +40,6 @@ public partial class DateMapper
     [MapProperty (nameof (Date.DayOfTheWeekOrder), nameof (DateResponse.DayOfTheWeekOrder))]
     [MapProperty (nameof (Date.MonthName), nameof (DateResponse.MonthName))]
     [MapProperty (nameof (Date.Year), nameof (DateResponse.YearOrder))]
+    [MapProperty (nameof (Date.DateTypeID), nameof (DateResponse.DateTypeID))]
     public partial DateResponse MapDateToDateResponse (Date date);
 }

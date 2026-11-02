@@ -18,6 +18,6 @@ public interface ITimelineRepository
 
     Task DeleteTimelineAsync (Timeline timelineToDelete);
 
-    Task<bool> ParentExistsAsync (Guid parentID, int timelineTypeID);
+    Task<bool> ParentExistsAsync (Guid boardID, Guid parentID, int timelineTypeID);
 
 }

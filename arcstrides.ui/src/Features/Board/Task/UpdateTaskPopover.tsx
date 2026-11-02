@@ -1,0 +1,455 @@
+/**
+ * UpdateTaskPopover
+ *
+ * Mirrors: Task/UpdateTaskPopover.razor + UpdateTaskPopover.cs
+ *
+ * ── Ref elimination ───────────────────────────────────────────────────────────
+ * The Blazor .cs accessed UpdateTimelinePanel's public fields directly via @ref:
+ *   updateTimelinePanel._dateRangePreferred.Start, _timePreferredStart, etc.
+ * We invert this: UpdateTimelinePanel calls onDraftChange() with a TimelineDraft
+ * whenever any picker changes. This component stores that draft and uses it in
+ * UpdateTaskAsync. No ref needed.
+ *
+ * ── Initial state tracking ────────────────────────────────────────────────────
+ * The Blazor version stored _initialTaskTitle, _initialTaskTypeId, _initialTaskOrder,
+ * _initialTimeline, _initialIsCompleted to diff against on submit, building a
+ * JSON Patch document. We preserve this pattern with the same field names.
+ *
+ * ── Patch document ────────────────────────────────────────────────────────────
+ * The Blazor code used Microsoft.AspNetCore.JsonPatch.JsonPatchDocument.
+ * We represent the same concept as a plain object — the API stub accepts `object`.
+ * When real HTTP is wired in, serialize this as a JSON Patch array.
+ *
+ * ── Staging ──────────────────────────────────────────────────────────────────
+ * Given `onStage`, it writes nothing: its button says Done, and it hands the
+ * task back as edited, for the card editor or the day overlay to write on their
+ * own Save (Task.Staging). Without it — a task opened from a grid day, where
+ * there is no Save to wait for — it writes on its own Save, as it always has.
+ */
+
+import React, { useRef, useState } from 'react'
+import { Box, Button, Checkbox, FormControlLabel, TextField, Typography } from '@mui/material'
+import { paperField, paperFieldSx } from '../../../Styles/Paper'
+import { ArcPopover } from '../../../Components/ArcPopover'
+import { ArcExpandingPicker } from '../../../Components/ArcExpandingPicker'
+import { UpdateTimelinePanel } from '../Timeline/UpdateTimelinePanel'
+import { CreateTaskTypeOverlay } from '../../TagGroup/TaskType/CreateTaskTypeOverlay'
+import { useBoardActions } from '../Hooks/useBoardActions'
+import { fetchTaskTypes, updateTask, type TaskPatch } from '../Board.APIs'
+import { draftMatches, saveTimeline, TIMELINE_PARENT_TASK, type TimelineDraft } from '../Timeline/Timeline.Draft'
+import { TASK_PANEL_ROW_MIN_HEIGHT, TASK_POPOVER_WIDTH, TASK_TITLE_ROW_MIN_HEIGHT } from '../../../Styles/Measures'
+import { TagsPanel } from '../../TagGroup/Tag/TagsPanel'
+import { saveTags, sameTags } from '../../TagGroup/Tag/Tag.APIs'
+import { timelineOfDraft, type TaskEdit } from './Task.Staging'
+import type { Tag } from '../../../Entities/Tag/Tag.Types'
+import type { Task, TaskType } from '../../../Entities/Task/Task.Types'
+import type { Timeline } from '../../../Entities/Timeline/Timeline.Types'
+
+interface UpdateTaskPopoverProps
+{
+    task: Task
+
+    /** Called after task is updated so UpdateCardOverlay can reflect changes */
+    onUpdated?: (updated: Task) => void
+
+    /** Stages the edit instead of writing it: the holder writes it on its own Save. See the header. */
+    onStage?: (edit: TaskEdit) => void
+
+    boardId: string
+
+    cardId: string
+
+    tasksCount: number
+
+    /** Mirrors PopoverBaseMudSize / PopoverBaseMudStyle / PopoverBaseMudTextStyle */
+    triggerSize?: 'small' | 'medium' | 'large'
+
+    triggerSx?: import('@mui/material').SxProps<import('@mui/material').Theme>
+}
+
+export const UpdateTaskPopover: React.FC<UpdateTaskPopoverProps> = ({
+    task,
+    onUpdated,
+    onStage,
+    boardId,
+    cardId,
+    tasksCount,
+    triggerSize = 'medium',
+    triggerSx,
+}) =>
+{
+    // ── Local state (mirrors Blazor's mutable ActiveTask fields) ─────────────────
+    const [title, setTitle] = useState(task.title)
+    const [isCompleted, setIsCompleted] = useState(task.isCompleted ?? false)
+    const [order, setOrder] = useState(task.order)
+    const [selectedTaskTypeId, setSelectedTaskTypeId] = useState<number>(task.taskType?.id ?? -1)
+
+    // ── Initial values for diffing (mirrors Blazor's _initial* fields) ───────────
+    const initialTitle = useRef(task.title)
+    const initialTypeId = useRef(task.taskType?.id ?? -1)
+    const initialOrder = useRef(task.order)
+    const initialTimeline = useRef<Timeline | null>(task.timeline)
+    const initialIsCompleted = useRef(task.isCompleted)
+    const initialTags = useRef<Tag[]>(task.tags)
+
+    const [timelineDraft, setTimelineDraft] = useState<TimelineDraft | null>(null)
+    const [tags, setTags] = useState<Tag[]>(task.tags)
+    const [taskTypes, setTaskTypes] = useState<TaskType[]>([])
+    const [createTaskTypeOpen, setCreateTaskTypeOpen] = useState(false)
+
+    // Order range 1..N — mirrors Blazor's _taskOrderRange
+    const orderOptions = Array.from({ length: tasksCount }, (_, i) => String(i + 1))
+
+    const { run } = useBoardActions()
+
+    /*
+       Task types are read the first time the popover opens, not on mount.
+
+       Blazor read them in OnAfterRenderAsync(firstRender), and so did this, which
+       was one request per task row whether any popover was opened or not: a card
+       with five tasks asked five times on opening, and the calendar — which
+       renders a row per task across a whole month — would have asked dozens of
+       times to draw a page.
+    */
+    const typesRequested = useRef(false)
+    const loadTaskTypes = () =>
+    {
+        if (typesRequested.current)
+            return
+        typesRequested.current = true
+        fetchTaskTypes([0])
+            .then(setTaskTypes)
+            .catch(error =>
+            {
+                typesRequested.current = false
+                console.error('Could not load task types', error)
+            })
+    }
+
+    const handleSetTaskType = (typeName: string) =>
+    {
+        const matches = taskTypes.filter(taskType => taskType.title === typeName)
+        if (matches.length !== 1)
+            return
+        setSelectedTaskTypeId(matches[0].id)
+    }
+
+    // Whether anything differs from the task it opened on: what makes its Save
+    // appear (see ArcPopover). Read from the task rather than the refs above,
+    // which render may not read; the two agree, because a saved change remounts
+    // the popover with the task as saved (its key — see taskKey). A timeline
+    // changed and changed back is no change.
+    const dirty = title !== task.title
+        || selectedTaskTypeId !== (task.taskType?.id ?? -1)
+        || order !== task.order
+        || isCompleted !== (task.isCompleted ?? false)
+        || (timelineDraft !== null && !draftMatches(timelineDraft, task.timeline))
+        || !sameTags(tags, task.tags)
+
+    const handleSubmit = async () =>
+    {
+        // Build patch — only include fields that actually changed
+        // Mirrors Blazor's patchDocument.Add() conditional checks
+        const patch: TaskPatch = {}
+
+        if (title !== initialTitle.current)
+            patch.title = title
+        if (selectedTaskTypeId !== initialTypeId.current)
+            patch.typeID = selectedTaskTypeId
+        if (order !== initialOrder.current)
+            patch.order = order
+        if (isCompleted !== initialIsCompleted.current)
+            patch.isComplete = isCompleted
+
+        const existingTimeline = initialTimeline.current
+        // A draft taken back to Timeless is a change — it clears the schedule —
+        // but one that came back to what is saved is not.
+        const timelineChanged = timelineDraft !== null && !draftMatches(timelineDraft, existingTimeline)
+        const orderChanged = patch.order !== undefined
+        const tagsChanged = !sameTags(tags, initialTags.current)
+
+        if (Object.keys(patch).length === 0 && !timelineChanged && !tagsChanged)
+            return true
+
+        // Staging: the task as edited goes back to the holder, which writes it on its Save.
+        if (onStage)
+        {
+            onStage({
+                task: {
+                    ...task,
+                    title,
+                    order,
+                    isCompleted,
+                    tags,
+                    taskType: taskTypes.find(taskType => taskType.id === selectedTaskTypeId) ?? task.taskType,
+                    timeline: timelineDraft
+                        ? timelineOfDraft(existingTimeline, timelineDraft)
+                        : existingTimeline,
+                },
+                timelineDraft,
+            })
+            return true
+        }
+
+        let savedTimeline: Timeline | null = existingTimeline
+        let savedTags = initialTags.current
+
+        const saved = await run(
+            'Saving task',
+            async () =>
+            {
+                if (Object.keys(patch).length > 0)
+                    await updateTask(boardId, cardId, task.id, patch)
+
+                // Created, or patched in place — see saveTimeline. The parent
+                // kind, not the mode: see TIMELINE_PARENT_TASK.
+                if (timelineDraft)
+                    savedTimeline = await saveTimeline(boardId, { id: task.id, kind: TIMELINE_PARENT_TASK }, existingTimeline, timelineDraft)
+
+                if (tagsChanged)
+                    savedTags = await saveTags({ id: task.id, kind: 'task' }, initialTags.current, tags)
+            },
+            /*
+               An order change is the one task edit the client cannot predict the
+               result of: the server renumbers every sibling around the moved
+               task, and nothing here knows what those new numbers are. Left
+               unrefreshed, `initialOrder` and the sibling orders drift out of
+               step with the rows, and the next reorder is computed against
+               numbers that no longer exist — which is how a second move ends up
+               asking the server to shuffle a task into a slot nothing occupies.
+
+               Every other field is local to this task, so it still skips the
+               round trip and the parent splices the result in from onUpdated.
+            */
+            { refresh: orderChanged }
+        )
+        if (!saved)
+            return false
+
+        initialTitle.current = title
+        initialTypeId.current = selectedTaskTypeId
+        initialOrder.current = order
+        initialIsCompleted.current = isCompleted
+        initialTimeline.current = savedTimeline
+        initialTags.current = savedTags
+        setTags(savedTags)
+
+        /*
+           An order change has already been answered by the refresh inside run(),
+           which replaced every task on the card with the server's renumbering.
+           Reporting the change upward as well would write this component's idea
+           of the list back over that — and this component's idea is the one from
+           before the save, captured when the handler was created.
+
+           That is why reordering appeared to do nothing: the refresh fetched the
+           right order and the callback immediately overwrote it with the old one.
+        */
+        if (!orderChanged)
+            onUpdated?.({
+                ...task,
+                title,
+                order,
+                isCompleted,
+                timeline: savedTimeline,
+                tags: savedTags,
+                taskType: taskTypes.find(taskType => taskType.id === selectedTaskTypeId)
+                    ?? task.taskType,
+            })
+
+        return true
+    }
+
+    /**
+     * Puts the draft back to what is saved.
+     *
+     * Called whenever the popover closes, which covers Discard, Escape and a
+     * click outside. After a successful submit the refs below have already been
+     * moved to the new values, so this is a no-op there; after a failed one the
+     * popover stays open and this does not run at all.
+     */
+    const revertDraft = () =>
+    {
+        setTitle(initialTitle.current)
+        setIsCompleted(initialIsCompleted.current ?? false)
+        setOrder(initialOrder.current)
+        setSelectedTaskTypeId(initialTypeId.current)
+        setTimelineDraft(null)
+        setTags(initialTags.current)
+    }
+
+    return (
+        <>
+            <ArcPopover triggerLabel={task.title}
+                        onOpen={loadTaskTypes}
+                        onSubmit={handleSubmit}
+                        dirty={dirty}
+                        submitLabel={onStage
+                            ? 'Done'
+                            : undefined}
+                        triggerSize={triggerSize}
+                        onClose={revertDraft}
+                        triggerSx={{
+                            /*
+                               No default ground. This used to open with
+                               `backgroundColor: 'arc.taskPanel'` — a translucent
+                               blue — which the only caller then overrode with
+                               `transparent`, so it never painted. Now that the
+                               row it sits on is a piece of card, a blue default
+                               would not just be dead, it would be wrong.
+                            */
+                            ...(triggerSx as object),
+                            /*
+                               Struck through from the *draft*, so ticking Completed
+                               shows on the card immediately rather than only after a
+                               save. Closing without saving runs revertDraft above, which
+                               puts the line back.
+
+                               It lives here rather than in the list because this is where
+                               the unsaved value is; the list only knows what is stored.
+                            */
+                            ...(isCompleted
+                                ? {
+                                    // onPaper, because the row this sits on is a
+                                    // piece of card. It was onGlassMuted — a 60%
+                                    // white, which on card stock struck the title
+                                    // through and then made it invisible.
+                                    color: 'arc.onPaperMuted',
+                                    '&&': { textDecoration: 'line-through' },
+                                }
+                                : {}),
+                                  }}
+                        /*
+                           The task rows are card stock, so an open row darkens
+                           rather than lightening, and keeps its dark label.
+                        */
+                        triggerOpenSx={{ backgroundColor: 'arc.paperSelected',
+                                         color: 'arc.onPaperStrong'
+                                      }}
+                        title="Task"
+                        titleStock="green"
+                        anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
+                        transformOrigin={{ vertical: 'center', horizontal: 'left' }}>
+                {/*
+                    The title and its tags, then the fields in a row, then the
+                    timeline across the whole width.
+
+                    The timeline used to share a row with the fields, which left it
+                    a column about 300px wide: its nodes' day, time and Day pieces
+                    wrapped onto lines of their own, and the four nodes of a
+                    timeline were stacked like a list. On a card it has the width of
+                    the overlay's left pane, and it should have as much here.
+                */}
+                <Box sx={{ width: TASK_POPOVER_WIDTH,
+                           maxWidth: '90vw',
+                           display: 'flex',
+                           flexDirection: 'column',
+                           gap: 1.5
+                        }}>
+                    <Box sx={{ display: 'flex',
+                               gap: 1,
+                               alignItems: 'stretch',
+                               minHeight: TASK_TITLE_ROW_MIN_HEIGHT
+                            }}>
+                        <TextField {...paperField('green')}
+                                   placeholder="Task title"
+                                   value={title}
+                                   onChange={e => setTitle(e.target.value)}
+                                   multiline
+                                   minRows={2}
+                                   maxRows={3}
+                                   sx={{ ...paperFieldSx, flex: 1, minWidth: 0 }} />
+
+                        <TagsPanel tags={tags}
+                                   onChange={setTags}
+                                   label="Task tags" />
+                    </Box>
+
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'flex-start' }}>
+                        {/*
+                            On card, with the box a smaller piece laid on it.
+
+                            It was a checkbox and a word standing directly on
+                            the glass — the last control in the popover with
+                            nothing under it. The tick is drawn by MUI, so
+                            what the card gives it is a ground to sit on and
+                            an edge, which is also what makes the hit target
+                            visible before you reach for it.
+                        */}
+                        <FormControlLabel className="card-stock"
+                                          sx={{ m: 0,
+                                                pr: 1.25,
+                                                '& .MuiCheckbox-root': { color: 'arc.onPaperMuted' },
+                                                '& .Mui-checked': { color: 'arc.paperAccent' }
+                                             }}
+                                          control={
+                                              <Checkbox checked={isCompleted}
+                                                        onChange={e => setIsCompleted(e.target.checked)}
+                                                        size="small" />
+                                          }
+                                          label={<Typography variant="body2"
+                                                             sx={{ color: 'arc.onPaperStrong',
+                                                                   fontWeight: 600
+                                                                }}>
+                                                     Completed
+                                                 </Typography>} />
+
+                        <Box sx={{ flex: '1 1 8rem', minWidth: 0 }}>
+                            <ArcExpandingPicker options={orderOptions}
+                                                onSelect={v => setOrder(parseInt(v, 10) - 1)}
+                                                placeholder={`Order: ${order + 1}`} />
+                        </Box>
+
+                        <Box sx={{ flex: '1 1 10rem', minWidth: 0 }}>
+                            <ArcExpandingPicker options={taskTypes.map(t => t.title ?? '')}
+                                                onSelect={handleSetTaskType}
+                                                placeholder={task.taskType?.title ?? 'Select task type'} />
+                        </Box>
+
+                        {/*
+                            Neutral card, matching "+ New task" on the card
+                            overlay: both are the one "add a thing" action in
+                            their panel, and they should not be two different
+                            shapes. Quiet within that — creating a task *type*
+                            is the least likely thing anyone opened this
+                            popover to do.
+                        */}
+                        <Button size="small"
+                                variant="text"
+                                className="card-stock"
+                                onClick={() => setCreateTaskTypeOpen(true)}
+                                sx={{ alignSelf: 'center',
+                                      px: 1,
+                                      fontSize: '0.65rem',
+                                      textTransform: 'none',
+                                      color: 'arc.onPaperMuted',
+                                      '&:hover': { color: 'arc.onPaperStrong',
+                                                   backgroundColor: 'transparent' }
+                                   }}>
+                            + New task type
+                        </Button>
+                    </Box>
+
+                    {/*
+                        A floor under the panel, so the three timeline modes do
+                        not each make the popover a different height and move
+                        everything as you switch between them. A grid, so the
+                        panel takes the whole width whatever its mode holds.
+                    */}
+                    <Box sx={{ display: 'grid', minHeight: TASK_PANEL_ROW_MIN_HEIGHT }}>
+                        <UpdateTimelinePanel timeline={task.timeline}
+                                             onDraftChange={setTimelineDraft}
+                                             boardId={boardId}
+                                             subject={{ kind: 'task', id: task.id }}
+                                             subjectTitle={title} />
+                    </Box>
+                </Box>
+            </ArcPopover>
+
+            <CreateTaskTypeOverlay open={createTaskTypeOpen}
+                                   onClose={() => setCreateTaskTypeOpen(false)}
+                                   onCreated={() => fetchTaskTypes([0]).then(setTaskTypes)} />
+        </>
+    )
+}
+
+export default UpdateTaskPopover

@@ -11,7 +11,7 @@ public interface IColumnRepository
 {
     Task<Column?> GetColumnAsync (Guid boardID, Guid columnID);
 
-    Task<Collection<Column>> GetAllBoardColumns (Guid boardID);
+    Task<Collection<Column>> GetAllBoardColumnsAsync (Guid boardID);
 
     Task<Collection<Column>> QueryColumnsAsync (Expression<Func<Column, bool>> columnQueryExpression);
 
@@ -31,5 +31,5 @@ public interface IColumnRepository
 
     ArcTransaction ApplyNewOrderForExistingCardPositions (IEnumerable<Column> columnEnumerable, IEnumerable<CardPosition> boardCardEnumerable, ArcTransaction arcTransaction);
 
-    ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Column columnToDelete, IEnumerable<Column> columnEnumerable, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction);
+    ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Column columnToDelete, IEnumerable<Column> remainingColumns, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction);
 }

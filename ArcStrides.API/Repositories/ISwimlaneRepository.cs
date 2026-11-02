@@ -11,7 +11,7 @@ public interface ISwimlaneRepository
 {
     Task<Swimlane?> GetSwimlaneAsync (Guid swimlaneID, Guid boardID);
 
-    Task<Collection<Swimlane>> GetAllBoardSwimlanes (Guid boardID);
+    Task<Collection<Swimlane>> GetAllBoardSwimlanesAsync (Guid boardID);
 
     Task<Collection<Swimlane>> QuerySwimlanesAsync (Expression<Func<Swimlane, bool>> swimlaneQueryExpression);
 
@@ -31,5 +31,7 @@ public interface ISwimlaneRepository
 
     ArcTransaction ApplyNewOrderForExistingCardPositions (IEnumerable<Swimlane> swimlaneEnumerable, IEnumerable<CardPosition> boardCardEnumerable, ArcTransaction arcTransaction);
 
-    ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Swimlane swimlaneToDelete, IEnumerable<Swimlane> swimlaneEnumerable, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction);
+    ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Swimlane swimlaneToDelete, IEnumerable<Swimlane> remainingSwimlanes, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction);
+
+    ArcTransaction AssignUnplacedCardPositions (Swimlane newSwimlane, IEnumerable<Swimlane> existingSwimlanes, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction);
 }

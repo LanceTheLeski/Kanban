@@ -18,10 +18,18 @@ public partial class TimelineMapper
     [MapProperty (nameof (TimelineCreateRequest.TimelineTypeID), nameof (Timeline.TimelineTypeID))]
     [MapProperty (nameof (TimelineCreateRequest.StartDependencyTagGroupID), nameof (Timeline.StartDependencyTagGroupID))]
     [MapProperty (nameof (TimelineCreateRequest.StartPreferenceUTC), nameof (Timeline.StartPreferenceUTC))]
+    [MapProperty (nameof (TimelineCreateRequest.StartPreferenceDurationMinutes), nameof (Timeline.StartPreferenceDurationMinutes))]
+    [MapProperty (nameof (TimelineCreateRequest.StartPreferenceTimeIsRelative), nameof (Timeline.StartPreferenceTimeIsRelative))]
     [MapProperty (nameof (TimelineCreateRequest.StartDeadlineUTC), nameof (Timeline.StartDeadlineUTC))]
+    [MapProperty (nameof (TimelineCreateRequest.StartDeadlineDurationMinutes), nameof (Timeline.StartDeadlineDurationMinutes))]
+    [MapProperty (nameof (TimelineCreateRequest.StartDeadlineTimeIsRelative), nameof (Timeline.StartDeadlineTimeIsRelative))]
     [MapProperty (nameof (TimelineCreateRequest.EndDependencyTagGroupID), nameof (Timeline.EndDependencyTagGroupID))]
     [MapProperty (nameof (TimelineCreateRequest.EndPreferenceUTC), nameof (Timeline.EndPreferenceUTC))]
+    [MapProperty (nameof (TimelineCreateRequest.EndPreferenceDurationMinutes), nameof (Timeline.EndPreferenceDurationMinutes))]
+    [MapProperty (nameof (TimelineCreateRequest.EndPreferenceTimeIsRelative), nameof (Timeline.EndPreferenceTimeIsRelative))]
     [MapProperty (nameof (TimelineCreateRequest.EndDeadlineUTC), nameof (Timeline.EndDeadlineUTC))]
+    [MapProperty (nameof (TimelineCreateRequest.EndDeadlineDurationMinutes), nameof (Timeline.EndDeadlineDurationMinutes))]
+    [MapProperty (nameof (TimelineCreateRequest.EndDeadlineTimeIsRelative), nameof (Timeline.EndDeadlineTimeIsRelative))]
     public partial Timeline MapTimelineCreateRequestToTimeline (TimelineCreateRequest timelineCreateRequest);
 
     /// <summary>
@@ -30,10 +38,18 @@ public partial class TimelineMapper
     [MapProperty (nameof (TimelinePatchRequest.TimelineTypeID), nameof (Timeline.TimelineTypeID))]
     [MapProperty (nameof (TimelinePatchRequest.StartDependencyTagGroupID), nameof (Timeline.StartDependencyTagGroupID))]
     [MapProperty (nameof (TimelinePatchRequest.StartPreferenceUTC), nameof (Timeline.StartPreferenceUTC))]
+    [MapProperty (nameof (TimelinePatchRequest.StartPreferenceDurationMinutes), nameof (Timeline.StartPreferenceDurationMinutes))]
+    [MapProperty (nameof (TimelinePatchRequest.StartPreferenceTimeIsRelative), nameof (Timeline.StartPreferenceTimeIsRelative))]
     [MapProperty (nameof (TimelinePatchRequest.StartDeadlineUTC), nameof (Timeline.StartDeadlineUTC))]
+    [MapProperty (nameof (TimelinePatchRequest.StartDeadlineDurationMinutes), nameof (Timeline.StartDeadlineDurationMinutes))]
+    [MapProperty (nameof (TimelinePatchRequest.StartDeadlineTimeIsRelative), nameof (Timeline.StartDeadlineTimeIsRelative))]
     [MapProperty (nameof (TimelinePatchRequest.EndDependencyTagGroupID), nameof (Timeline.EndDependencyTagGroupID))]
     [MapProperty (nameof (TimelinePatchRequest.EndPreferenceUTC), nameof (Timeline.EndPreferenceUTC))]
+    [MapProperty (nameof (TimelinePatchRequest.EndPreferenceDurationMinutes), nameof (Timeline.EndPreferenceDurationMinutes))]
+    [MapProperty (nameof (TimelinePatchRequest.EndPreferenceTimeIsRelative), nameof (Timeline.EndPreferenceTimeIsRelative))]
     [MapProperty (nameof (TimelinePatchRequest.EndDeadlineUTC), nameof (Timeline.EndDeadlineUTC))]
+    [MapProperty (nameof (TimelinePatchRequest.EndDeadlineDurationMinutes), nameof (Timeline.EndDeadlineDurationMinutes))]
+    [MapProperty (nameof (TimelinePatchRequest.EndDeadlineTimeIsRelative), nameof (Timeline.EndDeadlineTimeIsRelative))]
     public partial Timeline MapTimelinePatchRequestToTimeline (TimelinePatchRequest timelineCreateRequest);
 
     /// <summary>
@@ -42,10 +58,18 @@ public partial class TimelineMapper
     [MapProperty (nameof (Timeline.TimelineTypeID), nameof (TimelinePatchRequest.TimelineTypeID))]
     [MapProperty (nameof (Timeline.StartDependencyTagGroupID), nameof (TimelinePatchRequest.StartDependencyTagGroupID))]
     [MapProperty (nameof (Timeline.StartPreferenceUTC), nameof (TimelinePatchRequest.StartPreferenceUTC))]
+    [MapProperty (nameof (Timeline.StartPreferenceDurationMinutes), nameof (TimelinePatchRequest.StartPreferenceDurationMinutes))]
+    [MapProperty (nameof (Timeline.StartPreferenceTimeIsRelative), nameof (TimelinePatchRequest.StartPreferenceTimeIsRelative))]
     [MapProperty (nameof (Timeline.StartDeadlineUTC), nameof (TimelinePatchRequest.StartDeadlineUTC))]
+    [MapProperty (nameof (Timeline.StartDeadlineDurationMinutes), nameof (TimelinePatchRequest.StartDeadlineDurationMinutes))]
+    [MapProperty (nameof (Timeline.StartDeadlineTimeIsRelative), nameof (TimelinePatchRequest.StartDeadlineTimeIsRelative))]
     [MapProperty (nameof (Timeline.EndDependencyTagGroupID), nameof (TimelinePatchRequest.EndDependencyTagGroupID))]
     [MapProperty (nameof (Timeline.EndPreferenceUTC), nameof (TimelinePatchRequest.EndPreferenceUTC))]
+    [MapProperty (nameof (Timeline.EndPreferenceDurationMinutes), nameof (TimelinePatchRequest.EndPreferenceDurationMinutes))]
+    [MapProperty (nameof (Timeline.EndPreferenceTimeIsRelative), nameof (TimelinePatchRequest.EndPreferenceTimeIsRelative))]
     [MapProperty (nameof (Timeline.EndDeadlineUTC), nameof (TimelinePatchRequest.EndDeadlineUTC))]
+    [MapProperty (nameof (Timeline.EndDeadlineDurationMinutes), nameof (TimelinePatchRequest.EndDeadlineDurationMinutes))]
+    [MapProperty (nameof (Timeline.EndDeadlineTimeIsRelative), nameof (TimelinePatchRequest.EndDeadlineTimeIsRelative))]
     public partial TimelinePatchRequest MapTimelineToTimelinePatchRequest (Timeline timeline);
 
     /// <summary>
@@ -55,9 +79,17 @@ public partial class TimelineMapper
     [MapProperty (nameof (Timeline.TimelineTypeID), nameof (TimelineResponse.TimelineTypeID))]
     [MapProperty (nameof (Timeline.StartDependencyTagGroupID), nameof (TimelineResponse.StartDependencyTagGroupID))]
     [MapProperty (nameof (Timeline.StartPreferenceUTC), nameof (TimelineResponse.StartPreferenceUTC))]
+    [MapProperty (nameof (Timeline.StartPreferenceDurationMinutes), nameof (TimelineResponse.StartPreferenceDurationMinutes))]
+    [MapProperty (nameof (Timeline.StartPreferenceTimeIsRelative), nameof (TimelineResponse.StartPreferenceTimeIsRelative))]
     [MapProperty (nameof (Timeline.StartDeadlineUTC), nameof (TimelineResponse.StartDeadlineUTC))]
+    [MapProperty (nameof (Timeline.StartDeadlineDurationMinutes), nameof (TimelineResponse.StartDeadlineDurationMinutes))]
+    [MapProperty (nameof (Timeline.StartDeadlineTimeIsRelative), nameof (TimelineResponse.StartDeadlineTimeIsRelative))]
     [MapProperty (nameof (Timeline.EndDependencyTagGroupID), nameof (TimelineResponse.EndDependencyTagGroupID))]
     [MapProperty (nameof (Timeline.EndPreferenceUTC), nameof (TimelineResponse.EndPreferenceUTC))]
+    [MapProperty (nameof (Timeline.EndPreferenceDurationMinutes), nameof (TimelineResponse.EndPreferenceDurationMinutes))]
+    [MapProperty (nameof (Timeline.EndPreferenceTimeIsRelative), nameof (TimelineResponse.EndPreferenceTimeIsRelative))]
     [MapProperty (nameof (Timeline.EndDeadlineUTC), nameof (TimelineResponse.EndDeadlineUTC))]
+    [MapProperty (nameof (Timeline.EndDeadlineDurationMinutes), nameof (TimelineResponse.EndDeadlineDurationMinutes))]
+    [MapProperty (nameof (Timeline.EndDeadlineTimeIsRelative), nameof (TimelineResponse.EndDeadlineTimeIsRelative))]
     public partial TimelineResponse MapTimelineToTimelineResponse (Timeline timeline);
 }

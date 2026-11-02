@@ -1,0 +1,103 @@
+/**
+ * App.tsx
+ *
+ * Root application shell with routing.
+ *
+ * Provider stack (outermost → innermost):
+ *   BrowserRouter         — React Router, reads the URL
+ *   ThemeProvider         — MUI theme (arcTheme / arcBoardDefaultTheme)
+ *   LocalizationProvider  — required by @mui/x-date-pickers (DatePicker, TimePicker)
+ *   ArcErrorProvider      — notistack SnackbarProvider + useArcError hook
+ *   Routes                — renders the matched page
+ *
+ * Routes:
+ *   /                   → redirect to the demo board (a board picker is still to come)
+ *   /board/:boardId     → BoardPage, inside AppLayout (mirrors MainLayout.razor)
+ *   /calendar           → redirect to this month
+ *   /calendar/:year/:month → CalendarPage, month 1–12 as people write it
+ *
+ * The BrowserRouter lives here rather than in main.tsx so that App.tsx stays
+ * self-contained and testable. If you later need a MemoryRouter for tests you
+ * only change this file.
+ */
+
+import { ThemeProvider, CssBaseline, GlobalStyles, StyledEngineProvider } from '@mui/material'
+import { LocalizationProvider } from '@mui/x-date-pickers'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { ArcErrorProvider } from './Components/ArcErrorProvider'
+import { arcTheme } from './Styles/Theme'
+import { PALETTE_VARIABLES } from './Styles/Palette'
+import { AppLayout } from './Layouts/AppLayout'
+import { BoardPage } from './Pages/BoardPage'
+import { CalendarPage, CurrentMonth } from './Pages/CalendarPage'
+import { DEFAULT_BOARD_ID } from './Features/Board/Board.Defaults'
+import './Styles/ArcStyles.css'
+
+function App()
+{
+    return (
+        <BrowserRouter>
+            {/*
+              injectFirst puts MUI's generated styles at the TOP of <head>, ahead of
+              ArcStyles.css, so our own stylesheet wins on equal specificity.
+
+              Without it MUI loses the race by default — emotion injects at render
+              time, after an imported CSS file has already been applied — and it was
+              quietly overriding the ported Blazor glass. On the board's Paper, MUI's
+              class replaced the transparent background with the theme's solid blue
+              and elevation={0} set box-shadow: none, which erased the entire inset
+              highlight stack. The gradients survived, so it still looked deliberate:
+              a flat blue slab rather than glass.
+
+              This is MUI's documented answer to plain CSS being overridden, and it
+              fixes the whole ported stylesheet at once rather than glass alone. The
+              trade-off is that sx no longer outranks a class in ArcStyles.css, so a
+              component wanting to depart from .glass should stop using the class
+              rather than try to out-specify it.
+            */}
+            <StyledEngineProvider injectFirst>
+            <ThemeProvider theme={arcTheme}>
+                <CssBaseline />
+                {/* The paper palette, as custom properties for ArcStyles.css — see Palette.ts. */}
+                <GlobalStyles styles={{ ':root': PALETTE_VARIABLES }} />
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <ArcErrorProvider>
+                        <Routes>
+                            {/* AppLayout is the shell every page renders inside — mirrors
+                  DefaultLayout="@typeof(Layouts.MainLayout)" in Routes.razor */}
+                            <Route element={<AppLayout />}>
+                                {/*
+                    / → redirect to the demo board ID for now.
+                    Replace with a real HomePage (board picker) later.
+                  */}
+                                <Route path="/"
+                                       element={<Navigate to={`/board/${DEFAULT_BOARD_ID}`}
+                                                          replace />} />
+
+                                {/* /board/:boardId — the main Kanban board */}
+                                <Route path="/board/:boardId"
+                                       element={<BoardPage />} />
+
+                                {/* /calendar → whichever month it is today */}
+                                <Route path="/calendar"
+                                       element={<CurrentMonth />} />
+
+                                <Route path="/calendar/:year/:month"
+                                       element={<CalendarPage />} />
+
+                                {/* Catch-all — send unknown URLs back to root */}
+                                <Route path="*"
+                                       element={<Navigate to="/"
+                                                          replace />} />
+                            </Route>
+                        </Routes>
+                    </ArcErrorProvider>
+                </LocalizationProvider>
+            </ThemeProvider>
+            </StyledEngineProvider>
+        </BrowserRouter>
+    )
+}
+
+export default App

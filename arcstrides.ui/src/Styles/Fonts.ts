@@ -1,0 +1,51 @@
+/**
+ * Fonts.ts
+ *
+ * The font stacks, in one place.
+ *
+ * They were written inline at each use, and had already drifted: the column
+ * headers fell back through three condensed faces while the swimlane labels
+ * beside them fell straight to sans-serif, so on a machine without Calibri
+ * Condensed the two halves of the same grid were set in different fonts. The
+ * monospace stack existed in two versions for the same reason — whichever the
+ * nearest file happened to have when the next one was written.
+ *
+ * A stack is a sequence of fallbacks, which means it is a decision about what
+ * happens on a reader's machine rather than a value. Repeating it is how it
+ * stops being one decision.
+ */
+
+/**
+ * Card commands, timeline dates, and anything else meant to read as data.
+ *
+ * ui-monospace ahead of the generic keyword so a reader without DM Mono gets
+ * their system's UI monospace — SF Mono, Cascadia — rather than Courier.
+ */
+export const MONO = '"DM Mono", ui-monospace, monospace'
+
+/**
+ * Column headers and swimlane labels: the grid's own furniture.
+ *
+ * Condensed because these sit in fixed-width chrome around user-written names,
+ * and a narrow face fits more of one before it has to wrap.
+ */
+export const CONDENSED = "'Calibri Condensed', 'Bodoni MT Condensed', 'Bahnschrift Light Condensed', sans-serif"
+
+/** The page titles — "Honu Boards", and the month on the calendar. Decorative. */
+export const SCRIPT = "'Freestyle Script', cursive"
+
+/**
+ * The calendar's day numbers.
+ *
+ * Modern No. 20 is what the Blazor calendar set them in. A number on a calendar
+ * is read at a glance from across the grid, and a high-contrast serif figure
+ * holds its shape at that size where a condensed sans turns to a smudge.
+ */
+export const NUMERALS = "'Modern No. 20', 'Bodoni MT', Didot, Georgia, serif"
+
+/**
+ * Words set large or in capitals on the calendar: a day's name at the top of
+ * its overlay, and a view's heading — ALL, OPEN — in gold on its oxblood tile.
+ * A book serif, because gold foil on a thin or condensed face breaks up.
+ */
+export const SERIF = "Georgia, 'Times New Roman', serif"

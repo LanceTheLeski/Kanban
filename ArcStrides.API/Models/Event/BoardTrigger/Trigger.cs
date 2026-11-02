@@ -1,18 +1,17 @@
-﻿namespace ArcStrides.API.Models.Event.BoardTrigger
+﻿namespace ArcStrides.API.Models.Event.BoardTrigger;
+
+public class Trigger
 {
-    public class Trigger
-    {
-        public int Id { get; set; }
+    public int ID { get; set; }
 
-        public TriggerType Cause { get; set; }
+    public TriggerType Cause { get; set; }
 
-        public IEnumerable<Criteria> CauseCriteriaOptions { get; set; }//Different criteria options that can be met
+    public IEnumerable<Criteria> CauseCriteriaOptions { get; set; }//Different criteria options that can be met
 
-        public TriggerType Effect { get; set; }
+    public TriggerType Effect { get; set; }
 
-        public IEnumerable<Criteria> EffectCriteriaToApply { get; set; }//All effects that are applied when the cause is met
+    public IEnumerable<Criteria> EffectCriteriaToApply { get; set; }//All effects that are applied when the cause is met
 
-        public IEnumerable<Guid> ActionLocationIds { get; set; }
+    public IEnumerable<Guid> ActionLocationIDs { get; set; }
 
-    }
 }

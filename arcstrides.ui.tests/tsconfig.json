@@ -1,0 +1,14 @@
+{
+  // The UI's own settings, so a test is checked as strictly as the code it tests.
+  "extends": "../arcstrides.ui/tsconfig.app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
+    "types": ["vite/client", "node"],
+    // The same two names vitest.config.ts resolves; see there.
+    "paths": {
+      "@ui/*": ["../arcstrides.ui/src/*"],
+      "dayjs": ["../arcstrides.ui/node_modules/dayjs"]
+    }
+  },
+  "include": ["src", "vitest.config.ts"]
+}

@@ -15,4 +15,10 @@ public class TaskResponse
     public TimelineResponse? Timeline { get; set; } = new TimelineResponse ();
 
     public bool? IsComplete { get; init; } = null;
+
+    /// <summary>
+    /// The tags on the task. Sent with it, as the card's are, so nothing has to
+    /// ask for them separately.
+    /// </summary>
+    public IEnumerable<TagResponse>? Tags { get; set; } = null;
 }

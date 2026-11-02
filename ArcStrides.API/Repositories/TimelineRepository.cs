@@ -34,8 +34,13 @@ public class TimelineRepository : ITimelineRepository
     public async Task AddTimelineAsync (Timeline timelineToAdd)
         => await _timelineTable.AddEntityAsync (timelineToAdd);
 
+    /// <summary>
+    /// Replaced whole rather than merged: a timeline is always read in full before it
+    /// is written back, and a point taken off it is a property set to null, which a
+    /// merge would not send.
+    /// </summary>
     public async Task UpdateTimelineAsync (Timeline timelineToUpdate)
-        => await _timelineTable.UpdateEntityAsync (timelineToUpdate);
+        => await _timelineTable.ReplaceEntityAsync (timelineToUpdate);
 
     public async Task DeleteTimelineAsync (Timeline timelineToDelete)
         => await _timelineTable.DeleteEntityAsync (timelineToDelete);
@@ -43,17 +48,17 @@ public class TimelineRepository : ITimelineRepository
     public async Task<Collection<Timeline>> QueryTimelinesAsync (Expression<Func<Timeline, bool>> timelineQueryExpression)
         => await _timelineTable.QueryEntitiesAsync (timelineQueryExpression);
 
-    public async Task<bool> ParentExistsAsync (Guid parentID, int timelineTypeID)
+    public async Task<bool> ParentExistsAsync (Guid boardID, Guid parentID, int timelineTypeID)
     {
         switch (timelineTypeID)
         {
             case 1:// Card
-                var cardCollection = await _cardRepository.GetCardsAsync (parentID);
-                return cardCollection?.Count () is 0;
+                var cardMatch = await _cardRepository.GetCardAsync (boardID, parentID);
+                return cardMatch is not null;
 
             case 2:// Task
-                var taskCollection = await _taskRepository.GetTasksAsync (parentID);
-                return taskCollection?.Count () is 0;
+                var taskMatch = await _taskRepository.GetTaskAsync (boardID, parentID);
+                return taskMatch is not null;
 
             default:
                 return false;

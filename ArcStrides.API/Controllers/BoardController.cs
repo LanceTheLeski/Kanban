@@ -5,7 +5,7 @@ using ArcStrides.API.Repositories;
 using ArcStrides.Contracts.Request.Patch;
 using ArcStrides.Contracts.Response;
 using FluentValidation;
-using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.ObjectModel;
 
@@ -26,35 +26,41 @@ public class BoardController : Controller
     private readonly ICardRepository _cardRepository;
     private readonly ITaskRepository _taskRepository;
     private readonly ITimelineRepository _timelineRepository;
+    private readonly ITagRepository _tagRepository;
 
     private readonly SwimlaneMapper _swimlaneMapper;
     private readonly ColumnMapper _columnMapper;
     private readonly CardMapper _cardMapper;
     private readonly TaskMapper _taskMapper;
     private readonly TimelineMapper _timelineMapper;
+    private readonly TagMapper _tagMapper;
 
     public BoardController (IColumnRepository columnRepository,
                             ISwimlaneRepository swimlaneRepository,
                             ICardRepository cardRepository,
                             ITaskRepository taskRepository,
                             ITimelineRepository timelineRepository,
+                            ITagRepository tagRepository,
                             SwimlaneMapper swimlaneMapper,
                             ColumnMapper columnMapper,
                             CardMapper cardMapper,
                             TaskMapper taskMapper,
-                            TimelineMapper timelineMapper)
+                            TimelineMapper timelineMapper,
+                            TagMapper tagMapper)
     {
         _columnRepository = columnRepository;
         _swimlaneRepository = swimlaneRepository;
         _cardRepository = cardRepository;
         _taskRepository = taskRepository;
         _timelineRepository = timelineRepository;
+        _tagRepository = tagRepository;
 
         _swimlaneMapper = swimlaneMapper;
         _columnMapper = columnMapper;
         _cardMapper = new CardMapper ();
         _taskMapper = taskMapper;
         _timelineMapper = timelineMapper;
+        _tagMapper = tagMapper;
 
         _boardColumnEnumerableValidator = new BoardColumnEnumerableValidator (); 
         _boardSwimlaneEnumerableValidator = new BoardSwimlaneEnumerableValidator ();
@@ -63,16 +69,20 @@ public class BoardController : Controller
     [HttpGet ("{ID:guid}")]
     public async Task<ActionResult> FetchBoard ([FromRoute] Guid ID)
     {
-        var columnCollection = await _columnRepository.GetAllBoardColumns (ID);
+        var columnCollection = await _columnRepository.GetAllBoardColumnsAsync (ID);
         var columnValidationResult = _boardColumnEnumerableValidator.Validate (columnCollection);
         if (columnValidationResult.IsValid is false)
             return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (Column), columnValidationResult.ToString ()));
         var columnCollectionOrdered = columnCollection.OrderBy (column => column.ColumnOrder);
 
-        var swimlaneCollection = await _swimlaneRepository.GetAllBoardSwimlanes (ID);
+        var swimlaneCollection = await _swimlaneRepository.GetAllBoardSwimlanesAsync (ID);
         var swimlaneValidationResult = _boardSwimlaneEnumerableValidator.Validate (swimlaneCollection);
         if (swimlaneValidationResult.IsValid is false)
-            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (Swimlane), columnValidationResult.ToString ()));
+            // swimlaneValidationResult, not columnValidationResult. Reporting the
+            // column result here meant this branch described a validation that had
+            // just passed, so it stringified to nothing and the 400 came back with
+            // an empty body -- a rejection that could not say what it rejected.
+            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (Swimlane), swimlaneValidationResult.ToString ()));
         var swimlaneCollectionOrdered = swimlaneCollection.OrderBy (swimlane => swimlane.SwimlaneOrder);
 
         var cardCollection = await _cardRepository.GetCardsAsync (ID);
@@ -97,6 +107,10 @@ public class BoardController : Controller
 
         var taskTypeCollection = await _taskRepository.QueryTaskTypesAsync (taskType => true);
         var timelineCollection = await _timelineRepository.QueryTimelinesAsync (timeline => true);
+
+        // Every tag, read once and looked up by what it is on, the way the
+        // timelines are. Without them a tag could be written and never read back.
+        var tagsByParent = (await _tagRepository.GetLabelsAsync ()).ToLookup (tag => tag.RowKey, StringComparer.OrdinalIgnoreCase);
         var cardResponse = new Collection<CardResponse> ();
         foreach (var card in cardCollection)
         {
@@ -109,18 +123,41 @@ public class BoardController : Controller
             var mappedTasks = cardTasks.Select (_taskMapper.MapTaskToTaskResponse).ToList ();
             foreach (var mappedTask in mappedTasks)
             {
-                var cardTask = cardTasks.Single (task => Guid.Parse(task.RowKey!) == mappedTask.ID);
-                var taskType = taskTypeCollection.SingleOrDefault (taskType => int.Parse(taskType.RowKey) == cardTask.TaskTypeID);
-                mappedTask.TaskType = _taskMapper.MapTaskTypeToTaskTypeResponse (taskType);// Assumes TaskType is real
+                var cardTask = cardTasks.Single (task => Guid.Parse (task.RowKey!) == mappedTask.ID);
+                var taskType = taskTypeCollection.SingleOrDefault (taskType => int.Parse (taskType.RowKey) == cardTask.TaskTypeID);
+                // A task whose type is gone reads as untyped, as it does on the
+                // calendar, rather than failing the whole board.
+                if (taskType is not null)
+                    mappedTask.TaskType = _taskMapper.MapTaskTypeToTaskTypeResponse (taskType);
 
-                var taskTimeline = timelineCollection.SingleOrDefault (timeline => Guid.Parse (timeline.RowKey) == cardTask.TimelineID);
+                // Matched on the timeline's ParentObjectID, not on Task.TimelineID.
+                //
+                // The link between a task and its timeline is written in one
+                // direction and was being read in the other. CreateTimeline sets
+                // Timeline.ParentObjectID to the task it belongs to; nothing
+                // anywhere sets Task.TimelineID -- searching the solution for it
+                // finds this line reading it, the two model declarations, and no
+                // writer. So every lookup here missed, and a task's timeline never
+                // reached the client however many dates were saved against it.
+                var taskTimeline = timelineCollection.SingleOrDefault (timeline => timeline.ParentObjectID.ToString () == cardTask.RowKey);
                 if (taskTimeline is not null)
                     mappedTask.Timeline = _timelineMapper.MapTimelineToTimelineResponse (taskTimeline);
+
+                mappedTask.Tags = tagsByParent [cardTask.RowKey!].Select (_tagMapper.MapTagToTagResponse).ToList ();
             }
 
             var mappedCard = _cardMapper.MapCardToCardResponse (card);
             mappedCard.Position = mappedCardPosition;
             mappedCard.Tasks = mappedTasks;
+            mappedCard.Tags = tagsByParent [card.RowKey].Select (_tagMapper.MapTagToTagResponse).ToList ();
+
+            // A card can carry a timeline of its own, and this never sent one --
+            // CardResponse.Timeline was left at its null default on every card the
+            // board returned, so the card overlay's timeline panel had nothing to
+            // show whatever was stored. Same parent link as the tasks above.
+            var cardTimeline = timelineCollection.SingleOrDefault (timeline => timeline.ParentObjectID.ToString () == card.RowKey);
+            if (cardTimeline is not null)
+                mappedCard.Timeline = _timelineMapper.MapTimelineToTimelineResponse (cardTimeline);
             
             cardResponse.Add (mappedCard);
         }
@@ -173,6 +210,13 @@ public class BoardController : Controller
         var cardToUpdate = await _cardRepository.GetCardPositionAsync (boardID, cardPositionID);
         //var cardToUpdate = cardFromTable.Value;
 
+        // GetCardPositionAsync returns null for a row that is not there rather than
+        // throwing, so this has to be checked before the properties below are read.
+        // Dragging a card whose position row has since been deleted would otherwise
+        // be a NullReferenceException.
+        if (cardToUpdate is null)
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (CardPosition)));
+
         var convertedCardToUpdate = new CardPositionPatchRequest
         {
             //Title = cardToUpdate.CardTitle,
@@ -224,11 +268,35 @@ public class BoardController : Controller
     [HttpDelete ("{boardID:guid}/cards/{cardID:guid}")] // Need to delete from board AND card tables. There might also be extensions to remove. For now though, I'm just going to do board.
     public async Task<ActionResult> DeleteCardPosition (Guid boardID, Guid cardID)
     {
-        var boardCardToDelete = await _cardRepository.GetCardPositionAsync (boardID, cardID);
+        // A card and its position row have different IDs. CreateCard mints a fresh
+        // Guid for the position (see CardController), stores it on the card as
+        // CardPositionID, and uses it as the position row's RowKey. This used to
+        // pass cardID straight in as the row key, so the lookup asked the
+        // CardPositions table for a row keyed by a card ID — a row that never
+        // exists — and every delete failed with ResourceNotFound (404).
+        //
+        // The route is keyed by cardID because that is what a client has, so go
+        // through the card to find its position.
+        var cardToDelete = await _cardRepository.GetCardAsync (boardID, cardID);
+        if (cardToDelete is null)
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (Card)));
+
+        if (cardToDelete.CardPositionID is null)
+            return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (CardPosition)));
+
+        var boardCardToDelete = await _cardRepository.GetCardPositionAsync (boardID, cardToDelete.CardPositionID.Value);
         if (boardCardToDelete is null)
             return NotFound (ErrorResponseMessages.NotFoundErrorResponse (nameof (CardPosition)));
 
         await _cardRepository.DeleteCardPositionAsync (boardCardToDelete);
+
+        // The card's tags, and its tasks', come off it: the card and its tasks
+        // stay as rows (docs/api-gaps.md, #3), but nothing shows them again, and a
+        // tag on nothing else would be on nothing anyone can see. A tag left on
+        // nothing stays in the list of tags (TagRepository.DetachLabelAsync).
+        await _tagRepository.DetachLabelsFromParentAsync (cardID);
+        foreach (var task in await _taskRepository.QueryTasksAsync (task => task.CardID == cardID))
+            await _tagRepository.DetachLabelsFromParentAsync (Guid.Parse (task.RowKey!));
         /*if (boardCardToDeleteResponse.IsError)
             return Problem (ErrorResponseMessages.RemoveFromDatabaseErrorResponse (nameof (BoardCard)));*/
 

@@ -21,4 +21,9 @@ public class CardPositionResponse
     public string? SwimlaneTitle { get; init; } = null;
 
     public int? SwimlaneOrder { get; init; } = null;
+
+    /// <summary>
+    /// The rank of the card within its cell. Lower is nearer the top.
+    /// </summary>
+    public int? PositionRank { get; init; } = null;
 }

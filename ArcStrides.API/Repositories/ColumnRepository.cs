@@ -28,7 +28,7 @@ public class ColumnRepository : IColumnRepository
     public async Task<Column?> GetColumnAsync (Guid boardID, Guid columnID)
         => await _columnTable.GetEntityAsync (boardID, columnID);
 
-    public async Task<Collection<Column>> GetAllBoardColumns (Guid boardID)
+    public async Task<Collection<Column>> GetAllBoardColumnsAsync (Guid boardID)
         => await _columnTable.GetEntitiesAsync (boardID);
 
     public async Task<Collection<Column>> QueryColumnsAsync (Expression<Func<Column, bool>> columnQueryExpression)
@@ -50,10 +50,16 @@ public class ColumnRepository : IColumnRepository
     {
         foreach (var column in columnEnumerableToUpdate)
         {
+            // Snapshot before mutating. The second argument is the entity the
+            // rollback restores, and passing the same instance that was just
+            // changed meant the "original" already carried the new order -- so a
+            // rollback would rewrite the value it was supposed to undo.
+            var columnBeforeUpdate = DeepCopier.Copy (column);
+
             column.ColumnOrder ++;
 
             var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, column);
-            arcTransaction.Add (transaction, column);
+            arcTransaction.Add (transaction, columnBeforeUpdate is null ? column : columnBeforeUpdate);
         }
 
         return arcTransaction;
@@ -63,10 +69,16 @@ public class ColumnRepository : IColumnRepository
     {
         foreach (var column in columnEnumerableToUpdate)
         {
+            // Snapshot before mutating. The second argument is the entity the
+            // rollback restores, and passing the same instance that was just
+            // changed meant the "original" already carried the new order -- so a
+            // rollback would rewrite the value it was supposed to undo.
+            var columnBeforeUpdate = DeepCopier.Copy (column);
+
             column.ColumnOrder --;
 
             var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, column);
-            arcTransaction.Add (transaction, column);
+            arcTransaction.Add (transaction, columnBeforeUpdate is null ? column : columnBeforeUpdate);
         }
 
         return arcTransaction;
@@ -95,7 +107,9 @@ public class ColumnRepository : IColumnRepository
                 newColumnToUpdate.ColumnOrder = index + 1;
 
                 var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, newColumnToUpdate);
-                arcTransaction.Add (transaction, newColumnToUpdate);
+                // currentColumnToUpdate, matching the loop above: the rollback has to
+                // hold the row as it stands, not the copy carrying the new order.
+                arcTransaction.Add (transaction, currentColumnToUpdate);
             }
           
         return arcTransaction;
@@ -103,11 +117,24 @@ public class ColumnRepository : IColumnRepository
 
     public ArcTransaction ApplyNewOrderForExistingCardPositions (IEnumerable<Column> columnEnumerable, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction)
     {
-        var effectedCardPositionEnumerable = cardPositionEnumerable.Where (cardPosition => columnEnumerable.Any (column => column.Title == cardPosition.ColumnTitle));
-        foreach (var cardPosition in effectedCardPositionEnumerable)
+        // Keyed on ColumnID rather than Title -- see the swimlane equivalent for why
+        // Title both threw on duplicates and silently stranded renamed columns.
+        var columnByID = columnEnumerable.ToDictionary (column => column.RowKey, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var cardPosition in cardPositionEnumerable)
         {
+            if (columnByID.TryGetValue (cardPosition.ColumnID.ToString (), out var column) is false)
+                continue;
+
+            // ColumnOrder is nullable, and .Value on an unset one throws from inside
+            // a reorder that has nothing to do with this row.
+            if (column.ColumnOrder is null)
+                continue;
+
             var originalCardPosition = DeepCopier.Copy (cardPosition);
-            cardPosition.ColumnOrder = columnEnumerable.Single (column => column.Title == cardPosition.ColumnTitle).ColumnOrder.Value;
+
+            cardPosition.ColumnOrder = column.ColumnOrder.Value;
+            cardPosition.ColumnTitle = column.Title;
 
             var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, cardPosition);
             arcTransaction.Add (transaction, originalCardPosition);
@@ -116,29 +143,41 @@ public class ColumnRepository : IColumnRepository
         return arcTransaction;
     }
 
-    public ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Column columnToDelete, IEnumerable<Column> columnEnumerable, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction)
+    /// <summary>
+    /// Moves the cards of a deleted column into the column that takes its place:
+    /// the one after it, or the one before it when it was the last.
+    /// </summary>
+    /// <remarks>
+    /// <paramref name="remainingColumns"/> is every column the board keeps, with the
+    /// orders they have after the delete. A card cannot be in no column, so the
+    /// controller refuses to delete the last one while it holds cards, and there is
+    /// always somewhere to move them.
+    ///
+    /// The candidates used to be only the columns whose order the delete had
+    /// changed, plus the deleted one. Deleting the rightmost column changes no
+    /// other order, so its cards were "moved" into the column being deleted, kept
+    /// an ID nothing on the board had, and disappeared from it. Cards are matched
+    /// on the column's ID rather than its title, which a rename leaves stale.
+    /// </remarks>
+    public ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Column columnToDelete, IEnumerable<Column> remainingColumns, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction)
     {
-        var columnToTransferCandidates = columnEnumerable.Where (column => column.PartitionKey == columnToDelete.PartitionKey
-                                                                           && (column.ColumnOrder == columnToDelete.ColumnOrder
-                                                                               || column.ColumnOrder == columnToDelete.ColumnOrder - 1));
-
-        if (columnToTransferCandidates.Count () is 0)
+        var columnToTransfer = remainingColumns.FirstOrDefault (column => column.ColumnOrder == columnToDelete.ColumnOrder)
+                               ?? remainingColumns.Where (column => column.ColumnOrder < columnToDelete.ColumnOrder)
+                                                  .MaxBy (column => column.ColumnOrder);
+        if (columnToTransfer is null)
             return arcTransaction;
-        var columnToTransfer = columnToTransferCandidates.Count() is 2 ?
-            columnToTransferCandidates.MaxBy (column => column.ColumnOrder)! :
-            columnToTransferCandidates.Single ();
 
-        var cardPositionsToTransfer = cardPositionEnumerable.Where (cardPosition => cardPosition.ColumnTitle == columnToDelete.Title)!;
-        if (cardPositionsToTransfer.Count () is 0) 
-            return arcTransaction;
+        var cardPositionsToTransfer = cardPositionEnumerable.Where (cardPosition => string.Equals (cardPosition.ColumnID.ToString (), columnToDelete.RowKey, StringComparison.OrdinalIgnoreCase));
         foreach (var cardPosition in cardPositionsToTransfer)
         {
-            cardPosition.ColumnID = Guid.Parse (columnToTransfer.RowKey);
+            var originalCardPosition = DeepCopier.Copy (cardPosition);
+
+            cardPosition.ColumnID = Guid.Parse (columnToTransfer.RowKey!);
             cardPosition.ColumnTitle = columnToTransfer.Title;
-            cardPosition.ColumnOrder = columnToTransfer.ColumnOrder.Value;
+            cardPosition.ColumnOrder = columnToTransfer.ColumnOrder!.Value;
 
             var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, cardPosition);
-            arcTransaction.Add (transaction, cardPosition);
+            arcTransaction.Add (transaction, originalCardPosition);
         }
 
         return arcTransaction;

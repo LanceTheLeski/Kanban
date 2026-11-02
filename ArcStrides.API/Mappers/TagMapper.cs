@@ -24,6 +24,7 @@ public partial class TagMapper
     /// <see cref="TagPatchRequest"/> --> <see cref="Tag"/>
     /// </summary>
     [MapProperty (nameof (TagPatchRequest.Title), nameof (Tag.Title))]
+    [MapProperty (nameof (TagPatchRequest.Color), nameof (Tag.Color))]
     [MapProperty (nameof (TagPatchRequest.TypeID), nameof (Tag.TagTypeID))]
     public partial Tag MapTagPatchRequestToTag (TagPatchRequest tagPatchRequest);
 
@@ -31,6 +32,7 @@ public partial class TagMapper
     /// <see cref="Tag"/> --> <see cref="TagPatchRequest"/>
     /// </summary>
     [MapProperty (nameof (Tag.Title), nameof (TagPatchRequest.Title))]
+    [MapProperty (nameof (Tag.Color), nameof (TagPatchRequest.Color))]
     [MapProperty (nameof (Tag.TagTypeID), nameof (TagPatchRequest.TypeID))]
     public partial TagPatchRequest MapTagToTagPatchRequest (Tag tag);
 
@@ -41,6 +43,7 @@ public partial class TagMapper
     [MapProperty (nameof (Tag.RowKey), nameof (TagResponse.ParentID))]
     [MapProperty (nameof (Tag.ParentObjectTypeName), nameof (TagResponse.ParentTypeName))]
     [MapProperty (nameof (Tag.Title), nameof (TagResponse.Title))]
+    [MapProperty (nameof (Tag.Color), nameof (TagResponse.Color))]
     public partial TagResponse MapTagToTagResponse (Tag tag);
 
     #endregion Tag

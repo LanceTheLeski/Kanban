@@ -1,0 +1,45 @@
+/**
+ * Task entity, and the TaskType it is categorised by.
+ *
+ * Mirrors: ArcStrides.UI.Legacy/Models/Board/Task.cs and TaskType.cs
+ *
+ * Shared rather than board-owned: the calendar reads a card's tasks too — to
+ * count them on the month grid and to list their deadlines in a day's overlay.
+ *
+ * A Task references Timeline. Entities are allowed to reference each other where
+ * the domain genuinely contains one in the other — Card holds Tasks, a Task holds
+ * a Timeline — and that containment only ever points one way, so it stays acyclic.
+ */
+
+import type { Tag } from '../Tag/Tag.Types'
+import type { Timeline } from '../Timeline/Timeline.Types'
+
+export interface TaskType
+{
+    id: number
+
+    groupTagId: string | null
+
+    title: string
+
+    /** `#rrggbb`, chosen from the board's Task types menu; null for its palette slot. See typeColours. */
+    colour: string | null
+}
+
+export interface Task
+{
+    id: string
+
+    title: string
+
+    order: number
+
+    taskType: TaskType | null
+
+    isCompleted: boolean | null
+
+    timeline: Timeline | null
+
+    /** The task's tags, by title. A task created here starts with none. */
+    tags: Tag[]
+}

@@ -19,7 +19,24 @@ public interface IAzureTableService<T> where T : class, ITableEntity, new()
 
     Task AddEntityAsync (T entityToCreate);
 
+    /// <summary>
+    /// Merges the entity into its stored row: the properties it has are written, and
+    /// the stored row keeps any it does not. A null property is not sent at all, so a
+    /// value cannot be cleared this way — see ReplaceEntityAsync.
+    /// </summary>
     Task UpdateEntityAsync (T entityToUpdate);
+
+    /// <summary>
+    /// Writes the entity over its stored row whole, nulls included. For an entity that
+    /// was read in full and changed, where a property set to null has to be cleared.
+    /// </summary>
+    Task ReplaceEntityAsync (T entityToReplace);
+
+    /// <summary>
+    /// Writes the entity whole, as ReplaceEntityAsync does, adding the row if it is
+    /// not there yet. For a row that is only ever written in full, such as a setting.
+    /// </summary>
+    Task UpsertEntityAsync (T entityToWrite);
 
     Task UpdateEntityBatchAsync (IEnumerable<T> entityEnumerable);
 

@@ -28,7 +28,7 @@ public class SwimlaneRepository : ISwimlaneRepository
     public async Task<Swimlane?> GetSwimlaneAsync (Guid boardID, Guid swimlaneID)
         => await _swimlaneTable.GetEntityAsync (boardID, swimlaneID);
 
-    public async Task<Collection<Swimlane>> GetAllBoardSwimlanes (Guid boardID)
+    public async Task<Collection<Swimlane>> GetAllBoardSwimlanesAsync (Guid boardID)
         => await _swimlaneTable.GetEntitiesAsync (boardID);
 
     public async Task<Collection<Swimlane>> QuerySwimlanesAsync (Expression<Func<Swimlane, bool>> swimlaneQueryExpression)
@@ -50,10 +50,16 @@ public class SwimlaneRepository : ISwimlaneRepository
     {
         foreach (var swimlane in swimlaneEnumerableToUpdate)
         {
+            // Snapshot before mutating. The second argument is the entity the
+            // rollback restores, and passing the same instance that was just
+            // changed meant the "original" already carried the new order -- so a
+            // rollback would rewrite the value it was supposed to undo.
+            var swimlaneBeforeUpdate = DeepCopier.Copy (swimlane);
+
             swimlane.SwimlaneOrder ++;
 
             var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, swimlane);
-            arcTransaction.Add (transaction, swimlane);
+            arcTransaction.Add (transaction, swimlaneBeforeUpdate is null ? swimlane : swimlaneBeforeUpdate);
         }
 
         return arcTransaction;
@@ -63,10 +69,16 @@ public class SwimlaneRepository : ISwimlaneRepository
     {
         foreach (var swimlane in swimlaneEnumerableToUpdate)
         {
+            // Snapshot before mutating. The second argument is the entity the
+            // rollback restores, and passing the same instance that was just
+            // changed meant the "original" already carried the new order -- so a
+            // rollback would rewrite the value it was supposed to undo.
+            var swimlaneBeforeUpdate = DeepCopier.Copy (swimlane);
+
             swimlane.SwimlaneOrder --;
 
             var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, swimlane);
-            arcTransaction.Add (transaction, swimlane);
+            arcTransaction.Add (transaction, swimlaneBeforeUpdate is null ? swimlane : swimlaneBeforeUpdate);
         }
 
         return arcTransaction;
@@ -80,20 +92,28 @@ public class SwimlaneRepository : ISwimlaneRepository
         if (swimlaneToUpdate.SwimlaneOrder < newSwimlaneOrder)
             for (int index = swimlaneToUpdate.SwimlaneOrder + 1; index <= newSwimlaneOrder; index++)
             {
-                var newSwimlaneToUpdate = DeepCopier.Copy (boardSwimlaneEnumerable.Single (swimlane => swimlane.SwimlaneOrder == index));
+                // The copy is what gets the new order; the row as it stands is what
+                // the rollback restores. Passing the mutated copy as both left the
+                // rollback holding the value it was meant to undo.
+                var swimlaneAtIndex = boardSwimlaneEnumerable.Single (swimlane => swimlane.SwimlaneOrder == index);
+                var newSwimlaneToUpdate = DeepCopier.Copy (swimlaneAtIndex);
                 newSwimlaneToUpdate.SwimlaneOrder = index - 1;
 
                 var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, newSwimlaneToUpdate);
-                arcTransaction.Add (transaction, newSwimlaneToUpdate);
+                arcTransaction.Add (transaction, swimlaneAtIndex);
             }
         if (swimlaneToUpdate.SwimlaneOrder > newSwimlaneOrder)
             for (int index = newSwimlaneOrder; index < swimlaneToUpdate.SwimlaneOrder; index++)
             {
-                var newSwimlaneToUpdate = DeepCopier.Copy (boardSwimlaneEnumerable.Single (swimlane => swimlane.SwimlaneOrder == index));
+                // The copy is what gets the new order; the row as it stands is what
+                // the rollback restores. Passing the mutated copy as both left the
+                // rollback holding the value it was meant to undo.
+                var swimlaneAtIndex = boardSwimlaneEnumerable.Single (swimlane => swimlane.SwimlaneOrder == index);
+                var newSwimlaneToUpdate = DeepCopier.Copy (swimlaneAtIndex);
                 newSwimlaneToUpdate.SwimlaneOrder = index + 1;
 
                 var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, newSwimlaneToUpdate);
-                arcTransaction.Add (transaction, newSwimlaneToUpdate);
+                arcTransaction.Add (transaction, swimlaneAtIndex);
             }
 
         return arcTransaction;
@@ -101,46 +121,126 @@ public class SwimlaneRepository : ISwimlaneRepository
 
     public ArcTransaction ApplyNewOrderForExistingCardPositions (IEnumerable<Swimlane> swimlaneEnumerable, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction)
     {
-        var effectedCardPositionEnumerable = cardPositionEnumerable.Where (cardPosition => swimlaneEnumerable.Any (swimlane => swimlane.Title == cardPosition.SwimlaneTitle));
-        if (effectedCardPositionEnumerable.Count () is not 0)
-        {
-            foreach (var cardPosition in effectedCardPositionEnumerable)
-            {
-                cardPosition.SwimlaneOrder = swimlaneEnumerable.Single (swimlane => swimlane.Title == cardPosition.SwimlaneTitle).SwimlaneOrder;
+        // Keyed on SwimlaneID rather than Title.
+        //
+        // Title was both fragile and unsafe. Single() threw outright if two
+        // swimlanes ever shared a title, which is exactly the state the board
+        // validator is there to reject -- so a board that had drifted could not be
+        // repaired by the very operations meant to reorder it. And a swimlane
+        // renamed at any point left its cards matching nothing: they kept a stale
+        // SwimlaneOrder while the swimlane moved, and silently, because a card that
+        // matches no title is filtered out rather than reported.
+        //
+        // An ID cannot drift. Case-insensitive because a Guid rendered by two
+        // different code paths need not agree on case.
+        var swimlaneByID = swimlaneEnumerable.ToDictionary (swimlane => swimlane.RowKey, StringComparer.OrdinalIgnoreCase);
 
-                var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, cardPosition);
-                arcTransaction.Add (transaction, cardPosition);
-            }
+        foreach (var cardPosition in cardPositionEnumerable)
+        {
+            if (swimlaneByID.TryGetValue (cardPosition.SwimlaneID.ToString (), out var swimlane) is false)
+                continue;
+
+            var originalCardPosition = DeepCopier.Copy (cardPosition);
+
+            cardPosition.SwimlaneOrder = swimlane.SwimlaneOrder;
+            // CardPosition carries its own copy of the title for display. Writing it
+            // here keeps the copy honest, and lets a row left stale by an earlier
+            // rename heal the next time its swimlane moves.
+            cardPosition.SwimlaneTitle = swimlane.Title;
+
+            var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, cardPosition);
+            arcTransaction.Add (transaction, originalCardPosition);
         }
 
         return arcTransaction;
     }
 
-    public ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Swimlane swimlaneToDelete, IEnumerable<Swimlane> swimlaneEnumerable, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction)
+    /// <summary>
+    /// Moves the cards of a deleted swimlane into the swimlane that takes its place:
+    /// the one after it, or the one before it when it was the last. With no
+    /// swimlane left, the cards keep their columns and lose their swimlane.
+    /// </summary>
+    /// <remarks>
+    /// <paramref name="remainingSwimlanes"/> is every swimlane the board keeps, with
+    /// the orders they have after the delete.
+    ///
+    /// The candidates used to be only the swimlanes whose order the delete had
+    /// changed, plus the deleted one. Deleting the last swimlane changes no other
+    /// order, so the deleted swimlane was the only candidate, and its cards were
+    /// "moved" to it: they kept the ID of a row that no longer existed, matched no
+    /// lane on the board, and disappeared from it. Deleting the only swimlane did
+    /// the same. Cards are matched on the swimlane's ID rather than its title, for
+    /// the reason ApplyNewOrderForExistingCardPositions gives.
+    /// </remarks>
+    public ArcTransaction ApplyNewTitleAndOrderForExistingCardPositions (Swimlane swimlaneToDelete, IEnumerable<Swimlane> remainingSwimlanes, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction)
     {
-        var swimlaneToTransferCandidates = swimlaneEnumerable.Where (swimlane => swimlane.PartitionKey == swimlaneToDelete.PartitionKey
-                                                                                 && (swimlane.SwimlaneOrder == swimlaneToDelete.SwimlaneOrder
-                                                                                     || swimlane.SwimlaneOrder == swimlaneToDelete.SwimlaneOrder - 1));
+        var swimlaneToTransfer = remainingSwimlanes.FirstOrDefault (swimlane => swimlane.SwimlaneOrder == swimlaneToDelete.SwimlaneOrder)
+                                 ?? remainingSwimlanes.Where (swimlane => swimlane.SwimlaneOrder < swimlaneToDelete.SwimlaneOrder)
+                                                      .MaxBy (swimlane => swimlane.SwimlaneOrder);
 
-        if (swimlaneToTransferCandidates.Count () is 0)
-            return arcTransaction;
-        var swimlaneToTransfer = swimlaneToTransferCandidates.Count () is 2 ?
-            swimlaneToTransferCandidates.MaxBy (swimlane => swimlane.SwimlaneOrder)! :
-            swimlaneToTransferCandidates.Single ();
-
-        var cardPositionsToTransfer = cardPositionEnumerable.Where (cardPosition => cardPosition.SwimlaneTitle == swimlaneToDelete.Title)!;
-        if (cardPositionsToTransfer.Count () is 0)
-            return arcTransaction;
+        var cardPositionsToTransfer = cardPositionEnumerable.Where (cardPosition => string.Equals (cardPosition.SwimlaneID.ToString (), swimlaneToDelete.RowKey, StringComparison.OrdinalIgnoreCase));
         foreach (var cardPosition in cardPositionsToTransfer)
         {
-            cardPosition.SwimlaneID = Guid.Parse (swimlaneToTransfer.RowKey);
-            cardPosition.SwimlaneTitle = swimlaneToTransfer.Title;
-            cardPosition.SwimlaneOrder = swimlaneToTransfer.SwimlaneOrder;
+            var originalCardPosition = DeepCopier.Copy (cardPosition);
+
+            if (swimlaneToTransfer is null)
+                ClearSwimlane (cardPosition);
+            else
+            {
+                cardPosition.SwimlaneID = Guid.Parse (swimlaneToTransfer.RowKey);
+                cardPosition.SwimlaneTitle = swimlaneToTransfer.Title;
+                cardPosition.SwimlaneOrder = swimlaneToTransfer.SwimlaneOrder;
+            }
 
             var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, cardPosition);
-            arcTransaction.Add (transaction, cardPosition);
+            arcTransaction.Add (transaction, originalCardPosition);
         }
 
         return arcTransaction;
+    }
+
+    /// <summary>
+    /// Puts every card that is in no swimlane into the one being added.
+    /// </summary>
+    /// <remarks>
+    /// A card is in no swimlane when the board had none (see
+    /// <see cref="CardPosition.SwimlaneID"/>), or when it names a swimlane that is not
+    /// on the board any more, which is what deleting the last swimlane left behind
+    /// before ApplyNewTitleAndOrderForExistingCardPositions moved cards on. Either
+    /// way the board drew those cards nowhere, and the new swimlane is the first
+    /// place there is to draw them.
+    /// </remarks>
+    public ArcTransaction AssignUnplacedCardPositions (Swimlane newSwimlane, IEnumerable<Swimlane> existingSwimlanes, IEnumerable<CardPosition> cardPositionEnumerable, ArcTransaction arcTransaction)
+    {
+        var existingSwimlaneIDs = existingSwimlanes.Select (swimlane => swimlane.RowKey)
+                                                   .ToHashSet (StringComparer.OrdinalIgnoreCase);
+
+        foreach (var cardPosition in cardPositionEnumerable.Where (cardPosition => existingSwimlaneIDs.Contains (cardPosition.SwimlaneID.ToString ()) is false))
+        {
+            var originalCardPosition = DeepCopier.Copy (cardPosition);
+
+            cardPosition.SwimlaneID = Guid.Parse (newSwimlane.RowKey);
+            cardPosition.SwimlaneTitle = newSwimlane.Title;
+            cardPosition.SwimlaneOrder = newSwimlane.SwimlaneOrder;
+
+            var transaction = new TableTransactionAction (TableTransactionActionType.UpdateMerge, cardPosition);
+            arcTransaction.Add (transaction, originalCardPosition);
+        }
+
+        return arcTransaction;
+    }
+
+    /// <summary>
+    /// Takes a card out of every swimlane, on a board that has none left.
+    /// </summary>
+    /// <remarks>
+    /// The title is emptied rather than nulled: the write is a merge, and a merge
+    /// leaves a null property out, so the old title would stay (docs/api-gaps.md, #9).
+    /// </remarks>
+    private static void ClearSwimlane (CardPosition cardPosition)
+    {
+        cardPosition.SwimlaneID = Guid.Empty;
+        cardPosition.SwimlaneTitle = string.Empty;
+        cardPosition.SwimlaneOrder = 0;
     }
 }

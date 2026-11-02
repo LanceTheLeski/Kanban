@@ -3,8 +3,8 @@ using ArcStrides.API.Mappers;
 using ArcStrides.API.Repositories;
 using ArcStrides.Contracts.Request.Create;
 using ArcStrides.Contracts.Request.Patch;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Exceptions;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using ArcStrides.API.Messages;
 using ArcStrides.API.Models.Board;
@@ -23,6 +23,7 @@ public class TimelineController : Controller
     private readonly ITimelineRepository _timelineRepository;
 
     private readonly TimelineMapper _timelineMapper;
+    private readonly TimelinePatchMapper _timelinePatchMapper;
 
     public TimelineController (ITimelineRepository timelineRepository,
                                TimelineMapper timelineMapper)
@@ -34,6 +35,7 @@ public class TimelineController : Controller
         _timelineRepository = timelineRepository;
 
         _timelineMapper = timelineMapper;
+        _timelinePatchMapper = new TimelinePatchMapper ();
     }
 
     [HttpGet ("{timelineID:Guid}")]
@@ -57,12 +59,12 @@ public class TimelineController : Controller
             return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TimelineCreateRequest), "")
                                + "\n" + validationResult.ToString ());
 
-        var parentExists = await _timelineRepository.ParentExistsAsync (timelineCreateRequest.ParentID.Value, timelineCreateRequest.TimelineTypeID.Value);
+        var parentExists = await _timelineRepository.ParentExistsAsync (boardID, timelineCreateRequest.ParentID.Value, timelineCreateRequest.TimelineTypeID.Value);
         if (parentExists is false)
             return BadRequest (ErrorResponseMessages.NotFoundErrorResponse ("Parent"));
 
         var newTimeline = _timelineMapper.MapTimelineCreateRequestToTimeline (timelineCreateRequest);
-        newTimeline.PartitionKey = boardID.ToString();
+        newTimeline.PartitionKey = boardID.ToString ();
         newTimeline.RowKey = Guid.NewGuid ().ToString ();
         newTimeline = TimelineSpecifyKind (newTimeline);
 
@@ -81,7 +83,7 @@ public class TimelineController : Controller
     {
         var validationResult = _timelinePatchRequestDocumentValidator.Validate (timelinePatchRequestDocument);
         if (validationResult.IsValid is false)
-            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TagPatchRequest), validationResult.ToString ()));
+            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TimelinePatchRequest), validationResult.ToString ()));
 
         var timelineToUpdateCollection = await _timelineRepository.QueryTimelinesAsync (timeline => timeline.RowKey == timelineID.ToString ());
         if (timelineToUpdateCollection is null || timelineToUpdateCollection.Count () is 0)
@@ -97,10 +99,10 @@ public class TimelineController : Controller
 
         validationResult = _timelinePatchRequestValidator.Validate (timelinePatchRequest);
         if (validationResult.IsValid is false)
-            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TagPatchRequest), validationResult.ToString ()));
+            return BadRequest (ErrorResponseMessages.ValidationFailedErrorResponse (nameof (TimelinePatchRequest), validationResult.ToString ()));
 
-        var convertedTimelineToUpdate = _timelineMapper.MapTimelinePatchRequestToTimeline (timelinePatchRequest); // Make sure that the response object is preserved if not mapped to
-        _timelineMapper.MapFieldsFromSourceToTarget (convertedTimelineToUpdate, timelineToUpdate);
+        // Nulls included: a point patched to null is a point cleared. See TimelinePatchMapper.
+        _timelinePatchMapper.ApplyTimelinePatchRequestToTimeline (timelinePatchRequest, timelineToUpdate);
 
         timelineToUpdate = TimelineSpecifyKind (timelineToUpdate);
 
