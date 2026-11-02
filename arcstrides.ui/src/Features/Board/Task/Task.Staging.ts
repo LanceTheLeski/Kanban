@@ -22,7 +22,8 @@
  *
  *   1. deletes      each moves up the card's tasks after it
  *   2. creates      each added at the end, so no two tasks share a place —
- *                   the create endpoint does not move anything to make room
+ *                   the create endpoint does not move anything to make room —
+ *                   then its tags, then its timeline
  *   3. edits        title, type, done, tags, timeline: not the order
  *   4. the order    each task moved to its place, first to last
  *
@@ -78,6 +79,15 @@ export interface TaskSaveProgress
 
     deleted: Set<string>
 
+    /**
+     * Staged IDs of new tasks whose tags were put on, and whose timeline was
+     * created: a Save that fails after creating a task writes these on the next
+     * press, though it does not create the task again.
+     */
+    tagged: Set<string>
+
+    scheduled: Set<string>
+
     edited: Set<string>
 
     /** Moves were sent; after a failure part way, every move is sent again. */
@@ -86,7 +96,7 @@ export interface TaskSaveProgress
 
 export function newTaskSaveProgress(): TaskSaveProgress
 {
-    return { created: new Map(), deleted: new Set(), edited: new Set(), reordering: false }
+    return { created: new Map(), deleted: new Set(), tagged: new Set(), scheduled: new Set(), edited: new Set(), reordering: false }
 }
 
 /** A task as stored, staged with nothing changed. */
@@ -247,25 +257,38 @@ export async function saveCardTasks(boardId: string,
                                .map(task => task.id)
     onServer.push(...progress.created.values())
 
-    // 2. Creates, each at the end.
+    // 2. Creates, each at the end, then its tags and its timeline. One created
+    // on an earlier press is not created again, but what was not written for it
+    // then is written now.
     for (const entry of staged)
     {
-        if (!isNewTask(entry.task) || progress.created.has(entry.task.id))
+        if (!isNewTask(entry.task))
             continue
-        const created = await createTask(boardId, cardId, {
-            title: entry.task.title.trim() || 'New task',
-            taskTypeId: entry.task.taskType?.id ?? -1,
-            order: onServer.length,
-            isComplete: !!entry.task.isCompleted,
-        })
-        progress.created.set(entry.task.id, created.id)
-        onServer.push(created.id)
-        if (entry.task.tags.length > 0)
-            await saveTags({ id: created.id, kind: 'task' }, [], entry.task.tags)
-        if (hasTimeline(entry.timelineDraft))
-            await createTimeline(boardId, { parentId: created.id,
+        let id = progress.created.get(entry.task.id)
+        if (id === undefined)
+        {
+            const created = await createTask(boardId, cardId, {
+                title: entry.task.title.trim() || 'New task',
+                taskTypeId: entry.task.taskType?.id ?? -1,
+                order: onServer.length,
+                isComplete: !!entry.task.isCompleted,
+            })
+            id = created.id
+            progress.created.set(entry.task.id, id)
+            onServer.push(id)
+        }
+        if (entry.task.tags.length > 0 && !progress.tagged.has(entry.task.id))
+        {
+            await saveTags({ id, kind: 'task' }, [], entry.task.tags)
+            progress.tagged.add(entry.task.id)
+        }
+        if (hasTimeline(entry.timelineDraft) && !progress.scheduled.has(entry.task.id))
+        {
+            await createTimeline(boardId, { parentId: id,
                                             timelineTypeId: TIMELINE_PARENT_TASK,
                                             ...draftToTimelineDates(entry.timelineDraft) })
+            progress.scheduled.add(entry.task.id)
+        }
     }
 
     // 3. Edits.

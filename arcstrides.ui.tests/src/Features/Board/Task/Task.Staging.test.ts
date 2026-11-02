@@ -134,7 +134,7 @@ describe('timelineOfDraft', () =>
     it('is the draft\'s dates over the stored timeline, which keeps its ID and dependency groups; with none stored, it has neither', () =>
     {
         const stored = timeline('t-1', { startDependencyTagGroupId: 'group-1', endDependencyTagGroupId: 'group-2' })
-        const dates = { startDeadlineUTC: new Date('2026-11-03T15:30:00Z'), startDeadlineDurationMinutes: 30 }
+        const dates = { endDeadlineUTC: new Date('2026-11-03T15:30:00Z'), endDeadlineDurationMinutes: 30 }
 
         expect(timelineOfDraft(stored, deadlineDraft())).toEqual(timeline('t-1', {
             startDependencyTagGroupId: 'group-1',
@@ -457,14 +457,14 @@ describe('saveCardTasks', () =>
             startPreferenceUTC: null,
             startPreferenceDurationMinutes: null,
             startPreferenceTimeIsRelative: false,
-            startDeadlineUTC: new Date('2026-11-03T15:30:00Z'),
-            startDeadlineDurationMinutes: 30,
+            startDeadlineUTC: null,
+            startDeadlineDurationMinutes: null,
             startDeadlineTimeIsRelative: false,
             endPreferenceUTC: null,
             endPreferenceDurationMinutes: null,
             endPreferenceTimeIsRelative: false,
-            endDeadlineUTC: null,
-            endDeadlineDurationMinutes: null,
+            endDeadlineUTC: new Date('2026-11-03T15:30:00Z'),
+            endDeadlineDurationMinutes: 30,
             endDeadlineTimeIsRelative: false,
         })
     })
@@ -507,6 +507,37 @@ describe('saveCardTasks', () =>
         await save(saved, staged, progress)
         expect(server.calls).toEqual(['create "Plan" at 1', 'create "Review" at 2'])
         expect(server.ids()).toEqual(['a', 'server-1', 'server-2'])
+    })
+
+    it('writes the tags of a task it created when the Save failed before them, and does not create it again', async () =>
+    {
+        const saved = storedTasks('a')
+        const server = fakeServer(saved)
+        const progress = newTaskSaveProgress()
+        const staged = renumbered([stagedFrom(saved[0]), added('Plan', { tags: [tag('t1', 'Urgent')] })])
+        server.failOnce('tags task server-1: [] -> [Urgent]')
+
+        await expect(save(saved, staged, progress)).rejects.toThrow('tags task server-1: [] -> [Urgent] failed')
+        expect(server.calls).toEqual(['create "Plan" at 1'])
+
+        await save(saved, staged, progress)
+        expect(server.calls).toEqual(['create "Plan" at 1', 'tags task server-1: [] -> [Urgent]'])
+        expect(server.ids()).toEqual(['a', 'server-1'])
+    })
+
+    it('creates the timeline of a task it created when the Save failed before it, and does not put its tags on again', async () =>
+    {
+        const saved = storedTasks('a')
+        const server = fakeServer(saved)
+        const progress = newTaskSaveProgress()
+        const staged = renumbered([stagedFrom(saved[0]), added('Plan', { tags: [tag('t1', 'Urgent')] }, deadlineDraft())])
+        server.failOnce('timeline for server-1, kind 2')
+
+        await expect(save(saved, staged, progress)).rejects.toThrow('timeline for server-1, kind 2 failed')
+        expect(server.calls).toEqual(['create "Plan" at 1', 'tags task server-1: [] -> [Urgent]'])
+
+        await save(saved, staged, progress)
+        expect(server.calls).toEqual(['create "Plan" at 1', 'tags task server-1: [] -> [Urgent]', 'timeline for server-1, kind 2'])
     })
 
     it('does not repeat an edit when a Save that failed part way is pressed again', async () =>
@@ -651,7 +682,7 @@ function draft(mode: TimelineDraft['mode'], changes: Partial<TimelineDraft> = {}
 /** A deadline on 3 November 2026 at 09:30 Chicago time, lasting half an hour. */
 function deadlineDraft(changes: Partial<TimelineDraft> = {}): TimelineDraft
 {
-    return draft('deadline', { requiredStart: new Date('2026-11-03T15:30:00Z'), requiredStartDuration: 30, ...changes })
+    return draft('deadline', { requiredEnd: new Date('2026-11-03T15:30:00Z'), requiredEndDuration: 30, ...changes })
 }
 
 /** saveCardTasks for the card the tests use. */
