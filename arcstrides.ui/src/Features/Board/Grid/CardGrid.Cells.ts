@@ -23,7 +23,6 @@ import { arrayMove } from '@dnd-kit/sortable'
 import type { Card } from '../../../Entities/Card/Card.Types'
 import type { Column, Swimlane } from '../Board.Types'
 
-/** Where a card should end up: which cell, and how far down it. */
 /**
  * Where one card ends up.
  *
