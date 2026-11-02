@@ -39,7 +39,8 @@
  * two columns, and as many rows as half the types, rounded up, which grow
  * smaller as types are added. With an odd number of types the one with the most
  * tasks takes a whole row, so there is no hole. At most the ten types with the
- * most tasks are there; the rest are still lines and in the ring. The numbers
+ * most tasks are there (mostTasks, in Calendar.Stats); the rest are still lines
+ * and in the ring. The numbers
  * are written in whichever ink reads on each colour (isLight) while a block is
  * big enough to hold one — up to three rows.
  *
@@ -56,7 +57,7 @@ import React from 'react'
 import { Box } from '@mui/material'
 import { MONO } from '../../../Styles/Fonts'
 import { isLight } from '../../../Styles/Stock'
-import type { TypeSlice } from '../Calendar.Stats'
+import { mostTasks, type TypeSlice } from '../Calendar.Stats'
 
 interface TaskProgressLineChartProps
 {
@@ -183,9 +184,6 @@ function pathOf(ratio: number): string
     return `M 0 ${base} C ${handle} ${base}, ${handle} ${level}, ${middle} ${level} L ${W} ${level}`
 }
 
-/** As many types as the blocks show: the ones with the most tasks. */
-const MOST_BLOCKS = 10
-
 interface CountBlocksProps
 {
     types: TypeSlice[]
@@ -249,17 +247,6 @@ function CountBlocks({ types, slices, hovered, onHover }: CountBlocksProps)
             }
         </Box>
     )
-}
-
-/** The types with the most tasks, MOST_BLOCKS at most, in the order they came. */
-function mostTasks(types: TypeSlice[]): TypeSlice[]
-{
-    if (types.length <= MOST_BLOCKS)
-        return types
-    const kept = new Set([...types].sort((a, b) => b.count - a.count)
-                                   .slice(0, MOST_BLOCKS)
-                                   .map(slice => slice.key))
-    return types.filter(slice => kept.has(slice.key))
 }
 
 /** The number's size by how many rows there are; none where a block is too small to hold one. */

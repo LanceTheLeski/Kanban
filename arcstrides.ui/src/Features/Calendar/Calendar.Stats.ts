@@ -163,6 +163,27 @@ export function colourOf(typeId: number | null | undefined, colours: Map<number,
     return colours.get(typeId) ?? OTHER_COLOUR
 }
 
+/**
+ * As many types as a day's count blocks show (TaskProgressLineChart): past ten,
+ * a block is too small to read, and the header has no more room.
+ */
+export const MOST_BLOCKS = 10
+
+/**
+ * The types with the most tasks, MOST_BLOCKS at most, in the order they came —
+ * which is what the blocks show. Of two with the same count, the one first in
+ * the day's order is kept.
+ */
+export function mostTasks(types: TypeSlice[]): TypeSlice[]
+{
+    if (types.length <= MOST_BLOCKS)
+        return types
+    const kept = new Set([...types].sort((a, b) => b.count - a.count)
+                                   .slice(0, MOST_BLOCKS)
+                                   .map(slice => slice.key))
+    return types.filter(slice => kept.has(slice.key))
+}
+
 // ── Private ───────────────────────────────────────────────────────────────────
 // Not exported, which is this language's `private`. Ordered by first use above.
 
