@@ -23,7 +23,6 @@
  * Wired in by eslint.config.js; `npm run lint` and `npm run check` run it.
  */
 
-import path from 'node:path'
 import { layoutRules } from './eslint-arc-layout.js'
 
 const DOC = 'docs/ui-conventions.md'
@@ -48,8 +47,8 @@ const fileNamedForExport = {
     },
     create(context) {
         const file = context.filename
-        const base = path.basename(file).replace(/\.(tsx?|jsx?)$/, '')
-        const folder = path.basename(path.dirname(file))
+        const base = segments(file).at(-1).replace(/\.(tsx?|jsx?)$/, '')
+        const folder = segments(file).at(-2)
         if (base.includes('.') || base === 'main' || folder === 'Styles' || folder === 'Lib') return {}
 
         const exported = new Set()
@@ -69,7 +68,7 @@ const fileNamedForExport = {
                     node: program,
                     messageId: 'mismatch',
                     data: {
-                        file: path.basename(file),
+                        file: segments(file).at(-1),
                         exports: exported.size ? [...exported].join(', ') : 'nothing',
                         expected: base,
                     },
@@ -112,8 +111,8 @@ const componentRole = {
     },
     create(context) {
         const file = context.filename
-        const name = path.basename(file).replace(/\.(tsx?|jsx?)$/, '')
-        const parts = file.split(path.sep)
+        const parts = segments(file)
+        const name = parts.at(-1).replace(/\.(tsx?|jsx?)$/, '')
         const folder = parts[parts.length - 2]
         const inFeature = parts.includes('Features')
         if (name.includes('.') || name === 'main' || name === 'App' || parts.includes('Styles') || parts.includes('Lib')) return {}
@@ -263,7 +262,7 @@ const fontsFromFonts = {
         },
     },
     create(context) {
-        if (context.filename.endsWith(path.join('Styles', 'Fonts.ts'))) return {}
+        if (segments(context.filename).slice(-2).join('/') === 'Styles/Fonts.ts') return {}
         return {
             Property(node) {
                 const key = node.key.type === 'Identifier' ? node.key.name : node.key.value
@@ -297,8 +296,8 @@ const coloursFromPalette = {
         },
     },
     create(context) {
-        const file = context.filename
-        if (file.includes(`${path.sep}Styles${path.sep}`) || file.endsWith(path.join('Calendar', 'Calendar.Stats.ts'))) return {}
+        const parts = segments(context.filename)
+        if (parts.includes('Styles') || parts.slice(-2).join('/') === 'Calendar/Calendar.Stats.ts') return {}
 
         const check = (node, text) => {
             for (const match of text.matchAll(/#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?(?:[0-9a-fA-F]{2})?\b/g))
@@ -338,6 +337,17 @@ export default {
 // Not exported, which is this language's `private`. Ordered by first use above.
 
 /** The names a declaration introduces, including every binding in a destructure. */
+/**
+ * A file's path, folder by folder, whichever way its separators lean. ESLint
+ * hands a rule the path as the system writes it — with backslashes on Windows —
+ * and this file's tests write theirs with slashes. Splitting on `path.sep`
+ * alone left a slashed path in one piece on Windows, so the rules could not see
+ * its Hooks/, Assets/ or Styles/ folder, and three of the tests failed there.
+ */
+function segments(file) {
+    return file.split(/[\\/]/)
+}
+
 function declaredNames(node) {
     if (!node) return []
     if (node.type === 'VariableDeclaration') return node.declarations.flatMap(declaration => bindingNames(declaration.id))

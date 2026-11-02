@@ -286,7 +286,8 @@ const jsxChildSpacing = {
                         })
                     return
                 }
-                const leadOk = lead === ' ' || /^[ \t]*\n/.test(lead)
+                // \r?: a file checked out on Windows ends its lines in \r\n.
+                const leadOk = lead === ' ' || /^[ \t]*\r?\n/.test(lead)
                 const closeOk = startsLine(source, close) && close.loc.start.column === open.loc.start.column
                 if (leadOk && closeOk) return
                 context.report({

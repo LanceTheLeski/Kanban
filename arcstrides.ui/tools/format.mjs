@@ -12,6 +12,7 @@
  */
 
 import { execFileSync } from 'node:child_process'
+import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { ESLint } from 'eslint'
@@ -43,7 +44,19 @@ async function eslintToStandstill() {
     for (let passes = 0; passes < ROUNDS; passes += 1) {
         const results = await eslint.lintFiles(FILES)
         if (!results.some(result => result.output !== undefined)) return passes
+        for (const result of results)
+            if (result.output !== undefined)
+                result.output = inEndingsOf(fs.readFileSync(result.filePath, 'utf8'), result.output)
         await ESLint.outputFixes(results)
     }
     return ROUNDS
+}
+
+/**
+ * Fixed text in the line endings of the file it came from. A fixer writes "\n";
+ * in a file checked out with "\r\n", as Git for Windows does, that left a few
+ * lines unlike the rest, and Visual Studio asks what to do about them.
+ */
+function inEndingsOf(original, fixed) {
+    return original.includes('\r\n') ? fixed.replace(/\r?\n/g, '\r\n') : fixed
 }

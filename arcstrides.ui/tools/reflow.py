@@ -137,13 +137,15 @@ def main(argv):
 
     out_of_shape = []
     for path in paths:
-        before = path.read_text()
+        # UTF-8 by name: before Python 3.15, Windows reads in its own code page,
+        # which cannot decode every character these files hold.
+        before = path.read_text(encoding='utf-8')
         after = reflow(before)
         if after == before:
             continue
         out_of_shape.append(path)
         if not check:
-            path.write_text(after)
+            path.write_text(after, encoding='utf-8')
 
     verb = 'out of shape' if check else 'reflowed'
     for path in out_of_shape:

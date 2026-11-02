@@ -153,6 +153,28 @@ npm run dev
 Serves <http://localhost:54671>, which is the origin the API's `DevCors` policy
 allows — don't change the port without changing `Program.cs` to match.
 
+### Checking a change
+
+`npm run check` is what `CLAUDE.md` asks for before a UI change is committed:
+the type checker, ESLint with this project's rules, and the JSX layout check.
+From the repository root, without changing directory:
+
+```
+npm run check --prefix arcstrides.ui
+```
+
+It needs:
+
+- **Node 22.12 or newer**, on a long-term-support release: 24 or 26. Node 25
+  reached its end of life in June 2026.
+- **Python 3 on the PATH as `python3`**, for the layout check
+  (`tools/reflow.py`). `npm run format` uses it too.
+
+It runs on Windows as it does elsewhere: the rules read paths with either
+separator, the layout rules allow the `\r\n` line endings Git for Windows
+checks out, and `reflow.py` reads and writes UTF-8 whatever the system's code
+page. `npm run format` keeps each file's own line endings.
+
 ## When the board will not load
 
 `GET /arcstrides/boards/{id}` validates the whole board before returning it, so
