@@ -226,12 +226,15 @@ export function spanLabel(time: Dayjs | null, duration: number | null, relative 
 }
 
 /**
- * Recovers the mode from the dates, because the server does not store it.
+ * Recovers the mode from the dates, because the server does not store it: the
+ * mode that has a place for every point set. No points is timeless; a lone
+ * required end is a deadline; anything else is a timeline.
  *
- * Mirrors Blazor's OnInitialized() isTimeless / isDeadline() logic: preference
- * dates mean somebody drew a range, a bare deadline means they did not, and no
- * timeline at all means timeless. See Timeline.Draft for why storing the mode
- * was never an option.
+ * Blazor's OnInitialized() asked only whether there were preference dates, and
+ * so did this until a timeline of a required start and a required end was read
+ * as a deadline — which has only the end — and its start was dropped from the
+ * draft, and cleared the next time it was saved. See Timeline.Draft for why
+ * storing the mode was never an option.
  */
 export function modeOf(timeline: Timeline | null): TimelineMode
 {
@@ -239,7 +242,7 @@ export function modeOf(timeline: Timeline | null): TimelineMode
     // patch; it is timeless all the same.
     if (!timeline || NODES.every(node => !node.seed(timeline)))
         return 'timeless'
-    return timeline.startPreferenceUTC || timeline.endPreferenceUTC
-        ? 'timeline'
-        : 'deadline'
+    return NODES.every(node => !node.seed(timeline) || NODES_FOR.deadline.includes(node.id))
+        ? 'deadline'
+        : 'timeline'
 }

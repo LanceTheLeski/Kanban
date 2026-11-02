@@ -218,6 +218,16 @@ describe('draftFromTimeline', () =>
         })
     })
 
+    it('keeps a required start that has no preferred dates beside it, so saving it again clears nothing', () =>
+    {
+        const stored = timeline({ id: 'timeline-1', startDeadlineUTC: at('2026-10-27T09:00'), endDeadlineUTC: at('2026-10-30T17:00') })
+        const read = draftFromTimeline(stored)
+
+        expect(read.mode).toBe('timeline')
+        expect(draftMatches(read, stored)).toBe(true)
+        expect(draftToTimelineDates(read).startDeadlineUTC).toEqual(at('2026-10-27T09:00'))
+    })
+
     it('reads a deadline, a timeline with every point cleared and no timeline at all back as what they were', () =>
     {
         const deadline = timeline({ endDeadlineUTC: at('2026-10-30T00:00'), endDeadlineDurationMinutes: 120 })

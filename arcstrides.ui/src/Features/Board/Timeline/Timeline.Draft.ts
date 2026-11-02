@@ -188,10 +188,10 @@ export function draftFromTimeline(timeline: Timeline | null): TimelineDraft
  * was a card.
  *
  * The mode is not something the server stores, and does not need to be: it is
- * recoverable from the dates. A timeline with preference dates is a timeline,
- * one with only a deadline is a deadline, and no dates at all is timeless —
- * which is exactly how UpdateTimelinePanel decides what to show when it loads
- * one back.
+ * recoverable from the dates. A timeline whose only point is its required end
+ * is a deadline, one with any other point is a timeline, and no dates at all is
+ * timeless — which is exactly how UpdateTimelinePanel decides what to show when
+ * it loads one back (modeOf).
  *
  * The server's name for the field, `TimelineTypeID`, is from when it was meant
  * to carry the mode as well; see docs/timeline-model.md, problem 1.

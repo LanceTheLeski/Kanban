@@ -39,9 +39,12 @@ that (`TIMELINE_PARENT_CARD`, `TIMELINE_PARENT_TASK` in `Timeline.Draft`).
 It was once also meant to say whether a timeline was a deadline or a proper
 one, and the client sent that instead — so a proper timeline was refused as
 having no parent, and a deadline on a task was filed under a card. Nothing
-stores the mode now. It is worked out from the dates: preference dates make a
-timeline, a deadline alone makes a deadline, nothing at all is timeless, which
-is how `UpdateTimelinePanel` decides what to show when it loads one back.
+stores the mode now. It is worked out from the dates (`modeOf`): a required end
+alone makes a deadline, any other point makes a timeline, nothing at all is
+timeless, which is how `UpdateTimelinePanel` decides what to show when it loads
+one back. It used to ask only about the preference dates, so a required start
+and a required end with no preferred dates read as a deadline, which has only
+the end: the start was left out of the draft and cleared at the next save.
 
 **Still to do.** Rename it `ParentObjectTypeID`, to match how `Tag` models its
 parent. The name is what invited a mode to be stored in it, and still says a

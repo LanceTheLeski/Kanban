@@ -103,11 +103,16 @@ describe('modeOf', () =>
         expect(modeOf(timeline({ startPreferenceUTC: at('2026-10-28T09:00'), endDeadlineUTC: at('2026-10-31T17:00') }))).toBe('timeline')
     })
 
-    it('reads a timeline with only deadlines as a deadline', () =>
+    it('reads a timeline whose only point is the required end as a deadline', () =>
     {
         expect(modeOf(timeline({ endDeadlineUTC: at('2026-10-31T17:00') }))).toBe('deadline')
-        expect(modeOf(timeline({ startDeadlineUTC: at('2026-10-29T09:00') }))).toBe('deadline')
-        expect(modeOf(timeline({ startDeadlineUTC: at('2026-10-29T09:00'), endDeadlineUTC: at('2026-10-31T17:00') }))).toBe('deadline')
+        expect(modeOf(timeline({ endDeadlineUTC: at('2026-10-31T17:00'), endDeadlineDurationMinutes: 60 }))).toBe('deadline')
+    })
+
+    it('reads a required start as a timeline, with or without a required end: a deadline has nowhere to keep it', () =>
+    {
+        expect(modeOf(timeline({ startDeadlineUTC: at('2026-10-29T09:00') }))).toBe('timeline')
+        expect(modeOf(timeline({ startDeadlineUTC: at('2026-10-29T09:00'), endDeadlineUTC: at('2026-10-31T17:00') }))).toBe('timeline')
     })
 })
 
